@@ -1,0 +1,1 @@
+Follow the repository-wide instructions in `AGENTS.md`. Before editing a scoped area, also read its nearest `AGENTS.md` and relevant ADR. Keep this adapter short; canonical rules live outside `.github`.
