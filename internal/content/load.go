@@ -20,8 +20,8 @@ const (
 )
 
 var allowedLabels = map[string]struct{}{
-	"lpic-required":  {},
-	"lpic-legacy":    {},
+	"lpic-required":   {},
+	"lpic-legacy":     {},
 	"modern-practice": {},
 }
 
