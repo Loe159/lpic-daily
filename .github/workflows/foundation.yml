@@ -25,12 +25,12 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
-          cache: false
-      - name: Resolve modules
+          cache: true
+      - name: Verify module files are tidy
+        shell: bash
         run: |
           go mod tidy
-          echo "--- generated go.sum ---"
-          cat go.sum
+          git diff --exit-code -- go.mod go.sum
       - name: Check formatting
         shell: bash
         run: |
