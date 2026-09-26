@@ -6,7 +6,7 @@ import (
 )
 
 type CapabilityProfile struct {
-	Name        string
+	Name         string
 	Capabilities []string
 }
 
