@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.lesson.quoting-arguments",
+  "title_fr": "Quoting, expansions et arguments",
+  "objective_ids": [
+    "103.1"
+  ],
+  "concept_ids": [
+    "lpic1.103.1.quoting-escaping"
+  ],
+  "stage": "introduce",
+  "estimated_minutes": 4,
+  "body_markdown": "Le shell transforme la ligne avant de lancer un programme. Sans quoting, les espaces séparent les mots. Les apostrophes simples rendent leur contenu littéral : `'$HOME'` reste `$HOME`. Les guillemets doubles conservent les espaces dans un seul argument tout en autorisant l'expansion de variables.\n\nAinsi `printf '%s\\n' \"$FILE\"` transmet un seul argument même si la variable contient un espace. Le backslash protège ponctuellement le caractère suivant. Pour diagnostiquer un problème, raisonne sur les arguments reçus après expansion.",
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "distribution": "generic"
+}

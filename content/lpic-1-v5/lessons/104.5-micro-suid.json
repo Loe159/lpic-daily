@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.5.lesson.suid",
+  "title_fr": "SUID sur un exécutable",
+  "objective_ids": [
+    "104.5"
+  ],
+  "concept_ids": [
+    "lpic1.104.5.suid"
+  ],
+  "stage": "introduce",
+  "estimated_minutes": 3,
+  "body_markdown": "Le bit SUID sur un exécutable binaire demande que le processus utilise comme effective UID le propriétaire du fichier pendant l'exécution.\n\nCe mécanisme peut permettre une opération privilégiée très ciblée mais augmente l'impact d'une vulnérabilité. Sous Linux moderne, ne considère pas les scripts interprétés comme un moyen fiable d'obtenir ce comportement.",
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "distribution": "generic"
+}

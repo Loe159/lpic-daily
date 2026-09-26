@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.lesson.basic-system-info",
+  "title_fr": "Informations système de base",
+  "objective_ids": [
+    "103.1"
+  ],
+  "concept_ids": [
+    "lpic1.103.1.informations-systeme-de-base"
+  ],
+  "stage": "introduce",
+  "estimated_minutes": 2,
+  "body_markdown": "`uname -r` affiche la release du noyau en cours d'exécution. `uptime` indique depuis combien de temps le système tourne et fournit notamment les load averages. `pwd` affiche le répertoire de travail courant.\n\nCes commandes donnent rapidement le contexte minimal d'une machine avant d'aller vers des outils de diagnostic plus spécialisés.",
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "distribution": "generic"
+}

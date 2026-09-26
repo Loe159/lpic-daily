@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.5.lesson.rwx-files-directories",
+  "title_fr": "rwx sur fichiers et répertoires",
+  "objective_ids": [
+    "104.5"
+  ],
+  "concept_ids": [
+    "lpic1.104.5.permissions-rwx-fichier-dossier"
+  ],
+  "stage": "introduce",
+  "estimated_minutes": 4,
+  "body_markdown": "Sur un fichier, `r` permet la lecture, `w` la modification et `x` l'exécution. Sur un répertoire, `r` permet de lire la liste de noms, `x` de le traverser et d'accéder à une entrée connue, et `w` de modifier ses entrées.\n\nSupprimer un fichier dépend donc surtout des droits sur son répertoire parent. Lors d'un diagnostic, examine aussi les permissions des répertoires traversés dans le chemin.",
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "distribution": "generic"
+}

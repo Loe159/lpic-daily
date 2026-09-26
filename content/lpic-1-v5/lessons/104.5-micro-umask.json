@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.5.lesson.umask",
+  "title_fr": "Comprendre umask",
+  "objective_ids": [
+    "104.5"
+  ],
+  "concept_ids": [
+    "lpic1.104.5.umask"
+  ],
+  "stage": "introduce",
+  "estimated_minutes": 3,
+  "body_markdown": "`umask` définit les bits retirés lors de la création. Les bases habituelles sont 666 pour un fichier ordinaire et 777 pour un répertoire.\n\nAvec `umask 027`, un fichier demandé en 666 devient 640 et un répertoire demandé en 777 devient 750. Il faut raisonner comme un masque de bits, pas comme une soustraction décimale. Le umask n'agit que sur les créations futures.",
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "distribution": "generic"
+}

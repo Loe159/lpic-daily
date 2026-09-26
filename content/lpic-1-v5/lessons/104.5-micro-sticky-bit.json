@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.5.lesson.sticky-bit",
+  "title_fr": "Sticky bit sur un répertoire",
+  "objective_ids": [
+    "104.5"
+  ],
+  "concept_ids": [
+    "lpic1.104.5.sticky-bit"
+  ],
+  "stage": "introduce",
+  "estimated_minutes": 3,
+  "body_markdown": "Dans un répertoire inscriptible par plusieurs utilisateurs, le droit `w` permet normalement de modifier les entrées. Le sticky bit empêche un utilisateur ordinaire de supprimer ou renommer librement l'entrée d'un autre utilisateur.\n\n`/tmp` est l'exemple classique. Le sticky bit vaut 1000 en octal et apparaît avec `t` ou `T` dans la position d'exécution de other.",
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "distribution": "generic"
+}

@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.5.lesson.nohup-sighup",
+  "title_fr": "Faire survivre un travail à la session",
+  "objective_ids": [
+    "103.5"
+  ],
+  "concept_ids": [
+    "lpic1.103.5.processus-survivant-a-la-session"
+  ],
+  "stage": "introduce",
+  "estimated_minutes": 3,
+  "body_markdown": "Lorsqu'un terminal disparaît, un processus encore lié à la session peut recevoir SIGHUP. `nohup commande ... &` est le mécanisme classique pour lancer une commande en lui faisant ignorer SIGHUP.\n\n`nohup` ne crée pas un vrai service : stdin, stdout et stderr doivent aussi être gérés. Pour une tâche durable supervisée, systemd est souvent préférable aujourd'hui, mais LPIC attend la compréhension de `nohup` et SIGHUP.",
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "distribution": "generic"
+}

@@ -13,8 +13,8 @@ func TestBuiltinPhase1ContentCoversEveryConcept(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Load() error = %v", err)
 	}
-	if len(bundle.Lessons) != 3 {
-		t.Fatalf("lessons = %d, want 3", len(bundle.Lessons))
+	if len(bundle.Lessons) != 25 {
+		t.Fatalf("lessons = %d, want 25 (22 introductions + 3 deepen)", len(bundle.Lessons))
 	}
 	if len(bundle.Questions) != 22 {
 		t.Fatalf("questions = %d, want 22", len(bundle.Questions))
@@ -32,9 +32,13 @@ func TestBuiltinPhase1ContentCoversEveryConcept(t *testing.T) {
 	slices.Sort(phase1Concepts)
 
 	lessonCoverage := make(map[string]int)
+	introductions := make(map[string]int)
 	for _, lesson := range bundle.Lessons {
 		for _, conceptID := range lesson.ConceptIDs {
 			lessonCoverage[conceptID]++
+			if lesson.Stage == "introduce" && len(lesson.ConceptIDs) == 1 {
+				introductions[conceptID]++
+			}
 		}
 	}
 
@@ -49,6 +53,9 @@ func TestBuiltinPhase1ContentCoversEveryConcept(t *testing.T) {
 	for _, conceptID := range phase1Concepts {
 		if lessonCoverage[conceptID] == 0 {
 			t.Errorf("concept %s has no lesson", conceptID)
+		}
+		if introductions[conceptID] != 1 {
+			t.Errorf("concept %s focused introduction coverage = %d, want exactly 1", conceptID, introductions[conceptID])
 		}
 		if questionCoverage[conceptID] != 1 {
 			t.Errorf("concept %s question coverage = %d, want exactly 1", conceptID, questionCoverage[conceptID])

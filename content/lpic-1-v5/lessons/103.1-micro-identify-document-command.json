@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.lesson.identify-document-command",
+  "title_fr": "Identifier et documenter une commande",
+  "objective_ids": [
+    "103.1"
+  ],
+  "concept_ids": [
+    "lpic1.103.1.documentation-et-identification-d-une-commande"
+  ],
+  "stage": "introduce",
+  "estimated_minutes": 3,
+  "body_markdown": "Avant de chercher la documentation, identifie ce que le shell exécutera. `type nom` indique si le nom est un alias, une fonction, un builtin ou un exécutable. `command -v nom` fournit une résolution simple utilisable dans les scripts.\n\n`man commande` donne la documentation locale classique lorsque les pages sont installées ; beaucoup d'outils proposent aussi `--help`, et `help builtin` documente les builtins Bash. `which` existe encore mais comprend moins bien les constructions internes du shell.",
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "distribution": "generic"
+}

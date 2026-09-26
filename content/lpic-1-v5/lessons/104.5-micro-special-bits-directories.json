@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.5.lesson.special-bits-directories",
+  "title_fr": "Combiner les bits spéciaux sur un répertoire",
+  "objective_ids": [
+    "104.5"
+  ],
+  "concept_ids": [
+    "lpic1.104.5.effets-speciaux-sur-repertoires"
+  ],
+  "stage": "introduce",
+  "estimated_minutes": 4,
+  "body_markdown": "Sur un répertoire partagé, SGID et sticky répondent à deux problèmes différents : SGID stabilise le groupe des nouvelles entrées ; sticky restreint qui peut supprimer ou renommer les entrées.\n\nUn mode `3770` combine SGID (2000), sticky (1000) et les permissions `770`. Vérifie le répertoire lui-même avec `ls -ld` et relie toujours chaque bit spécial à son effet sur le type d'objet concerné.",
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "distribution": "generic"
+}

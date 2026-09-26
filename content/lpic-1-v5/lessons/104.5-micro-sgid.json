@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.5.lesson.sgid",
+  "title_fr": "SGID sur fichiers et répertoires",
+  "objective_ids": [
+    "104.5"
+  ],
+  "concept_ids": [
+    "lpic1.104.5.sgid"
+  ],
+  "stage": "introduce",
+  "estimated_minutes": 3,
+  "body_markdown": "Sur un exécutable, SGID agit sur l'effective GID. Sur un répertoire, son effet essentiel est différent : les nouvelles entrées héritent du groupe du répertoire.\n\nC'est particulièrement utile pour un espace collaboratif. SGID vaut 2000 en octal et apparaît avec `s` ou `S` dans la position d'exécution du groupe.",
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "distribution": "generic"
+}

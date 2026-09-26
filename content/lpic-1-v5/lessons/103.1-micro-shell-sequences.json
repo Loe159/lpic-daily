@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.lesson.shell-sequences",
+  "title_fr": "Séquences de commandes et statuts",
+  "objective_ids": [
+    "103.1"
+  ],
+  "concept_ids": [
+    "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes"
+  ],
+  "stage": "introduce",
+  "estimated_minutes": 3,
+  "body_markdown": "Une ligne Bash peut enchaîner plusieurs commandes. Le séparateur `;` exécute la suite quelle que soit l'issue précédente. Avec `cmd1 && cmd2`, la seconde commande n'est exécutée que si la première retourne le statut 0 ; avec `cmd1 || cmd2`, elle n'est exécutée que si la première échoue.\n\nLe statut de la dernière commande est disponible dans `$?`. Par convention, 0 signifie succès et une valeur non nulle indique une autre issue. Pour comprendre une séquence, suis donc les statuts de sortie plutôt que le texte affiché.",
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "distribution": "generic"
+}

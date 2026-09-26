@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.5.lesson.select-process",
+  "title_fr": "Sélectionner précisément un processus",
+  "objective_ids": [
+    "103.5"
+  ],
+  "concept_ids": [
+    "lpic1.103.5.selection-par-nom-pid"
+  ],
+  "stage": "introduce",
+  "estimated_minutes": 3,
+  "body_markdown": "`pgrep` recherche des processus et renvoie leurs PID à partir de critères. `pkill` applique une sélection comparable puis envoie un signal, et `killall` cible également par nom.\n\nUne sélection trop large peut toucher un processus légitime. Observe d'abord les résultats, vérifie les arguments et utilise un PID explicite lorsqu'une cible unique est déjà connue.",
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "distribution": "generic"
+}

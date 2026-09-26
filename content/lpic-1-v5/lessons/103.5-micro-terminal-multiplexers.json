@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.5.lesson.terminal-multiplexers",
+  "title_fr": "Multiplexeurs de terminal",
+  "objective_ids": [
+    "103.5"
+  ],
+  "concept_ids": [
+    "lpic1.103.5.multiplexeurs-de-terminal"
+  ],
+  "stage": "introduce",
+  "estimated_minutes": 3,
+  "body_markdown": "`tmux` et `screen` créent des sessions terminal indépendantes du terminal client. Tu peux détacher l'interface, fermer la connexion puis rattacher la session plus tard.\n\nContrairement à `nohup`, un multiplexeur conserve un environnement interactif avec son terminal virtuel. Il est adapté au travail interactif distant, mais ne remplace pas un gestionnaire de services.",
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "distribution": "generic"
+}

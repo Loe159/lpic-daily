@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.5.lesson.permission-notation",
+  "title_fr": "Notation symbolique et octale",
+  "objective_ids": [
+    "104.5"
+  ],
+  "concept_ids": [
+    "lpic1.104.5.notation-symbolique-octale"
+  ],
+  "stage": "introduce",
+  "estimated_minutes": 3,
+  "body_markdown": "`chmod` accepte une notation symbolique comme `u+rwx,g+rx,o-rwx` ou une notation octale. En octal, `r=4`, `w=2`, `x=1` et les valeurs s'additionnent : `rwxr-x---` vaut `750`.\n\nLes bits spéciaux occupent un chiffre supplémentaire : SUID=4000, SGID=2000 et sticky=1000. Savoir convertir aide à lire et modifier rapidement un mode.",
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "distribution": "generic"
+}

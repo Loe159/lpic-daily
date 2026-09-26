@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.lesson.variables-environment",
+  "title_fr": "Variables shell et environnement",
+  "objective_ids": [
+    "103.1"
+  ],
+  "concept_ids": [
+    "lpic1.103.1.variables-shell-environnement"
+  ],
+  "stage": "introduce",
+  "estimated_minutes": 3,
+  "body_markdown": "`NAME=value` crée une variable dans le shell courant. Elle n'est pas automatiquement transmise aux processus enfants. `export NAME` ou `export NAME=value` la place dans l'environnement transmis aux commandes lancées ensuite.\n\n`env` permet d'observer cet environnement et `unset NAME` retire la variable. Une valeur visible avec `echo` n'est donc pas forcément exportée : distingue toujours variable du shell et variable d'environnement.",
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "distribution": "generic"
+}

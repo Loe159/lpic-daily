@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.5.lesson.process-signals",
+  "title_fr": "Signaux de processus",
+  "objective_ids": [
+    "103.5"
+  ],
+  "concept_ids": [
+    "lpic1.103.5.signaux"
+  ],
+  "stage": "introduce",
+  "estimated_minutes": 4,
+  "body_markdown": "`kill PID` envoie SIGTERM par défaut. SIGTERM peut être intercepté afin qu'un programme se termine proprement. SIGKILL force l'arrêt et ne peut pas être intercepté ; il doit rester un dernier recours.\n\nSIGSTOP suspend sans possibilité de traitement, SIGCONT reprend un processus suspendu, et Ctrl-Z provoque normalement SIGTSTP pour le foreground job. Choisis le signal selon l'intention plutôt que d'utiliser systématiquement le plus brutal.",
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "distribution": "generic"
+}

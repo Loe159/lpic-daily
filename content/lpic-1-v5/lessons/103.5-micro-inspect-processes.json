@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.5.lesson.inspect-processes",
+  "title_fr": "Inspecter processus et ressources",
+  "objective_ids": [
+    "103.5"
+  ],
+  "concept_ids": [
+    "lpic1.103.5.inspection-arbres-ressources"
+  ],
+  "stage": "introduce",
+  "estimated_minutes": 4,
+  "body_markdown": "`ps` fournit un instantané des processus et peut exposer PID, PPID, utilisateur, état, commande et arguments. `top` donne une vue interactive actualisée, `free` résume la mémoire, `uptime` la durée de fonctionnement et la charge, et `watch` répète une commande.\n\nAvant d'envoyer un signal, croise nom, PID, arguments et relation parent/enfant. Deux processus proches peuvent avoir des rôles différents.",
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "distribution": "generic"
+}

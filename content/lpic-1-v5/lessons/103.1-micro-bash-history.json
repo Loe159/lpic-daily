@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.lesson.bash-history",
+  "title_fr": "Historique Bash",
+  "objective_ids": [
+    "103.1"
+  ],
+  "concept_ids": [
+    "lpic1.103.1.historique"
+  ],
+  "stage": "introduce",
+  "estimated_minutes": 2,
+  "body_markdown": "`history` affiche l'historique connu du shell courant. Bash utilise généralement `~/.bash_history` comme fichier persistant, mais mémoire et fichier ne sont pas forcément synchronisés après chaque commande.\n\nLe fichier peut n'être mis à jour qu'à la fermeture ou lors d'une synchronisation explicite. L'historique aide à retrouver des commandes, mais ne doit pas être considéré comme un journal d'audit fiable.",
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "distribution": "generic"
+}

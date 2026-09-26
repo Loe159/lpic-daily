@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.5.lesson.owner-group",
+  "title_fr": "Propriétaire et groupe",
+  "objective_ids": [
+    "104.5"
+  ],
+  "concept_ids": [
+    "lpic1.104.5.proprietaire-groupe"
+  ],
+  "stage": "introduce",
+  "estimated_minutes": 3,
+  "body_markdown": "Chaque fichier possède un propriétaire et un groupe. `chown utilisateur:groupe chemin` peut modifier les deux lorsque les privilèges le permettent ; `chgrp groupe chemin` ne change que le groupe.\n\nLes noms affichés traduisent des UID/GID numériques. Dans un espace collaboratif, un groupe cohérent et des permissions adaptées évitent de multiplier les changements ponctuels de propriétaire.",
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "distribution": "generic"
+}

@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.5.lesson.foreground-background",
+  "title_fr": "Foreground et background",
+  "objective_ids": [
+    "103.5"
+  ],
+  "concept_ids": [
+    "lpic1.103.5.processus-avant-arriere-plan"
+  ],
+  "stage": "introduce",
+  "estimated_minutes": 3,
+  "body_markdown": "Une commande lancée normalement occupe le foreground du terminal : le shell attend sa fin. Ajouter `&` lance le pipeline en background et rend immédiatement le prompt.\n\nForeground et background sont liés au contrôle du terminal. Le foreground process group reçoit notamment les signaux générés par certaines touches comme Ctrl-C ou Ctrl-Z ; un processus background n'est donc pas automatiquement détaché ni transformé en service.",
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "distribution": "generic"
+}

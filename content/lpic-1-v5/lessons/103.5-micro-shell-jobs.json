@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.5.lesson.shell-jobs",
+  "title_fr": "Jobs du shell",
+  "objective_ids": [
+    "103.5"
+  ],
+  "concept_ids": [
+    "lpic1.103.5.jobs-du-shell"
+  ],
+  "stage": "introduce",
+  "estimated_minutes": 3,
+  "body_markdown": "Un job est une abstraction du shell distincte d'un PID. Le shell regroupe les processus d'une commande et leur attribue des job specs comme `%1`.\n\n`jobs` affiche les jobs du shell courant. Après Ctrl-Z, `bg %1` reprend un job suspendu en arrière-plan et `fg %1` le remet au premier plan. Ces job specs appartiennent au shell courant.",
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "distribution": "generic"
+}
