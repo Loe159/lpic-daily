@@ -26,11 +26,11 @@ func TestInitialEligibility(t *testing.T) {
 	}
 }
 
-func TestShellFoundationUnlocksPhase1Peers(t *testing.T) {
+func TestShellFoundationUnlocksPhase1PeersWithoutHidingItself(t *testing.T) {
 	eligible := learning.EligibleObjectives(loadGraph(t), map[string]bool{"103.1": true})
-	for _, objectiveID := range []string{"103.5", "104.5"} {
+	for _, objectiveID := range []string{"103.1", "103.5", "104.5"} {
 		if !slices.Contains(eligible, objectiveID) {
-			t.Fatalf("%s should be eligible after 103.1 evidence; got %v", objectiveID, eligible)
+			t.Fatalf("%s should remain/become eligible after 103.1 readiness; got %v", objectiveID, eligible)
 		}
 	}
 }

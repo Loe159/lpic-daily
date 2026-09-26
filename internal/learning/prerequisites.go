@@ -2,16 +2,14 @@ package learning
 
 import "github.com/Loe159/lpic-daily/internal/curriculum"
 
-// EligibleObjectives returns objectives that may be introduced as new material.
+// EligibleObjectives returns objectives whose hard prerequisites are ready.
 //
-// readiness represents prerequisite evidence, not lesson completion. This lets
-// an initial assessment unlock known material without fabricating history.
+// readiness describes prerequisite readiness only. A ready objective may still
+// contain unseen or due concepts, so readiness must never be interpreted as
+// "objective complete".
 func EligibleObjectives(graph curriculum.PrerequisitesFile, readiness map[string]bool) []string {
 	eligible := make([]string, 0, len(graph.Nodes))
 	for _, node := range graph.Nodes {
-		if readiness[node.ObjectiveID] {
-			continue
-		}
 		ready := true
 		for _, prerequisite := range node.HardPrerequisites {
 			if !readiness[prerequisite] {
