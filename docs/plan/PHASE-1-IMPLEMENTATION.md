@@ -10,7 +10,7 @@ Deliver the vertical slice defined in `PHASE-1-VERTICAL-SLICE.md` without weaken
 
 ## Workstream A — core curriculum + learning engine
 
-Status: **implemented on feature branch, pending CI/review**
+Status: **implemented and CI green**
 
 - Go 1.27 module;
 - strict loader for objectives, graph, concepts and Phase-1 slice;
@@ -23,26 +23,24 @@ Status: **implemented on feature branch, pending CI/review**
   - objective weight;
   - due reviews;
   - one new concept per session;
-- embedded SQLite migration definitions;
-- separate mastery/gamification tables;
-- append-only triggers for evidence/gamification logs;
 - CLI smoke commands: `lpic validate` and `lpic plan`.
 
 ## Workstream B — executable SQLite store
 
-Status: **next**
+Status: **implemented, validation in progress**
 
-- select/pin SQLite Go driver;
-- database open/configuration;
-- migration runner;
+- pure-Go SQLite driver via `modernc.org/sqlite`;
+- XDG-aware local database path;
+- migration runner with fail-closed future-version check;
 - evidence append/query API;
-- gamification append/query API;
-- transactional tests against real SQLite;
-- local XDG data path.
+- gamification append API kept separate from mastery;
+- transactional migration application;
+- database triggers preventing UPDATE/DELETE of evidence and gamification history;
+- round-trip, append-only, separation, migration-idempotency and future-schema tests.
 
 ## Workstream C — content runtime
 
-Status: **planned**
+Status: **next**
 
 - JSON Schema validation in Go;
 - lesson/question/hint/lab loaders;
