@@ -1,6 +1,7 @@
 package podman
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"encoding/binary"
@@ -8,9 +9,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -56,20 +59,24 @@ func (backend *Backend) Exec(
 	if err := request.Validate(); err != nil {
 		return runner.ExecResult{}, fmt.Errorf("validate exec request: %w", err)
 	}
-	if request.TTY || request.Stdin != nil {
-		return runner.ExecResult{}, fmt.Errorf(
-			"%w: TTY/stdin Podman exec is not implemented yet",
-			runner.ErrNotSupported,
-		)
-	}
 
 	env, err := encodeEnvironment(request.Env)
 	if err != nil {
 		return runner.ExecResult{}, err
 	}
 
+	if request.TTY {
+		return backend.execTTY(ctx, instance, request, env)
+	}
+	if request.Stdin != nil {
+		return runner.ExecResult{}, fmt.Errorf(
+			"%w: non-TTY stdin Podman exec is not implemented yet",
+			runner.ErrNotSupported,
+		)
+	}
+
 	attached := request.Stdout != nil || request.Stderr != nil
-	create := execCreateRequest{
+	created, err := backend.createExec(ctx, instance, execCreateRequest{
 		AttachStderr: attached,
 		AttachStdin:  false,
 		AttachStdout: attached,
@@ -78,21 +85,9 @@ func (backend *Backend) Exec(
 		Privileged:   false,
 		Tty:          false,
 		WorkingDir:   request.WorkingDir,
-	}
-
-	var created execCreateResponse
-	if err := backend.doJSON(
-		ctx,
-		http.MethodPost,
-		compatBase+"/containers/"+url.PathEscape(instance.ID)+"/exec",
-		nil,
-		create,
-		&created,
-	); err != nil {
-		return runner.ExecResult{}, fmt.Errorf("create exec session: %w", err)
-	}
-	if created.ID == "" {
-		return runner.ExecResult{}, errors.New("Podman returned an empty exec session ID")
+	})
+	if err != nil {
+		return runner.ExecResult{}, err
 	}
 
 	if attached {
@@ -113,6 +108,233 @@ func (backend *Backend) Exec(
 	}
 
 	return backend.waitExec(ctx, created.ID)
+}
+
+func (backend *Backend) createExec(
+	ctx context.Context,
+	instance runner.Instance,
+	request execCreateRequest,
+) (execCreateResponse, error) {
+	var created execCreateResponse
+	if err := backend.doJSON(
+		ctx,
+		http.MethodPost,
+		compatBase+"/containers/"+url.PathEscape(instance.ID)+"/exec",
+		nil,
+		request,
+		&created,
+	); err != nil {
+		return execCreateResponse{}, fmt.Errorf("create exec session: %w", err)
+	}
+	if created.ID == "" {
+		return execCreateResponse{}, errors.New("Podman returned an empty exec session ID")
+	}
+	return created, nil
+}
+
+func (backend *Backend) execTTY(
+	ctx context.Context,
+	instance runner.Instance,
+	request runner.ExecRequest,
+	env []string,
+) (runner.ExecResult, error) {
+	created, err := backend.createExec(ctx, instance, execCreateRequest{
+		AttachStderr: true,
+		AttachStdin:  true,
+		AttachStdout: true,
+		Cmd:          append([]string(nil), request.Argv...),
+		Env:          env,
+		Privileged:   false,
+		Tty:          true,
+		WorkingDir:   request.WorkingDir,
+	})
+	if err != nil {
+		return runner.ExecResult{}, err
+	}
+
+	conn, reader, err := backend.startTTYExec(ctx, created.ID)
+	if err != nil {
+		return runner.ExecResult{}, err
+	}
+
+	streamCtx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	defer conn.Close()
+
+	if request.InitialSize.Width != 0 || request.InitialSize.Height != 0 {
+		if err := backend.resizeExec(streamCtx, created.ID, request.InitialSize); err != nil {
+			return runner.ExecResult{}, fmt.Errorf("set initial terminal size: %w", err)
+		}
+	}
+
+	resizeErr := make(chan error, 1)
+	if request.Resize != nil {
+		go backend.forwardResize(streamCtx, created.ID, request.Resize, resizeErr)
+	}
+
+	contextDone := make(chan struct{})
+	go func() {
+		select {
+		case <-streamCtx.Done():
+			_ = conn.Close()
+		case <-contextDone:
+		}
+	}()
+	defer close(contextDone)
+
+	if request.Stdin != nil {
+		go func() {
+			_, _ = io.Copy(conn, request.Stdin)
+			if unixConn, ok := conn.(*net.UnixConn); ok {
+				_ = unixConn.CloseWrite()
+			}
+		}()
+	}
+
+	stdout := request.Stdout
+	if stdout == nil {
+		stdout = io.Discard
+	}
+	_, copyErr := io.Copy(stdout, reader)
+	cancel()
+	_ = conn.Close()
+
+	select {
+	case err := <-resizeErr:
+		if err != nil {
+			return runner.ExecResult{}, err
+		}
+	default:
+	}
+	if copyErr != nil && !errors.Is(copyErr, net.ErrClosed) && ctx.Err() == nil {
+		return runner.ExecResult{}, fmt.Errorf("read TTY stream: %w", copyErr)
+	}
+	if err := ctx.Err(); err != nil {
+		return runner.ExecResult{}, err
+	}
+	return backend.waitExec(ctx, created.ID)
+}
+
+func (backend *Backend) startTTYExec(
+	ctx context.Context,
+	execID string,
+) (net.Conn, *bufio.Reader, error) {
+	payload, err := json.Marshal(execStartRequest{Detach: false, Tty: true})
+	if err != nil {
+		return nil, nil, fmt.Errorf("encode TTY exec start request: %w", err)
+	}
+
+	conn, err := (&net.Dialer{}).DialContext(ctx, "unix", backend.socketPath)
+	if err != nil {
+		return nil, nil, fmt.Errorf("connect TTY stream to Podman service: %w", err)
+	}
+
+	request, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodPost,
+		"http://podman"+compatBase+"/exec/"+url.PathEscape(execID)+"/start",
+		bytes.NewReader(payload),
+	)
+	if err != nil {
+		_ = conn.Close()
+		return nil, nil, fmt.Errorf("build TTY exec start request: %w", err)
+	}
+	request.Host = "podman"
+	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("Connection", "Upgrade")
+	request.Header.Set("Upgrade", "tcp")
+
+	if err := request.Write(conn); err != nil {
+		_ = conn.Close()
+		return nil, nil, fmt.Errorf("write TTY exec start request: %w", err)
+	}
+
+	reader := bufio.NewReader(conn)
+	response, err := http.ReadResponse(reader, request)
+	if err != nil {
+		_ = conn.Close()
+		return nil, nil, fmt.Errorf("read TTY upgrade response: %w", err)
+	}
+	if response.Body != nil {
+		defer response.Body.Close()
+	}
+	if response.StatusCode != http.StatusSwitchingProtocols {
+		const maxError = 1 << 20
+		body, readErr := io.ReadAll(io.LimitReader(response.Body, maxError+1))
+		_ = conn.Close()
+		if readErr != nil {
+			return nil, nil, fmt.Errorf("read TTY exec error: %w", readErr)
+		}
+		if len(body) > maxError {
+			return nil, nil, errors.New("TTY exec error response exceeded 1 MiB safety limit")
+		}
+		return nil, nil, &statusError{
+			Code:    response.StatusCode,
+			Method:  http.MethodPost,
+			Path:    compatBase + "/exec/" + execID + "/start",
+			Message: strings.TrimSpace(string(body)),
+		}
+	}
+
+	if !strings.EqualFold(response.Header.Get("Upgrade"), "tcp") {
+		_ = conn.Close()
+		return nil, nil, fmt.Errorf("unexpected TTY upgrade protocol %q", response.Header.Get("Upgrade"))
+	}
+	return conn, reader, nil
+}
+
+func (backend *Backend) forwardResize(
+	ctx context.Context,
+	execID string,
+	resize <-chan runner.TerminalSize,
+	errs chan<- error,
+) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case size, ok := <-resize:
+			if !ok {
+				return
+			}
+			if err := size.Validate(); err != nil {
+				select {
+				case errs <- fmt.Errorf("invalid terminal resize: %w", err):
+				default:
+				}
+				return
+			}
+			if err := backend.resizeExec(ctx, execID, size); err != nil {
+				select {
+				case errs <- fmt.Errorf("resize terminal: %w", err):
+				default:
+				}
+				return
+			}
+		}
+	}
+}
+
+func (backend *Backend) resizeExec(
+	ctx context.Context,
+	execID string,
+	size runner.TerminalSize,
+) error {
+	if err := size.Validate(); err != nil {
+		return err
+	}
+	query := url.Values{
+		"h": {strconv.FormatUint(uint64(size.Height), 10)},
+		"w": {strconv.FormatUint(uint64(size.Width), 10)},
+	}
+	return backend.doJSON(
+		ctx,
+		http.MethodPost,
+		compatBase+"/exec/"+url.PathEscape(execID)+"/resize",
+		query,
+		nil,
+		nil,
+	)
 }
 
 func (backend *Backend) startAttachedExec(

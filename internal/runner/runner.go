@@ -23,8 +23,8 @@ type Definition struct {
 	Network           NetworkMode
 	CapabilityProfile string
 	MemoryMB          int
-	PIDs              int
-	Timeout           time.Duration
+	PIDs               int
+	Timeout            time.Duration
 }
 
 func (definition Definition) Validate() error {
@@ -56,14 +56,28 @@ type Instance struct {
 	ID string
 }
 
+type TerminalSize struct {
+	Width  uint
+	Height uint
+}
+
+func (size TerminalSize) Validate() error {
+	if size.Width == 0 || size.Height == 0 {
+		return errors.New("terminal width and height must both be positive")
+	}
+	return nil
+}
+
 type ExecRequest struct {
-	Argv       []string
-	Env        map[string]string
-	WorkingDir string
-	Stdin      io.Reader
-	Stdout     io.Writer
-	Stderr     io.Writer
-	TTY        bool
+	Argv        []string
+	Env         map[string]string
+	WorkingDir  string
+	Stdin       io.Reader
+	Stdout      io.Writer
+	Stderr      io.Writer
+	TTY         bool
+	InitialSize TerminalSize
+	Resize      <-chan TerminalSize
 }
 
 func (request ExecRequest) Validate() error {
@@ -72,6 +86,16 @@ func (request ExecRequest) Validate() error {
 	}
 	if request.WorkingDir != "" && request.WorkingDir[0] != '/' {
 		return errors.New("working directory must be absolute")
+	}
+
+	hasInitialSize := request.InitialSize.Width != 0 || request.InitialSize.Height != 0
+	if !request.TTY && (hasInitialSize || request.Resize != nil) {
+		return errors.New("terminal size/resize requires TTY")
+	}
+	if hasInitialSize {
+		if err := request.InitialSize.Validate(); err != nil {
+			return err
+		}
 	}
 	return nil
 }
