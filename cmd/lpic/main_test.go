@@ -23,7 +23,7 @@ func TestTodayStartsWith1031AndCreatesLocalProgressStore(t *testing.T) {
 	for _, want := range []string{
 		"LPIC Daily — Aujourd'hui",
 		"Nouveau · 103.1 · syntaxe shell et séquences de commandes",
-		"lpic1.103.1.lesson.command-line-foundations",
+		"Cours conseillé: lpic1.103.1.lesson.shell-sequences",
 		"lpic1.103.1.q.sequence-and",
 	} {
 		if !strings.Contains(output, want) {

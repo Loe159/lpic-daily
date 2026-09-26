@@ -163,14 +163,14 @@ func runToday(args []string, stdout io.Writer) error {
 		)
 		fmt.Fprintf(stdout, "   Maîtrise: %s\n", item.MasteryStage)
 		fmt.Fprintf(stdout, "   Pourquoi: %s\n", item.ReasonFR)
-		if len(item.LessonIDs) != 0 {
-			fmt.Fprintf(stdout, "   Cours: %s\n", strings.Join(item.LessonIDs, ", "))
+		if item.RecommendedLessonID != "" {
+			fmt.Fprintf(stdout, "   Cours conseillé: %s\n", item.RecommendedLessonID)
 		}
-		if len(item.QuestionIDs) != 0 {
-			fmt.Fprintf(stdout, "   Question: %s\n", strings.Join(item.QuestionIDs, ", "))
+		if item.RecommendedQuestionID != "" {
+			fmt.Fprintf(stdout, "   Question: %s\n", item.RecommendedQuestionID)
 		}
-		if len(item.LabIDs) != 0 {
-			fmt.Fprintf(stdout, "   Lab: %s\n", strings.Join(item.LabIDs, ", "))
+		if item.RecommendedLabID != "" {
+			fmt.Fprintf(stdout, "   Lab: %s\n", item.RecommendedLabID)
 		}
 	}
 	return nil

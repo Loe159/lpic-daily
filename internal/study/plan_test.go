@@ -36,7 +36,7 @@ func loadInputs(t *testing.T) (*curriculum.Bundle, *content.Bundle, []lab.Lab) {
 	return curriculumBundle, contentBundle, labs
 }
 
-func TestFreshPlanStartsWithFirst1031ConceptAndResolvesArtifacts(t *testing.T) {
+func TestFreshPlanStartsWithFocused1031Introduction(t *testing.T) {
 	curriculumBundle, contentBundle, labs := loadInputs(t)
 	now := time.Date(2026, 9, 26, 20, 0, 0, 0, time.UTC)
 
@@ -54,6 +54,7 @@ func TestFreshPlanStartsWithFirst1031ConceptAndResolvesArtifacts(t *testing.T) {
 	if len(plan.Items) != 1 {
 		t.Fatalf("items = %d, want 1", len(plan.Items))
 	}
+
 	item := plan.Items[0]
 	if item.Kind != learning.SessionNew || item.ObjectiveID != "103.1" {
 		t.Fatalf("item = %#v, want new 103.1 concept", item)
@@ -61,15 +62,21 @@ func TestFreshPlanStartsWithFirst1031ConceptAndResolvesArtifacts(t *testing.T) {
 	if item.ConceptID != "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes" {
 		t.Fatalf("concept = %s", item.ConceptID)
 	}
-	if len(item.LessonIDs) != 1 || len(item.QuestionIDs) != 1 {
-		t.Fatalf("resolved item = %#v, want lesson + question", item)
+	if len(item.LessonIDs) != 2 || len(item.QuestionIDs) != 1 {
+		t.Fatalf("resolved item = %#v, want focused + deepen lesson and one question", item)
 	}
-	if len(item.LabIDs) != 0 {
-		t.Fatalf("first shell syntax concept unexpectedly has lab coverage: %v", item.LabIDs)
+	if item.RecommendedLessonID != "lpic1.103.1.lesson.shell-sequences" {
+		t.Fatalf("recommended lesson = %q", item.RecommendedLessonID)
+	}
+	if item.RecommendedQuestionID != "lpic1.103.1.q.sequence-and" {
+		t.Fatalf("recommended question = %q", item.RecommendedQuestionID)
+	}
+	if len(item.LabIDs) != 0 || item.RecommendedLabID != "" {
+		t.Fatalf("first shell syntax concept unexpectedly has lab coverage: %#v", item)
 	}
 }
 
-func TestPlanUsesStoredRecallToCreateDueReview(t *testing.T) {
+func TestPlanUsesStoredRecallToCreateDueReviewWithoutReplayingLesson(t *testing.T) {
 	curriculumBundle, contentBundle, labs := loadInputs(t)
 	now := time.Date(2026, 9, 26, 20, 0, 0, 0, time.UTC)
 	conceptID := "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes"
@@ -110,6 +117,12 @@ func TestPlanUsesStoredRecallToCreateDueReview(t *testing.T) {
 	}
 	if plan.Items[0].MasteryStage != learning.StageRecall {
 		t.Fatalf("stage = %s, want recall", plan.Items[0].MasteryStage)
+	}
+	if plan.Items[0].RecommendedLessonID != "" {
+		t.Fatalf("review unexpectedly recommends lesson %q", plan.Items[0].RecommendedLessonID)
+	}
+	if plan.Items[0].RecommendedQuestionID != "lpic1.103.1.q.sequence-and" {
+		t.Fatalf("review question = %q", plan.Items[0].RecommendedQuestionID)
 	}
 }
 

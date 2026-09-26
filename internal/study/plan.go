@@ -27,16 +27,19 @@ type PlanInput struct {
 }
 
 type Item struct {
-	ConceptID      string
-	ConceptTitleFR string
-	ObjectiveID    string
-	Kind           learning.SessionItemKind
-	MasteryStage   learning.MasteryStage
-	ReasonFR       string
-	DueAt          time.Time
-	LessonIDs      []string
-	QuestionIDs    []string
-	LabIDs         []string
+	ConceptID             string
+	ConceptTitleFR        string
+	ObjectiveID           string
+	Kind                  learning.SessionItemKind
+	MasteryStage          learning.MasteryStage
+	ReasonFR              string
+	DueAt                 time.Time
+	LessonIDs             []string
+	QuestionIDs           []string
+	LabIDs                []string
+	RecommendedLessonID   string
+	RecommendedQuestionID string
+	RecommendedLabID      string
 }
 
 type Plan struct {
@@ -113,14 +116,15 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 		}
 	}
 
-	lessons := make(map[string][]string)
+	lessons := make(map[string][]content.Lesson)
 	for _, lesson := range input.Content.Lessons {
 		for _, conceptID := range lesson.ConceptIDs {
 			if _, wanted := phase1Concepts[conceptID]; wanted {
-				lessons[conceptID] = append(lessons[conceptID], lesson.ID)
+				lessons[conceptID] = append(lessons[conceptID], lesson)
 			}
 		}
 	}
+
 	questions := make(map[string][]string)
 	for _, question := range input.Content.Questions {
 		for _, conceptID := range question.ConceptIDs {
@@ -129,6 +133,7 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 			}
 		}
 	}
+
 	labs := make(map[string][]string)
 	for _, authored := range input.Labs {
 		for _, conceptID := range authored.Definition.ConceptIDs {
@@ -147,6 +152,7 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 		if !exists {
 			return Plan{}, fmt.Errorf("scheduled unknown Phase-1 concept %s", scheduled.ConceptID)
 		}
+
 		item := Item{
 			ConceptID:      scheduled.ConceptID,
 			ConceptTitleFR: title,
@@ -155,14 +161,55 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 			MasteryStage:   projections[scheduled.ConceptID].Stage,
 			ReasonFR:       scheduled.ReasonFR,
 			DueAt:          scheduled.DueAt,
-			LessonIDs:      slices.Clone(lessons[scheduled.ConceptID]),
 			QuestionIDs:    slices.Clone(questions[scheduled.ConceptID]),
 			LabIDs:         slices.Clone(labs[scheduled.ConceptID]),
+		}
+		for _, lesson := range lessons[scheduled.ConceptID] {
+			item.LessonIDs = append(item.LessonIDs, lesson.ID)
 		}
 		slices.Sort(item.LessonIDs)
 		slices.Sort(item.QuestionIDs)
 		slices.Sort(item.LabIDs)
+
+		item.RecommendedLessonID = recommendedLesson(scheduled.Kind, lessons[scheduled.ConceptID])
+		if len(item.QuestionIDs) != 0 {
+			item.RecommendedQuestionID = item.QuestionIDs[0]
+		}
+		if len(item.LabIDs) != 0 {
+			item.RecommendedLabID = item.LabIDs[0]
+		}
+
 		plan.Items = append(plan.Items, item)
 	}
 	return plan, nil
+}
+
+func recommendedLesson(kind learning.SessionItemKind, lessons []content.Lesson) string {
+	if kind != learning.SessionNew {
+		return ""
+	}
+
+	candidates := slices.Clone(lessons)
+	slices.SortFunc(candidates, func(a, b content.Lesson) int {
+		aFocused := a.Stage == "introduce" && len(a.ConceptIDs) == 1
+		bFocused := b.Stage == "introduce" && len(b.ConceptIDs) == 1
+		if aFocused != bFocused {
+			if aFocused {
+				return -1
+			}
+			return 1
+		}
+		switch {
+		case a.ID < b.ID:
+			return -1
+		case a.ID > b.ID:
+			return 1
+		default:
+			return 0
+		}
+	})
+	if len(candidates) == 0 {
+		return ""
+	}
+	return candidates[0].ID
 }
