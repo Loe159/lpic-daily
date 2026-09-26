@@ -1,23 +1,23 @@
 package lab
 
 type Definition struct {
-	SchemaVersion         string            `json:"schema_version"`
-	ID                    string            `json:"id"`
-	TitleFR               string            `json:"title_fr"`
-	BriefFR               string            `json:"brief_fr"`
-	SuccessCriteriaFR     []string          `json:"success_criteria_fr"`
-	DebriefFR             string            `json:"debrief_fr"`
-	ObjectiveIDs          []string          `json:"objective_ids"`
-	ConceptIDs            []string          `json:"concept_ids"`
-	Labels                []string          `json:"labels"`
-	EstimatedMinutes      int               `json:"estimated_minutes"`
-	Environment           Environment       `json:"environment"`
-	Resources             Resources         `json:"resources"`
-	Setup                 Setup             `json:"setup"`
-	Checks                []CheckDefinition `json:"checks"`
-	HintIDs               []string          `json:"hint_ids"`
-	ReferenceSolutionRef  string            `json:"reference_solution_ref"`
-	ResetPolicy           string            `json:"reset_policy"`
+	SchemaVersion        string            `json:"schema_version"`
+	ID                   string            `json:"id"`
+	TitleFR              string            `json:"title_fr"`
+	BriefFR              string            `json:"brief_fr"`
+	SuccessCriteriaFR    []string          `json:"success_criteria_fr"`
+	DebriefFR            string            `json:"debrief_fr"`
+	ObjectiveIDs         []string          `json:"objective_ids"`
+	ConceptIDs           []string          `json:"concept_ids"`
+	Labels               []string          `json:"labels"`
+	EstimatedMinutes     int               `json:"estimated_minutes"`
+	Environment          Environment       `json:"environment"`
+	Resources            Resources         `json:"resources"`
+	Setup                Setup             `json:"setup"`
+	Checks               []CheckDefinition `json:"checks"`
+	HintIDs              []string          `json:"hint_ids"`
+	ReferenceSolutionRef string            `json:"reference_solution_ref"`
+	ResetPolicy          string            `json:"reset_policy"`
 }
 
 type Environment struct {
