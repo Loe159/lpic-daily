@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/Loe159/lpic-daily/internal/runner"
+	"golang.org/x/sys/unix"
 )
 
 const compatBase = "/v1.40"
@@ -182,9 +183,12 @@ func (backend *Backend) execTTY(
 	}()
 	defer close(contextDone)
 
+	var inputDone chan struct{}
 	if request.Stdin != nil {
+		inputDone = make(chan struct{})
 		go func() {
-			_, _ = io.Copy(conn, request.Stdin)
+			defer close(inputDone)
+			_ = copyTTYInput(streamCtx, conn, request.Stdin)
 			if unixConn, ok := conn.(*net.UnixConn); ok {
 				_ = unixConn.CloseWrite()
 			}
@@ -198,6 +202,16 @@ func (backend *Backend) execTTY(
 	_, copyErr := io.Copy(stdout, reader)
 	cancel()
 	_ = conn.Close()
+
+	if inputDone != nil {
+		if _, isFileDescriptor := request.Stdin.(interface{ Fd() uintptr }); isFileDescriptor {
+			select {
+			case <-inputDone:
+			case <-time.After(500 * time.Millisecond):
+				return runner.ExecResult{}, errors.New("TTY input pump did not stop after stream shutdown")
+			}
+		}
+	}
 
 	select {
 	case err := <-resizeErr:
@@ -213,6 +227,62 @@ func (backend *Backend) execTTY(
 		return runner.ExecResult{}, err
 	}
 	return backend.waitExec(ctx, created.ID)
+}
+
+func copyTTYInput(ctx context.Context, destination io.Writer, source io.Reader) error {
+	fileDescriptorSource, hasFileDescriptor := source.(interface{ Fd() uintptr })
+	if !hasFileDescriptor {
+		_, err := io.Copy(destination, source)
+		return err
+	}
+
+	fd := fileDescriptorSource.Fd()
+	if fd > uintptr(^uint32(0)>>1) {
+		return fmt.Errorf("TTY input file descriptor %d exceeds poll range", fd)
+	}
+
+	buffer := make([]byte, 32*1024)
+	for {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+
+		poll := []unix.PollFd{{
+			Fd:     int32(fd),
+			Events: unix.POLLIN | unix.POLLHUP | unix.POLLERR,
+		}}
+		ready, err := unix.Poll(poll, 100)
+		if errors.Is(err, unix.EINTR) {
+			continue
+		}
+		if err != nil {
+			return fmt.Errorf("poll TTY input: %w", err)
+		}
+		if ready == 0 {
+			continue
+		}
+		if poll[0].Revents&(unix.POLLIN|unix.POLLHUP|unix.POLLERR) == 0 {
+			continue
+		}
+
+		count, readErr := source.Read(buffer)
+		if count > 0 {
+			written := 0
+			for written < count {
+				n, writeErr := destination.Write(buffer[written:count])
+				if writeErr != nil {
+					return writeErr
+				}
+				if n == 0 {
+					return io.ErrShortWrite
+				}
+				written += n
+			}
+		}
+		if readErr != nil {
+			return readErr
+		}
+	}
 }
 
 func (backend *Backend) startTTYExec(
