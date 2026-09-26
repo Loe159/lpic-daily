@@ -53,3 +53,16 @@ Every Phase-1 container request:
 The project owns minimal request/response structs rather than mirroring all Podman models. Unknown response fields are ignored, while request fields are explicit and reviewable.
 
 The adapter remains behind `runner.Runner`; later Podman API changes do not affect the learning domain.
+
+## Exec and probe implementation checkpoint
+
+The first executable checkpoint deliberately separates non-interactive control from the future learner PTY.
+
+- setup/check commands use Docker-compatible v1.40 exec endpoints exposed by the same local Podman service;
+- exec is detached, non-privileged and polled through exec-inspect for the final exit code;
+- stdin, attached stdout/stderr and TTY requests fail with `ErrNotSupported` until the dedicated attach/PTY implementation lands;
+- filesystem probes use the native container archive endpoint and parse tar metadata, including UID/GID and names when available;
+- file reads are byte-bounded;
+- process probes request stable `pid,comm,args` descriptors from the native top endpoint.
+
+Podman documents that its service exposes both the native Libpod API and a Docker v1.40 compatibility API. Using the compatibility exec endpoints avoids reimplementing interactive framing for setup operations while keeping all traffic on the verified rootless Unix socket.
