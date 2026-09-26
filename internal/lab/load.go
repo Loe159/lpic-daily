@@ -168,8 +168,22 @@ func validateDefinition(fsys fs.FS, base string, definition Definition) error {
 	if definition.SchemaVersion != "1.0.0" {
 		return fmt.Errorf("unsupported schema version %q", definition.SchemaVersion)
 	}
-	if definition.ID == "" || definition.TitleFR == "" {
+	if definition.ID == "" || strings.TrimSpace(definition.TitleFR) == "" {
 		return errors.New("lab id and title are required")
+	}
+	if len(strings.TrimSpace(definition.BriefFR)) < 20 {
+		return errors.New("brief_fr must contain a useful learner-facing prompt")
+	}
+	if len(strings.TrimSpace(definition.DebriefFR)) < 20 {
+		return errors.New("debrief_fr must contain a useful explanation")
+	}
+	if len(definition.SuccessCriteriaFR) == 0 {
+		return errors.New("success_criteria_fr must not be empty")
+	}
+	for _, criterion := range definition.SuccessCriteriaFR {
+		if len(strings.TrimSpace(criterion)) < 5 {
+			return errors.New("success criteria must contain useful text")
+		}
 	}
 	if len(definition.ObjectiveIDs) == 0 || len(definition.ConceptIDs) == 0 {
 		return errors.New("objective_ids and concept_ids are required")

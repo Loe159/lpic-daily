@@ -29,6 +29,10 @@ def safe_local_ref(base, value):
     return target.is_file()
 
 
+def nonempty_text(value, minimum=1):
+    return isinstance(value, str) and len(value.strip()) >= minimum
+
+
 def main():
     errors = []
     objectives = load_json(CURRICULUM / "objectives.json")
@@ -55,6 +59,21 @@ def main():
         if lab_id in seen_lab_ids:
             errors.append(f"duplicate lab id {lab_id}")
         seen_lab_ids.add(lab_id)
+
+        if not nonempty_text(lab.get("title_fr"), 3):
+            errors.append(f"{lab_id}: title_fr is missing/too short")
+        if not nonempty_text(lab.get("brief_fr"), 20):
+            errors.append(f"{lab_id}: brief_fr is missing/too short")
+        if not nonempty_text(lab.get("debrief_fr"), 20):
+            errors.append(f"{lab_id}: debrief_fr is missing/too short")
+
+        criteria = lab.get("success_criteria_fr")
+        if not isinstance(criteria, list) or not criteria:
+            errors.append(f"{lab_id}: success_criteria_fr must be a non-empty list")
+        elif any(not nonempty_text(item, 5) for item in criteria):
+            errors.append(f"{lab_id}: every success criterion must contain useful text")
+        elif len(criteria) != len(set(criteria)):
+            errors.append(f"{lab_id}: duplicate success criteria")
 
         for objective_id in lab.get("objective_ids", []):
             if objective_id not in objective_ids:

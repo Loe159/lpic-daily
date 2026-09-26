@@ -2,6 +2,14 @@
   "schema_version": "1.0.0",
   "id": "lpic1.104.5.shared-dropbox",
   "title_fr": "Sécuriser un répertoire partagé",
+  "brief_fr": "Tu administres /srv/shared pour une équipe. Configure ce répertoire afin que les membres du groupe project puissent y collaborer sans ouvrir l'accès aux autres utilisateurs et sans permettre à un membre de supprimer librement les fichiers d'un autre membre.",
+  "success_criteria_fr": [
+    "/srv/shared appartient à root et au groupe project.",
+    "Le propriétaire et les membres du groupe project ont un accès complet au répertoire, les autres utilisateurs n'ont aucun droit.",
+    "Les nouvelles entrées créées dans le répertoire héritent du groupe project.",
+    "Dans ce répertoire partagé, un utilisateur ordinaire ne peut pas supprimer ou renommer le fichier d'un autre utilisateur uniquement parce qu'il a le droit d'écrire dans le répertoire."
+  ],
+  "debrief_fr": "Le mode final est 3770 : 770 donne rwx au propriétaire et au groupe, 2 active SGID sur le répertoire pour conserver le groupe project sur les nouvelles entrées, et 1 active le sticky bit pour restreindre suppression et renommage. Ces special permission bits n'ont pas le même effet sur un répertoire que sur un fichier exécutable.",
   "objective_ids": [
     "104.5"
   ],

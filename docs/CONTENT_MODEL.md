@@ -34,10 +34,17 @@ Les stratégies initiales sont text exact, regex, choix d'IDs ou ordre d'IDs. Le
 
 ### Lab
 
-Un lab décrit environnement, ressources, setup **dans la sandbox**, checks structurés et hints.
+Un lab décrit l'activité pédagogique **et** son environnement exécutable.
+
+La partie learner-facing contient au minimum:
+- `title_fr`;
+- `brief_fr`: scénario et objectif sans donner la solution;
+- `success_criteria_fr`: comportements observables attendus;
+- `debrief_fr`: explication révélée après validation/abandon.
+
+La partie exécutable décrit environnement, ressources, setup **dans la sandbox**, checks structurés et hints.
 
 Principes:
-
 - backend explicite `podman` ou `libvirt`;
 - réseau `none` ou `isolated`, jamais Internet implicite;
 - aucun host mount arbitraire dans le format;
@@ -45,6 +52,8 @@ Principes:
 - checks basés sur l'état final;
 - reset `disposable`;
 - référence solution réservée aux tests/authoring.
+
+Les success criteria expliquent le résultat attendu mais ne doivent pas imposer une séquence de commandes. Les checkers restent la définition machine-readable du succès.
 
 ### Hint
 
