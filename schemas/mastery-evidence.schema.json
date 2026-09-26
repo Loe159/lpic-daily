@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lpic-daily.dev/schemas/mastery-evidence.schema.json",
+  "title": "LPIC Daily append-only mastery evidence event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "event_id", "occurred_at", "concept_id", "objective_ids", "source_item_id", "activity_kind", "evidence_kind", "result", "highest_hint_level", "solution_revealed", "distribution", "attempt_index"],
+  "properties": {
+    "schema_version": { "$ref": "common.schema.json#/$defs/schemaVersion" },
+    "event_id": { "$ref": "common.schema.json#/$defs/contentId" },
+    "occurred_at": { "type": "string", "format": "date-time" },
+    "concept_id": { "$ref": "common.schema.json#/$defs/conceptId" },
+    "objective_ids": { "$ref": "common.schema.json#/$defs/objectiveIds" },
+    "source_item_id": { "$ref": "common.schema.json#/$defs/contentId" },
+    "activity_kind": { "enum": ["lesson", "question", "rep", "lab", "challenge"] },
+    "evidence_kind": { "enum": ["exposure", "recognition", "recall", "guided-practice", "independent-practice", "transfer"] },
+    "result": { "enum": ["pass", "partial", "fail"] },
+    "highest_hint_level": { "type": "integer", "minimum": 0, "maximum": 4 },
+    "solution_revealed": { "type": "boolean" },
+    "distribution": { "$ref": "common.schema.json#/$defs/distribution" },
+    "attempt_index": { "type": "integer", "minimum": 1 },
+    "metadata": { "type": "object" }
+  }
+}

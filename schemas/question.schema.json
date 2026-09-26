@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lpic-daily.dev/schemas/question.schema.json",
+  "title": "LPIC Daily deterministic question",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "objective_ids", "concept_ids", "type", "prompt_fr", "grading", "evidence_kind_on_success", "labels"],
+  "properties": {
+    "schema_version": { "$ref": "common.schema.json#/$defs/schemaVersion" },
+    "id": { "$ref": "common.schema.json#/$defs/contentId" },
+    "objective_ids": { "$ref": "common.schema.json#/$defs/objectiveIds" },
+    "concept_ids": { "$ref": "common.schema.json#/$defs/conceptIds" },
+    "type": {
+      "enum": ["free-recall", "fill-in", "multiple-choice", "ordering", "matching", "command-output"]
+    },
+    "prompt_fr": { "type": "string", "minLength": 5 },
+    "choices": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label_fr"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9_-]+$" },
+          "label_fr": { "type": "string", "minLength": 1 }
+        }
+      },
+      "uniqueItems": true
+    },
+    "grading": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["strategy", "accepted_answers", "case_sensitive"],
+          "properties": {
+            "strategy": { "const": "exact-text" },
+            "accepted_answers": { "type": "array", "items": { "type": "string" }, "minItems": 1, "uniqueItems": true },
+            "case_sensitive": { "type": "boolean" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["strategy", "pattern"],
+          "properties": {
+            "strategy": { "const": "regex" },
+            "pattern": { "type": "string", "minLength": 1 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["strategy", "accepted_choice_ids"],
+          "properties": {
+            "strategy": { "const": "choice-ids" },
+            "accepted_choice_ids": { "type": "array", "items": { "type": "string" }, "minItems": 1, "uniqueItems": true }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["strategy", "expected_order"],
+          "properties": {
+            "strategy": { "const": "ordered-ids" },
+            "expected_order": { "type": "array", "items": { "type": "string" }, "minItems": 2, "uniqueItems": true }
+          }
+        }
+      ]
+    },
+    "evidence_kind_on_success": { "enum": ["recognition", "recall"] },
+    "labels": { "$ref": "common.schema.json#/$defs/labels" },
+    "distribution": { "$ref": "common.schema.json#/$defs/distribution" },
+    "explanation_fr": { "type": "string" }
+  }
+}

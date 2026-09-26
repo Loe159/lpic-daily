@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lpic-daily.dev/schemas/lab.schema.json",
+  "title": "LPIC Daily lab",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "title_fr", "objective_ids", "concept_ids", "labels", "estimated_minutes", "environment", "resources", "setup", "checks", "hint_ids", "reset_policy"],
+  "properties": {
+    "schema_version": { "$ref": "common.schema.json#/$defs/schemaVersion" },
+    "id": { "$ref": "common.schema.json#/$defs/contentId" },
+    "title_fr": { "type": "string", "minLength": 3 },
+    "objective_ids": { "$ref": "common.schema.json#/$defs/objectiveIds" },
+    "concept_ids": { "$ref": "common.schema.json#/$defs/conceptIds" },
+    "labels": { "$ref": "common.schema.json#/$defs/labels" },
+    "estimated_minutes": { "type": "integer", "minimum": 1, "maximum": 120 },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["backend", "image_ref", "distribution", "network", "capability_profile"],
+      "properties": {
+        "backend": { "enum": ["podman", "libvirt"] },
+        "image_ref": { "type": "string", "minLength": 8 },
+        "distribution": { "$ref": "common.schema.json#/$defs/distribution" },
+        "network": { "enum": ["none", "isolated"] },
+        "capability_profile": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_-]*$" },
+        "writable_guest_paths": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^/" },
+          "uniqueItems": true
+        }
+      }
+    },
+    "resources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["memory_mb", "pids", "timeout_seconds"],
+      "properties": {
+        "memory_mb": { "type": "integer", "minimum": 64, "maximum": 16384 },
+        "pids": { "type": "integer", "minimum": 16, "maximum": 4096 },
+        "timeout_seconds": { "type": "integer", "minimum": 30, "maximum": 7200 }
+      }
+    },
+    "setup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["execution_scope", "script_ref"],
+      "properties": {
+        "execution_scope": { "const": "sandbox" },
+        "script_ref": { "type": "string", "pattern": "^[a-zA-Z0-9._/-]+$" }
+      }
+    },
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["type", "path"],
+            "properties": {
+              "type": { "const": "file-exists" },
+              "path": { "type": "string", "pattern": "^/" }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["type", "path", "mode"],
+            "properties": {
+              "type": { "const": "file-mode" },
+              "path": { "type": "string", "pattern": "^/" },
+              "mode": { "type": "string", "pattern": "^[0-7]{3,4}$" }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["type", "path", "user", "group"],
+            "properties": {
+              "type": { "const": "file-owner" },
+              "path": { "type": "string", "pattern": "^/" },
+              "user": { "type": "string", "minLength": 1 },
+              "group": { "type": "string", "minLength": 1 }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["type", "path", "pattern"],
+            "properties": {
+              "type": { "const": "file-content-regex" },
+              "path": { "type": "string", "pattern": "^/" },
+              "pattern": { "type": "string", "minLength": 1 }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["type", "match"],
+            "properties": {
+              "type": { "enum": ["process-running", "process-absent"] },
+              "match": { "type": "string", "minLength": 1 }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["type", "argv", "expected_exit"],
+            "properties": {
+              "type": { "const": "command-exit" },
+              "argv": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+              "expected_exit": { "type": "integer", "minimum": 0, "maximum": 255 }
+            }
+          }
+        ]
+      }
+    },
+    "hint_ids": {
+      "type": "array",
+      "items": { "$ref": "common.schema.json#/$defs/contentId" },
+      "uniqueItems": true
+    },
+    "reference_solution_ref": { "type": "string", "pattern": "^[a-zA-Z0-9._/-]+$" },
+    "reset_policy": { "const": "disposable" }
+  }
+}

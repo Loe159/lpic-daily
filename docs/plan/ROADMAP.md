@@ -9,18 +9,27 @@
 - Apache-2.0 code + CC BY 4.0 content licensing decision;
 - baseline threat model and Phase-1 acceptance criteria.
 
-Exit criterion: no major product/security question required for Phase 1 is hidden only in chat; implementation decisions are explicit and testable.
+## Phase 0.5 — pedagogical contracts (complete)
+- full 42-objective prerequisite DAG;
+- 295 stable concept IDs;
+- versioned JSON Schemas for concepts, lessons, questions, labs, hints, evidence and achievements;
+- append-only mastery evidence model;
+- formal Phase-1 selection: 103.1 + 103.5 + 104.5;
+- dependency/graph/schema validators and CI.
+
+Exit criterion: a fresh implementation agent can determine what to build and validate without inventing ordering, IDs or content contracts.
 
 ## Phase 1 — vertical slice
-Build the smallest complete adaptive daily loop for 2–3 representative objectives:
-- curriculum parser/schema;
+Build the complete adaptive daily loop for **103.1, 103.5 and 104.5**:
+- curriculum/schema loader;
 - SQLite progress/migrations;
 - Bubble Tea TUI;
-- inspectable scheduler/mastery model;
+- inspectable scheduler/mastery projection;
 - XP/streak/achievement events separated from mastery;
 - graduated hints;
-- rootless Podman lab;
+- rootless Podman runner + PTY;
 - deterministic state-based checker;
+- three reference scenarios from `PHASE-1-VERTICAL-SLICE.md`;
 - daily desktop-notification adapter on Fedora;
 - CI/security invariant tests.
 
@@ -36,7 +45,7 @@ Complete topics 101–104 with automated coverage checks, progressive lessons, p
 Complete topics 105–110, including networking, services and crypto. Ensure modern-versus-legacy labeling remains accurate.
 
 ## Phase 5 — adaptive practice depth
-Strengthen spaced retrieval, prerequisite graph, distribution transfer, cross-topic incidents, achievement system and mastery explainability. Add adaptive short assessments.
+Strengthen spaced retrieval, concept prerequisites where demonstrated, distribution transfer, cross-topic incidents, achievement system and mastery explainability. Add adaptive short assessments.
 
 ## Phase 6 — exam simulation and packaging
 Add original weighted exam simulation, including full-length mode if still desired. Harden RPM packaging first, then additional distro packaging; add update/signing, accessibility, backup/export and final security review.

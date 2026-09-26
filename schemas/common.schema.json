@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lpic-daily.dev/schemas/common.schema.json",
+  "title": "LPIC Daily common definitions",
+  "$defs": {
+    "schemaVersion": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "contentId": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]*$",
+      "minLength": 3,
+      "maxLength": 160
+    },
+    "objectiveId": {
+      "type": "string",
+      "pattern": "^[0-9]{3}\\.[0-9]+$"
+    },
+    "conceptId": {
+      "type": "string",
+      "pattern": "^lpic1\\.[0-9]{3}\\.[0-9]+\\.[a-z0-9][a-z0-9-]*$"
+    },
+    "objectiveIds": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/objectiveId" },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "conceptIds": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/conceptId" },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "labels": {
+      "type": "array",
+      "items": {
+        "enum": ["lpic-required", "lpic-legacy", "modern-practice"]
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "distribution": {
+      "enum": ["generic", "fedora", "debian", "opensuse"]
+    }
+  }
+}

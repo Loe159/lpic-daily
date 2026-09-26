@@ -1,0 +1,86 @@
+{
+  "schema_version": "1.0.0",
+  "id": "phase1-vertical-slice-v1",
+  "status": "accepted",
+  "selected_objectives": [
+    "103.1",
+    "103.5",
+    "104.5"
+  ],
+  "rationale_fr": "Commencer par 103.1 fournit le socle CLI réellement requis par les deux autres objectifs. 103.5 teste processus/jobs et terminal interactif. 104.5 teste ownership, permissions et validation d'état. Les trois sont réalisables en Podman rootless et exercent des checkers différents sans introduire prématurément libvirt.",
+  "objective_concepts": {
+    "103.1": [
+      "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes",
+      "lpic1.103.1.variables-shell-environnement",
+      "lpic1.103.1.path-et-resolution-de-commande",
+      "lpic1.103.1.quoting-escaping",
+      "lpic1.103.1.historique",
+      "lpic1.103.1.documentation-et-identification-d-une-commande",
+      "lpic1.103.1.informations-systeme-de-base"
+    ],
+    "103.5": [
+      "lpic1.103.5.processus-avant-arriere-plan",
+      "lpic1.103.5.jobs-du-shell",
+      "lpic1.103.5.signaux",
+      "lpic1.103.5.inspection-arbres-ressources",
+      "lpic1.103.5.processus-survivant-a-la-session",
+      "lpic1.103.5.selection-par-nom-pid",
+      "lpic1.103.5.multiplexeurs-de-terminal"
+    ],
+    "104.5": [
+      "lpic1.104.5.permissions-rwx-fichier-dossier",
+      "lpic1.104.5.notation-symbolique-octale",
+      "lpic1.104.5.proprietaire-groupe",
+      "lpic1.104.5.umask",
+      "lpic1.104.5.suid",
+      "lpic1.104.5.sgid",
+      "lpic1.104.5.sticky-bit",
+      "lpic1.104.5.effets-speciaux-sur-repertoires"
+    ]
+  },
+  "learning_order": {
+    "foundation": [
+      "103.1"
+    ],
+    "then_interleave": [
+      "103.5",
+      "104.5"
+    ]
+  },
+  "reference_scenarios": [
+    {
+      "id": "shell-environment-repair",
+      "objective_ids": [
+        "103.1"
+      ],
+      "goal_fr": "Diagnostiquer et corriger un environnement shell où PATH, variables et quoting provoquent des résultats inattendus.",
+      "backend": "podman",
+      "evidence_target": "independent-practice"
+    },
+    {
+      "id": "stuck-worker",
+      "objective_ids": [
+        "103.5"
+      ],
+      "goal_fr": "Identifier, mettre en arrière-plan/reprendre puis terminer proprement le bon processus parmi plusieurs jobs sans tuer les mauvais.",
+      "backend": "podman",
+      "evidence_target": "independent-practice"
+    },
+    {
+      "id": "shared-dropbox",
+      "objective_ids": [
+        "104.5"
+      ],
+      "goal_fr": "Configurer ownership, groupe, permissions, SGID/sticky/umask d'un espace partagé pour respecter une politique d'accès donnée.",
+      "backend": "podman",
+      "evidence_target": "independent-practice"
+    }
+  ],
+  "explicit_non_goals": [
+    "coverage complète des topics 101–110",
+    "backend libvirt",
+    "Internet dans les labs",
+    "AI tutor/generation",
+    "full exam simulator"
+  ]
+}

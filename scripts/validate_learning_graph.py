@@ -1,0 +1,167 @@
+#!/usr/bin/env python3
+from collections import defaultdict, deque
+from pathlib import Path
+import json
+import sys
+
+ROOT = Path(__file__).resolve().parents[1]
+CURRICULUM = ROOT / "curriculum" / "lpic-1-v5"
+
+
+def load(name):
+    return json.loads((CURRICULUM / name).read_text(encoding="utf-8"))
+
+
+def fail(errors):
+    if errors:
+        print("Learning graph validation FAILED:")
+        for error in errors:
+            print(" -", error)
+        sys.exit(1)
+
+
+def check_acyclic(nodes, include_recommended, errors):
+    ids = [n["objective_id"] for n in nodes]
+    id_set = set(ids)
+    prereqs = {}
+    reverse = defaultdict(list)
+    indegree = {}
+
+    for node in nodes:
+        deps = set(node["hard_prerequisites"])
+        if include_recommended:
+            deps |= set(node["recommended_prerequisites"])
+        prereqs[node["objective_id"]] = deps
+        indegree[node["objective_id"]] = len(deps)
+        for dep in deps:
+            if dep in id_set:
+                reverse[dep].append(node["objective_id"])
+
+    queue = deque([node for node in ids if indegree[node] == 0])
+    seen = []
+    while queue:
+        current = queue.popleft()
+        seen.append(current)
+        for nxt in reverse[current]:
+            indegree[nxt] -= 1
+            if indegree[nxt] == 0:
+                queue.append(nxt)
+
+    if len(seen) != len(ids):
+        kind = "hard+recommended" if include_recommended else "hard"
+        remaining = sorted(set(ids) - set(seen))
+        errors.append(f"{kind} prerequisite graph contains a cycle involving {remaining}")
+
+
+def main():
+    objectives = load("objectives.json")
+    graph = load("prerequisites.json")
+    concepts = load("concepts.json")
+    phase1 = load("phase1-slice.json")
+
+    errors = []
+    active = [o for o in objectives["objectives"] if o.get("active")]
+    active_ids = [o["id"] for o in active]
+    active_set = set(active_ids)
+
+    nodes = graph["nodes"]
+    graph_ids = [n["objective_id"] for n in nodes]
+
+    if len(graph_ids) != len(set(graph_ids)):
+        errors.append("duplicate objective IDs in prerequisite graph")
+    if set(graph_ids) != active_set:
+        errors.append(
+            "prerequisite graph objective set differs from active objectives: "
+            f"missing={sorted(active_set-set(graph_ids))}, extra={sorted(set(graph_ids)-active_set)}"
+        )
+
+    node_by_id = {n["objective_id"]: n for n in nodes}
+    for node in nodes:
+        hard = node["hard_prerequisites"]
+        recommended = node["recommended_prerequisites"]
+        for dep in hard + recommended:
+            if dep not in active_set:
+                errors.append(f"{node['objective_id']}: unknown prerequisite {dep}")
+            if dep == node["objective_id"]:
+                errors.append(f"{node['objective_id']}: self prerequisite")
+        overlap = set(hard) & set(recommended)
+        if overlap:
+            errors.append(f"{node['objective_id']}: dependency listed as hard and recommended: {sorted(overlap)}")
+
+    check_acyclic(nodes, False, errors)
+    check_acyclic(nodes, True, errors)
+
+    order = graph["reference_topological_order"]
+    if len(order) != len(active_ids) or set(order) != active_set:
+        errors.append("reference_topological_order must contain every active objective exactly once")
+    else:
+        pos = {objective_id: index for index, objective_id in enumerate(order)}
+        for node in nodes:
+            for dep in node["hard_prerequisites"]:
+                if pos[dep] >= pos[node["objective_id"]]:
+                    errors.append(
+                        f"reference order violates hard prerequisite {dep} -> {node['objective_id']}"
+                    )
+
+    concept_rows = concepts["concepts"]
+    concept_ids = [c["id"] for c in concept_rows]
+    if len(concept_ids) != len(set(concept_ids)):
+        errors.append("duplicate concept IDs")
+
+    concepts_by_objective = defaultdict(list)
+    for concept in concept_rows:
+        objective_id = concept["objective_id"]
+        if objective_id not in active_set:
+            errors.append(f"{concept['id']}: unknown objective {objective_id}")
+            continue
+        concepts_by_objective[objective_id].append(concept)
+        inherited = concept.get("inherited_hard_objective_prerequisites", [])
+        expected = node_by_id[objective_id]["hard_prerequisites"]
+        if inherited != expected:
+            errors.append(
+                f"{concept['id']}: inherited hard prerequisites drift; expected {expected}, got {inherited}"
+            )
+
+    for objective in active:
+        rows = concepts_by_objective[objective["id"]]
+        expected_titles = objective["concepts"]
+        actual_titles = [row["title_fr"] for row in sorted(rows, key=lambda x: x["pedagogy_order"])]
+        if actual_titles != expected_titles:
+            errors.append(f"{objective['id']}: concept inventory is not synchronized with objectives.json")
+
+    selected = phase1["selected_objectives"]
+    selected_set = set(selected)
+    for objective_id in selected:
+        if objective_id not in active_set:
+            errors.append(f"Phase 1 slice references unknown objective {objective_id}")
+            continue
+        missing = set(node_by_id[objective_id]["hard_prerequisites"]) - selected_set
+        if missing:
+            errors.append(
+                f"Phase 1 slice is not closed over hard prerequisites for {objective_id}: {sorted(missing)}"
+            )
+
+    phase1_concepts = phase1["objective_concepts"]
+    concept_set = set(concept_ids)
+    for objective_id in selected:
+        expected = {c["id"] for c in concepts_by_objective[objective_id]}
+        actual = set(phase1_concepts.get(objective_id, []))
+        if actual != expected:
+            errors.append(
+                f"Phase 1 concept set drift for {objective_id}: "
+                f"missing={sorted(expected-actual)}, extra={sorted(actual-expected)}"
+            )
+        unknown = actual - concept_set
+        if unknown:
+            errors.append(f"Phase 1 unknown concept IDs for {objective_id}: {sorted(unknown)}")
+
+    fail(errors)
+    print(
+        "Learning graph validation OK: "
+        f"{len(active_ids)} objectives; {len(concept_rows)} concepts; "
+        f"Phase 1 objectives={','.join(selected)}"
+    )
+
+
+if __name__ == "__main__":
+    main()

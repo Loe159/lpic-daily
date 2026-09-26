@@ -1,0 +1,454 @@
+{
+  "schema_version": "1.0.0",
+  "certification": "LPIC-1",
+  "syllabus_version": "5.0.0",
+  "semantics": {
+    "hard": "Objective should not normally be introduced as independent new material until these objectives have foundational evidence.",
+    "recommended": "Ordering preference only. Does not block scheduling; may be bypassed for diagnostics, review, or learner prior knowledge."
+  },
+  "recommended_entry_objective": "103.1",
+  "nodes": [
+    {
+      "objective_id": "101.1",
+      "hard_prerequisites": [],
+      "recommended_prerequisites": [
+        "103.1"
+      ],
+      "rationale_fr": "Peut être introduit conceptuellement tôt; le shell aide ensuite à observer le matériel."
+    },
+    {
+      "objective_id": "101.2",
+      "hard_prerequisites": [],
+      "recommended_prerequisites": [
+        "101.1",
+        "103.1"
+      ],
+      "rationale_fr": "La chaîne de boot peut être comprise avant l'administration matérielle détaillée; l'observation pratique bénéficie du shell."
+    },
+    {
+      "objective_id": "101.3",
+      "hard_prerequisites": [
+        "101.2"
+      ],
+      "recommended_prerequisites": [
+        "103.5"
+      ],
+      "rationale_fr": "Runlevels/targets supposent de comprendre la chaîne de boot; les notions de processus renforcent le diagnostic."
+    },
+    {
+      "objective_id": "102.1",
+      "hard_prerequisites": [
+        "103.1"
+      ],
+      "recommended_prerequisites": [
+        "101.1"
+      ],
+      "rationale_fr": "Le partitionnement pratique suppose l'aisance CLI; le contexte matériel aide au choix d'architecture."
+    },
+    {
+      "objective_id": "102.2",
+      "hard_prerequisites": [
+        "101.2",
+        "102.1",
+        "104.3"
+      ],
+      "recommended_prerequisites": [],
+      "rationale_fr": "Installer/réparer un bootloader suppose de comprendre boot, partitions, filesystems et montage."
+    },
+    {
+      "objective_id": "102.3",
+      "hard_prerequisites": [
+        "103.1"
+      ],
+      "recommended_prerequisites": [],
+      "rationale_fr": "Le diagnostic des bibliothèques partagées repose sur les bases du shell."
+    },
+    {
+      "objective_id": "102.4",
+      "hard_prerequisites": [
+        "103.1"
+      ],
+      "recommended_prerequisites": [
+        "103.3"
+      ],
+      "rationale_fr": "La gestion Debian exige le shell; les opérations fichiers/archives facilitent l'inspection des paquets."
+    },
+    {
+      "objective_id": "102.5",
+      "hard_prerequisites": [
+        "103.1"
+      ],
+      "recommended_prerequisites": [
+        "103.3"
+      ],
+      "rationale_fr": "La gestion RPM/DNF/Zypper exige le shell; les opérations fichiers/archives facilitent l'inspection."
+    },
+    {
+      "objective_id": "102.6",
+      "hard_prerequisites": [
+        "103.1"
+      ],
+      "recommended_prerequisites": [
+        "101.1",
+        "109.1"
+      ],
+      "rationale_fr": "La pratique VM/conteneurs suppose la CLI; matériel et réseau enrichissent ensuite la compréhension."
+    },
+    {
+      "objective_id": "103.1",
+      "hard_prerequisites": [],
+      "recommended_prerequisites": [],
+      "rationale_fr": "Point d'entrée principal: commandes, environnement, documentation et résolution de commande."
+    },
+    {
+      "objective_id": "103.2",
+      "hard_prerequisites": [
+        "103.1",
+        "103.4"
+      ],
+      "recommended_prerequisites": [],
+      "rationale_fr": "Les filtres deviennent réellement utiles une fois compris le shell et les flux/pipes."
+    },
+    {
+      "objective_id": "103.3",
+      "hard_prerequisites": [
+        "103.1"
+      ],
+      "recommended_prerequisites": [],
+      "rationale_fr": "Les opérations fichiers sont une compétence de base après la prise en main du shell."
+    },
+    {
+      "objective_id": "103.4",
+      "hard_prerequisites": [
+        "103.1"
+      ],
+      "recommended_prerequisites": [],
+      "rationale_fr": "Les streams/redirections reposent directement sur l'exécution de commandes shell."
+    },
+    {
+      "objective_id": "103.5",
+      "hard_prerequisites": [
+        "103.1"
+      ],
+      "recommended_prerequisites": [],
+      "rationale_fr": "Jobs, signaux et inspection des processus reposent sur les bases CLI."
+    },
+    {
+      "objective_id": "103.6",
+      "hard_prerequisites": [
+        "103.5"
+      ],
+      "recommended_prerequisites": [],
+      "rationale_fr": "La priorité n'a de sens qu'après le modèle processus/jobs."
+    },
+    {
+      "objective_id": "103.7",
+      "hard_prerequisites": [
+        "103.1"
+      ],
+      "recommended_prerequisites": [
+        "103.2"
+      ],
+      "rationale_fr": "Les regex peuvent être apprises avec grep/sed; les filtres texte donnent ensuite davantage de contexte."
+    },
+    {
+      "objective_id": "103.8",
+      "hard_prerequisites": [
+        "103.1"
+      ],
+      "recommended_prerequisites": [],
+      "rationale_fr": "L'édition vi suppose uniquement une navigation shell minimale."
+    },
+    {
+      "objective_id": "104.1",
+      "hard_prerequisites": [
+        "102.1"
+      ],
+      "recommended_prerequisites": [
+        "103.3"
+      ],
+      "rationale_fr": "Créer des partitions/filesystems suit la conception du stockage; la manipulation de fichiers aide aux labs."
+    },
+    {
+      "objective_id": "104.2",
+      "hard_prerequisites": [
+        "104.1"
+      ],
+      "recommended_prerequisites": [],
+      "rationale_fr": "Vérifier/réparer un filesystem suppose de comprendre sa création et son type."
+    },
+    {
+      "objective_id": "104.3",
+      "hard_prerequisites": [
+        "104.1"
+      ],
+      "recommended_prerequisites": [],
+      "rationale_fr": "Montage/fstab suppose volumes et filesystems existants."
+    },
+    {
+      "objective_id": "104.5",
+      "hard_prerequisites": [
+        "103.1"
+      ],
+      "recommended_prerequisites": [
+        "103.3"
+      ],
+      "rationale_fr": "Permissions/ownership peuvent être apprises tôt; les opérations fichiers élargissent ensuite les scénarios."
+    },
+    {
+      "objective_id": "104.6",
+      "hard_prerequisites": [
+        "103.1"
+      ],
+      "recommended_prerequisites": [
+        "103.3",
+        "104.5"
+      ],
+      "rationale_fr": "Liens nécessitent une base shell; fichiers et permissions rendent les effets plus concrets."
+    },
+    {
+      "objective_id": "104.7",
+      "hard_prerequisites": [
+        "103.1"
+      ],
+      "recommended_prerequisites": [
+        "103.3"
+      ],
+      "rationale_fr": "FHS/localisation est accessible tôt depuis le shell et se consolide avec la manipulation des fichiers."
+    },
+    {
+      "objective_id": "105.1",
+      "hard_prerequisites": [
+        "103.1"
+      ],
+      "recommended_prerequisites": [],
+      "rationale_fr": "La personnalisation Bash prolonge directement les fondamentaux shell."
+    },
+    {
+      "objective_id": "105.2",
+      "hard_prerequisites": [
+        "105.1",
+        "103.4"
+      ],
+      "recommended_prerequisites": [
+        "103.7"
+      ],
+      "rationale_fr": "Le scripting suppose environnement shell et redirections; les regex enrichissent les scripts."
+    },
+    {
+      "objective_id": "106.1",
+      "hard_prerequisites": [
+        "103.1"
+      ],
+      "recommended_prerequisites": [
+        "107.1"
+      ],
+      "rationale_fr": "Le diagnostic X11/Wayland nécessite la CLI; identités/utilisateurs aident pour auth/session."
+    },
+    {
+      "objective_id": "106.2",
+      "hard_prerequisites": [
+        "106.1",
+        "109.1"
+      ],
+      "recommended_prerequisites": [],
+      "rationale_fr": "L'accès graphique distant suppose architecture graphique et bases réseau."
+    },
+    {
+      "objective_id": "106.3",
+      "hard_prerequisites": [],
+      "recommended_prerequisites": [
+        "106.1"
+      ],
+      "rationale_fr": "L'accessibilité peut être introduite indépendamment; l'architecture graphique apporte du contexte."
+    },
+    {
+      "objective_id": "107.1",
+      "hard_prerequisites": [
+        "103.1",
+        "104.5"
+      ],
+      "recommended_prerequisites": [],
+      "rationale_fr": "Administrer utilisateurs/groupes exige shell et compréhension des permissions/ownership."
+    },
+    {
+      "objective_id": "107.2",
+      "hard_prerequisites": [
+        "103.1"
+      ],
+      "recommended_prerequisites": [
+        "105.2",
+        "101.3"
+      ],
+      "rationale_fr": "Cron/at s'apprennent tôt; scripts et systemd enrichissent ensuite les tâches planifiées."
+    },
+    {
+      "objective_id": "107.3",
+      "hard_prerequisites": [
+        "103.1"
+      ],
+      "recommended_prerequisites": [],
+      "rationale_fr": "Locales/encodages/timezones sont manipulables dès que le shell est acquis."
+    },
+    {
+      "objective_id": "108.1",
+      "hard_prerequisites": [
+        "107.3"
+      ],
+      "recommended_prerequisites": [
+        "109.1"
+      ],
+      "rationale_fr": "Synchronisation du temps suppose timezone/UTC; NTP bénéficie des fondamentaux réseau."
+    },
+    {
+      "objective_id": "108.2",
+      "hard_prerequisites": [
+        "103.1"
+      ],
+      "recommended_prerequisites": [
+        "101.3",
+        "103.2"
+      ],
+      "rationale_fr": "Logs/journalctl sont utilisables tôt; systemd et filtres texte renforcent le diagnostic."
+    },
+    {
+      "objective_id": "108.3",
+      "hard_prerequisites": [
+        "103.1"
+      ],
+      "recommended_prerequisites": [
+        "109.1",
+        "107.1"
+      ],
+      "rationale_fr": "La messagerie locale peut être pratiquée tôt; réseau et identités complètent le modèle."
+    },
+    {
+      "objective_id": "108.4",
+      "hard_prerequisites": [
+        "103.1"
+      ],
+      "recommended_prerequisites": [
+        "109.1"
+      ],
+      "rationale_fr": "CUPS se manipule en CLI; la dimension client/serveur bénéficie du réseau."
+    },
+    {
+      "objective_id": "109.1",
+      "hard_prerequisites": [],
+      "recommended_prerequisites": [
+        "103.1"
+      ],
+      "rationale_fr": "TCP/IP est une base conceptuelle indépendante; le shell sert pour les labs."
+    },
+    {
+      "objective_id": "109.2",
+      "hard_prerequisites": [
+        "109.1",
+        "103.1"
+      ],
+      "recommended_prerequisites": [],
+      "rationale_fr": "Configurer une interface suppose TCP/IP et CLI."
+    },
+    {
+      "objective_id": "109.3",
+      "hard_prerequisites": [
+        "109.1",
+        "103.1"
+      ],
+      "recommended_prerequisites": [
+        "109.2",
+        "103.5"
+      ],
+      "rationale_fr": "Le diagnostic suppose modèle TCP/IP et shell; configuration et processus enrichissent les incidents."
+    },
+    {
+      "objective_id": "109.4",
+      "hard_prerequisites": [
+        "109.1",
+        "103.1"
+      ],
+      "recommended_prerequisites": [
+        "109.3"
+      ],
+      "rationale_fr": "DNS suppose réseau de base; les habitudes de diagnostic réduisent les confusions DNS/IP."
+    },
+    {
+      "objective_id": "110.1",
+      "hard_prerequisites": [
+        "103.1",
+        "104.5",
+        "107.1"
+      ],
+      "recommended_prerequisites": [
+        "103.5",
+        "109.3"
+      ],
+      "rationale_fr": "L'audit sécurité repose sur CLI, permissions et identités; processus/réseau apportent l'exposition."
+    },
+    {
+      "objective_id": "110.2",
+      "hard_prerequisites": [
+        "110.1",
+        "101.3"
+      ],
+      "recommended_prerequisites": [],
+      "rationale_fr": "Le durcissement suppose savoir auditer et administrer les services/targets."
+    },
+    {
+      "objective_id": "110.3",
+      "hard_prerequisites": [
+        "109.1",
+        "103.1"
+      ],
+      "recommended_prerequisites": [
+        "109.3",
+        "107.1"
+      ],
+      "rationale_fr": "SSH/tunnels supposent réseau et CLI; diagnostic et identités consolident la pratique."
+    }
+  ],
+  "reference_topological_order": [
+    "101.1",
+    "101.2",
+    "103.1",
+    "106.3",
+    "109.1",
+    "101.3",
+    "102.1",
+    "102.3",
+    "102.4",
+    "102.5",
+    "102.6",
+    "103.3",
+    "103.4",
+    "103.5",
+    "103.7",
+    "103.8",
+    "104.5",
+    "104.6",
+    "104.7",
+    "105.1",
+    "106.1",
+    "107.2",
+    "107.3",
+    "108.2",
+    "108.3",
+    "108.4",
+    "109.2",
+    "109.3",
+    "109.4",
+    "110.3",
+    "103.2",
+    "103.6",
+    "104.1",
+    "105.2",
+    "106.2",
+    "107.1",
+    "108.1",
+    "104.2",
+    "104.3",
+    "110.1",
+    "102.2",
+    "110.2"
+  ]
+}

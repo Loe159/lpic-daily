@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lpic-daily.dev/schemas/lesson.schema.json",
+  "title": "LPIC Daily lesson",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "title_fr", "objective_ids", "concept_ids", "stage", "estimated_minutes", "body_markdown", "labels"],
+  "properties": {
+    "schema_version": { "$ref": "common.schema.json#/$defs/schemaVersion" },
+    "id": { "$ref": "common.schema.json#/$defs/contentId" },
+    "title_fr": { "type": "string", "minLength": 3 },
+    "objective_ids": { "$ref": "common.schema.json#/$defs/objectiveIds" },
+    "concept_ids": { "$ref": "common.schema.json#/$defs/conceptIds" },
+    "prerequisite_concept_ids": {
+      "type": "array",
+      "items": { "$ref": "common.schema.json#/$defs/conceptId" },
+      "uniqueItems": true
+    },
+    "stage": {
+      "enum": ["introduce", "deepen", "apply", "transfer", "exam-review"]
+    },
+    "estimated_minutes": { "type": "integer", "minimum": 1, "maximum": 45 },
+    "body_markdown": { "type": "string", "minLength": 20 },
+    "labels": { "$ref": "common.schema.json#/$defs/labels" },
+    "distribution": { "$ref": "common.schema.json#/$defs/distribution" },
+    "source_refs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["title", "url"],
+        "properties": {
+          "title": { "type": "string", "minLength": 1 },
+          "url": { "type": "string", "format": "uri" }
+        }
+      }
+    }
+  }
+}

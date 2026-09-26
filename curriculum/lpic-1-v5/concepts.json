@@ -1,0 +1,3868 @@
+{
+  "schema_version": "1.0.0",
+  "certification": "LPIC-1",
+  "syllabus_version": "5.0.0",
+  "id_policy": "Concept IDs are immutable once published. Slugs seed readability only; changing title_fr must not rename an existing ID.",
+  "concepts": [
+    {
+      "id": "lpic1.101.1.role-de-proc-sys-et-dev",
+      "objective_id": "101.1",
+      "title_fr": "rôle de /proc, /sys et /dev",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.101.1.ressources-et-identification-du-materiel",
+      "objective_id": "101.1",
+      "title_fr": "ressources et identification du matériel",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.101.1.modules-du-noyau-lies-au-materiel",
+      "objective_id": "101.1",
+      "title_fr": "modules du noyau liés au matériel",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.101.1.bus-pci-et-usb",
+      "objective_id": "101.1",
+      "title_fr": "bus PCI et USB",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.101.1.sysfs-udev-et-d-bus-comme-couches-de-decouverte-gestion",
+      "objective_id": "101.1",
+      "title_fr": "sysfs, udev et D-Bus comme couches de découverte/gestion",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.101.1.differences-entre-grandes-familles-de-stockage",
+      "objective_id": "101.1",
+      "title_fr": "différences entre grandes familles de stockage",
+      "pedagogy_order": 6,
+      "inherited_hard_objective_prerequisites": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.101.2.sequence-firmware-bootloader-kernel-initramfs-init-systemd",
+      "objective_id": "101.2",
+      "title_fr": "séquence firmware→bootloader→kernel→initramfs→init/systemd",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.101.2.bios-versus-uefi",
+      "objective_id": "101.2",
+      "title_fr": "BIOS versus UEFI",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.101.2.parametres-noyau-au-boot",
+      "objective_id": "101.2",
+      "title_fr": "paramètres noyau au boot",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.101.2.role-de-initramfs",
+      "objective_id": "101.2",
+      "title_fr": "rôle de initramfs",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.101.2.sysvinit-systemd-et-connaissance-historique-d-upstart",
+      "objective_id": "101.2",
+      "title_fr": "SysVinit, systemd et connaissance historique d’Upstart",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.101.2.diagnostic-des-evenements-de-boot",
+      "objective_id": "101.2",
+      "title_fr": "diagnostic des événements de boot",
+      "pedagogy_order": 6,
+      "inherited_hard_objective_prerequisites": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.101.3.runlevels-sysv-et-targets-systemd",
+      "objective_id": "101.3",
+      "title_fr": "runlevels SysV et targets systemd",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [
+        "101.2"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.101.3.mode-mono-utilisateur-recuperation",
+      "objective_id": "101.3",
+      "title_fr": "mode mono-utilisateur/récupération",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [
+        "101.2"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.101.3.target-par-defaut",
+      "objective_id": "101.3",
+      "title_fr": "target par défaut",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [
+        "101.2"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.101.3.arret-redemarrage-propre",
+      "objective_id": "101.3",
+      "title_fr": "arrêt/redémarrage propre",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [
+        "101.2"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.101.3.notification-aux-utilisateurs",
+      "objective_id": "101.3",
+      "title_fr": "notification aux utilisateurs",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [
+        "101.2"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.101.3.services-et-dependances-de-demarrage",
+      "objective_id": "101.3",
+      "title_fr": "services et dépendances de démarrage",
+      "pedagogy_order": 6,
+      "inherited_hard_objective_prerequisites": [
+        "101.2"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.101.3.notion-d-evenements-acpi",
+      "objective_id": "101.3",
+      "title_fr": "notion d’événements ACPI",
+      "pedagogy_order": 7,
+      "inherited_hard_objective_prerequisites": [
+        "101.2"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.102.1.separer-var-home-et-boot-selon-usage",
+      "objective_id": "102.1",
+      "title_fr": "séparer /, /var, /home et /boot selon usage",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.102.1.swap-et-dimensionnement-conceptuel",
+      "objective_id": "102.1",
+      "title_fr": "swap et dimensionnement conceptuel",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.102.1.contraintes-boot-et-architecture",
+      "objective_id": "102.1",
+      "title_fr": "contraintes /boot et architecture",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.102.1.efi-system-partition",
+      "objective_id": "102.1",
+      "title_fr": "EFI System Partition",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.102.1.partitions-et-points-de-montage",
+      "objective_id": "102.1",
+      "title_fr": "partitions et points de montage",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.102.1.principes-de-base-lvm",
+      "objective_id": "102.1",
+      "title_fr": "principes de base LVM",
+      "pedagogy_order": 6,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.102.2.grub-legacy-versus-grub-2",
+      "objective_id": "102.2",
+      "title_fr": "GRUB Legacy versus GRUB 2",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [
+        "101.2",
+        "102.1",
+        "104.3"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.102.2.emplacement-configuration-du-bootloader",
+      "objective_id": "102.2",
+      "title_fr": "emplacement/configuration du bootloader",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [
+        "101.2",
+        "102.1",
+        "104.3"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.102.2.entrees-alternatives-et-recuperation",
+      "objective_id": "102.2",
+      "title_fr": "entrées alternatives et récupération",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [
+        "101.2",
+        "102.1",
+        "104.3"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.102.2.mbr-et-relation-avec-schema-de-boot",
+      "objective_id": "102.2",
+      "title_fr": "MBR et relation avec schéma de boot",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [
+        "101.2",
+        "102.1",
+        "104.3"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.102.2.generation-de-configuration-grub-2",
+      "objective_id": "102.2",
+      "title_fr": "génération de configuration GRUB 2",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [
+        "101.2",
+        "102.1",
+        "104.3"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.102.2.interaction-au-menu-console-grub",
+      "objective_id": "102.2",
+      "title_fr": "interaction au menu/console GRUB",
+      "pedagogy_order": 6,
+      "inherited_hard_objective_prerequisites": [
+        "101.2",
+        "102.1",
+        "104.3"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.102.3.resolution-des-dependances-dynamiques",
+      "objective_id": "102.3",
+      "title_fr": "résolution des dépendances dynamiques",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.102.3.chemins-de-recherche-du-chargeur-dynamique",
+      "objective_id": "102.3",
+      "title_fr": "chemins de recherche du chargeur dynamique",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.102.3.cache-ldconfig",
+      "objective_id": "102.3",
+      "title_fr": "cache ldconfig",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.102.3.override-via-variables-d-environnement",
+      "objective_id": "102.3",
+      "title_fr": "override via variables d’environnement",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.102.3.diagnostic-d-une-bibliotheque-manquante",
+      "objective_id": "102.3",
+      "title_fr": "diagnostic d’une bibliothèque manquante",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.102.4.roles-respectifs-dpkg-et-apt",
+      "objective_id": "102.4",
+      "title_fr": "rôles respectifs dpkg et APT",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.102.4.installation-mise-a-jour-suppression",
+      "objective_id": "102.4",
+      "title_fr": "installation/mise à jour/suppression",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.102.4.sources-et-metadonnees",
+      "objective_id": "102.4",
+      "title_fr": "sources et métadonnées",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.102.4.dependances",
+      "objective_id": "102.4",
+      "title_fr": "dépendances",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.102.4.inspection-d-un-paquet-et-de-ses-fichiers",
+      "objective_id": "102.4",
+      "title_fr": "inspection d’un paquet et de ses fichiers",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.102.4.reconfiguration",
+      "objective_id": "102.4",
+      "title_fr": "reconfiguration",
+      "pedagogy_order": 6,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.102.4.identifier-quel-paquet-fournit-possede-un-fichier",
+      "objective_id": "102.4",
+      "title_fr": "identifier quel paquet fournit/possède un fichier",
+      "pedagogy_order": 7,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.102.5.format-base-rpm",
+      "objective_id": "102.5",
+      "title_fr": "format/base RPM",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.102.5.installation-et-requetes-rpm",
+      "objective_id": "102.5",
+      "title_fr": "installation et requêtes rpm",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.102.5.signature-integrite",
+      "objective_id": "102.5",
+      "title_fr": "signature/intégrité",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.102.5.resolution-des-dependances-via-gestionnaire-haut-niveau",
+      "objective_id": "102.5",
+      "title_fr": "résolution des dépendances via gestionnaire haut niveau",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.102.5.repositories-yum-dnf",
+      "objective_id": "102.5",
+      "title_fr": "repositories YUM/DNF",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.102.5.workflow-zypper-opensuse",
+      "objective_id": "102.5",
+      "title_fr": "workflow Zypper openSUSE",
+      "pedagogy_order": 6,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.102.5.identifier-fichier-paquet",
+      "objective_id": "102.5",
+      "title_fr": "identifier fichier↔paquet",
+      "pedagogy_order": 7,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.102.6.vm-versus-conteneur-applicatif-systeme",
+      "objective_id": "102.6",
+      "title_fr": "VM versus conteneur applicatif/système",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.102.6.ressources-virtuelles-block-network",
+      "objective_id": "102.6",
+      "title_fr": "ressources virtuelles block/network",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.102.6.images-clones-et-templates",
+      "objective_id": "102.6",
+      "title_fr": "images, clones et templates",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.102.6.identites-devant-etre-regenerees-lors-d-un-clonage",
+      "objective_id": "102.6",
+      "title_fr": "identités devant être régénérées lors d’un clonage",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.102.6.guest-drivers",
+      "objective_id": "102.6",
+      "title_fr": "guest drivers",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.102.6.principes-cloud-init-iaas",
+      "objective_id": "102.6",
+      "title_fr": "principes cloud-init/IaaS",
+      "pedagogy_order": 6,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes",
+      "objective_id": "103.1",
+      "title_fr": "syntaxe shell et séquences de commandes",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.1.variables-shell-environnement",
+      "objective_id": "103.1",
+      "title_fr": "variables shell/environnement",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.1.path-et-resolution-de-commande",
+      "objective_id": "103.1",
+      "title_fr": "PATH et résolution de commande",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.1.quoting-escaping",
+      "objective_id": "103.1",
+      "title_fr": "quoting/escaping",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.1.historique",
+      "objective_id": "103.1",
+      "title_fr": "historique",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.1.documentation-et-identification-d-une-commande",
+      "objective_id": "103.1",
+      "title_fr": "documentation et identification d’une commande",
+      "pedagogy_order": 6,
+      "inherited_hard_objective_prerequisites": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.1.informations-systeme-de-base",
+      "objective_id": "103.1",
+      "title_fr": "informations système de base",
+      "pedagogy_order": 7,
+      "inherited_hard_objective_prerequisites": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.2.flux-texte-ligne-octet",
+      "objective_id": "103.2",
+      "title_fr": "flux texte ligne/octet",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [
+        "103.1",
+        "103.4"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.2.selection-de-colonnes-lignes",
+      "objective_id": "103.2",
+      "title_fr": "sélection de colonnes/lignes",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [
+        "103.1",
+        "103.4"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.2.tri-dedoublonnage",
+      "objective_id": "103.2",
+      "title_fr": "tri/dédoublonnage",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [
+        "103.1",
+        "103.4"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.2.assemblage-et-decoupage",
+      "objective_id": "103.2",
+      "title_fr": "assemblage et découpage",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [
+        "103.1",
+        "103.4"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.2.transformations-simples",
+      "objective_id": "103.2",
+      "title_fr": "transformations simples",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [
+        "103.1",
+        "103.4"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.2.checksums",
+      "objective_id": "103.2",
+      "title_fr": "checksums",
+      "pedagogy_order": 6,
+      "inherited_hard_objective_prerequisites": [
+        "103.1",
+        "103.4"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.2.lecture-compression-en-flux",
+      "objective_id": "103.2",
+      "title_fr": "lecture/compression en flux",
+      "pedagogy_order": 7,
+      "inherited_hard_objective_prerequisites": [
+        "103.1",
+        "103.4"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.3.creation-copie-deplacement-suppression",
+      "objective_id": "103.3",
+      "title_fr": "création/copie/déplacement/suppression",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.3.recursivite-et-globbing",
+      "objective_id": "103.3",
+      "title_fr": "récursivité et globbing",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.3.recherche-par-metadonnees",
+      "objective_id": "103.3",
+      "title_fr": "recherche par métadonnées",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.3.actions-find",
+      "objective_id": "103.3",
+      "title_fr": "actions find",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.3.archives-tar-cpio",
+      "objective_id": "103.3",
+      "title_fr": "archives tar/cpio",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.3.copie-bas-niveau-dd",
+      "objective_id": "103.3",
+      "title_fr": "copie bas niveau dd",
+      "pedagogy_order": 6,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.3.compression-gzip-bzip2-xz",
+      "objective_id": "103.3",
+      "title_fr": "compression gzip/bzip2/xz",
+      "pedagogy_order": 7,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.3.detection-de-type",
+      "objective_id": "103.3",
+      "title_fr": "détection de type",
+      "pedagogy_order": 8,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.4.stdin-stdout-stderr-et-descripteurs",
+      "objective_id": "103.4",
+      "title_fr": "stdin/stdout/stderr et descripteurs",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.4.redirections-ecrasement-append",
+      "objective_id": "103.4",
+      "title_fr": "redirections écrasement/append",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.4.redirection-stderr",
+      "objective_id": "103.4",
+      "title_fr": "redirection stderr",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.4.pipelines",
+      "objective_id": "103.4",
+      "title_fr": "pipelines",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.4.dupliquer-sortie-avec-tee",
+      "objective_id": "103.4",
+      "title_fr": "dupliquer sortie avec tee",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.4.transformer-stdin-en-arguments-via-xargs",
+      "objective_id": "103.4",
+      "title_fr": "transformer stdin en arguments via xargs",
+      "pedagogy_order": 6,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.4.ordre-des-redirections",
+      "objective_id": "103.4",
+      "title_fr": "ordre des redirections",
+      "pedagogy_order": 7,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.5.processus-avant-arriere-plan",
+      "objective_id": "103.5",
+      "title_fr": "processus avant/arrière-plan",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.5.jobs-du-shell",
+      "objective_id": "103.5",
+      "title_fr": "jobs du shell",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.5.signaux",
+      "objective_id": "103.5",
+      "title_fr": "signaux",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.5.inspection-arbres-ressources",
+      "objective_id": "103.5",
+      "title_fr": "inspection arbres/ressources",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.5.processus-survivant-a-la-session",
+      "objective_id": "103.5",
+      "title_fr": "processus survivant à la session",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.5.selection-par-nom-pid",
+      "objective_id": "103.5",
+      "title_fr": "sélection par nom/PID",
+      "pedagogy_order": 6,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.5.multiplexeurs-de-terminal",
+      "objective_id": "103.5",
+      "title_fr": "multiplexeurs de terminal",
+      "pedagogy_order": 7,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.6.nice-value-et-ordonnancement-utilisateur",
+      "objective_id": "103.6",
+      "title_fr": "nice value et ordonnancement utilisateur",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [
+        "103.5"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.6.priorite-par-defaut",
+      "objective_id": "103.6",
+      "title_fr": "priorité par défaut",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [
+        "103.5"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.6.demarrer-avec-une-priorite",
+      "objective_id": "103.6",
+      "title_fr": "démarrer avec une priorité",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [
+        "103.5"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.6.modifier-priorite-existante",
+      "objective_id": "103.6",
+      "title_fr": "modifier priorité existante",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [
+        "103.5"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.6.observer-priorite",
+      "objective_id": "103.6",
+      "title_fr": "observer priorité",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [
+        "103.5"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.7.regex-basiques-etendues",
+      "objective_id": "103.7",
+      "title_fr": "regex basiques/étendues",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.7.classes-de-caracteres",
+      "objective_id": "103.7",
+      "title_fr": "classes de caractères",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.7.quantificateurs-et-ancres",
+      "objective_id": "103.7",
+      "title_fr": "quantificateurs et ancres",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.7.groupes-alternatives",
+      "objective_id": "103.7",
+      "title_fr": "groupes/alternatives",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.7.recherche-de-lignes",
+      "objective_id": "103.7",
+      "title_fr": "recherche de lignes",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.7.substitution-transformation-avec-sed",
+      "objective_id": "103.7",
+      "title_fr": "substitution/transformation avec sed",
+      "pedagogy_order": 6,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.7.difference-glob-vs-regex",
+      "objective_id": "103.7",
+      "title_fr": "différence glob vs regex",
+      "pedagogy_order": 7,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.8.modes-normal-insertion-commande",
+      "objective_id": "103.8",
+      "title_fr": "modes normal/insertion/commande",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.8.navigation",
+      "objective_id": "103.8",
+      "title_fr": "navigation",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.8.insertion-remplacement",
+      "objective_id": "103.8",
+      "title_fr": "insertion/remplacement",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.8.suppression-copie-collage",
+      "objective_id": "103.8",
+      "title_fr": "suppression/copie/collage",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.8.recherche",
+      "objective_id": "103.8",
+      "title_fr": "recherche",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.8.sauvegarde-quitter",
+      "objective_id": "103.8",
+      "title_fr": "sauvegarde/quitter",
+      "pedagogy_order": 6,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.8.editeur-par-defaut",
+      "objective_id": "103.8",
+      "title_fr": "éditeur par défaut",
+      "pedagogy_order": 7,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.8.connaissance-nano-emacs-vim",
+      "objective_id": "103.8",
+      "title_fr": "connaissance nano/emacs/vim",
+      "pedagogy_order": 8,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.1.mbr-versus-gpt",
+      "objective_id": "104.1",
+      "title_fr": "MBR versus GPT",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [
+        "102.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.1.creation-modification-de-partitions",
+      "objective_id": "104.1",
+      "title_fr": "création/modification de partitions",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [
+        "102.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.1.ext2-ext3-ext4",
+      "objective_id": "104.1",
+      "title_fr": "ext2/ext3/ext4",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [
+        "102.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.1.xfs",
+      "objective_id": "104.1",
+      "title_fr": "XFS",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [
+        "102.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.1.vfat-exfat",
+      "objective_id": "104.1",
+      "title_fr": "VFAT/exFAT",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [
+        "102.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.1.swap",
+      "objective_id": "104.1",
+      "title_fr": "swap",
+      "pedagogy_order": 6,
+      "inherited_hard_objective_prerequisites": [
+        "102.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.1.principes-btrfs-multi-device-compression-subvolumes",
+      "objective_id": "104.1",
+      "title_fr": "principes Btrfs multi-device/compression/subvolumes",
+      "pedagogy_order": 7,
+      "inherited_hard_objective_prerequisites": [
+        "102.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.1.creation-de-filesystem",
+      "objective_id": "104.1",
+      "title_fr": "création de filesystem",
+      "pedagogy_order": 8,
+      "inherited_hard_objective_prerequisites": [
+        "102.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.2.occupation-blocs-inodes",
+      "objective_id": "104.2",
+      "title_fr": "occupation blocs/inodes",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [
+        "104.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.2.verification-ext",
+      "objective_id": "104.2",
+      "title_fr": "vérification ext",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [
+        "104.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.2.reparation",
+      "objective_id": "104.2",
+      "title_fr": "réparation",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [
+        "104.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.2.tuning-ext",
+      "objective_id": "104.2",
+      "title_fr": "tuning ext",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [
+        "104.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.2.outils-xfs",
+      "objective_id": "104.2",
+      "title_fr": "outils XFS",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [
+        "104.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.2.difference-outils-online-offline-selon-fs",
+      "objective_id": "104.2",
+      "title_fr": "différence outils online/offline selon fs",
+      "pedagogy_order": 6,
+      "inherited_hard_objective_prerequisites": [
+        "104.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.2.symptomes-de-corruption-espace-epuise",
+      "objective_id": "104.2",
+      "title_fr": "symptômes de corruption/espace épuisé",
+      "pedagogy_order": 7,
+      "inherited_hard_objective_prerequisites": [
+        "104.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.3.montage-manuel",
+      "objective_id": "104.3",
+      "title_fr": "montage manuel",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [
+        "104.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.3.fstab-persistant",
+      "objective_id": "104.3",
+      "title_fr": "fstab persistant",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [
+        "104.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.3.uuid-labels",
+      "objective_id": "104.3",
+      "title_fr": "UUID/labels",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [
+        "104.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.3.options-de-montage",
+      "objective_id": "104.3",
+      "title_fr": "options de montage",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [
+        "104.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.3.demontage-et-fichiers-occupes",
+      "objective_id": "104.3",
+      "title_fr": "démontage et fichiers occupés",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [
+        "104.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.3.unites-mount-systemd",
+      "objective_id": "104.3",
+      "title_fr": "unités mount systemd",
+      "pedagogy_order": 6,
+      "inherited_hard_objective_prerequisites": [
+        "104.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.3.peripheriques-amovibles",
+      "objective_id": "104.3",
+      "title_fr": "périphériques amovibles",
+      "pedagogy_order": 7,
+      "inherited_hard_objective_prerequisites": [
+        "104.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.5.permissions-rwx-fichier-dossier",
+      "objective_id": "104.5",
+      "title_fr": "permissions rwx fichier/dossier",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.5.notation-symbolique-octale",
+      "objective_id": "104.5",
+      "title_fr": "notation symbolique/octale",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.5.proprietaire-groupe",
+      "objective_id": "104.5",
+      "title_fr": "propriétaire/groupe",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.5.umask",
+      "objective_id": "104.5",
+      "title_fr": "umask",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.5.suid",
+      "objective_id": "104.5",
+      "title_fr": "SUID",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.5.sgid",
+      "objective_id": "104.5",
+      "title_fr": "SGID",
+      "pedagogy_order": 6,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.5.sticky-bit",
+      "objective_id": "104.5",
+      "title_fr": "sticky bit",
+      "pedagogy_order": 7,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.5.effets-speciaux-sur-repertoires",
+      "objective_id": "104.5",
+      "title_fr": "effets spéciaux sur répertoires",
+      "pedagogy_order": 8,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.6.inode-et-hard-link",
+      "objective_id": "104.6",
+      "title_fr": "inode et hard link",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.6.symlink-et-cible",
+      "objective_id": "104.6",
+      "title_fr": "symlink et cible",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.6.limites-filesystem-directory-des-hard-links",
+      "objective_id": "104.6",
+      "title_fr": "limites filesystem/directory des hard links",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.6.liens-casses",
+      "objective_id": "104.6",
+      "title_fr": "liens cassés",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.6.difference-copie-lien",
+      "objective_id": "104.6",
+      "title_fr": "différence copie/lien",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.6.usages-administratifs",
+      "objective_id": "104.6",
+      "title_fr": "usages administratifs",
+      "pedagogy_order": 6,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.7.role-des-principaux-repertoires-fhs",
+      "objective_id": "104.7",
+      "title_fr": "rôle des principaux répertoires FHS",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.7.recherche-temps-reel-vs-base-locate",
+      "objective_id": "104.7",
+      "title_fr": "recherche temps réel vs base locate",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.7.mise-a-jour-base-locate",
+      "objective_id": "104.7",
+      "title_fr": "mise à jour base locate",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.7.localiser-binaire-source-man",
+      "objective_id": "104.7",
+      "title_fr": "localiser binaire/source/man",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.104.7.resolution-de-commande-shell",
+      "objective_id": "104.7",
+      "title_fr": "résolution de commande shell",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.105.1.login-shell-vs-shell-interactif",
+      "objective_id": "105.1",
+      "title_fr": "login shell vs shell interactif",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.105.1.ordre-finalite-fichiers-de-profil",
+      "objective_id": "105.1",
+      "title_fr": "ordre/finalité fichiers de profil",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.105.1.variables-environnement",
+      "objective_id": "105.1",
+      "title_fr": "variables environnement",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.105.1.fonctions-aliases",
+      "objective_id": "105.1",
+      "title_fr": "fonctions/aliases",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.105.1.path",
+      "objective_id": "105.1",
+      "title_fr": "PATH",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.105.1.etc-skel",
+      "objective_id": "105.1",
+      "title_fr": "/etc/skel",
+      "pedagogy_order": 6,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.105.1.configuration-globale-vs-utilisateur",
+      "objective_id": "105.1",
+      "title_fr": "configuration globale vs utilisateur",
+      "pedagogy_order": 7,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.105.2.shebang-et-execution",
+      "objective_id": "105.2",
+      "title_fr": "shebang et exécution",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [
+        "105.1",
+        "103.4"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.105.2.variables-arguments",
+      "objective_id": "105.2",
+      "title_fr": "variables/arguments",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [
+        "105.1",
+        "103.4"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.105.2.tests-et-statuts-de-sortie",
+      "objective_id": "105.2",
+      "title_fr": "tests et statuts de sortie",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [
+        "105.1",
+        "103.4"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.105.2.if",
+      "objective_id": "105.2",
+      "title_fr": "if",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [
+        "105.1",
+        "103.4"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.105.2.boucles-for-while",
+      "objective_id": "105.2",
+      "title_fr": "boucles for/while",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [
+        "105.1",
+        "103.4"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.105.2.lecture-entree",
+      "objective_id": "105.2",
+      "title_fr": "lecture entrée",
+      "pedagogy_order": 6,
+      "inherited_hard_objective_prerequisites": [
+        "105.1",
+        "103.4"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.105.2.substitution-de-commande",
+      "objective_id": "105.2",
+      "title_fr": "substitution de commande",
+      "pedagogy_order": 7,
+      "inherited_hard_objective_prerequisites": [
+        "105.1",
+        "103.4"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.105.2.chainage",
+      "objective_id": "105.2",
+      "title_fr": "chaînage &&/||",
+      "pedagogy_order": 8,
+      "inherited_hard_objective_prerequisites": [
+        "105.1",
+        "103.4"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.105.2.exec",
+      "objective_id": "105.2",
+      "title_fr": "exec",
+      "pedagogy_order": 9,
+      "inherited_hard_objective_prerequisites": [
+        "105.1",
+        "103.4"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.105.2.emplacement-permissions-de-scripts",
+      "objective_id": "105.2",
+      "title_fr": "emplacement/permissions de scripts",
+      "pedagogy_order": 10,
+      "inherited_hard_objective_prerequisites": [
+        "105.1",
+        "103.4"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.105.2.actions-conditionnelles-comme-mail",
+      "objective_id": "105.2",
+      "title_fr": "actions conditionnelles comme mail",
+      "pedagogy_order": 11,
+      "inherited_hard_objective_prerequisites": [
+        "105.1",
+        "103.4"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.106.1.client-serveur-x11",
+      "objective_id": "106.1",
+      "title_fr": "client/serveur X11",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.106.1.display",
+      "objective_id": "106.1",
+      "title_fr": "DISPLAY",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.106.1.xauthority-et-acces",
+      "objective_id": "106.1",
+      "title_fr": "Xauthority et accès",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.106.1.configuration-xorg",
+      "objective_id": "106.1",
+      "title_fr": "configuration Xorg",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.106.1.clavier-affichage",
+      "objective_id": "106.1",
+      "title_fr": "clavier/affichage",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.106.1.display-manager-window-manager",
+      "objective_id": "106.1",
+      "title_fr": "display manager/window manager",
+      "pedagogy_order": 6,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.106.1.x-distant",
+      "objective_id": "106.1",
+      "title_fr": "X distant",
+      "pedagogy_order": 7,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.106.1.concepts-de-base-wayland",
+      "objective_id": "106.1",
+      "title_fr": "concepts de base Wayland",
+      "pedagogy_order": 8,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.106.2.roles-desktop-environment-window-manager-display-manager",
+      "objective_id": "106.2",
+      "title_fr": "rôles desktop environment/window manager/display manager",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [
+        "106.1",
+        "109.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.106.2.caracteristiques-generales-kde-gnome-xfce",
+      "objective_id": "106.2",
+      "title_fr": "caractéristiques générales KDE/GNOME/Xfce",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [
+        "106.1",
+        "109.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.106.2.protocoles-d-acces-graphique-distant",
+      "objective_id": "106.2",
+      "title_fr": "protocoles d’accès graphique distant",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [
+        "106.1",
+        "109.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.106.2.differences-vnc-rdp-spice-xdmcp",
+      "objective_id": "106.2",
+      "title_fr": "différences VNC/RDP/SPICE/XDMCP",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [
+        "106.1",
+        "109.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.106.3.contraste-themes",
+      "objective_id": "106.3",
+      "title_fr": "contraste/thèmes",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.106.3.lecteur-d-ecran",
+      "objective_id": "106.3",
+      "title_fr": "lecteur d’écran",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.106.3.braille",
+      "objective_id": "106.3",
+      "title_fr": "braille",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.106.3.magnification",
+      "objective_id": "106.3",
+      "title_fr": "magnification",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.106.3.clavier-virtuel",
+      "objective_id": "106.3",
+      "title_fr": "clavier virtuel",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.106.3.sticky-slow-bounce-toggle-keys",
+      "objective_id": "106.3",
+      "title_fr": "sticky/slow/bounce/toggle keys",
+      "pedagogy_order": 6,
+      "inherited_hard_objective_prerequisites": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.106.3.controle-souris-au-clavier",
+      "objective_id": "106.3",
+      "title_fr": "contrôle souris au clavier",
+      "pedagogy_order": 7,
+      "inherited_hard_objective_prerequisites": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.106.3.gestes",
+      "objective_id": "106.3",
+      "title_fr": "gestes",
+      "pedagogy_order": 8,
+      "inherited_hard_objective_prerequisites": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.106.3.reconnaissance-vocale",
+      "objective_id": "106.3",
+      "title_fr": "reconnaissance vocale",
+      "pedagogy_order": 9,
+      "inherited_hard_objective_prerequisites": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.107.1.bases-passwd-shadow-group",
+      "objective_id": "107.1",
+      "title_fr": "bases passwd/shadow/group",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [
+        "103.1",
+        "104.5"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.107.1.creation-modification-suppression-comptes",
+      "objective_id": "107.1",
+      "title_fr": "création/modification/suppression comptes",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [
+        "103.1",
+        "104.5"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.107.1.verrouillage-et-expiration",
+      "objective_id": "107.1",
+      "title_fr": "verrouillage et expiration",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [
+        "103.1",
+        "104.5"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.107.1.groupes-primaires-secondaires",
+      "objective_id": "107.1",
+      "title_fr": "groupes primaires/secondaires",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [
+        "103.1",
+        "104.5"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.107.1.comptes-systeme-a-usage-limite",
+      "objective_id": "107.1",
+      "title_fr": "comptes système/à usage limité",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [
+        "103.1",
+        "104.5"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.107.1.squelettes",
+      "objective_id": "107.1",
+      "title_fr": "squelettes",
+      "pedagogy_order": 6,
+      "inherited_hard_objective_prerequisites": [
+        "103.1",
+        "104.5"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.107.1.lookup-via-nss-getent",
+      "objective_id": "107.1",
+      "title_fr": "lookup via NSS/getent",
+      "pedagogy_order": 7,
+      "inherited_hard_objective_prerequisites": [
+        "103.1",
+        "104.5"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.107.2.crontab-utilisateur-systeme",
+      "objective_id": "107.2",
+      "title_fr": "crontab utilisateur/système",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.107.2.syntaxe-calendrier-cron",
+      "objective_id": "107.2",
+      "title_fr": "syntaxe calendrier cron",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.107.2.at-taches-ponctuelles",
+      "objective_id": "107.2",
+      "title_fr": "at tâches ponctuelles",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.107.2.allow-deny",
+      "objective_id": "107.2",
+      "title_fr": "allow/deny",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.107.2.spool-concept",
+      "objective_id": "107.2",
+      "title_fr": "spool concept",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.107.2.systemd-timers-et-transient-timers",
+      "objective_id": "107.2",
+      "title_fr": "systemd timers et transient timers",
+      "pedagogy_order": 6,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.107.2.choix-cron-vs-timer",
+      "objective_id": "107.2",
+      "title_fr": "choix cron vs timer",
+      "pedagogy_order": 7,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.107.3.locale-et-categories-lc",
+      "objective_id": "107.3",
+      "title_fr": "locale et catégories LC_*",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.107.3.lang-lc-all-priorite",
+      "objective_id": "107.3",
+      "title_fr": "LANG/LC_ALL priorité",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.107.3.timezone-systeme-utilisateur",
+      "objective_id": "107.3",
+      "title_fr": "timezone système/utilisateur",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.107.3.utc-vs-heure-locale",
+      "objective_id": "107.3",
+      "title_fr": "UTC vs heure locale",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.107.3.utf-8-unicode-ascii-iso-8859",
+      "objective_id": "107.3",
+      "title_fr": "UTF-8/Unicode/ASCII/ISO-8859",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.107.3.conversion-encodage",
+      "objective_id": "107.3",
+      "title_fr": "conversion encodage",
+      "pedagogy_order": 6,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.107.3.configuration-timezone-avec-timedatectl-tzselect",
+      "objective_id": "107.3",
+      "title_fr": "configuration timezone avec timedatectl/tzselect",
+      "pedagogy_order": 7,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.108.1.horloge-systeme-vs-rtc",
+      "objective_id": "108.1",
+      "title_fr": "horloge système vs RTC",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [
+        "107.3"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.108.1.utc",
+      "objective_id": "108.1",
+      "title_fr": "UTC",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [
+        "107.3"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.108.1.timezone",
+      "objective_id": "108.1",
+      "title_fr": "timezone",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [
+        "107.3"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.108.1.ntp",
+      "objective_id": "108.1",
+      "title_fr": "NTP",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [
+        "107.3"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.108.1.chrony",
+      "objective_id": "108.1",
+      "title_fr": "chrony",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [
+        "107.3"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.108.1.sources-pools",
+      "objective_id": "108.1",
+      "title_fr": "sources/pools",
+      "pedagogy_order": 6,
+      "inherited_hard_objective_prerequisites": [
+        "107.3"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.108.1.inspection-etat-synchronisation",
+      "objective_id": "108.1",
+      "title_fr": "inspection état synchronisation",
+      "pedagogy_order": 7,
+      "inherited_hard_objective_prerequisites": [
+        "107.3"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.108.1.configuration-de-base",
+      "objective_id": "108.1",
+      "title_fr": "configuration de base",
+      "pedagogy_order": 8,
+      "inherited_hard_objective_prerequisites": [
+        "107.3"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.108.2.syslog-facilities-priorities-actions",
+      "objective_id": "108.2",
+      "title_fr": "syslog facilities/priorities/actions",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.108.2.rsyslog-configuration",
+      "objective_id": "108.2",
+      "title_fr": "rsyslog configuration",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.108.2.journald-requetes-filtres",
+      "objective_id": "108.2",
+      "title_fr": "journald requêtes/filtres",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.108.2.persistance-taille-vacuum-journal",
+      "objective_id": "108.2",
+      "title_fr": "persistance/taille/vacuum journal",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.108.2.interaction-journald-rsyslog",
+      "objective_id": "108.2",
+      "title_fr": "interaction journald↔rsyslog",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.108.2.rotation-logs",
+      "objective_id": "108.2",
+      "title_fr": "rotation logs",
+      "pedagogy_order": 6,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.108.2.logger-systemd-cat",
+      "objective_id": "108.2",
+      "title_fr": "logger/systemd-cat",
+      "pedagogy_order": 7,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.108.2.connaissance-syslog-ng",
+      "objective_id": "108.2",
+      "title_fr": "connaissance syslog-ng",
+      "pedagogy_order": 8,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.108.3.role-mta",
+      "objective_id": "108.3",
+      "title_fr": "rôle MTA",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.108.3.aliases",
+      "objective_id": "108.3",
+      "title_fr": "aliases",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.108.3.forward-utilisateur",
+      "objective_id": "108.3",
+      "title_fr": "forward utilisateur",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.108.3.file-d-attente",
+      "objective_id": "108.3",
+      "title_fr": "file d’attente",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.108.3.interface-sendmail-compatible",
+      "objective_id": "108.3",
+      "title_fr": "interface sendmail compatible",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.108.3.connaissance-postfix-sendmail-exim",
+      "objective_id": "108.3",
+      "title_fr": "connaissance Postfix/Sendmail/Exim",
+      "pedagogy_order": 6,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.108.3.mail-local-de-scripts",
+      "objective_id": "108.3",
+      "title_fr": "mail local de scripts",
+      "pedagogy_order": 7,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.108.4.architecture-client-serveur-cups",
+      "objective_id": "108.4",
+      "title_fr": "architecture client/serveur CUPS",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.108.4.queues-imprimantes-locales-et-distantes",
+      "objective_id": "108.4",
+      "title_fr": "queues/imprimantes locales et distantes",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.108.4.jobs-impression",
+      "objective_id": "108.4",
+      "title_fr": "jobs impression",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.108.4.configuration-de-base",
+      "objective_id": "108.4",
+      "title_fr": "configuration de base",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.108.4.diagnostic-queue",
+      "objective_id": "108.4",
+      "title_fr": "diagnostic queue",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.108.4.compatibilite-commandes-bsd-system-v-de-base",
+      "objective_id": "108.4",
+      "title_fr": "compatibilité commandes BSD/System V de base",
+      "pedagogy_order": 6,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.109.1.ipv4-et-ipv6",
+      "objective_id": "109.1",
+      "title_fr": "IPv4 et IPv6",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.109.1.cidr-masques-sous-reseaux",
+      "objective_id": "109.1",
+      "title_fr": "CIDR/masques/sous-réseaux",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.109.1.adresses-privees-publiques",
+      "objective_id": "109.1",
+      "title_fr": "adresses privées/publiques",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.109.1.tcp-vs-udp-vs-icmp",
+      "objective_id": "109.1",
+      "title_fr": "TCP vs UDP vs ICMP",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.109.1.ports-et-services-courants",
+      "objective_id": "109.1",
+      "title_fr": "ports et services courants",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.109.1.boucle-locale-et-routes-conceptuelles",
+      "objective_id": "109.1",
+      "title_fr": "boucle locale et routes conceptuelles",
+      "pedagogy_order": 6,
+      "inherited_hard_objective_prerequisites": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.109.1.lecture-etc-services",
+      "objective_id": "109.1",
+      "title_fr": "lecture /etc/services",
+      "pedagogy_order": 7,
+      "inherited_hard_objective_prerequisites": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.109.2.hostname",
+      "objective_id": "109.2",
+      "title_fr": "hostname",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [
+        "109.1",
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.109.2.hosts-nss-resolv-conf",
+      "objective_id": "109.2",
+      "title_fr": "hosts/NSS/resolv.conf",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [
+        "109.1",
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.109.2.configuration-ip-gateway-dns",
+      "objective_id": "109.2",
+      "title_fr": "configuration IP/gateway/DNS",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [
+        "109.1",
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.109.2.networkmanager-nmcli",
+      "objective_id": "109.2",
+      "title_fr": "NetworkManager/nmcli",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [
+        "109.1",
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.109.2.interfaces-ethernet-wi-fi",
+      "objective_id": "109.2",
+      "title_fr": "interfaces Ethernet/Wi-Fi",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [
+        "109.1",
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.109.2.connaissance-systemd-networkd",
+      "objective_id": "109.2",
+      "title_fr": "connaissance systemd-networkd",
+      "pedagogy_order": 6,
+      "inherited_hard_objective_prerequisites": [
+        "109.1",
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.109.2.ifup-ifdown-historique",
+      "objective_id": "109.2",
+      "title_fr": "ifup/ifdown historique",
+      "pedagogy_order": 7,
+      "inherited_hard_objective_prerequisites": [
+        "109.1",
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.109.2.persistance-et-ordre-resolution",
+      "objective_id": "109.2",
+      "title_fr": "persistance et ordre résolution",
+      "pedagogy_order": 8,
+      "inherited_hard_objective_prerequisites": [
+        "109.1",
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.109.3.interfaces-adresses-routes-via-iproute2",
+      "objective_id": "109.3",
+      "title_fr": "interfaces/adresses/routes via iproute2",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [
+        "109.1",
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.109.3.default-gateway",
+      "objective_id": "109.3",
+      "title_fr": "default gateway",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [
+        "109.1",
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.109.3.sockets-via-ss",
+      "objective_id": "109.3",
+      "title_fr": "sockets via ss",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [
+        "109.1",
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.109.3.connectivite-icmp",
+      "objective_id": "109.3",
+      "title_fr": "connectivité ICMP",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [
+        "109.1",
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.109.3.chemin-reseau",
+      "objective_id": "109.3",
+      "title_fr": "chemin réseau",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [
+        "109.1",
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.109.3.tests-tcp-udp-avec-netcat",
+      "objective_id": "109.3",
+      "title_fr": "tests TCP/UDP avec netcat",
+      "pedagogy_order": 6,
+      "inherited_hard_objective_prerequisites": [
+        "109.1",
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.109.3.legacy-net-tools",
+      "objective_id": "109.3",
+      "title_fr": "legacy net-tools",
+      "pedagogy_order": 7,
+      "inherited_hard_objective_prerequisites": [
+        "109.1",
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.109.3.distinction-panne-l2-l3-dns-service",
+      "objective_id": "109.3",
+      "title_fr": "distinction panne L2/L3/DNS/service",
+      "pedagogy_order": 8,
+      "inherited_hard_objective_prerequisites": [
+        "109.1",
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.109.4.ordre-de-resolution-nss",
+      "objective_id": "109.4",
+      "title_fr": "ordre de résolution NSS",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [
+        "109.1",
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.109.4.hosts-vs-dns",
+      "objective_id": "109.4",
+      "title_fr": "hosts vs DNS",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [
+        "109.1",
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.109.4.resolver-configuration",
+      "objective_id": "109.4",
+      "title_fr": "resolver configuration",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [
+        "109.1",
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.109.4.requetes-a-aaaa-mx-ns-courantes",
+      "objective_id": "109.4",
+      "title_fr": "requêtes A/AAAA/MX/NS courantes",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [
+        "109.1",
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.109.4.diagnostic-dns",
+      "objective_id": "109.4",
+      "title_fr": "diagnostic DNS",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [
+        "109.1",
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.109.4.systemd-resolved-awareness",
+      "objective_id": "109.4",
+      "title_fr": "systemd-resolved awareness",
+      "pedagogy_order": 6,
+      "inherited_hard_objective_prerequisites": [
+        "109.1",
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.109.4.difference-resolution-locale-et-serveur-dns",
+      "objective_id": "109.4",
+      "title_fr": "différence résolution locale et serveur DNS",
+      "pedagogy_order": 7,
+      "inherited_hard_objective_prerequisites": [
+        "109.1",
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.110.1.audit-suid-sgid",
+      "objective_id": "110.1",
+      "title_fr": "audit SUID/SGID",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [
+        "103.1",
+        "104.5",
+        "107.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.110.1.politiques-mot-de-passe-expiration",
+      "objective_id": "110.1",
+      "title_fr": "politiques mot de passe/expiration",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [
+        "103.1",
+        "104.5",
+        "107.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.110.1.ports-processus-ouverts",
+      "objective_id": "110.1",
+      "title_fr": "ports/processus ouverts",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [
+        "103.1",
+        "104.5",
+        "107.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.110.1.fichiers-ouverts",
+      "objective_id": "110.1",
+      "title_fr": "fichiers ouverts",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [
+        "103.1",
+        "104.5",
+        "107.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.110.1.limites-ressources",
+      "objective_id": "110.1",
+      "title_fr": "limites ressources",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [
+        "103.1",
+        "104.5",
+        "107.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.110.1.sessions-historique-login",
+      "objective_id": "110.1",
+      "title_fr": "sessions/historique login",
+      "pedagogy_order": 6,
+      "inherited_hard_objective_prerequisites": [
+        "103.1",
+        "104.5",
+        "107.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.110.1.sudo-de-base",
+      "objective_id": "110.1",
+      "title_fr": "sudo de base",
+      "pedagogy_order": 7,
+      "inherited_hard_objective_prerequisites": [
+        "103.1",
+        "104.5",
+        "107.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.110.1.recherche-d-exposition",
+      "objective_id": "110.1",
+      "title_fr": "recherche d’exposition",
+      "pedagogy_order": 8,
+      "inherited_hard_objective_prerequisites": [
+        "103.1",
+        "104.5",
+        "107.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.110.2.shadow-passwords",
+      "objective_id": "110.2",
+      "title_fr": "shadow passwords",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [
+        "110.1",
+        "101.3"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.110.2.desactivation-services-inutiles",
+      "objective_id": "110.2",
+      "title_fr": "désactivation services inutiles",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [
+        "110.1",
+        "101.3"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.110.2.login-interdit-via-nologin",
+      "objective_id": "110.2",
+      "title_fr": "login interdit via nologin",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [
+        "110.1",
+        "101.3"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.110.2.socket-activation-systemd",
+      "objective_id": "110.2",
+      "title_fr": "socket activation systemd",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [
+        "110.1",
+        "101.3"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.110.2.xinetd-historique",
+      "objective_id": "110.2",
+      "title_fr": "xinetd historique",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [
+        "110.1",
+        "101.3"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.110.2.tcp-wrappers-historique",
+      "objective_id": "110.2",
+      "title_fr": "TCP wrappers historique",
+      "pedagogy_order": 6,
+      "inherited_hard_objective_prerequisites": [
+        "110.1",
+        "101.3"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.110.2.principe-surface-d-attaque-minimale",
+      "objective_id": "110.2",
+      "title_fr": "principe surface d’attaque minimale",
+      "pedagogy_order": 7,
+      "inherited_hard_objective_prerequisites": [
+        "110.1",
+        "101.3"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.110.3.ssh-client-serveur-concepts",
+      "objective_id": "110.3",
+      "title_fr": "SSH client/serveur concepts",
+      "pedagogy_order": 1,
+      "inherited_hard_objective_prerequisites": [
+        "109.1",
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.110.3.cles-utilisateur-et-host-keys",
+      "objective_id": "110.3",
+      "title_fr": "clés utilisateur et host keys",
+      "pedagogy_order": 2,
+      "inherited_hard_objective_prerequisites": [
+        "109.1",
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.110.3.known-hosts-authorized-keys",
+      "objective_id": "110.3",
+      "title_fr": "known_hosts/authorized_keys",
+      "pedagogy_order": 3,
+      "inherited_hard_objective_prerequisites": [
+        "109.1",
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.110.3.ssh-agent",
+      "objective_id": "110.3",
+      "title_fr": "ssh-agent",
+      "pedagogy_order": 4,
+      "inherited_hard_objective_prerequisites": [
+        "109.1",
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.110.3.tunnels-local-remote-dynamic-et-x11-forwarding",
+      "objective_id": "110.3",
+      "title_fr": "tunnels local/remote/dynamic et X11 forwarding",
+      "pedagogy_order": 5,
+      "inherited_hard_objective_prerequisites": [
+        "109.1",
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.110.3.gpg-cles-signatures-chiffrement",
+      "objective_id": "110.3",
+      "title_fr": "GPG clés/signatures/chiffrement",
+      "pedagogy_order": 6,
+      "inherited_hard_objective_prerequisites": [
+        "109.1",
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.110.3.revocation",
+      "objective_id": "110.3",
+      "title_fr": "révocation",
+      "pedagogy_order": 7,
+      "inherited_hard_objective_prerequisites": [
+        "109.1",
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.110.3.verification-identite-integrite",
+      "objective_id": "110.3",
+      "title_fr": "vérification identité/intégrité",
+      "pedagogy_order": 8,
+      "inherited_hard_objective_prerequisites": [
+        "109.1",
+        "103.1"
+      ],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    }
+  ]
+}
