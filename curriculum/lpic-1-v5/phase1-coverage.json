@@ -1,0 +1,245 @@
+{
+  "schema_version": "1.0.0",
+  "slice_id": "phase1-vertical-slice-v1",
+  "generated_from": {
+    "slice": "curriculum/lpic-1-v5/phase1-slice.json",
+    "labs": "labs/lpic-1-v5/*/*/lab.json",
+    "lessons": "content/lpic-1-v5/lessons/**/*.json",
+    "questions": "content/lpic-1-v5/questions/**/*.json"
+  },
+  "summary": {
+    "concepts": 22,
+    "with_any_surface": 14,
+    "with_lab": 14,
+    "with_lesson": 0,
+    "with_question": 0
+  },
+  "concepts": [
+    {
+      "concept_id": "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes",
+      "objective_id": "103.1",
+      "surfaces": {
+        "labs": [],
+        "lessons": [],
+        "questions": []
+      }
+    },
+    {
+      "concept_id": "lpic1.103.1.variables-shell-environnement",
+      "objective_id": "103.1",
+      "surfaces": {
+        "labs": [
+          "lpic1.103.1.shell-environment-repair"
+        ],
+        "lessons": [],
+        "questions": []
+      }
+    },
+    {
+      "concept_id": "lpic1.103.1.path-et-resolution-de-commande",
+      "objective_id": "103.1",
+      "surfaces": {
+        "labs": [
+          "lpic1.103.1.shell-environment-repair"
+        ],
+        "lessons": [],
+        "questions": []
+      }
+    },
+    {
+      "concept_id": "lpic1.103.1.quoting-escaping",
+      "objective_id": "103.1",
+      "surfaces": {
+        "labs": [
+          "lpic1.103.1.shell-environment-repair"
+        ],
+        "lessons": [],
+        "questions": []
+      }
+    },
+    {
+      "concept_id": "lpic1.103.1.historique",
+      "objective_id": "103.1",
+      "surfaces": {
+        "labs": [],
+        "lessons": [],
+        "questions": []
+      }
+    },
+    {
+      "concept_id": "lpic1.103.1.documentation-et-identification-d-une-commande",
+      "objective_id": "103.1",
+      "surfaces": {
+        "labs": [],
+        "lessons": [],
+        "questions": []
+      }
+    },
+    {
+      "concept_id": "lpic1.103.1.informations-systeme-de-base",
+      "objective_id": "103.1",
+      "surfaces": {
+        "labs": [],
+        "lessons": [],
+        "questions": []
+      }
+    },
+    {
+      "concept_id": "lpic1.103.5.processus-avant-arriere-plan",
+      "objective_id": "103.5",
+      "surfaces": {
+        "labs": [
+          "lpic1.103.5.stuck-worker"
+        ],
+        "lessons": [],
+        "questions": []
+      }
+    },
+    {
+      "concept_id": "lpic1.103.5.jobs-du-shell",
+      "objective_id": "103.5",
+      "surfaces": {
+        "labs": [
+          "lpic1.103.5.stuck-worker"
+        ],
+        "lessons": [],
+        "questions": []
+      }
+    },
+    {
+      "concept_id": "lpic1.103.5.signaux",
+      "objective_id": "103.5",
+      "surfaces": {
+        "labs": [
+          "lpic1.103.5.stuck-worker"
+        ],
+        "lessons": [],
+        "questions": []
+      }
+    },
+    {
+      "concept_id": "lpic1.103.5.inspection-arbres-ressources",
+      "objective_id": "103.5",
+      "surfaces": {
+        "labs": [
+          "lpic1.103.5.stuck-worker"
+        ],
+        "lessons": [],
+        "questions": []
+      }
+    },
+    {
+      "concept_id": "lpic1.103.5.processus-survivant-a-la-session",
+      "objective_id": "103.5",
+      "surfaces": {
+        "labs": [],
+        "lessons": [],
+        "questions": []
+      }
+    },
+    {
+      "concept_id": "lpic1.103.5.selection-par-nom-pid",
+      "objective_id": "103.5",
+      "surfaces": {
+        "labs": [
+          "lpic1.103.5.stuck-worker"
+        ],
+        "lessons": [],
+        "questions": []
+      }
+    },
+    {
+      "concept_id": "lpic1.103.5.multiplexeurs-de-terminal",
+      "objective_id": "103.5",
+      "surfaces": {
+        "labs": [],
+        "lessons": [],
+        "questions": []
+      }
+    },
+    {
+      "concept_id": "lpic1.104.5.permissions-rwx-fichier-dossier",
+      "objective_id": "104.5",
+      "surfaces": {
+        "labs": [
+          "lpic1.104.5.shared-dropbox"
+        ],
+        "lessons": [],
+        "questions": []
+      }
+    },
+    {
+      "concept_id": "lpic1.104.5.notation-symbolique-octale",
+      "objective_id": "104.5",
+      "surfaces": {
+        "labs": [
+          "lpic1.104.5.shared-dropbox"
+        ],
+        "lessons": [],
+        "questions": []
+      }
+    },
+    {
+      "concept_id": "lpic1.104.5.proprietaire-groupe",
+      "objective_id": "104.5",
+      "surfaces": {
+        "labs": [
+          "lpic1.104.5.shared-dropbox"
+        ],
+        "lessons": [],
+        "questions": []
+      }
+    },
+    {
+      "concept_id": "lpic1.104.5.umask",
+      "objective_id": "104.5",
+      "surfaces": {
+        "labs": [],
+        "lessons": [],
+        "questions": []
+      }
+    },
+    {
+      "concept_id": "lpic1.104.5.suid",
+      "objective_id": "104.5",
+      "surfaces": {
+        "labs": [],
+        "lessons": [],
+        "questions": []
+      }
+    },
+    {
+      "concept_id": "lpic1.104.5.sgid",
+      "objective_id": "104.5",
+      "surfaces": {
+        "labs": [
+          "lpic1.104.5.shared-dropbox"
+        ],
+        "lessons": [],
+        "questions": []
+      }
+    },
+    {
+      "concept_id": "lpic1.104.5.sticky-bit",
+      "objective_id": "104.5",
+      "surfaces": {
+        "labs": [
+          "lpic1.104.5.shared-dropbox"
+        ],
+        "lessons": [],
+        "questions": []
+      }
+    },
+    {
+      "concept_id": "lpic1.104.5.effets-speciaux-sur-repertoires",
+      "objective_id": "104.5",
+      "surfaces": {
+        "labs": [
+          "lpic1.104.5.shared-dropbox"
+        ],
+        "lessons": [],
+        "questions": []
+      }
+    }
+  ]
+}

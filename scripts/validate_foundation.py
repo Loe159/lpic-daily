@@ -9,10 +9,14 @@ SCRIPTS = [
     ROOT / "scripts" / "validate_learning_graph.py",
     ROOT / "scripts" / "validate_schemas.py",
     ROOT / "scripts" / "validate_labs.py",
+    ROOT / "scripts" / "generate_phase1_coverage.py",
 ]
 
 for script in SCRIPTS:
-    completed = subprocess.run([sys.executable, str(script)], cwd=ROOT)
+    command = [sys.executable, str(script)]
+    if script.name == "generate_phase1_coverage.py":
+        command.append("--check")
+    completed = subprocess.run(command, cwd=ROOT)
     if completed.returncode != 0:
         sys.exit(completed.returncode)
 
