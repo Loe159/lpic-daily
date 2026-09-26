@@ -15,8 +15,8 @@ func TestDefinitionRejectsPublicOrUnknownNetworkMode(t *testing.T) {
 		Network:           runner.NetworkMode("public"),
 		CapabilityProfile: "baseline",
 		MemoryMB:          256,
-		PIDs:               128,
-		Timeout:            time.Minute,
+		PIDs:              128,
+		Timeout:           time.Minute,
 	}
 	if err := definition.Validate(); err == nil {
 		t.Fatal("Validate() unexpectedly accepted public network mode")
