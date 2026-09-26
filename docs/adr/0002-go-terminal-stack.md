@@ -1,17 +1,13 @@
 # ADR 0002 — Go terminal application stack
 
-Status: **Accepted — 2026-09-24**
+Status: **Superseded by ADR 0006 — 2026-09-26**
 
-## Decision
-Use Go for the core application. Use Bubble Tea v2 for the TUI and SQLite for local persistence.
+## Historical decision
+This ADR originally selected Go + Bubble Tea v2 + SQLite on 2026-09-24.
 
-## Rationale
-The application is mostly orchestration, validation, learning logic and terminal UX. Go offers a small readable language, rapid tests/builds and straightforward native distribution. Bubble Tea v2 is a mature terminal framework. The lab security boundary comes from Podman/KVM, not from embedding untrusted code in-process.
+## Why it was reopened
+The conversational word "go" was incorrectly treated as if it were a product-owner language choice. It was not. Because Phase 1 had not yet introduced application code, the language decision was reopened before implementation.
 
-## Alternatives
-Rust + Ratatui: strong option and attractive for low-level software, but greater implementation complexity with limited security benefit for this architecture.
-Tauri/React: richer GUI but conflicts with terminal-first/offline-simple goals and adds a JS toolchain.
-Python: fast authoring but weaker single-binary distribution and dependency/environment management for a system utility.
+The independent comparison and final decision are recorded in `0006-language-stack-reevaluation.md`.
 
-## Reversibility
-Runner/content schemas should remain language-agnostic enough that this decision could be revisited before Phase 1 implementation starts.
+Do not cite this ADR as the current justification for the language choice.

@@ -1,4 +1,4 @@
-name: Foundation validation
+name: Foundation and core validation
 
 on:
   push:
@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 jobs:
-  validate:
+  foundation:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,3 +17,21 @@ jobs:
           python-version: "3.12"
       - name: Validate curriculum, learning graph and schemas
         run: python3 scripts/validate_foundation.py
+
+  go-core:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: false
+      - name: Check formatting
+        run: |
+          test -z "$(gofmt -l -- '*.go' 2>/dev/null || find . -name '*.go' -type f -print0 | xargs -0 gofmt -l)"
+      - name: Test
+        run: go test ./...
+      - name: Vet
+        run: go vet ./...
+      - name: Validate embedded curriculum through Go loader
+        run: go run ./cmd/lpic validate
