@@ -16,20 +16,20 @@ type RemovedObjective struct {
 }
 
 type Objective struct {
-	ID                     string   `json:"id"`
-	Exam                   string   `json:"exam"`
-	Topic                  string   `json:"topic"`
-	Weight                 int      `json:"weight"`
-	TitleFR                string   `json:"title_fr"`
-	Active                 bool     `json:"active"`
-	SyllabusVersion        string   `json:"syllabus_version"`
-	ExamCode               string   `json:"exam_code"`
-	Concepts               []string `json:"concepts"`
-	TermsFilesUtilities    []string `json:"terms_files_utilities"`
-	RecommendedBackend     string   `json:"recommended_backend"`
-	AssessmentEvidence     []string `json:"assessment_evidence"`
-	Notes                  string   `json:"notes"`
-	Source                 string   `json:"source"`
+	ID                  string   `json:"id"`
+	Exam                string   `json:"exam"`
+	Topic               string   `json:"topic"`
+	Weight              int      `json:"weight"`
+	TitleFR             string   `json:"title_fr"`
+	Active              bool     `json:"active"`
+	SyllabusVersion     string   `json:"syllabus_version"`
+	ExamCode            string   `json:"exam_code"`
+	Concepts            []string `json:"concepts"`
+	TermsFilesUtilities []string `json:"terms_files_utilities"`
+	RecommendedBackend  string   `json:"recommended_backend"`
+	AssessmentEvidence  []string `json:"assessment_evidence"`
+	Notes               string   `json:"notes"`
+	Source              string   `json:"source"`
 }
 
 type PrerequisitesFile struct {
@@ -73,15 +73,15 @@ type Concept struct {
 }
 
 type Phase1Slice struct {
-	SchemaVersion      string               `json:"schema_version"`
-	ID                 string               `json:"id"`
-	Status             string               `json:"status"`
-	SelectedObjectives []string             `json:"selected_objectives"`
-	RationaleFR        string               `json:"rationale_fr"`
-	ObjectiveConcepts  map[string][]string  `json:"objective_concepts"`
-	LearningOrder      SliceLearningOrder   `json:"learning_order"`
-	ReferenceScenarios []ReferenceScenario  `json:"reference_scenarios"`
-	ExplicitNonGoals   []string             `json:"explicit_non_goals"`
+	SchemaVersion      string              `json:"schema_version"`
+	ID                 string              `json:"id"`
+	Status             string              `json:"status"`
+	SelectedObjectives []string            `json:"selected_objectives"`
+	RationaleFR        string              `json:"rationale_fr"`
+	ObjectiveConcepts  map[string][]string `json:"objective_concepts"`
+	LearningOrder      SliceLearningOrder  `json:"learning_order"`
+	ReferenceScenarios []ReferenceScenario `json:"reference_scenarios"`
+	ExplicitNonGoals   []string            `json:"explicit_non_goals"`
 }
 
 type SliceLearningOrder struct {
