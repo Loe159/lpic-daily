@@ -23,8 +23,8 @@ type Definition struct {
 	Network           NetworkMode
 	CapabilityProfile string
 	MemoryMB          int
-	PIDs               int
-	Timeout            time.Duration
+	PIDs              int
+	Timeout           time.Duration
 }
 
 func (definition Definition) Validate() error {
