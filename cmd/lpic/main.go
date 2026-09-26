@@ -3,11 +3,14 @@ package main
 import (
 	"bufio"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
+	"os/signal"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	lpicdaily "github.com/Loe159/lpic-daily"
@@ -16,6 +19,7 @@ import (
 	"github.com/Loe159/lpic-daily/internal/lab"
 	"github.com/Loe159/lpic-daily/internal/runner"
 	podmanrunner "github.com/Loe159/lpic-daily/internal/runner/podman"
+	"github.com/Loe159/lpic-daily/internal/terminal"
 )
 
 const version = "0.0.0-dev"
@@ -213,7 +217,7 @@ func runInteractiveLab(authored lab.Lab, stdin io.Reader, stdout, stderr io.Writ
 	printLab(authored, stdout)
 	fmt.Fprintln(stdout)
 	fmt.Fprintln(stdout, "Mode commandes sandboxé. Chaque ligne est exécutée dans un nouveau shell du lab.")
-	fmt.Fprintln(stdout, "Commandes LPIC Daily : :check  :hint  :quit")
+	fmt.Fprintln(stdout, "Commandes LPIC Daily : :shell  :check  :hint  :quit")
 	fmt.Fprintln(stdout)
 
 	scanner := bufio.NewScanner(stdin)
@@ -250,6 +254,17 @@ func runInteractiveLab(authored lab.Lab, stdin io.Reader, stdout, stderr io.Writ
 				fmt.Fprintln(stdout, "Cet indice révèle la solution et réduira la force de la preuve pratique.")
 			}
 			continue
+		case ":shell":
+			fmt.Fprintln(stdout, "Ouverture d'un shell persistant dans la sandbox. Tape exit ou Ctrl-D pour revenir.")
+			result, err := runPersistentShell(ctx, backend, session.Instance, stdin, stdout)
+			if err != nil {
+				return fmt.Errorf("interactive sandbox shell: %w", err)
+			}
+			fmt.Fprintln(stdout, "\n[retour LPIC Daily]")
+			if result.ExitCode != 0 {
+				fmt.Fprintf(stderr, "[shell exit %d]\n", result.ExitCode)
+			}
+			continue
 		case ":check":
 			results, err := session.Evaluate(ctx)
 			if err != nil {
@@ -283,6 +298,109 @@ func runInteractiveLab(authored lab.Lab, stdin io.Reader, stdout, stderr io.Writ
 		if result.ExitCode != 0 {
 			fmt.Fprintf(stderr, "[exit %d]\n", result.ExitCode)
 		}
+	}
+}
+
+func runPersistentShell(
+	ctx context.Context,
+	backend runner.Runner,
+	instance runner.Instance,
+	stdin io.Reader,
+	stdout io.Writer,
+) (result runner.ExecResult, returnErr error) {
+	stdinFile, ok := stdin.(*os.File)
+	if !ok || !terminal.IsTerminal(stdinFile) {
+		return runner.ExecResult{}, errors.New(":shell requires an interactive terminal on stdin")
+	}
+	stdoutFile, ok := stdout.(*os.File)
+	if !ok || !terminal.IsTerminal(stdoutFile) {
+		return runner.ExecResult{}, errors.New(":shell requires an interactive terminal on stdout")
+	}
+
+	width, height, err := terminal.Size(stdoutFile)
+	if err != nil {
+		return runner.ExecResult{}, err
+	}
+
+	state, err := terminal.MakeRaw(stdinFile)
+	if err != nil {
+		return runner.ExecResult{}, err
+	}
+	restored := false
+	defer func() {
+		if restored {
+			return
+		}
+		if err := terminal.Restore(stdinFile, state); returnErr == nil && err != nil {
+			returnErr = err
+		}
+	}()
+
+	resize := make(chan runner.TerminalSize, 1)
+	resizeSignals := make(chan os.Signal, 1)
+	signal.Notify(resizeSignals, syscall.SIGWINCH)
+	resizeDone := make(chan struct{})
+	go func() {
+		for {
+			select {
+			case <-resizeDone:
+				return
+			case <-resizeSignals:
+				newWidth, newHeight, err := terminal.Size(stdoutFile)
+				if err != nil {
+					continue
+				}
+				sendLatestResize(resize, runner.TerminalSize{
+					Width:  newWidth,
+					Height: newHeight,
+				})
+			}
+		}
+	}()
+
+	env := map[string]string{}
+	if value := os.Getenv("TERM"); value != "" {
+		env["TERM"] = value
+	}
+
+	result, execErr := backend.Exec(ctx, instance, runner.ExecRequest{
+		Argv:        []string{"/usr/bin/bash", "-l"},
+		Env:         env,
+		Stdin:       stdinFile,
+		Stdout:      stdoutFile,
+		Stderr:      stdoutFile,
+		TTY:         true,
+		InitialSize: runner.TerminalSize{Width: width, Height: height},
+		Resize:      resize,
+	})
+
+	signal.Stop(resizeSignals)
+	close(resizeDone)
+	if err := terminal.Restore(stdinFile, state); err != nil {
+		return runner.ExecResult{}, err
+	}
+	restored = true
+
+	if execErr != nil {
+		return runner.ExecResult{}, execErr
+	}
+	return result, nil
+}
+
+func sendLatestResize(destination chan runner.TerminalSize, size runner.TerminalSize) {
+	select {
+	case destination <- size:
+		return
+	default:
+	}
+
+	select {
+	case <-destination:
+	default:
+	}
+	select {
+	case destination <- size:
+	default:
 	}
 }
 

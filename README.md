@@ -39,12 +39,13 @@ go run ./cmd/lpic lab run lpic1.104.5.shared-dropbox
 Inside command mode:
 
 ```text
+:shell   enter a persistent PTY-backed shell in the same sandbox
 :check   evaluate the observable final state
 :hint    reveal the next graduated hint
 :quit    destroy the disposable lab and leave
 ```
 
-Each normal input line is executed by `bash -lc` **inside the sandbox**, not on the host. Each line currently starts a fresh non-interactive shell; a persistent PTY is a later Phase-1 milestone.
+Each normal input line is executed by `bash -lc` **inside the sandbox**, not on the host. Use `:shell` when the exercise needs persistent shell state, job control, interactive programs or foreground/background process handling. The PTY is created by Podman inside the same disposable lab; terminal resizes are forwarded to the guest.
 
 The application never pulls lab images implicitly. Missing images or an unusable/rootful Podman service fail closed.
 
