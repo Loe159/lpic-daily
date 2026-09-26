@@ -17,7 +17,6 @@ import (
 	"regexp"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/Loe159/lpic-daily/internal/runner"
 )
