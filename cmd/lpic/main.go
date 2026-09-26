@@ -47,8 +47,7 @@ func runValidate(args []string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("OK %s %s: %d objectives, %d concepts, Phase 1=%v
-",
+	fmt.Printf("OK %s %s: %d objectives, %d concepts, Phase 1=%v\n",
 		catalog.Certification, catalog.SyllabusVersion, len(catalog.Objectives), len(catalog.Concepts), catalog.Phase1Slice.SelectedObjectives)
 	return nil
 }
@@ -72,13 +71,11 @@ func runPlan(args []string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Reviews: %d
-", len(plan.Reviews))
+	fmt.Printf("Reviews: %d\n", len(plan.Reviews))
 	if plan.New == nil {
 		fmt.Println("New: none")
 		return nil
 	}
-	fmt.Printf("New: %s — %s (%s)
-", plan.New.ObjectiveID, plan.New.TitleFR, plan.New.ReasonFR)
+	fmt.Printf("New: %s — %s (%s)\n", plan.New.ObjectiveID, plan.New.TitleFR, plan.New.ReasonFR)
 	return nil
 }
