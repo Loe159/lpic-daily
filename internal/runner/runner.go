@@ -24,7 +24,7 @@ type Definition struct {
 	CapabilityProfile string
 	MemoryMB          int
 	PIDs              int
-	Timeout            time.Duration
+	Timeout           time.Duration
 }
 
 func (definition Definition) Validate() error {
