@@ -156,7 +156,11 @@ func (lab Lab) CompileChecks() ([]checker.Check, error) {
 		case "process-absent":
 			checks = append(checks, checker.ProcessState{CheckID: id, Match: item.Match, Present: false})
 		case "command-exit":
-			return nil, fmt.Errorf("%s: command-exit checker is declared by the schema but not implemented in the Phase-1 runtime", id)
+			checks = append(checks, checker.CommandExit{
+				CheckID:      id,
+				Argv:         append([]string(nil), item.Argv...),
+				ExpectedExit: item.ExpectedExit,
+			})
 		default:
 			return nil, fmt.Errorf("%s: unsupported check type %q", id, item.Type)
 		}

@@ -11,6 +11,7 @@ import (
 )
 
 type Probe interface {
+	Exec(context.Context, runner.Instance, runner.ExecRequest) (runner.ExecResult, error)
 	Stat(context.Context, runner.Instance, string) (runner.FileInfo, error)
 	ReadFile(context.Context, runner.Instance, string, int64) ([]byte, error)
 	Processes(context.Context, runner.Instance) ([]runner.Process, error)
@@ -162,6 +163,59 @@ func (check ProcessState) Evaluate(ctx context.Context, probe Probe, instance ru
 		return Result{CheckID: check.ID(), Pass: false, Detail: fmt.Sprintf("process %q expected %s", check.Match, state)}
 	}
 	return Result{CheckID: check.ID(), Pass: true, Detail: "process state matches"}
+}
+
+type CommandExit struct {
+	CheckID      string
+	Argv         []string
+	ExpectedExit int
+	WorkingDir   string
+	Env          map[string]string
+}
+
+func (check CommandExit) ID() string {
+	return check.CheckID
+}
+
+func (check CommandExit) Evaluate(ctx context.Context, probe Probe, instance runner.Instance) Result {
+	if len(check.Argv) == 0 {
+		return Result{CheckID: check.ID(), Err: errors.New("command-exit argv is empty")}
+	}
+	if check.ExpectedExit < 0 || check.ExpectedExit > 255 {
+		return Result{CheckID: check.ID(), Err: fmt.Errorf("expected exit %d outside 0..255", check.ExpectedExit)}
+	}
+
+	result, err := probe.Exec(ctx, instance, runner.ExecRequest{
+		Argv:       append([]string(nil), check.Argv...),
+		Env:        cloneEnvironment(check.Env),
+		WorkingDir: check.WorkingDir,
+	})
+	if err != nil {
+		return Result{CheckID: check.ID(), Err: err}
+	}
+	if result.ExitCode != check.ExpectedExit {
+		return Result{
+			CheckID: check.ID(),
+			Pass:    false,
+			Detail:  fmt.Sprintf("exit=%d, expected=%d", result.ExitCode, check.ExpectedExit),
+		}
+	}
+	return Result{
+		CheckID: check.ID(),
+		Pass:    true,
+		Detail:  fmt.Sprintf("exit=%d", result.ExitCode),
+	}
+}
+
+func cloneEnvironment(environment map[string]string) map[string]string {
+	if environment == nil {
+		return nil
+	}
+	clone := make(map[string]string, len(environment))
+	for key, value := range environment {
+		clone[key] = value
+	}
+	return clone
 }
 
 func EvaluateAll(ctx context.Context, probe Probe, instance runner.Instance, checks []Check) ([]Result, error) {
