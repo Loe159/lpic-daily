@@ -23,7 +23,7 @@ type Definition struct {
 	Network           NetworkMode
 	CapabilityProfile string
 	MemoryMB          int
-	PIDs               int
+	PIDs              int
 	Timeout            time.Duration
 }
 
