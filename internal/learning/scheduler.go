@@ -10,10 +10,10 @@ import (
 )
 
 type SchedulerConfig struct {
-	ScopeObjectiveIDs         []string
-	PrerequisiteMinimumStage  Stage
-	ReviewLimit               int
-	ReviewIntervals           map[Stage]time.Duration
+	ScopeObjectiveIDs        []string
+	PrerequisiteMinimumStage Stage
+	ReviewLimit              int
+	ReviewIntervals          map[Stage]time.Duration
 }
 
 func DefaultSchedulerConfig(scope []string) SchedulerConfig {

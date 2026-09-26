@@ -233,12 +233,12 @@ func (c *Catalog) Validate() error {
 		if !ok {
 			return fmt.Errorf("objective %s missing graph node", id)
 		}
-		hard := make(map[string]struct{})
+		overlap := make(map[string]struct{})
 		for _, dep := range node.HardPrerequisites {
-			hard[dep] = struct{}{}
+			overlap[dep] = struct{}{}
 		}
 		for _, dep := range node.RecommendedPrerequisites {
-			if _, exists := hard[dep]; exists {
+			if _, exists := overlap[dep]; exists {
 				return fmt.Errorf("objective %s lists %s as hard and recommended", id, dep)
 			}
 		}
