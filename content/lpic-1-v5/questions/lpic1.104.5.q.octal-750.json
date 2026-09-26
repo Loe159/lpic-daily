@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.5.q.octal-750",
+  "objective_ids": [
+    "104.5"
+  ],
+  "concept_ids": [
+    "lpic1.104.5.notation-symbolique-octale"
+  ],
+  "type": "fill-in",
+  "prompt_fr": "Quelle valeur octale représente `rwxr-x---` ?",
+  "grading": {
+    "strategy": "exact-text",
+    "accepted_answers": [
+      "750"
+    ],
+    "case_sensitive": true
+  },
+  "evidence_kind_on_success": "recall",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic",
+  "explanation_fr": "`rwx` vaut 7, `r-x` vaut 5 et `---` vaut 0 : le mode est 750."
+}

@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.5.q.background-ampersand",
+  "objective_ids": [
+    "103.5"
+  ],
+  "concept_ids": [
+    "lpic1.103.5.processus-avant-arriere-plan"
+  ],
+  "type": "fill-in",
+  "prompt_fr": "Quel caractère placé à la fin d'une commande Bash demande son lancement en arrière-plan ?",
+  "grading": {
+    "strategy": "exact-text",
+    "accepted_answers": [
+      "&"
+    ],
+    "case_sensitive": true
+  },
+  "evidence_kind_on_success": "recall",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic",
+  "explanation_fr": "`&` lance le pipeline comme background job et rend le prompt au shell."
+}

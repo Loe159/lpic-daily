@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.5.q.special-directory-combination",
+  "objective_ids": [
+    "104.5"
+  ],
+  "concept_ids": [
+    "lpic1.104.5.effets-speciaux-sur-repertoires"
+  ],
+  "type": "multiple-choice",
+  "prompt_fr": "Dans un répertoire collaboratif, quelle association d'effets est correcte ?",
+  "choices": [
+    {
+      "id": "sgid-sticky",
+      "label_fr": "SGID = héritage du groupe ; sticky = restriction de suppression/renommage"
+    },
+    {
+      "id": "sticky-sgid",
+      "label_fr": "sticky = héritage du groupe ; SGID = restriction de suppression/renommage"
+    },
+    {
+      "id": "same",
+      "label_fr": "SGID et sticky ont le même effet sur un répertoire"
+    }
+  ],
+  "grading": {
+    "strategy": "choice-ids",
+    "accepted_choice_ids": [
+      "sgid-sticky"
+    ]
+  },
+  "evidence_kind_on_success": "recognition",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic",
+  "explanation_fr": "SGID gère l'héritage du groupe ; sticky limite la suppression/renommage des entrées par les autres utilisateurs."
+}

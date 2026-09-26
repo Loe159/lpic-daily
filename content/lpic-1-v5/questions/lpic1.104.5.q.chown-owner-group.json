@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.5.q.chown-owner-group",
+  "objective_ids": [
+    "104.5"
+  ],
+  "concept_ids": [
+    "lpic1.104.5.proprietaire-groupe"
+  ],
+  "type": "multiple-choice",
+  "prompt_fr": "Quelle commande change en une opération le propriétaire vers `alice` et le groupe vers `project` pour `report.txt` ?",
+  "choices": [
+    {
+      "id": "chown",
+      "label_fr": "chown alice:project report.txt"
+    },
+    {
+      "id": "chmod",
+      "label_fr": "chmod alice:project report.txt"
+    },
+    {
+      "id": "chgrp",
+      "label_fr": "chgrp alice:project report.txt"
+    }
+  ],
+  "grading": {
+    "strategy": "choice-ids",
+    "accepted_choice_ids": [
+      "chown"
+    ]
+  },
+  "evidence_kind_on_success": "recognition",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic",
+  "explanation_fr": "`chown alice:project report.txt` fixe simultanément le propriétaire et le groupe."
+}

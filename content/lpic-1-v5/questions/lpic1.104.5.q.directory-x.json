@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.5.q.directory-x",
+  "objective_ids": [
+    "104.5"
+  ],
+  "concept_ids": [
+    "lpic1.104.5.permissions-rwx-fichier-dossier"
+  ],
+  "type": "multiple-choice",
+  "prompt_fr": "Sur un répertoire Unix, que permet principalement le bit `x` ?",
+  "choices": [
+    {
+      "id": "traverse",
+      "label_fr": "traverser le répertoire et accéder à une entrée connue"
+    },
+    {
+      "id": "list",
+      "label_fr": "lister à lui seul tous les noms du répertoire"
+    },
+    {
+      "id": "execute-files",
+      "label_fr": "rendre automatiquement exécutables tous les fichiers qu'il contient"
+    }
+  ],
+  "grading": {
+    "strategy": "choice-ids",
+    "accepted_choice_ids": [
+      "traverse"
+    ]
+  },
+  "evidence_kind_on_success": "recognition",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic",
+  "explanation_fr": "Le bit `x` d'un répertoire autorise sa traversée et l'accès à une entrée connue, sous réserve des permissions des autres composants du chemin."
+}

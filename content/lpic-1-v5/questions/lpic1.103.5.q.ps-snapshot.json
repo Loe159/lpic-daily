@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.5.q.ps-snapshot",
+  "objective_ids": [
+    "103.5"
+  ],
+  "concept_ids": [
+    "lpic1.103.5.inspection-arbres-ressources"
+  ],
+  "type": "fill-in",
+  "prompt_fr": "Quelle commande classique fournit un instantané des processus plutôt qu'une vue interactive continuellement rafraîchie ?",
+  "grading": {
+    "strategy": "exact-text",
+    "accepted_answers": [
+      "ps"
+    ],
+    "case_sensitive": true
+  },
+  "evidence_kind_on_success": "recall",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic",
+  "explanation_fr": "`ps` produit un instantané ; `top` est une vue interactive actualisée."
+}

@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.5.q.umask-027",
+  "objective_ids": [
+    "104.5"
+  ],
+  "concept_ids": [
+    "lpic1.104.5.umask"
+  ],
+  "type": "fill-in",
+  "prompt_fr": "Avec un fichier créé à partir d'un mode de base 666 et un `umask 027`, quel mode final obtient-on ?",
+  "grading": {
+    "strategy": "exact-text",
+    "accepted_answers": [
+      "640",
+      "0640"
+    ],
+    "case_sensitive": true
+  },
+  "evidence_kind_on_success": "recall",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic",
+  "explanation_fr": "Le masque 027 retire les bits correspondants de 666 : le résultat est 640."
+}

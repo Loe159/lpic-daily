@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.5.q.suid-effective-uid",
+  "objective_ids": [
+    "104.5"
+  ],
+  "concept_ids": [
+    "lpic1.104.5.suid"
+  ],
+  "type": "multiple-choice",
+  "prompt_fr": "Sur un exécutable binaire, quel effet décrit le mieux SUID ?",
+  "choices": [
+    {
+      "id": "euid-owner",
+      "label_fr": "l'effective UID devient celui du propriétaire du fichier"
+    },
+    {
+      "id": "egid-group",
+      "label_fr": "l'effective GID devient celui du groupe du fichier"
+    },
+    {
+      "id": "inherit-group",
+      "label_fr": "les nouveaux fichiers héritent du groupe du répertoire"
+    }
+  ],
+  "grading": {
+    "strategy": "choice-ids",
+    "accepted_choice_ids": [
+      "euid-owner"
+    ]
+  },
+  "evidence_kind_on_success": "recognition",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic",
+  "explanation_fr": "SUID fait démarrer l'exécutable avec comme effective UID le propriétaire du fichier, sous réserve des règles de la plateforme."
+}

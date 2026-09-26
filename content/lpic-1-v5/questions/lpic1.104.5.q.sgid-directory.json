@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.5.q.sgid-directory",
+  "objective_ids": [
+    "104.5"
+  ],
+  "concept_ids": [
+    "lpic1.104.5.sgid"
+  ],
+  "type": "multiple-choice",
+  "prompt_fr": "Quel effet SGID a-t-il sur un répertoire partagé ?",
+  "choices": [
+    {
+      "id": "inherit-group",
+      "label_fr": "les nouvelles entrées héritent du groupe du répertoire"
+    },
+    {
+      "id": "owner-delete",
+      "label_fr": "seul le propriétaire de chaque fichier peut le supprimer"
+    },
+    {
+      "id": "root-owner",
+      "label_fr": "tous les nouveaux fichiers appartiennent automatiquement à root"
+    }
+  ],
+  "grading": {
+    "strategy": "choice-ids",
+    "accepted_choice_ids": [
+      "inherit-group"
+    ]
+  },
+  "evidence_kind_on_success": "recognition",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic",
+  "explanation_fr": "Sur un répertoire, SGID fait hériter le groupe du répertoire aux nouvelles entrées, ce qui facilite la collaboration."
+}

@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.5.q.nohup",
+  "objective_ids": [
+    "103.5"
+  ],
+  "concept_ids": [
+    "lpic1.103.5.processus-survivant-a-la-session"
+  ],
+  "type": "fill-in",
+  "prompt_fr": "Quel utilitaire classique lance une commande en lui faisant ignorer SIGHUP afin qu'elle puisse survivre à la fermeture du terminal ?",
+  "grading": {
+    "strategy": "exact-text",
+    "accepted_answers": [
+      "nohup"
+    ],
+    "case_sensitive": true
+  },
+  "evidence_kind_on_success": "recall",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic",
+  "explanation_fr": "`nohup` configure le traitement de SIGHUP avant d'exécuter la commande ; les redirections restent à gérer selon le besoin."
+}

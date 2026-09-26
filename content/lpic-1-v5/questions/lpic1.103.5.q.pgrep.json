@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.5.q.pgrep",
+  "objective_ids": [
+    "103.5"
+  ],
+  "concept_ids": [
+    "lpic1.103.5.selection-par-nom-pid"
+  ],
+  "type": "fill-in",
+  "prompt_fr": "Quelle commande recherche des PID à partir du nom ou d'autres attributs d'un processus ?",
+  "grading": {
+    "strategy": "exact-text",
+    "accepted_answers": [
+      "pgrep"
+    ],
+    "case_sensitive": true
+  },
+  "evidence_kind_on_success": "recall",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic",
+  "explanation_fr": "`pgrep` sélectionne des processus et affiche leurs PID sans envoyer de signal."
+}

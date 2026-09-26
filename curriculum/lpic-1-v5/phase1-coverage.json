@@ -9,10 +9,10 @@
   },
   "summary": {
     "concepts": 22,
-    "with_any_surface": 18,
+    "with_any_surface": 22,
     "with_lab": 14,
-    "with_lesson": 7,
-    "with_question": 7
+    "with_lesson": 22,
+    "with_question": 22
   },
   "concepts": [
     {
@@ -119,8 +119,12 @@
         "labs": [
           "lpic1.103.5.stuck-worker"
         ],
-        "lessons": [],
-        "questions": []
+        "lessons": [
+          "lpic1.103.5.lesson.processes-jobs-signals"
+        ],
+        "questions": [
+          "lpic1.103.5.q.background-ampersand"
+        ]
       }
     },
     {
@@ -130,8 +134,12 @@
         "labs": [
           "lpic1.103.5.stuck-worker"
         ],
-        "lessons": [],
-        "questions": []
+        "lessons": [
+          "lpic1.103.5.lesson.processes-jobs-signals"
+        ],
+        "questions": [
+          "lpic1.103.5.q.jobs"
+        ]
       }
     },
     {
@@ -141,8 +149,12 @@
         "labs": [
           "lpic1.103.5.stuck-worker"
         ],
-        "lessons": [],
-        "questions": []
+        "lessons": [
+          "lpic1.103.5.lesson.processes-jobs-signals"
+        ],
+        "questions": [
+          "lpic1.103.5.q.default-kill-signal"
+        ]
       }
     },
     {
@@ -152,8 +164,12 @@
         "labs": [
           "lpic1.103.5.stuck-worker"
         ],
-        "lessons": [],
-        "questions": []
+        "lessons": [
+          "lpic1.103.5.lesson.processes-jobs-signals"
+        ],
+        "questions": [
+          "lpic1.103.5.q.ps-snapshot"
+        ]
       }
     },
     {
@@ -161,8 +177,12 @@
       "objective_id": "103.5",
       "surfaces": {
         "labs": [],
-        "lessons": [],
-        "questions": []
+        "lessons": [
+          "lpic1.103.5.lesson.processes-jobs-signals"
+        ],
+        "questions": [
+          "lpic1.103.5.q.nohup"
+        ]
       }
     },
     {
@@ -172,8 +192,12 @@
         "labs": [
           "lpic1.103.5.stuck-worker"
         ],
-        "lessons": [],
-        "questions": []
+        "lessons": [
+          "lpic1.103.5.lesson.processes-jobs-signals"
+        ],
+        "questions": [
+          "lpic1.103.5.q.pgrep"
+        ]
       }
     },
     {
@@ -181,8 +205,12 @@
       "objective_id": "103.5",
       "surfaces": {
         "labs": [],
-        "lessons": [],
-        "questions": []
+        "lessons": [
+          "lpic1.103.5.lesson.processes-jobs-signals"
+        ],
+        "questions": [
+          "lpic1.103.5.q.multiplexer"
+        ]
       }
     },
     {
@@ -192,8 +220,12 @@
         "labs": [
           "lpic1.104.5.shared-dropbox"
         ],
-        "lessons": [],
-        "questions": []
+        "lessons": [
+          "lpic1.104.5.lesson.permissions-special-bits"
+        ],
+        "questions": [
+          "lpic1.104.5.q.directory-x"
+        ]
       }
     },
     {
@@ -203,8 +235,12 @@
         "labs": [
           "lpic1.104.5.shared-dropbox"
         ],
-        "lessons": [],
-        "questions": []
+        "lessons": [
+          "lpic1.104.5.lesson.permissions-special-bits"
+        ],
+        "questions": [
+          "lpic1.104.5.q.octal-750"
+        ]
       }
     },
     {
@@ -214,8 +250,12 @@
         "labs": [
           "lpic1.104.5.shared-dropbox"
         ],
-        "lessons": [],
-        "questions": []
+        "lessons": [
+          "lpic1.104.5.lesson.permissions-special-bits"
+        ],
+        "questions": [
+          "lpic1.104.5.q.chown-owner-group"
+        ]
       }
     },
     {
@@ -223,8 +263,12 @@
       "objective_id": "104.5",
       "surfaces": {
         "labs": [],
-        "lessons": [],
-        "questions": []
+        "lessons": [
+          "lpic1.104.5.lesson.permissions-special-bits"
+        ],
+        "questions": [
+          "lpic1.104.5.q.umask-027"
+        ]
       }
     },
     {
@@ -232,8 +276,12 @@
       "objective_id": "104.5",
       "surfaces": {
         "labs": [],
-        "lessons": [],
-        "questions": []
+        "lessons": [
+          "lpic1.104.5.lesson.permissions-special-bits"
+        ],
+        "questions": [
+          "lpic1.104.5.q.suid-effective-uid"
+        ]
       }
     },
     {
@@ -243,8 +291,12 @@
         "labs": [
           "lpic1.104.5.shared-dropbox"
         ],
-        "lessons": [],
-        "questions": []
+        "lessons": [
+          "lpic1.104.5.lesson.permissions-special-bits"
+        ],
+        "questions": [
+          "lpic1.104.5.q.sgid-directory"
+        ]
       }
     },
     {
@@ -254,8 +306,12 @@
         "labs": [
           "lpic1.104.5.shared-dropbox"
         ],
-        "lessons": [],
-        "questions": []
+        "lessons": [
+          "lpic1.104.5.lesson.permissions-special-bits"
+        ],
+        "questions": [
+          "lpic1.104.5.q.sticky-directory"
+        ]
       }
     },
     {
@@ -265,8 +321,12 @@
         "labs": [
           "lpic1.104.5.shared-dropbox"
         ],
-        "lessons": [],
-        "questions": []
+        "lessons": [
+          "lpic1.104.5.lesson.permissions-special-bits"
+        ],
+        "questions": [
+          "lpic1.104.5.q.special-directory-combination"
+        ]
       }
     }
   ]

@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.5.q.sticky-directory",
+  "objective_ids": [
+    "104.5"
+  ],
+  "concept_ids": [
+    "lpic1.104.5.sticky-bit"
+  ],
+  "type": "multiple-choice",
+  "prompt_fr": "Pourquoi active-t-on souvent le sticky bit sur un répertoire inscriptible par plusieurs utilisateurs ?",
+  "choices": [
+    {
+      "id": "restrict-delete",
+      "label_fr": "restreindre la suppression/renommage des entrées d'autres utilisateurs"
+    },
+    {
+      "id": "inherit-group",
+      "label_fr": "forcer l'héritage du groupe du répertoire"
+    },
+    {
+      "id": "make-executable",
+      "label_fr": "rendre tous les fichiers du répertoire exécutables"
+    }
+  ],
+  "grading": {
+    "strategy": "choice-ids",
+    "accepted_choice_ids": [
+      "restrict-delete"
+    ]
+  },
+  "evidence_kind_on_success": "recognition",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic",
+  "explanation_fr": "Le sticky bit empêche un utilisateur ordinaire de supprimer ou renommer librement l'entrée appartenant à un autre utilisateur."
+}

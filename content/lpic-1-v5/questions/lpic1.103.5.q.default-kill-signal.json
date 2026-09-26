@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.5.q.default-kill-signal",
+  "objective_ids": [
+    "103.5"
+  ],
+  "concept_ids": [
+    "lpic1.103.5.signaux"
+  ],
+  "type": "multiple-choice",
+  "prompt_fr": "Quel signal `kill PID` envoie-t-il par défaut ?",
+  "choices": [
+    {
+      "id": "term",
+      "label_fr": "SIGTERM"
+    },
+    {
+      "id": "kill",
+      "label_fr": "SIGKILL"
+    },
+    {
+      "id": "stop",
+      "label_fr": "SIGSTOP"
+    }
+  ],
+  "grading": {
+    "strategy": "choice-ids",
+    "accepted_choice_ids": [
+      "term"
+    ]
+  },
+  "evidence_kind_on_success": "recognition",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic",
+  "explanation_fr": "Sans option, `kill` envoie SIGTERM, qui permet au processus de traiter une terminaison propre."
+}

@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.5.q.multiplexer",
+  "objective_ids": [
+    "103.5"
+  ],
+  "concept_ids": [
+    "lpic1.103.5.multiplexeurs-de-terminal"
+  ],
+  "type": "fill-in",
+  "prompt_fr": "Cite un multiplexeur de terminal courant permettant de détacher puis rattacher une session interactive.",
+  "grading": {
+    "strategy": "exact-text",
+    "accepted_answers": [
+      "tmux",
+      "screen"
+    ],
+    "case_sensitive": true
+  },
+  "evidence_kind_on_success": "recall",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic",
+  "explanation_fr": "`tmux` et `screen` maintiennent des sessions terminal indépendamment du terminal client."
+}

@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.5.q.jobs",
+  "objective_ids": [
+    "103.5"
+  ],
+  "concept_ids": [
+    "lpic1.103.5.jobs-du-shell"
+  ],
+  "type": "fill-in",
+  "prompt_fr": "Quel builtin Bash liste les jobs connus du shell courant ?",
+  "grading": {
+    "strategy": "exact-text",
+    "accepted_answers": [
+      "jobs"
+    ],
+    "case_sensitive": true
+  },
+  "evidence_kind_on_success": "recall",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic",
+  "explanation_fr": "`jobs` affiche la table de jobs du shell courant, avec leur état et leur job spec."
+}

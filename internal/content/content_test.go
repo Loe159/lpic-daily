@@ -5,40 +5,54 @@ import (
 	"testing"
 
 	lpicdaily "github.com/Loe159/lpic-daily"
+	"github.com/Loe159/lpic-daily/internal/curriculum"
 )
 
-func TestLoadBuiltin1031Content(t *testing.T) {
+func TestBuiltinPhase1ContentCoversEveryConcept(t *testing.T) {
 	bundle, err := Load(lpicdaily.BuiltinFS)
 	if err != nil {
 		t.Fatalf("Load() error = %v", err)
 	}
-	if len(bundle.Lessons) != 1 {
-		t.Fatalf("lessons = %d, want 1", len(bundle.Lessons))
+	if len(bundle.Lessons) != 3 {
+		t.Fatalf("lessons = %d, want 3", len(bundle.Lessons))
 	}
-	if len(bundle.Questions) != 7 {
-		t.Fatalf("questions = %d, want 7", len(bundle.Questions))
-	}
-
-	lesson := bundle.Lessons[0]
-	if lesson.ID != "lpic1.103.1.lesson.command-line-foundations" {
-		t.Fatalf("lesson id = %q", lesson.ID)
-	}
-	if len(lesson.ConceptIDs) != 7 {
-		t.Fatalf("lesson concepts = %d, want 7", len(lesson.ConceptIDs))
+	if len(bundle.Questions) != 22 {
+		t.Fatalf("questions = %d, want 22", len(bundle.Questions))
 	}
 
-	questionConcepts := make([]string, 0, len(bundle.Questions))
+	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("curriculum.Load() error = %v", err)
+	}
+
+	phase1Concepts := make([]string, 0, 22)
+	for _, objectiveID := range curriculumBundle.Phase1.SelectedObjectives {
+		phase1Concepts = append(phase1Concepts, curriculumBundle.Phase1.ObjectiveConcepts[objectiveID]...)
+	}
+	slices.Sort(phase1Concepts)
+
+	lessonCoverage := make(map[string]int)
+	for _, lesson := range bundle.Lessons {
+		for _, conceptID := range lesson.ConceptIDs {
+			lessonCoverage[conceptID]++
+		}
+	}
+
+	questionCoverage := make(map[string]int)
 	for _, question := range bundle.Questions {
 		if len(question.ConceptIDs) != 1 {
-			t.Fatalf("question %s maps %d concepts, want 1", question.ID, len(question.ConceptIDs))
+			t.Fatalf("question %s maps %d concepts, want exactly 1 in Phase 1", question.ID, len(question.ConceptIDs))
 		}
-		questionConcepts = append(questionConcepts, question.ConceptIDs[0])
+		questionCoverage[question.ConceptIDs[0]]++
 	}
-	slices.Sort(questionConcepts)
-	expected := slices.Clone(lesson.ConceptIDs)
-	slices.Sort(expected)
-	if !slices.Equal(questionConcepts, expected) {
-		t.Fatalf("question concepts = %v, lesson concepts = %v", questionConcepts, expected)
+
+	for _, conceptID := range phase1Concepts {
+		if lessonCoverage[conceptID] == 0 {
+			t.Errorf("concept %s has no lesson", conceptID)
+		}
+		if questionCoverage[conceptID] != 1 {
+			t.Errorf("concept %s question coverage = %d, want exactly 1", conceptID, questionCoverage[conceptID])
+		}
 	}
 }
 

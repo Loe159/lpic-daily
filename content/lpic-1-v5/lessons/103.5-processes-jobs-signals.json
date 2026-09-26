@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.5.lesson.processes-jobs-signals",
+  "title_fr": "Processus, jobs et signaux",
+  "objective_ids": [
+    "103.5"
+  ],
+  "concept_ids": [
+    "lpic1.103.5.processus-avant-arriere-plan",
+    "lpic1.103.5.jobs-du-shell",
+    "lpic1.103.5.signaux",
+    "lpic1.103.5.inspection-arbres-ressources",
+    "lpic1.103.5.processus-survivant-a-la-session",
+    "lpic1.103.5.selection-par-nom-pid",
+    "lpic1.103.5.multiplexeurs-de-terminal"
+  ],
+  "stage": "introduce",
+  "estimated_minutes": 10,
+  "body_markdown": "# Processus, jobs et signaux\n\nUn processus est une instance d'un programme vue par le noyau et identifiée notamment par un PID. Un job est une notion du shell : il regroupe le ou les processus lancés par ce shell pour une ligne de commande et permet de gérer foreground/background.\n\n## Foreground et background\n\nUne commande lancée normalement occupe le foreground du terminal. Ajouter `&` la démarre en background et rend immédiatement le prompt. Le terminal n'est toutefois pas simplement un affichage : il possède un foreground process group auquel sont destinés les caractères de contrôle comme Ctrl-C ou Ctrl-Z.\n\n## Jobs du shell\n\n`jobs` affiche les jobs connus du shell courant. Ctrl-Z demande généralement au terminal d'envoyer SIGTSTP au foreground job. `bg %1` reprend un job suspendu en arrière-plan ; `fg %1` le remet au premier plan. Les identifiants `%1`, `%2` sont des job specs propres au shell, distincts des PID du noyau.\n\n## Signaux\n\n`kill` envoie un signal à un PID ou, selon la syntaxe du shell, à un job. Sans signal explicite, `kill PID` envoie SIGTERM. SIGTERM peut être intercepté afin qu'un programme se termine proprement. SIGKILL ne peut pas être intercepté et doit rester un dernier recours. SIGSTOP suspend sans possibilité de traitement par le programme ; SIGCONT reprend un processus suspendu.\n\n## Observer l'état\n\n`ps` fournit un instantané des processus ; des options comme `ps -ef` ou `ps aux` élargissent la vue. `top` fournit une vue interactive mise à jour. `free` résume l'utilisation mémoire, `uptime` expose notamment la charge moyenne, et `watch` répète périodiquement une commande. Pour diagnostiquer, relie PID, PPID, commande, arguments et consommation au lieu de tuer un processus sur son nom seulement.\n\n## Retrouver la bonne cible\n\n`pgrep` recherche des PID à partir de critères de nom ; `pkill` envoie un signal aux processus correspondants et `killall` cible également par nom. Ces outils sont pratiques mais peuvent être trop larges : inspecte le résultat avant une action destructive, surtout quand plusieurs instances légitimes existent.\n\n## Survivre à la fermeture d'une session\n\nUn processus attaché à une session peut recevoir SIGHUP quand le terminal disparaît. `nohup commande ... &` lance classiquement une commande en ignorant SIGHUP ; pense aussi à rediriger ses entrées/sorties. Pour un vrai service durable, un gestionnaire comme systemd est souvent préférable en pratique moderne, mais `nohup` reste un mécanisme important à comprendre et fait partie du périmètre LPIC.\n\n## Multiplexeurs de terminal\n\n`tmux` et `screen` créent des sessions terminal gérées par un serveur distinct du terminal client. On peut détacher l'interface, laisser les programmes tourner, puis rattacher la session plus tard. Cela résout un problème différent de `nohup` : on conserve un environnement terminal interactif avec fenêtres/panes et historique de session.\n\nDans un incident, commence par observer avec `jobs`, `ps`, `pgrep` ou `top`, identifie précisément la cible, puis choisis le signal le moins brutal compatible avec le résultat attendu.",
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "distribution": "generic"
+}
