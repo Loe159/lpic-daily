@@ -81,6 +81,10 @@ func runWithIO(args []string, stdin io.Reader, stdout, stderr io.Writer) error {
 		return nil
 	case "today":
 		return runToday(args[1:], stdout)
+	case "learn":
+		return runLearn(args[1:], stdin, stdout)
+	case "question":
+		return runQuestion(args[1:], stdin, stdout)
 	case "labs":
 		return runLabCommand([]string{"list"}, stdin, stdout, stderr)
 	case "lab":
@@ -119,14 +123,10 @@ func runToday(args []string, stdout io.Writer) error {
 		return fmt.Errorf("load labs: %w", err)
 	}
 
-	databasePath, err := appstate.ProgressDBPath()
-	if err != nil {
-		return fmt.Errorf("resolve progress database path: %w", err)
-	}
 	ctx := context.Background()
-	store, err := progresssqlite.Open(ctx, databasePath)
+	store, err := openProgressStore(ctx)
 	if err != nil {
-		return fmt.Errorf("open progress database: %w", err)
+		return err
 	}
 	defer store.Close()
 
@@ -174,6 +174,166 @@ func runToday(args []string, stdout io.Writer) error {
 		}
 	}
 	return nil
+}
+
+func openProgressStore(ctx context.Context) (*progresssqlite.Store, error) {
+	databasePath, err := appstate.ProgressDBPath()
+	if err != nil {
+		return nil, fmt.Errorf("resolve progress database path: %w", err)
+	}
+	store, err := progresssqlite.Open(ctx, databasePath)
+	if err != nil {
+		return nil, fmt.Errorf("open progress database: %w", err)
+	}
+	return store, nil
+}
+
+func runLearn(args []string, stdin io.Reader, stdout io.Writer) error {
+	if len(args) != 1 {
+		return fmt.Errorf("usage: lpic learn <lesson-id>")
+	}
+
+	bundle, err := content.Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		return fmt.Errorf("load content: %w", err)
+	}
+	lesson, ok := bundle.LessonByID(args[0])
+	if !ok {
+		return fmt.Errorf("unknown lesson %q", args[0])
+	}
+
+	fmt.Fprintf(stdout, "%s\n\n%s\n", lesson.TitleFR, lesson.BodyMarkdown)
+	fmt.Fprint(stdout, "\nMarquer ce cours comme lu ? [o/N] ")
+
+	line, err := readLine(stdin)
+	if err != nil {
+		return fmt.Errorf("read lesson confirmation: %w", err)
+	}
+	switch strings.ToLower(strings.TrimSpace(line)) {
+	case "o", "oui", "y", "yes":
+	default:
+		fmt.Fprintln(stdout, "Progression non enregistrée.")
+		return nil
+	}
+
+	ctx := context.Background()
+	store, err := openProgressStore(ctx)
+	if err != nil {
+		return err
+	}
+	defer store.Close()
+
+	if err := study.RecordLesson(ctx, store, lesson, time.Now()); err != nil {
+		return err
+	}
+	fmt.Fprintln(stdout, "Progression enregistrée.")
+	return nil
+}
+
+func runQuestion(args []string, stdin io.Reader, stdout io.Writer) error {
+	if len(args) != 1 {
+		return fmt.Errorf("usage: lpic question <question-id>")
+	}
+
+	bundle, err := content.Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		return fmt.Errorf("load content: %w", err)
+	}
+	question, ok := bundle.QuestionByID(args[0])
+	if !ok {
+		return fmt.Errorf("unknown question %q", args[0])
+	}
+
+	fmt.Fprintln(stdout, question.PromptFR)
+	for index, choice := range question.Choices {
+		fmt.Fprintf(stdout, "  %d) %s\n", index+1, choice.LabelFR)
+	}
+	fmt.Fprint(stdout, "Réponse: ")
+
+	line, err := readLine(stdin)
+	if err != nil {
+		return fmt.Errorf("read answer: %w", err)
+	}
+	answer, err := parseAnswer(question, strings.TrimSpace(line))
+	if err != nil {
+		return err
+	}
+	pass, err := question.Grade(answer)
+	if err != nil {
+		return fmt.Errorf("grade answer: %w", err)
+	}
+
+	ctx := context.Background()
+	store, err := openProgressStore(ctx)
+	if err != nil {
+		return err
+	}
+	defer store.Close()
+
+	if err := study.RecordQuestion(ctx, store, question, pass, time.Now()); err != nil {
+		return err
+	}
+
+	if pass {
+		fmt.Fprintln(stdout, "Correct.")
+	} else {
+		fmt.Fprintln(stdout, "Incorrect.")
+	}
+	if question.ExplanationFR != "" {
+		fmt.Fprintln(stdout, question.ExplanationFR)
+	}
+	return nil
+}
+
+func readLine(input io.Reader) (string, error) {
+	reader := bufio.NewReader(input)
+	line, err := reader.ReadString('\n')
+	if err != nil && !errors.Is(err, io.EOF) {
+		return "", err
+	}
+	if errors.Is(err, io.EOF) && line == "" {
+		return "", errors.New("no input provided")
+	}
+	return line, nil
+}
+
+func parseAnswer(question content.Question, line string) (content.Answer, error) {
+	switch question.Type {
+	case "multiple-choice", "ordering":
+		if line == "" {
+			return content.Answer{}, errors.New("answer cannot be empty")
+		}
+		parts := strings.Split(line, ",")
+		ids := make([]string, 0, len(parts))
+		for _, raw := range parts {
+			token := strings.TrimSpace(raw)
+			if token == "" {
+				return content.Answer{}, errors.New("empty choice in answer")
+			}
+			if number, err := strconv.Atoi(token); err == nil {
+				if number < 1 || number > len(question.Choices) {
+					return content.Answer{}, fmt.Errorf("choice number %d outside 1..%d", number, len(question.Choices))
+				}
+				ids = append(ids, question.Choices[number-1].ID)
+				continue
+			}
+
+			found := false
+			for _, choice := range question.Choices {
+				if choice.ID == token {
+					ids = append(ids, choice.ID)
+					found = true
+					break
+				}
+			}
+			if !found {
+				return content.Answer{}, fmt.Errorf("unknown choice %q", token)
+			}
+		}
+		return content.Answer{ChoiceIDs: ids}, nil
+	default:
+		return content.Answer{Text: line}, nil
+	}
 }
 
 func runLabCommand(args []string, stdin io.Reader, stdout, stderr io.Writer) error {
@@ -318,6 +478,7 @@ func runInteractiveLab(authored lab.Lab, stdin io.Reader, stdout, stderr io.Writ
 	scanner := bufio.NewScanner(stdin)
 	scanner.Buffer(make([]byte, 4096), 256<<10)
 	nextHint := 0
+	highestHintLevel := 0
 
 	for {
 		fmt.Fprint(stdout, "lpic> ")
@@ -344,6 +505,9 @@ func runInteractiveLab(authored lab.Lab, stdin io.Reader, stdout, stderr io.Writ
 			}
 			hint := authored.Hints[nextHint]
 			nextHint++
+			if hint.Level > highestHintLevel {
+				highestHintLevel = hint.Level
+			}
 			fmt.Fprintf(stdout, "Indice %d/4 : %s\n", hint.Level, hint.ContentFR)
 			if hint.EvidenceImpact == "solution-revealed" {
 				fmt.Fprintln(stdout, "Cet indice révèle la solution et réduira la force de la preuve pratique.")
@@ -377,6 +541,20 @@ func runInteractiveLab(authored lab.Lab, stdin io.Reader, stdout, stderr io.Writ
 			if passed {
 				fmt.Fprintln(stdout, "\nLab réussi.")
 				fmt.Fprintln(stdout, authored.Definition.DebriefFR)
+
+				store, err := openProgressStore(ctx)
+				if err != nil {
+					return fmt.Errorf("lab succeeded but progress could not be opened: %w", err)
+				}
+				recordErr := study.RecordLab(ctx, store, authored, highestHintLevel, time.Now())
+				closeErr := store.Close()
+				if recordErr != nil {
+					return fmt.Errorf("lab succeeded but progress could not be recorded: %w", recordErr)
+				}
+				if closeErr != nil {
+					return fmt.Errorf("lab succeeded but progress store could not be closed: %w", closeErr)
+				}
+				fmt.Fprintln(stdout, "Progression enregistrée.")
 				return nil
 			}
 			continue
@@ -504,6 +682,8 @@ func printUsage(out io.Writer) {
 
 Usage:
   lpic today [--quick]           build today's adaptive session from local progress
+  lpic learn <lesson-id>          read a lesson and record exposure when confirmed
+  lpic question <question-id>     answer a deterministic question and record evidence
   lpic validate                  validate embedded curriculum and labs
   lpic doctor                    check local prerequisites without changing the host
   lpic labs                      list built-in labs (alias of "lpic lab list")

@@ -32,6 +32,63 @@ func TestTodayStartsWith1031AndCreatesLocalProgressStore(t *testing.T) {
 	}
 }
 
+func TestLearnRecordsExposureAndAdvancesNewConcept(t *testing.T) {
+	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
+
+	var lessonOut bytes.Buffer
+	if err := runWithIO(
+		[]string{"learn", "lpic1.103.1.lesson.shell-sequences"},
+		strings.NewReader("o\n"),
+		&lessonOut,
+		&bytes.Buffer{},
+	); err != nil {
+		t.Fatalf("learn error = %v", err)
+	}
+	if !strings.Contains(lessonOut.String(), "Progression enregistrée.") {
+		t.Fatalf("learn output = %q", lessonOut.String())
+	}
+
+	var todayOut bytes.Buffer
+	if err := runWithIO([]string{"today"}, strings.NewReader(""), &todayOut, &bytes.Buffer{}); err != nil {
+		t.Fatalf("today after lesson error = %v", err)
+	}
+	if !strings.Contains(todayOut.String(), "variables shell/environnement") {
+		t.Fatalf("today did not advance to next concept: %q", todayOut.String())
+	}
+}
+
+func TestQuestionGradesNumberedChoiceAndRecordsResult(t *testing.T) {
+	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
+
+	var stdout bytes.Buffer
+	if err := runWithIO(
+		[]string{"question", "lpic1.103.1.q.sequence-and"},
+		strings.NewReader("2\n"),
+		&stdout,
+		&bytes.Buffer{},
+	); err != nil {
+		t.Fatalf("question error = %v", err)
+	}
+	if !strings.Contains(stdout.String(), "Correct.") {
+		t.Fatalf("question output = %q", stdout.String())
+	}
+}
+
+func TestQuestionRejectsUnknownChoiceWithoutRecording(t *testing.T) {
+	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
+
+	var stdout bytes.Buffer
+	err := runWithIO(
+		[]string{"question", "lpic1.103.1.q.sequence-and"},
+		strings.NewReader("99\n"),
+		&stdout,
+		&bytes.Buffer{},
+	)
+	if err == nil || !strings.Contains(err.Error(), "outside 1..3") {
+		t.Fatalf("error = %v", err)
+	}
+}
+
 func TestTodayRejectsUnknownOption(t *testing.T) {
 	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
 	var stdout bytes.Buffer
