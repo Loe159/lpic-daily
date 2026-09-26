@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.5.stuck-worker.hint-1",
+  "lab_id": "lpic1.103.5.stuck-worker",
+  "level": 1,
+  "content_fr": "Sépare les deux problèmes. Pour les workers déjà présents, inspecte d'abord les processus et leurs arguments. Pour le signal probe, travaille dans :shell afin que le shell puisse réellement gérer un foreground job et sa table de jobs.",
+  "evidence_impact": "none"
+}

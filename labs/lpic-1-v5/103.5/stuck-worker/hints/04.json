@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.5.stuck-worker.hint-4",
+  "lab_id": "lpic1.103.5.stuck-worker",
+  "level": 4,
+  "content_fr": "Une solution possible : repère stuck-worker avec ps/pgrep puis envoie-lui SIGTERM. Dans :shell, lance /usr/local/bin/lpic-signal-probe, tape Ctrl-Z, vérifie jobs, fais bg %+ puis kill -TERM %+. Quitte ensuite le shell avec exit et utilise :check. Ne tue pas healthy-worker.",
+  "evidence_impact": "solution-revealed"
+}

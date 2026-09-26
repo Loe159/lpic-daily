@@ -11,19 +11,29 @@ import (
 	"github.com/Loe159/lpic-daily/internal/runner"
 )
 
-func TestLoadBuiltinSharedDropbox(t *testing.T) {
+const (
+	sharedDropboxID = "lpic1.104.5.shared-dropbox"
+	stuckWorkerID   = "lpic1.103.5.stuck-worker"
+)
+
+func loadBuiltinLab(t *testing.T, id string) lab.Lab {
+	t.Helper()
 	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
 	if err != nil {
 		t.Fatalf("LoadAll() error = %v", err)
 	}
-	if len(labs) != 1 {
-		t.Fatalf("labs = %d, want 1", len(labs))
+	for _, authored := range labs {
+		if authored.Definition.ID == id {
+			return authored
+		}
 	}
+	t.Fatalf("built-in lab %s not found", id)
+	return lab.Lab{}
+}
 
-	got := labs[0]
-	if got.Definition.ID != "lpic1.104.5.shared-dropbox" {
-		t.Fatalf("lab id = %q", got.Definition.ID)
-	}
+func TestLoadBuiltinSharedDropbox(t *testing.T) {
+	got := loadBuiltinLab(t, sharedDropboxID)
+
 	if len(got.Hints) != 4 {
 		t.Fatalf("hints = %d, want 4", len(got.Hints))
 	}
@@ -48,14 +58,33 @@ func TestLoadBuiltinSharedDropbox(t *testing.T) {
 	}
 }
 
-func TestSessionRunsSetupAndStateChecks(t *testing.T) {
-	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
-	if err != nil {
-		t.Fatalf("LoadAll() error = %v", err)
+func TestLoadBuiltinStuckWorker(t *testing.T) {
+	got := loadBuiltinLab(t, stuckWorkerID)
+
+	if len(got.Definition.ConceptIDs) != 5 {
+		t.Fatalf("concepts = %d, want 5", len(got.Definition.ConceptIDs))
 	}
+	if len(got.Hints) != 4 {
+		t.Fatalf("hints = %d, want 4", len(got.Hints))
+	}
+	if !strings.Contains(got.SetupScript, "stuck-worker") || !strings.Contains(got.SetupScript, "lpic-signal-probe") {
+		t.Fatal("stuck-worker setup script is incomplete")
+	}
+
+	checks, err := got.CompileChecks()
+	if err != nil {
+		t.Fatalf("CompileChecks() error = %v", err)
+	}
+	if len(checks) != 5 {
+		t.Fatalf("checks = %d, want 5", len(checks))
+	}
+}
+
+func TestSessionRunsSetupAndStateChecks(t *testing.T) {
+	authored := loadBuiltinLab(t, sharedDropboxID)
 	fake := &fakeRunner{}
 
-	session, err := lab.Start(context.Background(), labs[0], fake)
+	session, err := lab.Start(context.Background(), authored, fake)
 	if err != nil {
 		t.Fatalf("Start() error = %v", err)
 	}

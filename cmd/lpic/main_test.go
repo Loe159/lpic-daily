@@ -6,7 +6,10 @@ import (
 	"testing"
 )
 
-const sharedDropboxID = "lpic1.104.5.shared-dropbox"
+const (
+	sharedDropboxID = "lpic1.104.5.shared-dropbox"
+	stuckWorkerID   = "lpic1.103.5.stuck-worker"
+)
 
 func TestLabListAliasesAndShow(t *testing.T) {
 	for _, args := range [][]string{{"lab", "list"}, {"labs"}} {
@@ -15,7 +18,16 @@ func TestLabListAliasesAndShow(t *testing.T) {
 			t.Fatalf("%v error = %v", args, err)
 		}
 		text := stdout.String()
-		for _, want := range []string{sharedDropboxID, "12 min", "podman", "fedora", "Sécuriser un répertoire partagé"} {
+		for _, want := range []string{
+			sharedDropboxID,
+			stuckWorkerID,
+			"12 min",
+			"15 min",
+			"podman",
+			"fedora",
+			"Sécuriser un répertoire partagé",
+			"Diagnostiquer des jobs",
+		} {
 			if !strings.Contains(text, want) {
 				t.Fatalf("%v output missing %q: %q", args, want, text)
 			}
@@ -88,7 +100,7 @@ func TestValidateIncludesLabs(t *testing.T) {
 	if err := runWithIO([]string{"validate"}, strings.NewReader(""), &stdout, &bytes.Buffer{}); err != nil {
 		t.Fatalf("validate error = %v", err)
 	}
-	if !strings.Contains(stdout.String(), "builtin labs OK: 1") {
+	if !strings.Contains(stdout.String(), "builtin labs OK: 2") {
 		t.Fatalf("validate output = %q", stdout.String())
 	}
 }

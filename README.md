@@ -6,13 +6,14 @@ The project is currently in **Phase 1: vertical slice**. The curriculum graph, m
 
 ## Current runnable slice
 
-The first lab is:
+The current runnable labs are:
 
 ```text
+lpic1.103.5.stuck-worker
 lpic1.104.5.shared-dropbox
 ```
 
-It practices LPIC objective 104.5 around ownership, rwx/octal permissions, SGID, sticky bit and directory semantics.
+`stuck-worker` exercises process inspection/selection, foreground/background shell jobs and signals through the persistent PTY. `shared-dropbox` practices ownership, rwx/octal permissions, SGID, sticky bit and directory semantics.
 
 Current command-mode workflow:
 
@@ -21,6 +22,7 @@ go run ./cmd/lpic validate
 go run ./cmd/lpic doctor
 go run ./cmd/lpic lab list
 go run ./cmd/lpic lab show lpic1.104.5.shared-dropbox
+go run ./cmd/lpic lab show lpic1.103.5.stuck-worker
 ```
 
 For local development, prepare the Phase-1 Fedora image:

@@ -1,0 +1,80 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.5.stuck-worker",
+  "title_fr": "Diagnostiquer des jobs et arrêter le bon processus",
+  "brief_fr": "Un worker défectueux tourne à côté d'un worker sain. Dans le shell persistant du lab, identifie le bon processus et arrête uniquement le worker défectueux. Ensuite lance le signal probe au premier plan, suspends-le depuis le terminal, vérifie son état dans les jobs du shell, reprends-le en arrière-plan puis termine-le proprement avec SIGTERM.",
+  "success_criteria_fr": [
+    "Le processus identifié comme stuck-worker n'est plus en cours d'exécution.",
+    "Le processus healthy-worker reste en cours d'exécution.",
+    "Le signal probe a réellement été repris après suspension et a observé SIGCONT.",
+    "Le signal probe a ensuite reçu SIGTERM et n'est plus en cours d'exécution."
+  ],
+  "debrief_fr": "Un job du shell et un processus ne sont pas la même abstraction : le shell suit ses jobs et leurs process groups, tandis que ps/pgrep observent les processus du système. Ctrl-Z demande au terminal de suspendre le job foreground avec SIGTSTP ; bg reprend un job suspendu, ce qui implique SIGCONT. Pour arrêter proprement un processus, SIGTERM laisse au programme une possibilité de nettoyer son état, contrairement à SIGKILL qui ne peut pas être intercepté. Dans ce lab, la présence du worker sain empêche une solution grossière qui tuerait tous les processus similaires.",
+  "objective_ids": [
+    "103.5"
+  ],
+  "concept_ids": [
+    "lpic1.103.5.processus-avant-arriere-plan",
+    "lpic1.103.5.jobs-du-shell",
+    "lpic1.103.5.signaux",
+    "lpic1.103.5.inspection-arbres-ressources",
+    "lpic1.103.5.selection-par-nom-pid"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "estimated_minutes": 15,
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "process-lab",
+    "writable_guest_paths": [
+      "/run/lpic",
+      "/usr/local/bin"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "pids": 128,
+    "timeout_seconds": 1200
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "process-absent",
+      "match": "stuck-worker"
+    },
+    {
+      "type": "process-running",
+      "match": "healthy-worker"
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/run/lpic/probe-continued",
+      "pattern": "^continued\\n?$"
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/run/lpic/probe-terminated",
+      "pattern": "^terminated\\n?$"
+    },
+    {
+      "type": "process-absent",
+      "match": "/usr/local/bin/lpic-signal-probe"
+    }
+  ],
+  "hint_ids": [
+    "lpic1.103.5.stuck-worker.hint-1",
+    "lpic1.103.5.stuck-worker.hint-2",
+    "lpic1.103.5.stuck-worker.hint-3",
+    "lpic1.103.5.stuck-worker.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}
