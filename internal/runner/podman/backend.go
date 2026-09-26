@@ -198,22 +198,6 @@ func (backend *Backend) Start(ctx context.Context, instance runner.Instance) err
 	return nil
 }
 
-func (backend *Backend) Exec(context.Context, runner.Instance, runner.ExecRequest) (runner.ExecResult, error) {
-	return runner.ExecResult{}, runner.ErrNotSupported
-}
-
-func (backend *Backend) Stat(context.Context, runner.Instance, string) (runner.FileInfo, error) {
-	return runner.FileInfo{}, runner.ErrNotSupported
-}
-
-func (backend *Backend) ReadFile(context.Context, runner.Instance, string, int64) ([]byte, error) {
-	return nil, runner.ErrNotSupported
-}
-
-func (backend *Backend) Processes(context.Context, runner.Instance) ([]runner.Process, error) {
-	return nil, runner.ErrNotSupported
-}
-
 func (backend *Backend) Reset(ctx context.Context, instance runner.Instance) error {
 	backend.mu.RLock()
 	definition, exists := backend.definitions[instance.ID]
