@@ -1,19 +1,24 @@
 package podman
 
 import (
+	"context"
+	"encoding/json"
 	"errors"
+	"net"
+	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/Loe159/lpic-daily/internal/runner"
-	"go.podman.io/podman/v6/pkg/specgen"
 )
 
 func validDefinition() runner.Definition {
 	return runner.Definition{
 		LabID:             "104.5.shared-dropbox",
-		ImageRef:          "localhost/lpic-daily/fedora:phase1",
+		ImageRef:          "localhost/lpic-daily/fedora-phase1:1",
 		Distribution:      "fedora",
 		Network:           runner.NetworkNone,
 		CapabilityProfile: "identity-files",
@@ -23,52 +28,77 @@ func validDefinition() runner.Definition {
 	}
 }
 
-func TestBuildSpecIsFailClosed(t *testing.T) {
+func TestBuildCreateRequestIsFailClosed(t *testing.T) {
 	definition := validDefinition()
-	spec, err := buildSpec(definition, "lpic-daily-test")
+	request, err := buildCreateRequest(definition, "lpic-daily-test")
 	if err != nil {
-		t.Fatalf("buildSpec() error = %v", err)
+		t.Fatalf("buildCreateRequest() error = %v", err)
 	}
-
-	if spec.Privileged == nil || *spec.Privileged {
+	if request.Privileged == nil || *request.Privileged {
 		t.Fatal("container must explicitly be non-privileged")
 	}
-	if spec.NoNewPrivileges == nil || !*spec.NoNewPrivileges {
+	if request.NoNewPrivileges == nil || !*request.NoNewPrivileges {
 		t.Fatal("no-new-privileges must be enabled")
 	}
-	if len(spec.CapDrop) != 1 || spec.CapDrop[0] != "ALL" {
-		t.Fatalf("cap drop = %v, want [ALL]", spec.CapDrop)
+	if len(request.CapDrop) != 1 || request.CapDrop[0] != "ALL" {
+		t.Fatalf("cap drop = %v, want [ALL]", request.CapDrop)
 	}
-	if spec.NetNS.NSMode != specgen.NoNetwork {
-		t.Fatalf("network namespace = %q, want none", spec.NetNS.NSMode)
+	if request.NetNS.NSMode != "none" {
+		t.Fatalf("network namespace = %q, want none", request.NetNS.NSMode)
 	}
-	if spec.PidNS.NSMode != specgen.Private || spec.IpcNS.NSMode != specgen.Private || spec.UtsNS.NSMode != specgen.Private {
+	if request.PidNS.NSMode != "private" || request.IpcNS.NSMode != "private" || request.UtsNS.NSMode != "private" {
 		t.Fatal("PID/IPC/UTS namespaces must be private")
 	}
-	if len(spec.Mounts) != 0 || len(spec.Volumes) != 0 || len(spec.Devices) != 0 {
-		t.Fatal("Phase 1 spec unexpectedly contains mounts, volumes, or devices")
+	if request.ImageVolumeMode != "ignore" {
+		t.Fatalf("image volume mode = %q, want ignore", request.ImageVolumeMode)
 	}
-	if spec.ImageVolumeMode != "ignore" {
-		t.Fatalf("image volume mode = %q, want ignore", spec.ImageVolumeMode)
-	}
-	if spec.ResourceLimits == nil || spec.ResourceLimits.Memory == nil || spec.ResourceLimits.Memory.Limit == nil {
+	if request.ResourceLimits == nil || request.ResourceLimits.Memory == nil || request.ResourceLimits.Memory.Limit == nil {
 		t.Fatal("memory limit is required")
 	}
-	if got, want := *spec.ResourceLimits.Memory.Limit, int64(256*1024*1024); got != want {
+	if got, want := *request.ResourceLimits.Memory.Limit, int64(256*1024*1024); got != want {
 		t.Fatalf("memory limit = %d, want %d", got, want)
 	}
-	if spec.ResourceLimits.Pids == nil || spec.ResourceLimits.Pids.Limit != 128 {
+	if request.ResourceLimits.Pids == nil || request.ResourceLimits.Pids.Limit != 128 {
 		t.Fatal("PID limit is required")
+	}
+
+	payload, err := json.Marshal(request)
+	if err != nil {
+		t.Fatalf("marshal request: %v", err)
+	}
+	for _, forbidden := range []string{"mounts", "volumes", "devices", "host_device_list"} {
+		if strings.Contains(string(payload), `"`+forbidden+`"`) {
+			t.Fatalf("request unexpectedly contains %s: %s", forbidden, payload)
+		}
 	}
 }
 
-func TestBuildSpecRejectsIsolatedUntilImplemented(t *testing.T) {
+func TestBuildCreateRequestRejectsIsolatedUntilImplemented(t *testing.T) {
 	definition := validDefinition()
 	definition.Network = runner.NetworkIsolated
-
-	_, err := buildSpec(definition, "test")
+	_, err := buildCreateRequest(definition, "test")
 	if !errors.Is(err, runner.ErrNotSupported) {
 		t.Fatalf("error = %v, want ErrNotSupported", err)
+	}
+}
+
+func TestSocketPathRejectsRemoteSchemes(t *testing.T) {
+	for _, uri := range []string{
+		"tcp://127.0.0.1:8080",
+		"ssh://host/run/user/1000/podman.sock",
+		"http://localhost",
+		"unix://relative.sock",
+	} {
+		if _, err := socketPathFromURI(uri); err == nil {
+			t.Fatalf("socketPathFromURI(%q) unexpectedly succeeded", uri)
+		}
+	}
+}
+
+func TestDefaultURIUsesXDGRuntimeDir(t *testing.T) {
+	t.Setenv("XDG_RUNTIME_DIR", "/run/user/4242")
+	if got, want := DefaultURI(), "unix:///run/user/4242/podman/podman.sock"; got != want {
+		t.Fatalf("DefaultURI() = %q, want %q", got, want)
 	}
 }
 
@@ -85,9 +115,74 @@ func TestInstanceNameIsSafeAndNamespaced(t *testing.T) {
 	}
 }
 
-func TestDefaultURIUsesXDGRuntimeDir(t *testing.T) {
-	t.Setenv("XDG_RUNTIME_DIR", "/run/user/4242")
-	if got, want := DefaultURI(), "unix:///run/user/4242/podman/podman.sock"; got != want {
-		t.Fatalf("DefaultURI() = %q, want %q", got, want)
+func TestOpenRejectsRootfulAndAcceptsRootlessV2(t *testing.T) {
+	tests := []struct {
+		name    string
+		info    string
+		wantErr string
+	}{
+		{
+			name:    "rootful rejected",
+			info:    `{"host":{"cgroupVersion":"v2","security":{"rootless":false}}}`,
+			wantErr: "refusing rootful",
+		},
+		{
+			name:    "cgroups v1 rejected",
+			info:    `{"host":{"cgroupVersion":"v1","security":{"rootless":true}}}`,
+			wantErr: "requires cgroups v2",
+		},
+		{
+			name: "rootless v2 accepted",
+			info: `{"host":{"cgroupVersion":"v2","security":{"rootless":true}}}`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			socket, stop := fakePodmanSocket(t, func(w http.ResponseWriter, r *http.Request) {
+				if r.URL.Path != apiBase+"/info" {
+					http.NotFound(w, r)
+					return
+				}
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(tt.info))
+			})
+			defer stop()
+
+			backend, err := Open(context.Background(), "unix://"+socket)
+			if tt.wantErr == "" {
+				if err != nil {
+					t.Fatalf("Open() error = %v", err)
+				}
+				if backend == nil {
+					t.Fatal("Open() returned nil backend")
+				}
+				return
+			}
+			if err == nil || !strings.Contains(err.Error(), tt.wantErr) {
+				t.Fatalf("Open() error = %v, want containing %q", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func fakePodmanSocket(t *testing.T, handler http.HandlerFunc) (string, func()) {
+	t.Helper()
+	socket := filepath.Join(t.TempDir(), "podman.sock")
+	listener, err := net.Listen("unix", socket)
+	if err != nil {
+		t.Fatalf("listen unix socket: %v", err)
+	}
+	server := &http.Server{Handler: handler}
+	done := make(chan struct{})
+	go func() {
+		_ = server.Serve(listener)
+		close(done)
+	}()
+	return socket, func() {
+		_ = server.Close()
+		_ = listener.Close()
+		<-done
+		_ = os.Remove(socket)
 	}
 }
