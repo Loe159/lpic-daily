@@ -83,8 +83,8 @@
       "surfaces": {
         "labs": [],
         "lessons": [
-          "lpic1.103.1.lesson.command-line-foundations",
-          "lpic1.103.1.lesson.bash-history"
+          "lpic1.103.1.lesson.bash-history",
+          "lpic1.103.1.lesson.command-line-foundations"
         ],
         "questions": [
           "lpic1.103.1.q.history"
@@ -111,8 +111,8 @@
       "surfaces": {
         "labs": [],
         "lessons": [
-          "lpic1.103.1.lesson.command-line-foundations",
-          "lpic1.103.1.lesson.basic-system-info"
+          "lpic1.103.1.lesson.basic-system-info",
+          "lpic1.103.1.lesson.command-line-foundations"
         ],
         "questions": [
           "lpic1.103.1.q.uname-release"
@@ -143,8 +143,8 @@
           "lpic1.103.5.stuck-worker"
         ],
         "lessons": [
-          "lpic1.103.5.lesson.shell-jobs",
-          "lpic1.103.5.lesson.processes-jobs-signals"
+          "lpic1.103.5.lesson.processes-jobs-signals",
+          "lpic1.103.5.lesson.shell-jobs"
         ],
         "questions": [
           "lpic1.103.5.q.jobs"
@@ -205,8 +205,8 @@
           "lpic1.103.5.stuck-worker"
         ],
         "lessons": [
-          "lpic1.103.5.lesson.select-process",
-          "lpic1.103.5.lesson.processes-jobs-signals"
+          "lpic1.103.5.lesson.processes-jobs-signals",
+          "lpic1.103.5.lesson.select-process"
         ],
         "questions": [
           "lpic1.103.5.q.pgrep"
@@ -219,8 +219,8 @@
       "surfaces": {
         "labs": [],
         "lessons": [
-          "lpic1.103.5.lesson.terminal-multiplexers",
-          "lpic1.103.5.lesson.processes-jobs-signals"
+          "lpic1.103.5.lesson.processes-jobs-signals",
+          "lpic1.103.5.lesson.terminal-multiplexers"
         ],
         "questions": [
           "lpic1.103.5.q.multiplexer"
@@ -235,8 +235,8 @@
           "lpic1.104.5.shared-dropbox"
         ],
         "lessons": [
-          "lpic1.104.5.lesson.rwx-files-directories",
-          "lpic1.104.5.lesson.permissions-special-bits"
+          "lpic1.104.5.lesson.permissions-special-bits",
+          "lpic1.104.5.lesson.rwx-files-directories"
         ],
         "questions": [
           "lpic1.104.5.q.directory-x"
@@ -281,8 +281,8 @@
       "surfaces": {
         "labs": [],
         "lessons": [
-          "lpic1.104.5.lesson.umask",
-          "lpic1.104.5.lesson.permissions-special-bits"
+          "lpic1.104.5.lesson.permissions-special-bits",
+          "lpic1.104.5.lesson.umask"
         ],
         "questions": [
           "lpic1.104.5.q.umask-027"
@@ -295,8 +295,8 @@
       "surfaces": {
         "labs": [],
         "lessons": [
-          "lpic1.104.5.lesson.suid",
-          "lpic1.104.5.lesson.permissions-special-bits"
+          "lpic1.104.5.lesson.permissions-special-bits",
+          "lpic1.104.5.lesson.suid"
         ],
         "questions": [
           "lpic1.104.5.q.suid-effective-uid"
@@ -311,8 +311,8 @@
           "lpic1.104.5.shared-dropbox"
         ],
         "lessons": [
-          "lpic1.104.5.lesson.sgid",
-          "lpic1.104.5.lesson.permissions-special-bits"
+          "lpic1.104.5.lesson.permissions-special-bits",
+          "lpic1.104.5.lesson.sgid"
         ],
         "questions": [
           "lpic1.104.5.q.sgid-directory"
@@ -327,8 +327,8 @@
           "lpic1.104.5.shared-dropbox"
         ],
         "lessons": [
-          "lpic1.104.5.lesson.sticky-bit",
-          "lpic1.104.5.lesson.permissions-special-bits"
+          "lpic1.104.5.lesson.permissions-special-bits",
+          "lpic1.104.5.lesson.sticky-bit"
         ],
         "questions": [
           "lpic1.104.5.q.sticky-directory"
@@ -343,8 +343,8 @@
           "lpic1.104.5.shared-dropbox"
         ],
         "lessons": [
-          "lpic1.104.5.lesson.special-bits-directories",
-          "lpic1.104.5.lesson.permissions-special-bits"
+          "lpic1.104.5.lesson.permissions-special-bits",
+          "lpic1.104.5.lesson.special-bits-directories"
         ],
         "questions": [
           "lpic1.104.5.q.special-directory-combination"
