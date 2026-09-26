@@ -85,6 +85,8 @@ type FileInfo struct {
 	Mode  uint32
 	UID   uint32
 	GID   uint32
+	User  string
+	Group string
 	IsDir bool
 }
 

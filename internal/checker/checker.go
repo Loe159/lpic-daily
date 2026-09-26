@@ -75,8 +75,8 @@ func (check FileMode) Evaluate(ctx context.Context, probe Probe, instance runner
 type FileOwner struct {
 	CheckID string
 	Path    string
-	UID     uint32
-	GID     uint32
+	User    string
+	Group   string
 }
 
 func (check FileOwner) ID() string {
@@ -88,14 +88,18 @@ func (check FileOwner) Evaluate(ctx context.Context, probe Probe, instance runne
 	if err != nil {
 		return Result{CheckID: check.ID(), Err: err}
 	}
-	if info.UID != check.UID || info.GID != check.GID {
+	if info.User != check.User || info.Group != check.Group {
 		return Result{
 			CheckID: check.ID(),
 			Pass:    false,
-			Detail:  fmt.Sprintf("owner=%d:%d, expected=%d:%d", info.UID, info.GID, check.UID, check.GID),
+			Detail:  fmt.Sprintf("owner=%s:%s (%d:%d), expected=%s:%s", info.User, info.Group, info.UID, info.GID, check.User, check.Group),
 		}
 	}
-	return Result{CheckID: check.ID(), Pass: true, Detail: fmt.Sprintf("owner=%d:%d", info.UID, info.GID)}
+	return Result{
+		CheckID: check.ID(),
+		Pass:    true,
+		Detail:  fmt.Sprintf("owner=%s:%s (%d:%d)", info.User, info.Group, info.UID, info.GID),
+	}
 }
 
 type FileContentRegex struct {

@@ -44,8 +44,10 @@ func TestPermissionChecksValidateStateNotCommandHistory(t *testing.T) {
 			"/srv/shared": {
 				Path:  "/srv/shared",
 				Mode:  0o3770,
-				UID:   1000,
+				UID:   0,
 				GID:   2000,
+				User:  "root",
+				Group: "project",
 				IsDir: true,
 			},
 		},
@@ -54,7 +56,7 @@ func TestPermissionChecksValidateStateNotCommandHistory(t *testing.T) {
 
 	checks := []checker.Check{
 		checker.FileMode{CheckID: "mode", Path: "/srv/shared", Mode: 0o3770},
-		checker.FileOwner{CheckID: "owner", Path: "/srv/shared", UID: 1000, GID: 2000},
+		checker.FileOwner{CheckID: "owner", Path: "/srv/shared", User: "root", Group: "project"},
 	}
 	results, err := checker.EvaluateAll(context.Background(), probe, instance, checks)
 	if err != nil {
@@ -64,6 +66,24 @@ func TestPermissionChecksValidateStateNotCommandHistory(t *testing.T) {
 		if !result.Pass {
 			t.Fatalf("check failed: %#v", result)
 		}
+	}
+}
+
+func TestOwnerCheckRejectsWrongNamedGroupEvenWithDiagnosticIDs(t *testing.T) {
+	probe := fakeProbe{
+		files: map[string]runner.FileInfo{
+			"/srv/shared": {
+				Path:  "/srv/shared",
+				UID:   0,
+				GID:   2001,
+				User:  "root",
+				Group: "wrong-group",
+			},
+		},
+	}
+	check := checker.FileOwner{CheckID: "owner", Path: "/srv/shared", User: "root", Group: "project"}
+	if result := check.Evaluate(context.Background(), probe, runner.Instance{ID: "fake"}); result.Pass {
+		t.Fatalf("wrong named group unexpectedly passed: %#v", result)
 	}
 }
 
