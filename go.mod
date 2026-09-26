@@ -3,6 +3,7 @@ module github.com/Loe159/lpic-daily
 go 1.27.0
 
 require (
+	charm.land/bubbletea/v2 v2.0.10
 	golang.org/x/sys v0.47.0
 	modernc.org/sqlite v1.59.0
 )

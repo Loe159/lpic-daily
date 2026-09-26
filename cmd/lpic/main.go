@@ -25,6 +25,7 @@ import (
 	podmanrunner "github.com/Loe159/lpic-daily/internal/runner/podman"
 	"github.com/Loe159/lpic-daily/internal/study"
 	"github.com/Loe159/lpic-daily/internal/terminal"
+	lpicui "github.com/Loe159/lpic-daily/internal/tui"
 )
 
 const version = "0.0.0-dev"
@@ -42,6 +43,11 @@ func run(args []string) error {
 
 func runWithIO(args []string, stdin io.Reader, stdout, stderr io.Writer) error {
 	if len(args) == 0 {
+		if inputFile, inputOK := stdin.(*os.File); inputOK && terminal.IsTerminal(inputFile) {
+			if outputFile, outputOK := stdout.(*os.File); outputOK && terminal.IsTerminal(outputFile) {
+				return runDashboard(stdin, stdout, stderr)
+			}
+		}
 		printUsage(stdout)
 		return nil
 	}
@@ -81,6 +87,11 @@ func runWithIO(args []string, stdin io.Reader, stdout, stderr io.Writer) error {
 		return nil
 	case "today":
 		return runToday(args[1:], stdout)
+	case "tui":
+		if len(args) != 1 {
+			return fmt.Errorf("usage: lpic tui")
+		}
+		return runDashboard(stdin, stdout, stderr)
 	case "learn":
 		return runLearn(args[1:], stdin, stdout)
 	case "question":
@@ -97,6 +108,65 @@ func runWithIO(args []string, stdin io.Reader, stdout, stderr io.Writer) error {
 		return nil
 	default:
 		return fmt.Errorf("unknown command %q (try: lpic help)", args[0])
+	}
+}
+
+func runDashboard(stdin io.Reader, stdout, stderr io.Writer) error {
+	inputFile, inputOK := stdin.(*os.File)
+	outputFile, outputOK := stdout.(*os.File)
+	if !inputOK || !outputOK || !terminal.IsTerminal(inputFile) || !terminal.IsTerminal(outputFile) {
+		return errors.New("lpic tui requires an interactive terminal on stdin and stdout")
+	}
+
+	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		return fmt.Errorf("load curriculum: %w", err)
+	}
+	contentBundle, err := content.Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		return fmt.Errorf("load content: %w", err)
+	}
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		return fmt.Errorf("load labs: %w", err)
+	}
+
+	ctx := context.Background()
+	store, err := openProgressStore(ctx)
+	if err != nil {
+		return err
+	}
+	plan, planErr := study.BuildPlan(ctx, study.PlanInput{
+		Now:        time.Now(),
+		Curriculum: curriculumBundle,
+		Content:    contentBundle,
+		Labs:       labs,
+		Evidence:   store,
+		Policy:     learning.DefaultSessionPolicy(),
+	})
+	closeErr := store.Close()
+	if planErr != nil {
+		return planErr
+	}
+	if closeErr != nil {
+		return closeErr
+	}
+
+	action, err := lpicui.Run(ctx, plan, stdin, stdout)
+	if err != nil {
+		return fmt.Errorf("run TUI: %w", err)
+	}
+	switch action.Kind {
+	case lpicui.ActionNone:
+		return nil
+	case lpicui.ActionLesson:
+		return runLearn([]string{action.ID}, stdin, stdout)
+	case lpicui.ActionQuestion:
+		return runQuestion([]string{action.ID}, stdin, stdout)
+	case lpicui.ActionLab:
+		return runLabCommand([]string{"run", action.ID}, stdin, stdout, stderr)
+	default:
+		return fmt.Errorf("unsupported TUI action %q", action.Kind)
 	}
 }
 
@@ -681,6 +751,7 @@ func printUsage(out io.Writer) {
 	fmt.Fprint(out, `LPIC Daily
 
 Usage:
+  lpic tui                       open the interactive daily dashboard
   lpic today [--quick]           build today's adaptive session from local progress
   lpic learn <lesson-id>          read a lesson and record exposure when confirmed
   lpic question <question-id>     answer a deterministic question and record evidence

@@ -1,0 +1,86 @@
+package tui
+
+import (
+	"strings"
+	"testing"
+
+	"github.com/Loe159/lpic-daily/internal/learning"
+	"github.com/Loe159/lpic-daily/internal/study"
+)
+
+func TestSanitizeTextRemovesTerminalControls(t *testing.T) {
+	got := SanitizeText("safe\x1b[31mred\x1b[0m\rrewrite\x07\u009b31m")
+	for _, forbidden := range []rune{'\x1b', '\r', '\x07', '\u009b'} {
+		if strings.ContainsRune(got, forbidden) {
+			t.Fatalf("sanitized text still contains control %U: %q", forbidden, got)
+		}
+	}
+	if !strings.Contains(got, "safe") || !strings.Contains(got, "red") || !strings.Contains(got, "rewrite") {
+		t.Fatalf("sanitized text lost printable content: %q", got)
+	}
+}
+
+func TestDashboardRenderSanitizesPlanText(t *testing.T) {
+	model := NewDashboard(study.Plan{Items: []study.Item{{
+		ConceptID:             "concept",
+		ConceptTitleFR:        "titre\x1b[2Jinjecté\r",
+		ObjectiveID:           "103.1",
+		Kind:                  learning.SessionNew,
+		MasteryStage:          learning.StageUnseen,
+		ReasonFR:              "raison\x07",
+		RecommendedLessonID:   "lesson\x1b[31m",
+		RecommendedQuestionID: "question",
+	}}})
+
+	rendered := model.render()
+	if strings.ContainsRune(rendered, '\x1b') || strings.ContainsRune(rendered, '\r') || strings.ContainsRune(rendered, '\x07') {
+		t.Fatalf("render contains control sequence: %q", rendered)
+	}
+}
+
+func TestDashboardNavigationAndDefaultAction(t *testing.T) {
+	model := NewDashboard(study.Plan{Items: []study.Item{
+		{
+			ConceptID:             "first",
+			ConceptTitleFR:        "Premier",
+			ObjectiveID:           "103.1",
+			Kind:                  learning.SessionNew,
+			RecommendedLessonID:   "lesson.first",
+			RecommendedQuestionID: "question.first",
+		},
+		{
+			ConceptID:             "second",
+			ConceptTitleFR:        "Second",
+			ObjectiveID:           "103.1",
+			Kind:                  learning.SessionReview,
+			RecommendedQuestionID: "question.second",
+		},
+	}})
+
+	model, quit := model.updateKey("down")
+	if quit || model.cursor != 1 {
+		t.Fatalf("down => cursor=%d quit=%v", model.cursor, quit)
+	}
+	model, quit = model.updateKey("enter")
+	if !quit {
+		t.Fatal("enter did not request program exit for selected action")
+	}
+	if model.action.Kind != ActionQuestion || model.action.ID != "question.second" {
+		t.Fatalf("action = %#v", model.action)
+	}
+}
+
+func TestNewConceptDefaultsToFocusedLesson(t *testing.T) {
+	model := NewDashboard(study.Plan{Items: []study.Item{{
+		ConceptID:             "first",
+		ConceptTitleFR:        "Premier",
+		ObjectiveID:           "103.1",
+		Kind:                  learning.SessionNew,
+		RecommendedLessonID:   "lesson.first",
+		RecommendedQuestionID: "question.first",
+	}}})
+	model, quit := model.updateKey("enter")
+	if !quit || model.action != (Action{Kind: ActionLesson, ID: "lesson.first"}) {
+		t.Fatalf("action = %#v quit=%v", model.action, quit)
+	}
+}
