@@ -12,6 +12,35 @@ const (
 	stuckWorkerID            = "lpic1.103.5.stuck-worker"
 )
 
+func TestTodayStartsWith1031AndCreatesLocalProgressStore(t *testing.T) {
+	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
+
+	var stdout bytes.Buffer
+	if err := runWithIO([]string{"today"}, strings.NewReader(""), &stdout, &bytes.Buffer{}); err != nil {
+		t.Fatalf("today error = %v", err)
+	}
+	output := stdout.String()
+	for _, want := range []string{
+		"LPIC Daily — Aujourd'hui",
+		"Nouveau · 103.1 · syntaxe shell et séquences de commandes",
+		"lpic1.103.1.lesson.command-line-foundations",
+		"lpic1.103.1.q.sequence-and",
+	} {
+		if !strings.Contains(output, want) {
+			t.Fatalf("today output missing %q: %q", want, output)
+		}
+	}
+}
+
+func TestTodayRejectsUnknownOption(t *testing.T) {
+	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
+	var stdout bytes.Buffer
+	err := runWithIO([]string{"today", "--long"}, strings.NewReader(""), &stdout, &bytes.Buffer{})
+	if err == nil || !strings.Contains(err.Error(), "usage: lpic today") {
+		t.Fatalf("error = %v, want today usage error", err)
+	}
+}
+
 func TestLabListAliasesAndShow(t *testing.T) {
 	for _, args := range [][]string{{"lab", "list"}, {"labs"}} {
 		var stdout bytes.Buffer

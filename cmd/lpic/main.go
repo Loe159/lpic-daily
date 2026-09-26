@@ -14,12 +14,16 @@ import (
 	"time"
 
 	lpicdaily "github.com/Loe159/lpic-daily"
+	"github.com/Loe159/lpic-daily/internal/appstate"
 	"github.com/Loe159/lpic-daily/internal/content"
 	"github.com/Loe159/lpic-daily/internal/curriculum"
 	"github.com/Loe159/lpic-daily/internal/doctor"
 	"github.com/Loe159/lpic-daily/internal/lab"
+	"github.com/Loe159/lpic-daily/internal/learning"
+	progresssqlite "github.com/Loe159/lpic-daily/internal/progress/sqlite"
 	"github.com/Loe159/lpic-daily/internal/runner"
 	podmanrunner "github.com/Loe159/lpic-daily/internal/runner/podman"
+	"github.com/Loe159/lpic-daily/internal/study"
 	"github.com/Loe159/lpic-daily/internal/terminal"
 )
 
@@ -75,6 +79,8 @@ func runWithIO(args []string, stdin io.Reader, stdout, stderr io.Writer) error {
 			fmt.Fprintf(stdout, "%-24s %-5s %s\n", check.Name, check.Status, check.Detail)
 		}
 		return nil
+	case "today":
+		return runToday(args[1:], stdout)
 	case "labs":
 		return runLabCommand([]string{"list"}, stdin, stdout, stderr)
 	case "lab":
@@ -88,6 +94,86 @@ func runWithIO(args []string, stdin io.Reader, stdout, stderr io.Writer) error {
 	default:
 		return fmt.Errorf("unknown command %q (try: lpic help)", args[0])
 	}
+}
+
+func runToday(args []string, stdout io.Writer) error {
+	policy := learning.DefaultSessionPolicy()
+	switch {
+	case len(args) == 0:
+	case len(args) == 1 && args[0] == "--quick":
+		policy.MaxReviews = 2
+	default:
+		return fmt.Errorf("usage: lpic today [--quick]")
+	}
+
+	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		return fmt.Errorf("load curriculum: %w", err)
+	}
+	contentBundle, err := content.Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		return fmt.Errorf("load content: %w", err)
+	}
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		return fmt.Errorf("load labs: %w", err)
+	}
+
+	databasePath, err := appstate.ProgressDBPath()
+	if err != nil {
+		return fmt.Errorf("resolve progress database path: %w", err)
+	}
+	ctx := context.Background()
+	store, err := progresssqlite.Open(ctx, databasePath)
+	if err != nil {
+		return fmt.Errorf("open progress database: %w", err)
+	}
+	defer store.Close()
+
+	plan, err := study.BuildPlan(ctx, study.PlanInput{
+		Now:        time.Now(),
+		Curriculum: curriculumBundle,
+		Content:    contentBundle,
+		Labs:       labs,
+		Evidence:   store,
+		Policy:     policy,
+	})
+	if err != nil {
+		return err
+	}
+
+	fmt.Fprintln(stdout, "LPIC Daily — Aujourd'hui")
+	if len(plan.Items) == 0 {
+		fmt.Fprintln(stdout, "Aucune activité due dans le périmètre Phase 1.")
+		return nil
+	}
+
+	for index, item := range plan.Items {
+		kind := "Nouveau"
+		if item.Kind == learning.SessionReview {
+			kind = "Révision"
+		}
+		fmt.Fprintf(
+			stdout,
+			"\n%d. %s · %s · %s\n",
+			index+1,
+			kind,
+			item.ObjectiveID,
+			item.ConceptTitleFR,
+		)
+		fmt.Fprintf(stdout, "   Maîtrise: %s\n", item.MasteryStage)
+		fmt.Fprintf(stdout, "   Pourquoi: %s\n", item.ReasonFR)
+		if len(item.LessonIDs) != 0 {
+			fmt.Fprintf(stdout, "   Cours: %s\n", strings.Join(item.LessonIDs, ", "))
+		}
+		if len(item.QuestionIDs) != 0 {
+			fmt.Fprintf(stdout, "   Question: %s\n", strings.Join(item.QuestionIDs, ", "))
+		}
+		if len(item.LabIDs) != 0 {
+			fmt.Fprintf(stdout, "   Lab: %s\n", strings.Join(item.LabIDs, ", "))
+		}
+	}
+	return nil
 }
 
 func runLabCommand(args []string, stdin io.Reader, stdout, stderr io.Writer) error {
@@ -417,6 +503,7 @@ func printUsage(out io.Writer) {
 	fmt.Fprint(out, `LPIC Daily
 
 Usage:
+  lpic today [--quick]           build today's adaptive session from local progress
   lpic validate                  validate embedded curriculum and labs
   lpic doctor                    check local prerequisites without changing the host
   lpic labs                      list built-in labs (alias of "lpic lab list")
