@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.q.uname-release",
+  "objective_ids": [
+    "103.1"
+  ],
+  "concept_ids": [
+    "lpic1.103.1.informations-systeme-de-base"
+  ],
+  "type": "fill-in",
+  "prompt_fr": "Quelle commande affiche la release du noyau Linux en cours d'exécution ?",
+  "grading": {
+    "strategy": "exact-text",
+    "accepted_answers": [
+      "uname -r"
+    ],
+    "case_sensitive": true
+  },
+  "evidence_kind_on_success": "recall",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic",
+  "explanation_fr": "`uname -r` affiche la chaîne de release du noyau."
+}

@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.q.export",
+  "objective_ids": [
+    "103.1"
+  ],
+  "concept_ids": [
+    "lpic1.103.1.variables-shell-environnement"
+  ],
+  "type": "fill-in",
+  "prompt_fr": "Quel builtin Bash rend une variable shell disponible dans l'environnement des processus enfants ?",
+  "grading": {
+    "strategy": "exact-text",
+    "accepted_answers": [
+      "export"
+    ],
+    "case_sensitive": true
+  },
+  "evidence_kind_on_success": "recall",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic",
+  "explanation_fr": "`export` marque la variable pour qu'elle soit transmise aux commandes lancées ensuite."
+}

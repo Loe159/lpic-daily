@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.lesson.command-line-foundations",
+  "title_fr": "Fondamentaux du travail en ligne de commande",
+  "objective_ids": [
+    "103.1"
+  ],
+  "concept_ids": [
+    "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes",
+    "lpic1.103.1.variables-shell-environnement",
+    "lpic1.103.1.path-et-resolution-de-commande",
+    "lpic1.103.1.quoting-escaping",
+    "lpic1.103.1.historique",
+    "lpic1.103.1.documentation-et-identification-d-une-commande",
+    "lpic1.103.1.informations-systeme-de-base"
+  ],
+  "stage": "introduce",
+  "estimated_minutes": 9,
+  "body_markdown": "# Travailler efficacement dans un shell\n\nLe shell reçoit une ligne, effectue ses expansions, construit des arguments puis lance une commande ou exécute un builtin. Pour raisonner correctement, il faut distinguer le texte tapé, les mots obtenus après expansion et le statut de sortie final.\n\n## Séquences et statuts\n\n`cmd1 ; cmd2` exécute les deux commandes l'une après l'autre. `cmd1 && cmd2` n'exécute la seconde que si la première réussit (statut 0). `cmd1 || cmd2` n'exécute la seconde que si la première échoue. Le statut de la dernière commande est disponible dans `$?`. Ces opérateurs permettent de construire des enchaînements simples sans écrire immédiatement un script complet.\n\n## Variables shell et environnement\n\n`NAME=value` crée ou modifie une variable du shell courant. Un processus enfant ne reçoit pas automatiquement toutes les variables shell : `export NAME` ou `export NAME=value` place la variable dans l'environnement transmis aux commandes lancées ensuite. `env` affiche cet environnement et `unset NAME` supprime la variable du shell.\n\n## PATH et résolution d'une commande\n\nQuand un nom de commande ne contient pas de `/`, le shell cherche un exécutable dans les répertoires de `PATH`, de gauche à droite. L'ordre est donc significatif. `command -v nom` montre ce qui sera réellement exécuté et `type -a nom` peut révéler plusieurs résolutions possibles, y compris builtins, fonctions, alias ou exécutables. Un chemin explicite comme `/usr/bin/printf` ne dépend pas de `PATH`.\n\n## Quoting et escaping\n\nSans quoting, les espaces séparent les mots et de nombreuses expansions sont actives. Les apostrophes simples `'...'` rendent leur contenu littéral : `$HOME` reste du texte. Les guillemets doubles `\"...\"` conservent les espaces dans un seul argument mais autorisent notamment l'expansion de `$VARIABLE`. Le backslash protège ponctuellement le caractère suivant. Pour vérifier ce que reçoit réellement une commande, pense en termes d'arguments, pas seulement en termes d'affichage.\n\n## Historique\n\nLe builtin `history` montre l'historique connu du shell courant. Bash utilise généralement `~/.bash_history` comme fichier persistant, mais l'écriture dans ce fichier peut se faire à la fermeture de la session : le fichier n'est donc pas toujours une copie instantanée de `history`.\n\n## Identifier et documenter une commande\n\n`type` est utile avant de chercher de la documentation : il indique si un nom correspond à un builtin, une fonction ou un exécutable. `command -v` fournit une résolution exploitable dans les scripts. Pour la documentation, `man commande` reste la référence locale classique quand les pages sont installées ; beaucoup d'outils proposent aussi `--help`. Le programme externe `which` existe encore, mais il ne décrit pas aussi bien toutes les constructions du shell que `type`.\n\n## Informations système de base\n\n`uname` interroge les informations du noyau ; `uname -r` affiche sa release. `uptime` donne notamment depuis combien de temps le système tourne et sa charge moyenne. `pwd` affiche le répertoire courant. Ces commandes simples sont souvent les premières briques d'un diagnostic.\n\nDans un incident d'environnement, commence par observer : `type`, `command -v`, `env`, `printf '%s\\n' \"$PATH\"`. Ensuite seulement, corrige l'initialisation persistante et teste dans un shell neuf.",
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "distribution": "generic"
+}

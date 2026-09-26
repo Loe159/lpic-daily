@@ -9,10 +9,10 @@
   },
   "summary": {
     "concepts": 22,
-    "with_any_surface": 14,
+    "with_any_surface": 18,
     "with_lab": 14,
-    "with_lesson": 0,
-    "with_question": 0
+    "with_lesson": 7,
+    "with_question": 7
   },
   "concepts": [
     {
@@ -20,8 +20,12 @@
       "objective_id": "103.1",
       "surfaces": {
         "labs": [],
-        "lessons": [],
-        "questions": []
+        "lessons": [
+          "lpic1.103.1.lesson.command-line-foundations"
+        ],
+        "questions": [
+          "lpic1.103.1.q.sequence-and"
+        ]
       }
     },
     {
@@ -31,8 +35,12 @@
         "labs": [
           "lpic1.103.1.shell-environment-repair"
         ],
-        "lessons": [],
-        "questions": []
+        "lessons": [
+          "lpic1.103.1.lesson.command-line-foundations"
+        ],
+        "questions": [
+          "lpic1.103.1.q.export"
+        ]
       }
     },
     {
@@ -42,8 +50,12 @@
         "labs": [
           "lpic1.103.1.shell-environment-repair"
         ],
-        "lessons": [],
-        "questions": []
+        "lessons": [
+          "lpic1.103.1.lesson.command-line-foundations"
+        ],
+        "questions": [
+          "lpic1.103.1.q.path-order"
+        ]
       }
     },
     {
@@ -53,8 +65,12 @@
         "labs": [
           "lpic1.103.1.shell-environment-repair"
         ],
-        "lessons": [],
-        "questions": []
+        "lessons": [
+          "lpic1.103.1.lesson.command-line-foundations"
+        ],
+        "questions": [
+          "lpic1.103.1.q.single-quotes"
+        ]
       }
     },
     {
@@ -62,8 +78,12 @@
       "objective_id": "103.1",
       "surfaces": {
         "labs": [],
-        "lessons": [],
-        "questions": []
+        "lessons": [
+          "lpic1.103.1.lesson.command-line-foundations"
+        ],
+        "questions": [
+          "lpic1.103.1.q.history"
+        ]
       }
     },
     {
@@ -71,8 +91,12 @@
       "objective_id": "103.1",
       "surfaces": {
         "labs": [],
-        "lessons": [],
-        "questions": []
+        "lessons": [
+          "lpic1.103.1.lesson.command-line-foundations"
+        ],
+        "questions": [
+          "lpic1.103.1.q.type"
+        ]
       }
     },
     {
@@ -80,8 +104,12 @@
       "objective_id": "103.1",
       "surfaces": {
         "labs": [],
-        "lessons": [],
-        "questions": []
+        "lessons": [
+          "lpic1.103.1.lesson.command-line-foundations"
+        ],
+        "questions": [
+          "lpic1.103.1.q.uname-release"
+        ]
       }
     },
     {

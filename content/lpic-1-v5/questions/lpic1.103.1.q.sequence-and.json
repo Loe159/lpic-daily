@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.q.sequence-and",
+  "objective_ids": [
+    "103.1"
+  ],
+  "concept_ids": [
+    "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes"
+  ],
+  "type": "multiple-choice",
+  "prompt_fr": "Que signifie `commande1 && commande2` dans Bash ?",
+  "choices": [
+    {
+      "id": "always",
+      "label_fr": "commande2 est toujours exécutée après commande1"
+    },
+    {
+      "id": "on-success",
+      "label_fr": "commande2 est exécutée seulement si commande1 réussit"
+    },
+    {
+      "id": "on-failure",
+      "label_fr": "commande2 est exécutée seulement si commande1 échoue"
+    }
+  ],
+  "grading": {
+    "strategy": "choice-ids",
+    "accepted_choice_ids": [
+      "on-success"
+    ]
+  },
+  "evidence_kind_on_success": "recognition",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic",
+  "explanation_fr": "`&&` exécute la commande de droite seulement si la commande de gauche retourne le statut 0."
+}

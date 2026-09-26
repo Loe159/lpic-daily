@@ -14,6 +14,7 @@ import (
 	"time"
 
 	lpicdaily "github.com/Loe159/lpic-daily"
+	"github.com/Loe159/lpic-daily/internal/content"
 	"github.com/Loe159/lpic-daily/internal/curriculum"
 	"github.com/Loe159/lpic-daily/internal/doctor"
 	"github.com/Loe159/lpic-daily/internal/lab"
@@ -53,7 +54,12 @@ func runWithIO(args []string, stdin io.Reader, stdout, stderr io.Writer) error {
 		}
 		fmt.Fprintln(stdout, "builtin curriculum OK")
 		fmt.Fprintln(stdout, curriculum.FormatSummary(curriculum.Summarize(bundle)))
+		contentBundle, err := content.Load(lpicdaily.BuiltinFS)
+		if err != nil {
+			return fmt.Errorf("builtin content: %w", err)
+		}
 		fmt.Fprintf(stdout, "builtin labs OK: %d\n", len(labs))
+		fmt.Fprintf(stdout, "builtin content OK: %d lessons; %d questions\n", len(contentBundle.Lessons), len(contentBundle.Questions))
 		return nil
 	case "doctor":
 		if _, err := curriculum.Load(lpicdaily.BuiltinFS); err != nil {
@@ -61,6 +67,9 @@ func runWithIO(args []string, stdin io.Reader, stdout, stderr io.Writer) error {
 		}
 		if _, err := lab.LoadAll(lpicdaily.BuiltinFS); err != nil {
 			return fmt.Errorf("builtin labs: %w", err)
+		}
+		if _, err := content.Load(lpicdaily.BuiltinFS); err != nil {
+			return fmt.Errorf("builtin content: %w", err)
 		}
 		for _, check := range doctor.Run().Checks {
 			fmt.Fprintf(stdout, "%-24s %-5s %s\n", check.Name, check.Status, check.Detail)

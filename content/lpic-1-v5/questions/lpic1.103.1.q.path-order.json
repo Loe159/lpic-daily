@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.q.path-order",
+  "objective_ids": [
+    "103.1"
+  ],
+  "concept_ids": [
+    "lpic1.103.1.path-et-resolution-de-commande"
+  ],
+  "type": "multiple-choice",
+  "prompt_fr": "PATH vaut `/opt/tools:/usr/bin` et `tool` existe dans les deux répertoires. Quel exécutable est choisi pour `tool` ?",
+  "choices": [
+    {
+      "id": "opt",
+      "label_fr": "/opt/tools/tool"
+    },
+    {
+      "id": "usr",
+      "label_fr": "/usr/bin/tool"
+    },
+    {
+      "id": "both",
+      "label_fr": "les deux sont lancés successivement"
+    }
+  ],
+  "grading": {
+    "strategy": "choice-ids",
+    "accepted_choice_ids": [
+      "opt"
+    ]
+  },
+  "evidence_kind_on_success": "recognition",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic",
+  "explanation_fr": "La recherche de PATH se fait de gauche à droite ; `/opt/tools/tool` est donc trouvé en premier."
+}

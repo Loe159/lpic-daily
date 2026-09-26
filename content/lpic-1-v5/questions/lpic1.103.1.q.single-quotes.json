@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.q.single-quotes",
+  "objective_ids": [
+    "103.1"
+  ],
+  "concept_ids": [
+    "lpic1.103.1.quoting-escaping"
+  ],
+  "type": "multiple-choice",
+  "prompt_fr": "Quelle forme affiche littéralement `$HOME` sans développer la variable ?",
+  "choices": [
+    {
+      "id": "single",
+      "label_fr": "printf '%s\\n' '$HOME'"
+    },
+    {
+      "id": "double",
+      "label_fr": "printf '%s\\n' \"$HOME\""
+    },
+    {
+      "id": "bare",
+      "label_fr": "printf '%s\\n' $HOME"
+    }
+  ],
+  "grading": {
+    "strategy": "choice-ids",
+    "accepted_choice_ids": [
+      "single"
+    ]
+  },
+  "evidence_kind_on_success": "recognition",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic",
+  "explanation_fr": "Les apostrophes simples désactivent l'expansion des paramètres dans leur contenu."
+}
