@@ -27,8 +27,14 @@ jobs:
           go-version-file: go.mod
           cache: false
       - name: Check formatting
+        shell: bash
         run: |
-          test -z "$(gofmt -l -- '*.go' 2>/dev/null || find . -name '*.go' -type f -print0 | xargs -0 gofmt -l)"
+          dirty="$(find . -name '*.go' -type f -print0 | xargs -0 gofmt -l)"
+          if [ -n "$dirty" ]; then
+            echo "These files need gofmt:"
+            echo "$dirty"
+            exit 1
+          fi
       - name: Test
         run: go test ./...
       - name: Vet
