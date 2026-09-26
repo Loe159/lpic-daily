@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.shell-environment-repair.hint-4",
+  "lab_id": "lpic1.103.1.shell-environment-repair",
+  "level": 4,
+  "content_fr": "Une solution possible est de définir dans /root/.bash_profile : export PATH=\"/opt/lpic/approved/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin\", export REPORT_ENV=\"production\" et export REPORT_FILE=\"/var/lib/lpic/reports/daily report.txt\". Recharge avec un nouveau login shell puis vérifie report-status \"$REPORT_FILE\".",
+  "evidence_impact": "solution-revealed"
+}

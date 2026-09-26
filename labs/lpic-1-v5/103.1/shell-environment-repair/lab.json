@@ -1,0 +1,97 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.shell-environment-repair",
+  "title_fr": "Réparer un environnement de login shell",
+  "brief_fr": "Une configuration de login shell a été mal modifiée. Dans un nouveau login shell, report-status doit résoudre vers /opt/lpic/approved/bin/report-status, REPORT_ENV doit valoir production et REPORT_FILE doit contenir exactement /var/lib/lpic/reports/daily report.txt. Répare l'environnement sans modifier les deux exécutables fournis.",
+  "success_criteria_fr": [
+    "Un nouveau login shell résout report-status vers /opt/lpic/approved/bin/report-status.",
+    "REPORT_ENV est exportée avec la valeur production dans un nouveau login shell.",
+    "REPORT_FILE est exportée avec la valeur littérale /var/lib/lpic/reports/daily report.txt, espace compris.",
+    "La commande report-status \"$REPORT_FILE\" réussit dans un nouveau login shell."
+  ],
+  "debrief_fr": "PATH est parcouru de gauche à droite : le premier exécutable correspondant au nom demandé gagne. Une variable shell ne devient variable d'environnement pour les processus enfants qu'après export. Enfin, les espaces séparent normalement les mots du shell ; ils doivent donc être protégés par quoting lorsqu'ils font partie d'une valeur ou d'un argument. Ici, le checker ouvre volontairement un nouveau login shell afin de vérifier que la correction est persistante et pas seulement valable dans le shell courant.",
+  "objective_ids": [
+    "103.1"
+  ],
+  "concept_ids": [
+    "lpic1.103.1.variables-shell-environnement",
+    "lpic1.103.1.path-et-resolution-de-commande",
+    "lpic1.103.1.quoting-escaping"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "estimated_minutes": 12,
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "baseline",
+    "writable_guest_paths": [
+      "/root",
+      "/run/lpic"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "pids": 96,
+    "timeout_seconds": 1200
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test \"$(command -v report-status)\" = /opt/lpic/approved/bin/report-status"
+      ],
+      "expected_exit": 0
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test \"${REPORT_ENV:-}\" = production"
+      ],
+      "expected_exit": 0
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test \"${REPORT_FILE:-}\" = \"/var/lib/lpic/reports/daily report.txt\""
+      ],
+      "expected_exit": 0
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "report-status \"$REPORT_FILE\""
+      ],
+      "expected_exit": 0
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/run/lpic/report-ok",
+      "pattern": "^ready\\n?$"
+    }
+  ],
+  "hint_ids": [
+    "lpic1.103.1.shell-environment-repair.hint-1",
+    "lpic1.103.1.shell-environment-repair.hint-2",
+    "lpic1.103.1.shell-environment-repair.hint-3",
+    "lpic1.103.1.shell-environment-repair.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

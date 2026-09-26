@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.shell-environment-repair.hint-2",
+  "lab_id": "lpic1.103.1.shell-environment-repair",
+  "level": 2,
+  "content_fr": "Le problème persistant se trouve dans l'initialisation du login shell de root. PATH choisit le premier binaire correspondant ; une variable destinée aux processus enfants doit être exportée ; un espace dans une valeur doit être protégé par quoting.",
+  "evidence_impact": "material"
+}
