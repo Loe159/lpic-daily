@@ -1,0 +1,91 @@
+package sqlite
+
+import (
+	"context"
+	"path/filepath"
+	"testing"
+	"time"
+
+	"github.com/Loe159/lpic-daily/internal/learning"
+)
+
+func testEvent(id string, at time.Time) learning.EvidenceEvent {
+	return learning.EvidenceEvent{
+		EventID:          id,
+		OccurredAt:       at,
+		ConceptID:        "lpic1.103.5.processus-avant-arriere-plan",
+		ObjectiveIDs:     []string{"103.5"},
+		SourceItemID:     "lab-stuck-worker",
+		ActivityKind:     learning.ActivityLab,
+		EvidenceKind:     learning.EvidenceIndependentPractice,
+		Result:           learning.ResultPass,
+		HighestHintLevel: 0,
+		SolutionRevealed: false,
+		Distribution:     "fedora",
+		AttemptIndex:     1,
+	}
+}
+
+func TestMigrationAndEvidenceRoundTrip(t *testing.T) {
+	ctx := context.Background()
+	path := filepath.Join(t.TempDir(), "progress.sqlite")
+
+	store, err := Open(ctx, path)
+	if err != nil {
+		t.Fatalf("Open() error = %v", err)
+	}
+
+	version, err := store.SchemaVersion(ctx)
+	if err != nil {
+		t.Fatalf("SchemaVersion() error = %v", err)
+	}
+	if version != 1 {
+		t.Fatalf("schema version = %d, want 1", version)
+	}
+
+	at := time.Date(2026, 9, 26, 12, 0, 0, 123456789, time.UTC)
+	want := testEvent("event-1", at)
+	if err := store.AppendEvidence(ctx, want); err != nil {
+		t.Fatalf("AppendEvidence() error = %v", err)
+	}
+	if err := store.Close(); err != nil {
+		t.Fatalf("Close() error = %v", err)
+	}
+
+	store, err = Open(ctx, path)
+	if err != nil {
+		t.Fatalf("reopen error = %v", err)
+	}
+	defer store.Close()
+
+	got, err := store.EvidenceForConcept(ctx, want.ConceptID)
+	if err != nil {
+		t.Fatalf("EvidenceForConcept() error = %v", err)
+	}
+	if len(got) != 1 {
+		t.Fatalf("evidence rows = %d, want 1", len(got))
+	}
+	if got[0].EventID != want.EventID || !got[0].OccurredAt.Equal(want.OccurredAt) {
+		t.Fatalf("round trip = %#v, want %#v", got[0], want)
+	}
+	if got[0].EvidenceKind != want.EvidenceKind || got[0].Result != want.Result {
+		t.Fatalf("round trip kind/result = (%s, %s), want (%s, %s)", got[0].EvidenceKind, got[0].Result, want.EvidenceKind, want.Result)
+	}
+}
+
+func TestEvidenceIsAppendOnlyByEventID(t *testing.T) {
+	ctx := context.Background()
+	store, err := Open(ctx, ":memory:")
+	if err != nil {
+		t.Fatalf("Open() error = %v", err)
+	}
+	defer store.Close()
+
+	event := testEvent("event-duplicate", time.Now().UTC())
+	if err := store.AppendEvidence(ctx, event); err != nil {
+		t.Fatalf("first AppendEvidence() error = %v", err)
+	}
+	if err := store.AppendEvidence(ctx, event); err == nil {
+		t.Fatal("second AppendEvidence() unexpectedly succeeded")
+	}
+}

@@ -26,6 +26,11 @@ jobs:
         with:
           go-version-file: go.mod
           cache: false
+      - name: Resolve modules
+        run: |
+          go mod tidy
+          echo "--- generated go.sum ---"
+          cat go.sum
       - name: Check formatting
         shell: bash
         run: |
