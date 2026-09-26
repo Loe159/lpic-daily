@@ -1,9 +1,13 @@
 package doctor
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
+
+	podmanrunner "github.com/Loe159/lpic-daily/internal/runner/podman"
 )
 
 type Check struct {
@@ -34,20 +38,31 @@ func Run() Report {
 	}
 
 	socket := podmanSocket()
-	if _, err := os.Stat(socket); err == nil {
+	if _, err := os.Stat(socket); err != nil {
 		report.Checks = append(report.Checks, Check{
-			Name:   "rootless-podman-socket",
-			Status: "ok",
-			Detail: socket,
-		})
-	} else {
-		report.Checks = append(report.Checks, Check{
-			Name:   "rootless-podman-socket",
+			Name:   "rootless-podman-service",
 			Status: "warn",
-			Detail: fmt.Sprintf("%s not available yet; Phase 1 runner will fail closed until configured", socket),
+			Detail: fmt.Sprintf("%s is unavailable; labs fail closed until the rootless service is running", socket),
 		})
+		return report
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	if _, err := podmanrunner.Open(ctx, "unix://"+socket); err != nil {
+		report.Checks = append(report.Checks, Check{
+			Name:   "rootless-podman-service",
+			Status: "warn",
+			Detail: fmt.Sprintf("socket exists but service is not usable: %v", err),
+		})
+		return report
+	}
+
+	report.Checks = append(report.Checks, Check{
+		Name:   "rootless-podman-service",
+		Status: "ok",
+		Detail: fmt.Sprintf("%s responds as rootless Podman with cgroups v2", socket),
+	})
 	return report
 }
 

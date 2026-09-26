@@ -2,7 +2,51 @@
 
 LPIC Daily is a terminal-first, local-first learning environment designed to build durable Linux administration skills while covering the complete LPIC-1 v5.0 syllabus (101-500 and 102-500).
 
-This repository has completed **Phase 0: foundations** and is ready for the Phase 1 vertical slice. There is intentionally no application implementation in the foundation snapshot. Product requirements, curriculum source of truth, isolation model, threat model, licensing and agent workflow are frozen for Phase 1.
+The project is currently in **Phase 1: vertical slice**. The curriculum graph, mastery/evidence model, SQLite progress store, explainable scheduler, rootless Podman boundary and first authored lab are implemented and validated in CI. The polished TUI, notifications and full curriculum content still come later.
+
+## Current runnable slice
+
+The first lab is:
+
+```text
+lpic1.104.5.shared-dropbox
+```
+
+It practices LPIC objective 104.5 around ownership, rwx/octal permissions, SGID, sticky bit and directory semantics.
+
+Current command-mode workflow:
+
+```bash
+go run ./cmd/lpic validate
+go run ./cmd/lpic doctor
+go run ./cmd/lpic lab list
+go run ./cmd/lpic lab show lpic1.104.5.shared-dropbox
+```
+
+For local development, prepare the Phase-1 Fedora image:
+
+```bash
+podman build -t localhost/lpic-daily/fedora-phase1:1 labs/images/fedora-phase1
+systemctl --user enable --now podman.socket
+```
+
+Then run:
+
+```bash
+go run ./cmd/lpic lab run lpic1.104.5.shared-dropbox
+```
+
+Inside command mode:
+
+```text
+:check   evaluate the observable final state
+:hint    reveal the next graduated hint
+:quit    destroy the disposable lab and leave
+```
+
+Each normal input line is executed by `bash -lc` **inside the sandbox**, not on the host. Each line currently starts a fresh non-interactive shell; a persistent PTY is a later Phase-1 milestone.
+
+The application never pulls lab images implicitly. Missing images or an unusable/rootful Podman service fail closed.
 
 ## Start here
 
@@ -17,15 +61,17 @@ Human contributors should read:
 
 Coding agents must start with `AGENTS.md` and then load only the documents relevant to the current task.
 
-## Foundation decisions
+## Core decisions
 
 - Greenfield repository: do not fork Shell Gym, Arc Academy Terminal, or SkillCoco.
-- Primary implementation: Go, terminal UI with Bubble Tea v2.
+- Primary implementation: Go.
+- Planned terminal UI: Bubble Tea v2, once the domain/runtime slice is stable.
 - Local persistence: SQLite.
-- Fast lab backend: rootless Podman.
+- Fast lab backend: rootless Podman over its local Unix-socket HTTP API.
 - Full-system lab backend: KVM/QEMU managed by libvirt, with disposable QCOW2 overlays.
 - No automatic host-shell fallback for labs.
-- Curriculum is original French-first content mapped to the official LPIC-1 v5.0 objectives; LPI learning materials may be consulted but must not be copied or adapted.
+- Network denied by default.
+- Curriculum is original French-first content mapped to the official LPIC-1 v5.0 objectives.
 - Technical English terms remain English where that is the natural Linux vocabulary.
 - Daily integration is notification-first; session composition is adaptive.
 - Gamification (XP/streaks/achievements) is separate from mastery.
@@ -33,27 +79,33 @@ Coding agents must start with `AGENTS.md` and then load only the documents relev
 - Machine-readable curriculum metadata is the canonical coverage source.
 - Code is Apache-2.0; original educational/documentation content is CC BY 4.0 unless stated otherwise.
 
-These choices are documented in `docs/REQUIREMENTS.md` and accepted ADRs.
-
 ## Repository map
 
 ```text
 AGENTS.md                    global agent contract
 .agents/skills/              reusable agent workflows
-.github/                     adapters for GitHub/Copilot
+.github/                     CI and GitHub adapters
+cmd/lpic/                    current CLI entry point
+internal/learning/           evidence, mastery and scheduler domain
+internal/progress/           persistence interfaces + SQLite
+internal/runner/             sandbox contract and Podman adapter
+internal/checker/            state-based lab grading
+internal/lab/                authored lab loading/orchestration
 curriculum/lpic-1-v5/        machine-readable LPIC coverage model
-docs/                        product, architecture, research and decisions
+docs/                        product, architecture, research and ADRs
 docs/lpic1/                  agent-oriented LPIC knowledge map
-labs/                        future lab definitions (no labs in Phase 0)
-schemas/                     future content schemas
+labs/                        authored labs and lab image recipes
+schemas/                     content contracts
 scripts/                     validation utilities
-src/                         future application code
 ```
 
-## Validate the foundation
+## Validate
 
 ```bash
-python3 scripts/validate_curriculum.py
+python3 scripts/validate_foundation.py
+go test ./...
+go vet ./...
+go run ./cmd/lpic validate
 ```
 
-The validator checks both exams have total objective weight 60, all expected active objectives are present, IDs are unique, and every objective contains concepts, terms and an assessment strategy.
+The foundation validator checks the complete LPIC objective model, learning graph, schemas and authored lab references. Go tests cover the domain, SQLite, runner security contract, Podman HTTP protocol handling, state checkers and lab orchestration.
