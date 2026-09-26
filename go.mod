@@ -2,7 +2,11 @@ module github.com/Loe159/lpic-daily
 
 go 1.27.0
 
-require modernc.org/sqlite v1.59.0
+require (
+	github.com/opencontainers/runtime-spec v1.3.0
+	go.podman.io/podman/v6 v6.1.2
+	modernc.org/sqlite v1.59.0
+)
 
 require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
