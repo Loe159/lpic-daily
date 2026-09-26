@@ -16,15 +16,22 @@ A concept is not considered fully taught merely because it appears in prose. Mat
 - scheduled review hooks.
 
 ## Modern versus legacy
-LPIC v5.0 intentionally contains tools and mechanisms that may be old in modern distributions. Mark them explicitly:
-- `exam_required`: required by current syllabus;
-- `legacy`: still examinable but not preferred for new systems;
-- `modern_alternative`: current operational approach taught alongside it.
+Use the canonical machine-readable labels from `common.schema.json`:
+- `lpic-required`: required by the current LPIC syllabus;
+- `lpic-legacy`: still examinable but generally legacy practice;
+- `modern-practice`: contemporary operational practice taught alongside exam knowledge.
 
 Never silently replace an examinable legacy term with a modern equivalent.
 
 ## Lab authoring
 Labs specify desired state, environment and checker semantics. Avoid command-string grading. Reference solutions are private authoring/test fixtures, not hints exposed by default.
+
+For Phase-1 Podman content:
+- `network` must be `none`;
+- setup/reference paths must stay inside the lab directory;
+- images are preinstalled by a trusted workflow; the app never pulls them implicitly;
+- `:latest` is forbidden;
+- released image identities must be digest/provenance pinned even when a local development alias is used while authoring.
 
 ## Source policy
 Prefer authoritative references: LPI objectives for syllabus scope; upstream projects/man-pages/distribution documentation for Linux behavior; peer-reviewed or established educational research for learning claims.

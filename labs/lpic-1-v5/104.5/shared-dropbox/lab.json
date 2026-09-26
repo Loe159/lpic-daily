@@ -1,0 +1,67 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.5.shared-dropbox",
+  "title_fr": "Sécuriser un répertoire partagé",
+  "objective_ids": [
+    "104.5"
+  ],
+  "concept_ids": [
+    "lpic1.104.5.permissions-rwx-fichier-dossier",
+    "lpic1.104.5.notation-symbolique-octale",
+    "lpic1.104.5.proprietaire-groupe",
+    "lpic1.104.5.sgid",
+    "lpic1.104.5.sticky-bit",
+    "lpic1.104.5.effets-speciaux-sur-repertoires"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "estimated_minutes": 12,
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "identity-files",
+    "writable_guest_paths": [
+      "/srv/shared",
+      "/home/alice",
+      "/home/bob"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "pids": 128,
+    "timeout_seconds": 1200
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "file-exists",
+      "path": "/srv/shared"
+    },
+    {
+      "type": "file-owner",
+      "path": "/srv/shared",
+      "user": "root",
+      "group": "project"
+    },
+    {
+      "type": "file-mode",
+      "path": "/srv/shared",
+      "mode": "3770"
+    }
+  ],
+  "hint_ids": [
+    "lpic1.104.5.shared-dropbox.hint-1",
+    "lpic1.104.5.shared-dropbox.hint-2",
+    "lpic1.104.5.shared-dropbox.hint-3",
+    "lpic1.104.5.shared-dropbox.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

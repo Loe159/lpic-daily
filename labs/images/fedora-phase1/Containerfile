@@ -1,0 +1,14 @@
+# Development image recipe.
+# Release automation must replace this tag with a verified digest before shipping.
+FROM registry.fedoraproject.org/fedora:44
+
+RUN dnf -y install \
+        bash \
+        coreutils \
+        findutils \
+        procps-ng \
+        shadow-utils \
+        util-linux \
+    && dnf clean all
+
+CMD ["/usr/bin/sleep", "infinity"]

@@ -8,6 +8,7 @@ SCRIPTS = [
     ROOT / "scripts" / "validate_curriculum.py",
     ROOT / "scripts" / "validate_learning_graph.py",
     ROOT / "scripts" / "validate_schemas.py",
+    ROOT / "scripts" / "validate_labs.py",
 ]
 
 for script in SCRIPTS:

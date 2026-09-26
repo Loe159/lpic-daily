@@ -1,0 +1,153 @@
+#!/usr/bin/env python3
+from pathlib import Path
+import json
+import sys
+
+ROOT = Path(__file__).resolve().parents[1]
+LABS = ROOT / "labs"
+CURRICULUM = ROOT / "curriculum" / "lpic-1-v5"
+
+
+def load_json(path):
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        raise ValueError(f"{path.relative_to(ROOT)}: invalid JSON: {exc}") from exc
+
+
+def safe_local_ref(base, value):
+    if not isinstance(value, str) or not value:
+        return False
+    ref = Path(value)
+    if ref.is_absolute() or ".." in ref.parts:
+        return False
+    try:
+        target = (base / ref).resolve()
+        target.relative_to(base.resolve())
+    except (ValueError, OSError):
+        return False
+    return target.is_file()
+
+
+def main():
+    errors = []
+    objectives = load_json(CURRICULUM / "objectives.json")
+    concepts = load_json(CURRICULUM / "concepts.json")
+
+    objective_ids = {o["id"] for o in objectives["objectives"] if o.get("active")}
+    concept_by_id = {c["id"]: c for c in concepts["concepts"] if c.get("active")}
+
+    labs = sorted(LABS.glob("lpic-1-v5/*/*/lab.json"))
+    if not labs:
+        errors.append("no lab.json files found")
+
+    seen_lab_ids = set()
+    seen_hint_ids = set()
+
+    for lab_path in labs:
+        lab_dir = lab_path.parent
+        lab = load_json(lab_path)
+        lab_id = lab.get("id")
+
+        if not isinstance(lab_id, str) or not lab_id:
+            errors.append(f"{lab_path.relative_to(ROOT)}: missing id")
+            continue
+        if lab_id in seen_lab_ids:
+            errors.append(f"duplicate lab id {lab_id}")
+        seen_lab_ids.add(lab_id)
+
+        for objective_id in lab.get("objective_ids", []):
+            if objective_id not in objective_ids:
+                errors.append(f"{lab_id}: unknown objective {objective_id}")
+
+        for concept_id in lab.get("concept_ids", []):
+            concept = concept_by_id.get(concept_id)
+            if concept is None:
+                errors.append(f"{lab_id}: unknown concept {concept_id}")
+                continue
+            if concept["objective_id"] not in lab.get("objective_ids", []):
+                errors.append(
+                    f"{lab_id}: concept {concept_id} belongs to objective "
+                    f"{concept['objective_id']} not listed by the lab"
+                )
+
+        environment = lab.get("environment", {})
+        if environment.get("backend") not in {"podman", "libvirt"}:
+            errors.append(f"{lab_id}: unsupported backend {environment.get('backend')!r}")
+        if environment.get("network") not in {"none", "isolated"}:
+            errors.append(f"{lab_id}: unsupported network mode {environment.get('network')!r}")
+        image_ref = environment.get("image_ref", "")
+        if ":latest" in image_ref or image_ref.endswith("/latest"):
+            errors.append(f"{lab_id}: floating latest image references are forbidden")
+        if environment.get("backend") == "podman" and environment.get("network") != "none":
+            errors.append(
+                f"{lab_id}: Phase-1 Podman content must use network=none until isolated networking is implemented"
+            )
+
+        setup = lab.get("setup", {})
+        if setup.get("execution_scope") != "sandbox":
+            errors.append(f"{lab_id}: setup must execute in sandbox")
+        if not safe_local_ref(lab_dir, setup.get("script_ref")):
+            errors.append(f"{lab_id}: setup script reference is missing or unsafe")
+
+        solution_ref = lab.get("reference_solution_ref")
+        if solution_ref is not None and not safe_local_ref(lab_dir, solution_ref):
+            errors.append(f"{lab_id}: reference solution is missing or unsafe")
+
+        if lab.get("reset_policy") != "disposable":
+            errors.append(f"{lab_id}: reset policy must be disposable")
+
+        hint_files = sorted((lab_dir / "hints").glob("*.json"))
+        hints = {}
+        for hint_path in hint_files:
+            hint = load_json(hint_path)
+            hint_id = hint.get("id")
+            if hint_id in seen_hint_ids:
+                errors.append(f"duplicate hint id {hint_id}")
+            seen_hint_ids.add(hint_id)
+            hints[hint_id] = hint
+
+            if hint.get("lab_id") != lab_id:
+                errors.append(f"{hint_id}: lab_id does not match {lab_id}")
+            level = hint.get("level")
+            if level not in {1, 2, 3, 4}:
+                errors.append(f"{hint_id}: invalid level {level}")
+            if level == 4 and hint.get("evidence_impact") != "solution-revealed":
+                errors.append(f"{hint_id}: level 4 must reveal the solution")
+
+        requested = lab.get("hint_ids", [])
+        if len(requested) != len(set(requested)):
+            errors.append(f"{lab_id}: duplicate hint IDs")
+        if set(requested) != set(hints):
+            errors.append(
+                f"{lab_id}: hint reference drift missing={sorted(set(hints)-set(requested))} "
+                f"extra={sorted(set(requested)-set(hints))}"
+            )
+
+        checks = lab.get("checks", [])
+        if not checks:
+            errors.append(f"{lab_id}: at least one state check is required")
+        for check in checks:
+            check_type = check.get("type")
+            if check_type not in {
+                "file-exists",
+                "file-mode",
+                "file-owner",
+                "file-content-regex",
+                "process-running",
+                "process-absent",
+                "command-exit",
+            }:
+                errors.append(f"{lab_id}: unknown check type {check_type!r}")
+
+    if errors:
+        print("Lab validation FAILED:")
+        for error in errors:
+            print(" -", error)
+        sys.exit(1)
+
+    print(f"Lab validation OK: {len(labs)} labs; {len(seen_hint_ids)} hints")
+
+
+if __name__ == "__main__":
+    main()

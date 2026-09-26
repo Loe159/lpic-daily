@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.5.shared-dropbox.hint-1",
+  "lab_id": "lpic1.104.5.shared-dropbox",
+  "level": 1,
+  "content_fr": "Commence par observer le propriétaire, le groupe et tous les bits de mode du répertoire. Les permissions classiques rwx ne suffisent pas pour le comportement demandé.",
+  "evidence_impact": "none"
+}
