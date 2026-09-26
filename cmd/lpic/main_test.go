@@ -7,8 +7,9 @@ import (
 )
 
 const (
-	sharedDropboxID = "lpic1.104.5.shared-dropbox"
-	stuckWorkerID   = "lpic1.103.5.stuck-worker"
+	shellEnvironmentRepairID = "lpic1.103.1.shell-environment-repair"
+	sharedDropboxID          = "lpic1.104.5.shared-dropbox"
+	stuckWorkerID            = "lpic1.103.5.stuck-worker"
 )
 
 func TestLabListAliasesAndShow(t *testing.T) {
@@ -19,10 +20,12 @@ func TestLabListAliasesAndShow(t *testing.T) {
 		}
 		text := stdout.String()
 		for _, want := range []string{
+			shellEnvironmentRepairID,
 			sharedDropboxID,
 			stuckWorkerID,
 			"12 min",
 			"15 min",
+			"Réparer un environnement de login shell",
 			"podman",
 			"fedora",
 			"Sécuriser un répertoire partagé",
@@ -100,7 +103,7 @@ func TestValidateIncludesLabs(t *testing.T) {
 	if err := runWithIO([]string{"validate"}, strings.NewReader(""), &stdout, &bytes.Buffer{}); err != nil {
 		t.Fatalf("validate error = %v", err)
 	}
-	if !strings.Contains(stdout.String(), "builtin labs OK: 2") {
+	if !strings.Contains(stdout.String(), "builtin labs OK: 3") {
 		t.Fatalf("validate output = %q", stdout.String())
 	}
 }

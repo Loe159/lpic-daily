@@ -12,8 +12,9 @@ import (
 )
 
 const (
-	sharedDropboxID = "lpic1.104.5.shared-dropbox"
-	stuckWorkerID   = "lpic1.103.5.stuck-worker"
+	shellEnvironmentRepairID = "lpic1.103.1.shell-environment-repair"
+	sharedDropboxID          = "lpic1.104.5.shared-dropbox"
+	stuckWorkerID            = "lpic1.103.5.stuck-worker"
 )
 
 func loadBuiltinLab(t *testing.T, id string) lab.Lab {
@@ -29,6 +30,28 @@ func loadBuiltinLab(t *testing.T, id string) lab.Lab {
 	}
 	t.Fatalf("built-in lab %s not found", id)
 	return lab.Lab{}
+}
+
+func TestLoadBuiltinShellEnvironmentRepair(t *testing.T) {
+	got := loadBuiltinLab(t, shellEnvironmentRepairID)
+
+	if len(got.Definition.ConceptIDs) != 3 {
+		t.Fatalf("concepts = %d, want 3", len(got.Definition.ConceptIDs))
+	}
+	if len(got.Hints) != 4 {
+		t.Fatalf("hints = %d, want 4", len(got.Hints))
+	}
+	if !strings.Contains(got.SetupScript, "/opt/lpic/shadow/bin") || !strings.Contains(got.SetupScript, "REPORT_FILE=") {
+		t.Fatal("shell environment setup script is incomplete")
+	}
+
+	checks, err := got.CompileChecks()
+	if err != nil {
+		t.Fatalf("CompileChecks() error = %v", err)
+	}
+	if len(checks) != 5 {
+		t.Fatalf("checks = %d, want 5", len(checks))
+	}
 }
 
 func TestLoadBuiltinSharedDropbox(t *testing.T) {

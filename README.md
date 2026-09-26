@@ -9,11 +9,12 @@ The project is currently in **Phase 1: vertical slice**. The curriculum graph, m
 The current runnable labs are:
 
 ```text
+lpic1.103.1.shell-environment-repair
 lpic1.103.5.stuck-worker
 lpic1.104.5.shared-dropbox
 ```
 
-`stuck-worker` exercises process inspection/selection, foreground/background shell jobs and signals through the persistent PTY. `shared-dropbox` practices ownership, rwx/octal permissions, SGID, sticky bit and directory semantics.
+`shell-environment-repair` validates PATH resolution, exported variables and quoting in fresh login shells. `stuck-worker` exercises process inspection/selection, foreground/background shell jobs and signals through the persistent PTY. `shared-dropbox` practices ownership, rwx/octal permissions, SGID, sticky bit and directory semantics.
 
 Current command-mode workflow:
 
@@ -21,8 +22,9 @@ Current command-mode workflow:
 go run ./cmd/lpic validate
 go run ./cmd/lpic doctor
 go run ./cmd/lpic lab list
-go run ./cmd/lpic lab show lpic1.104.5.shared-dropbox
+go run ./cmd/lpic lab show lpic1.103.1.shell-environment-repair
 go run ./cmd/lpic lab show lpic1.103.5.stuck-worker
+go run ./cmd/lpic lab show lpic1.104.5.shared-dropbox
 ```
 
 For local development, prepare the Phase-1 Fedora image:
