@@ -47,6 +47,7 @@ type Event struct {
 	SolutionRevealed bool
 	Distribution     string
 	AttemptIndex     int
+	Metadata         map[string]any
 }
 
 type Stage int
