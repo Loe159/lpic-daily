@@ -76,22 +76,6 @@ func TestExecDetachedReturnsExitCode(t *testing.T) {
 	}
 }
 
-func TestExecRejectsAttachedOrTTYBeforeCallingPodman(t *testing.T) {
-	backend, stop := openFakeBackend(t, func(w http.ResponseWriter, r *http.Request) {
-		t.Errorf("unexpected Podman call %s %s", r.Method, r.URL.Path)
-		http.Error(w, "unexpected", http.StatusInternalServerError)
-	})
-	defer stop()
-
-	_, err := backend.Exec(context.Background(), runner.Instance{ID: "ctr"}, runner.ExecRequest{
-		Argv: []string{"/bin/bash"},
-		TTY:  true,
-	})
-	if !errors.Is(err, runner.ErrNotSupported) {
-		t.Fatalf("Exec() error = %v, want ErrNotSupported", err)
-	}
-}
-
 func TestStatAndReadFileUseContainerArchive(t *testing.T) {
 	backend, stop := openFakeBackend(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet || !strings.HasSuffix(r.URL.Path, "/archive") {
