@@ -142,6 +142,33 @@ func TestSessionRunsSetupAndStateChecks(t *testing.T) {
 	}
 }
 
+func TestSessionResetRestartsAndReplaysSetup(t *testing.T) {
+	authored := loadBuiltinLab(t, sharedDropboxID)
+	fake := &fakeRunner{}
+
+	session, err := lab.Start(context.Background(), authored, fake)
+	if err != nil {
+		t.Fatalf("Start() error = %v", err)
+	}
+	defer session.Close(context.Background())
+
+	if fake.startCalls != 1 || fake.execCalls != 1 {
+		t.Fatalf("initial lifecycle start=%d exec=%d, want 1/1", fake.startCalls, fake.execCalls)
+	}
+	if err := session.Reset(context.Background()); err != nil {
+		t.Fatalf("Reset() error = %v", err)
+	}
+	if fake.resetCalls != 1 {
+		t.Fatalf("reset calls = %d, want 1", fake.resetCalls)
+	}
+	if fake.startCalls != 2 || fake.execCalls != 2 {
+		t.Fatalf("reset lifecycle start=%d exec=%d, want 2/2", fake.startCalls, fake.execCalls)
+	}
+	if !strings.Contains(fake.exec.Argv[len(fake.exec.Argv)-1], "useradd") {
+		t.Fatal("reset did not replay the lab setup")
+	}
+}
+
 func TestVMSetupNoneSkipsGuestExec(t *testing.T) {
 	authored := loadBuiltinLab(t, sharedDropboxID)
 	authored.Definition.ID = "lpic1.104.1.test-vm"
@@ -207,6 +234,8 @@ type fakeRunner struct {
 	definition runner.Definition
 	exec       runner.ExecRequest
 	execCalls  int
+	startCalls int
+	resetCalls int
 	failExec   bool
 	started    bool
 	destroyed  bool
@@ -219,6 +248,7 @@ func (fake *fakeRunner) Prepare(_ context.Context, definition runner.Definition)
 
 func (fake *fakeRunner) Start(_ context.Context, _ runner.Instance) error {
 	fake.started = true
+	fake.startCalls++
 	return nil
 }
 
@@ -255,6 +285,7 @@ func (fake *fakeRunner) Processes(context.Context, runner.Instance) ([]runner.Pr
 }
 
 func (fake *fakeRunner) Reset(context.Context, runner.Instance) error {
+	fake.resetCalls++
 	return nil
 }
 
