@@ -2,10 +2,10 @@ package libvirt
 
 import (
 	"context"
-	"io"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -16,12 +16,12 @@ import (
 )
 
 type fakeControlPlane struct {
-	defined     map[string]string
-	active      map[string]bool
-	starts      int
-	destroys    int
-	undefines   int
-	removeNVRAM bool
+	defined      map[string]string
+	active       map[string]bool
+	starts       int
+	destroys     int
+	undefines    int
+	removeNVRAM  bool
 	consoleOpens int
 	closed       bool
 }

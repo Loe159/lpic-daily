@@ -2,8 +2,8 @@ package libvirt
 
 import (
 	"errors"
-	"io"
 	"fmt"
+	"io"
 	"net/url"
 	"strings"
 
