@@ -141,7 +141,7 @@ func runDashboard(stdin io.Reader, stdout, stderr io.Writer) error {
 
 	ctx := context.Background()
 	for {
-		store, err := openProgressStore(sessionCtx)
+		store, err := openProgressStore(ctx)
 		if err != nil {
 			return err
 		}
@@ -999,7 +999,7 @@ func runInteractiveLabWithBackend(
 				fmt.Fprintln(stdout, "\nLab réussi.")
 				fmt.Fprintln(stdout, authored.Definition.DebriefFR)
 
-				store, err := openProgressStore(ctx)
+				store, err := openProgressStore(sessionCtx)
 				if err != nil {
 					return fmt.Errorf("lab succeeded but progress could not be opened: %w", err)
 				}
