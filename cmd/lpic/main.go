@@ -418,11 +418,12 @@ func runAssessment(args []string, stdin io.Reader, stdout io.Writer) error {
 	fmt.Fprintln(stdout)
 
 	correct := 0
+	reader := bufio.NewReader(stdin)
 	for index, question := range questions {
 		fmt.Fprintf(stdout, "%d/%d · %s\n", index+1, len(questions), question.PromptFR)
 		fmt.Fprint(stdout, "Réponse: ")
 
-		line, err := readLine(stdin)
+		line, err := readLine(reader)
 		if err != nil {
 			return fmt.Errorf("read assessment answer %d: %w", index+1, err)
 		}
@@ -593,7 +594,10 @@ func runQuestion(args []string, stdin io.Reader, stdout io.Writer) error {
 }
 
 func readLine(input io.Reader) (string, error) {
-	reader := bufio.NewReader(input)
+	reader, ok := input.(*bufio.Reader)
+	if !ok {
+		reader = bufio.NewReader(input)
+	}
 	line, err := reader.ReadString('\n')
 	if err != nil && !errors.Is(err, io.EOF) {
 		return "", err
