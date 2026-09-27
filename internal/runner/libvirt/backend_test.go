@@ -24,7 +24,10 @@ type fakeControlPlane struct {
 	removeNVRAM    bool
 	consoleOpens   int
 	agentResponses []string
+	agentErrors    []error
 	agentCommands  []string
+	destroyErr     error
+	undefineErr    error
 	closed         bool
 }
 
@@ -72,6 +75,13 @@ func (fake *fakeControlPlane) AgentCommand(name, command string, timeoutSeconds 
 		return "", errors.New("invalid timeout")
 	}
 	fake.agentCommands = append(fake.agentCommands, command)
+	if len(fake.agentErrors) != 0 {
+		err := fake.agentErrors[0]
+		fake.agentErrors = fake.agentErrors[1:]
+		if err != nil {
+			return "", err
+		}
+	}
 	if len(fake.agentResponses) == 0 {
 		return "", errors.New("no fake guest-agent response")
 	}
@@ -90,6 +100,9 @@ func (fake *fakeControlPlane) DestroyDomain(name string) error {
 	if !fake.active[name] {
 		return errors.New("domain not active")
 	}
+	if fake.destroyErr != nil {
+		return fake.destroyErr
+	}
 	fake.destroys++
 	fake.active[name] = false
 	return nil
@@ -100,6 +113,9 @@ func (fake *fakeControlPlane) UndefineDomain(name string, removeNVRAM bool) erro
 	}
 	if fake.active[name] {
 		return errors.New("domain active")
+	}
+	if fake.undefineErr != nil {
+		return fake.undefineErr
 	}
 	fake.undefines++
 	fake.removeNVRAM = removeNVRAM
@@ -210,6 +226,87 @@ func TestBackendPrepareStartDestroyLifecycle(t *testing.T) {
 	}
 }
 
+func TestBackendDestroyFailureKeepsInstanceTrackedAndDisksIntact(t *testing.T) {
+	backend, control, _, definition := backendFixture(t)
+	ctx := context.Background()
+
+	instance, err := backend.Prepare(ctx, definition)
+	if err != nil {
+		t.Fatalf("Prepare() error = %v", err)
+	}
+	if err := backend.Start(ctx, instance); err != nil {
+		t.Fatalf("Start() error = %v", err)
+	}
+	managed, err := backend.instance(instance)
+	if err != nil {
+		t.Fatalf("instance() error = %v", err)
+	}
+
+	control.destroyErr = errors.New("simulated destroy failure")
+	if err := backend.Destroy(ctx, instance); err == nil {
+		t.Fatal("Destroy() unexpectedly succeeded")
+	}
+	if !control.active[instance.ID] {
+		t.Fatal("failed destroy unexpectedly marked the domain inactive")
+	}
+	if _, err := backend.instance(instance); err != nil {
+		t.Fatalf("failed destroy lost tracked instance: %v", err)
+	}
+	if _, err := os.Stat(managed.Paths.Directory); err != nil {
+		t.Fatalf("failed destroy removed VM disks: %v", err)
+	}
+
+	control.destroyErr = nil
+	if err := backend.Destroy(ctx, instance); err != nil {
+		t.Fatalf("Destroy() retry error = %v", err)
+	}
+	if _, err := os.Stat(managed.Paths.Directory); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("successful retry left VM disks behind: %v", err)
+	}
+}
+
+func TestBackendUndefineFailureKeepsCleanupRetryable(t *testing.T) {
+	backend, control, _, definition := backendFixture(t)
+	ctx := context.Background()
+
+	instance, err := backend.Prepare(ctx, definition)
+	if err != nil {
+		t.Fatalf("Prepare() error = %v", err)
+	}
+	if err := backend.Start(ctx, instance); err != nil {
+		t.Fatalf("Start() error = %v", err)
+	}
+	managed, err := backend.instance(instance)
+	if err != nil {
+		t.Fatalf("instance() error = %v", err)
+	}
+
+	control.undefineErr = errors.New("simulated undefine failure")
+	if err := backend.Destroy(ctx, instance); err == nil {
+		t.Fatal("Destroy() unexpectedly succeeded")
+	}
+	if control.active[instance.ID] {
+		t.Fatal("domain should have been stopped before undefine failure")
+	}
+	if _, exists := control.defined[instance.ID]; !exists {
+		t.Fatal("failed undefine unexpectedly removed the domain")
+	}
+	if _, err := backend.instance(instance); err != nil {
+		t.Fatalf("failed undefine lost tracked instance: %v", err)
+	}
+	if _, err := os.Stat(managed.Paths.Directory); err != nil {
+		t.Fatalf("failed undefine removed VM disks: %v", err)
+	}
+
+	control.undefineErr = nil
+	if err := backend.Destroy(ctx, instance); err != nil {
+		t.Fatalf("Destroy() retry error = %v", err)
+	}
+	if _, err := os.Stat(managed.Paths.Directory); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("successful retry left VM disks behind: %v", err)
+	}
+}
+
 func TestBackendSerialConsoleRequiresActiveManagedVM(t *testing.T) {
 	backend, control, _, definition := backendFixture(t)
 	ctx := context.Background()
@@ -258,6 +355,7 @@ func TestBackendExecUsesStructuredGuestAgentCommand(t *testing.T) {
 	}
 
 	control.agentResponses = []string{
+		`{"return":{}}`,
 		`{"return":{"pid":42}}`,
 		`{"return":{"exited":false}}`,
 		`{"return":{"exited":true,"exitcode":7,"out-data":"b2sK","err-data":"ZXJyCg=="}}`,
@@ -282,16 +380,79 @@ func TestBackendExecUsesStructuredGuestAgentCommand(t *testing.T) {
 			stderr.String(),
 		)
 	}
-	if len(control.agentCommands) != 3 {
-		t.Fatalf("agent commands = %d, want 3", len(control.agentCommands))
+	if len(control.agentCommands) != 4 {
+		t.Fatalf("agent commands = %d, want guest-ping + 3 exec calls", len(control.agentCommands))
 	}
-	if !strings.Contains(control.agentCommands[0], `"path":"/usr/bin/false"`) ||
-		!strings.Contains(control.agentCommands[0], `"arg":["--example"]`) ||
-		!strings.Contains(control.agentCommands[0], `"env":["A_FIRST=a","Z_LAST=z"]`) {
-		t.Fatalf("guest-exec request = %s", control.agentCommands[0])
+	if control.agentCommands[0] != `{"execute":"guest-ping"}` {
+		t.Fatalf("first agent command = %s, want guest-ping", control.agentCommands[0])
 	}
-	if strings.Contains(control.agentCommands[0], "/bin/sh") {
-		t.Fatalf("guest-exec unexpectedly introduced a shell: %s", control.agentCommands[0])
+	if !strings.Contains(control.agentCommands[1], `"path":"/usr/bin/false"`) ||
+		!strings.Contains(control.agentCommands[1], `"arg":["--example"]`) ||
+		!strings.Contains(control.agentCommands[1], `"env":["A_FIRST=a","Z_LAST=z"]`) {
+		t.Fatalf("guest-exec request = %s", control.agentCommands[1])
+	}
+	if strings.Contains(control.agentCommands[1], "/bin/sh") {
+		t.Fatalf("guest-exec unexpectedly introduced a shell: %s", control.agentCommands[1])
+	}
+}
+
+func TestBackendExecWaitsForGuestAgentReadiness(t *testing.T) {
+	backend, control, _, definition := backendFixture(t)
+	ctx := context.Background()
+
+	instance, err := backend.Prepare(ctx, definition)
+	if err != nil {
+		t.Fatalf("Prepare() error = %v", err)
+	}
+	if err := backend.Start(ctx, instance); err != nil {
+		t.Fatalf("Start() error = %v", err)
+	}
+
+	control.agentErrors = []error{errors.New("guest agent not ready"), nil}
+	control.agentResponses = []string{
+		`{"return":{}}`,
+		`{"return":{"pid":7}}`,
+		`{"return":{"exited":true,"exitcode":0}}`,
+	}
+
+	if _, err := backend.Exec(ctx, instance, runner.ExecRequest{
+		Argv: []string{"/usr/bin/true"},
+	}); err != nil {
+		t.Fatalf("Exec() error = %v", err)
+	}
+	if len(control.agentCommands) != 4 {
+		t.Fatalf("agent commands = %d, want two pings + exec + status", len(control.agentCommands))
+	}
+	if control.agentCommands[0] != `{"execute":"guest-ping"}` ||
+		control.agentCommands[1] != `{"execute":"guest-ping"}` {
+		t.Fatalf("readiness commands = %#v", control.agentCommands[:2])
+	}
+}
+
+func TestBackendExecStopsWaitingForGuestAgentWhenContextExpires(t *testing.T) {
+	backend, control, _, definition := backendFixture(t)
+	ctx := context.Background()
+
+	instance, err := backend.Prepare(ctx, definition)
+	if err != nil {
+		t.Fatalf("Prepare() error = %v", err)
+	}
+	if err := backend.Start(ctx, instance); err != nil {
+		t.Fatalf("Start() error = %v", err)
+	}
+
+	control.agentErrors = make([]error, 16)
+	for index := range control.agentErrors {
+		control.agentErrors[index] = errors.New("guest agent unavailable")
+	}
+	deadlineCtx, cancel := context.WithTimeout(ctx, 250*time.Millisecond)
+	defer cancel()
+
+	_, err = backend.Exec(deadlineCtx, instance, runner.ExecRequest{
+		Argv: []string{"/usr/bin/true"},
+	})
+	if err == nil || !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("Exec() error = %v, want context deadline", err)
 	}
 }
 
