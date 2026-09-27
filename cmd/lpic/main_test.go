@@ -263,6 +263,28 @@ func TestValidateIncludesLabs(t *testing.T) {
 	}
 }
 
+func TestLabRunFailsClosedWhenRootlessPodmanIsUnavailable(t *testing.T) {
+	t.Setenv("XDG_RUNTIME_DIR", t.TempDir())
+
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	err := runWithIO(
+		[]string{"lab", "run", sharedDropboxID},
+		strings.NewReader(""),
+		&stdout,
+		&stderr,
+	)
+	if err == nil {
+		t.Fatal("lab run unexpectedly succeeded without Podman")
+	}
+	if !strings.Contains(err.Error(), "open rootless Podman backend") {
+		t.Fatalf("error = %v, want rootless Podman failure", err)
+	}
+	if strings.Contains(stdout.String(), "Lab réussi") {
+		t.Fatalf("lab falsely reported success: %q", stdout.String())
+	}
+}
+
 func TestUnknownLabFails(t *testing.T) {
 	var stdout bytes.Buffer
 	err := runWithIO(
