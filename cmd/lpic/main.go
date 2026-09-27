@@ -17,6 +17,7 @@ import (
 	"github.com/Loe159/lpic-daily/internal/appstate"
 	"github.com/Loe159/lpic-daily/internal/content"
 	"github.com/Loe159/lpic-daily/internal/curriculum"
+	"github.com/Loe159/lpic-daily/internal/desktop"
 	"github.com/Loe159/lpic-daily/internal/doctor"
 	"github.com/Loe159/lpic-daily/internal/gamification"
 	"github.com/Loe159/lpic-daily/internal/lab"
@@ -93,6 +94,8 @@ func runWithIO(args []string, stdin io.Reader, stdout, stderr io.Writer) error {
 			return fmt.Errorf("usage: lpic tui")
 		}
 		return runDashboard(stdin, stdout, stderr)
+	case "notify":
+		return runNotify(args[1:], stdout)
 	case "learn":
 		return runLearn(args[1:], stdin, stdout)
 	case "question":
@@ -182,6 +185,113 @@ func runDashboard(stdin io.Reader, stdout, stderr io.Writer) error {
 
 		fmt.Fprintln(stdout)
 	}
+}
+
+func runNotify(args []string, stdout io.Writer) error {
+	force := false
+	switch {
+	case len(args) == 0:
+	case len(args) == 1 && args[0] == "--force":
+		force = true
+	default:
+		return fmt.Errorf("usage: lpic notify [--force]")
+	}
+	return runNotifyWithExecutor(
+		context.Background(),
+		force,
+		stdout,
+		desktop.OSExecutor{},
+		time.Now(),
+	)
+}
+
+func runNotifyWithExecutor(
+	ctx context.Context,
+	force bool,
+	stdout io.Writer,
+	executor desktop.Executor,
+	now time.Time,
+) error {
+	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		return fmt.Errorf("load curriculum: %w", err)
+	}
+	contentBundle, err := content.Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		return fmt.Errorf("load content: %w", err)
+	}
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		return fmt.Errorf("load labs: %w", err)
+	}
+
+	store, err := openProgressStore(ctx)
+	if err != nil {
+		return err
+	}
+	defer store.Close()
+
+	localDay := now.In(time.Local).Format("2006-01-02")
+	if !force {
+		sent, err := store.NotificationSent(ctx, localDay)
+		if err != nil {
+			return err
+		}
+		if sent {
+			fmt.Fprintln(stdout, "Notification quotidienne déjà envoyée.")
+			return nil
+		}
+	}
+
+	plan, err := study.BuildPlan(ctx, study.PlanInput{
+		Now:        now,
+		Curriculum: curriculumBundle,
+		Content:    contentBundle,
+		Labs:       labs,
+		Evidence:   store,
+		Policy:     learning.DefaultSessionPolicy(),
+	})
+	if err != nil {
+		return err
+	}
+	if len(plan.Items) == 0 {
+		fmt.Fprintln(stdout, "Aucune activité due : notification non envoyée.")
+		return nil
+	}
+
+	reviews := 0
+	newItems := 0
+	for _, item := range plan.Items {
+		if item.Kind == learning.SessionReview {
+			reviews++
+		} else {
+			newItems++
+		}
+	}
+	body := fmt.Sprintf(
+		"%d activité(s) due(s) · %d révision(s) · %d nouveau(x) concept(s)",
+		len(plan.Items),
+		reviews,
+		newItems,
+	)
+	open, err := desktop.SendDaily(ctx, executor, desktop.Notification{
+		Title: "LPIC Daily",
+		Body:  body,
+	})
+	if err != nil {
+		return err
+	}
+	if err := store.MarkNotificationSent(ctx, localDay, now); err != nil {
+		return err
+	}
+	fmt.Fprintln(stdout, "Notification quotidienne envoyée.")
+
+	if open {
+		if err := desktop.LaunchDaily(ctx, executor); err != nil {
+			return fmt.Errorf("notification opened but daily session could not launch: %w", err)
+		}
+	}
+	return nil
 }
 
 func runToday(args []string, stdout io.Writer) error {
@@ -842,6 +952,7 @@ func printUsage(out io.Writer) {
 
 Usage:
   lpic tui                       open the interactive daily dashboard
+  lpic notify [--force]           send today's desktop notification once
   lpic today [--quick]           build today's adaptive session from local progress
   lpic learn <lesson-id>          read a lesson and record exposure when confirmed
   lpic question <question-id>     answer a deterministic question and record evidence

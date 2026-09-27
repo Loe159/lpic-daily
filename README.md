@@ -2,7 +2,7 @@
 
 LPIC Daily is a terminal-first, local-first learning environment designed to build durable Linux administration skills while covering the complete LPIC-1 v5.0 syllabus (101-500 and 102-500).
 
-The project is currently in **Phase 1: vertical slice**. The curriculum graph, mastery/evidence model, SQLite progress store, explainable scheduler, rootless Podman boundary and first authored lab are implemented and validated in CI. The polished TUI, notifications and full curriculum content still come later.
+The project is currently in **Phase 1: vertical slice**. The adaptive scheduler, append-only mastery evidence, separate XP/streak/achievement projection, Bubble Tea daily dashboard, SQLite progress store, three rootless Podman reference labs and Fedora desktop-notification adapter are implemented and validated in CI. Full LPIC-1 curriculum production and VM-backed labs come later.
 
 ## Current runnable slice
 
@@ -16,9 +16,13 @@ lpic1.104.5.shared-dropbox
 
 `shell-environment-repair` validates PATH resolution, exported variables and quoting in fresh login shells. `stuck-worker` exercises process inspection/selection, foreground/background shell jobs and signals through the persistent PTY. `shared-dropbox` practices ownership, rwx/octal permissions, SGID, sticky bit and directory semantics.
 
-Current command-mode workflow:
+Current daily workflow:
 
 ```bash
+go run ./cmd/lpic tui
+go run ./cmd/lpic today
+go run ./cmd/lpic learn lpic1.103.1.lesson.shell-sequences
+go run ./cmd/lpic question lpic1.103.1.q.sequence-and
 go run ./cmd/lpic validate
 go run ./cmd/lpic doctor
 go run ./cmd/lpic lab list
@@ -53,6 +57,27 @@ Each normal input line is executed by `bash -lc` **inside the sandbox**, not on 
 
 The application never pulls lab images implicitly. Missing images or an unusable/rootful Podman service fail closed.
 
+## Daily desktop notification
+
+The Fedora adapter uses `notify-send` and a user-level systemd timer. The notification is sent at most once per local day when work is due; selecting **Ouvrir** launches `lpic tui` through `xdg-terminal-exec`. A custom launcher can be supplied with `LPIC_DAILY_TERMINAL_LAUNCHER`.
+
+For a local development install:
+
+```bash
+go build -o ~/.local/bin/lpic ./cmd/lpic
+mkdir -p ~/.config/systemd/user ~/.local/share/applications
+cp packaging/systemd/lpic-daily-notify.* ~/.config/systemd/user/
+cp packaging/desktop/lpic-daily.desktop ~/.local/share/applications/
+systemctl --user daemon-reload
+systemctl --user enable --now lpic-daily-notify.timer
+```
+
+Test immediately with:
+
+```bash
+lpic notify --force
+```
+
 ## Start here
 
 Human contributors should read:
@@ -70,7 +95,7 @@ Coding agents must start with `AGENTS.md` and then load only the documents relev
 
 - Greenfield repository: do not fork Shell Gym, Arc Academy Terminal, or SkillCoco.
 - Primary implementation: Go.
-- Planned terminal UI: Bubble Tea v2, once the domain/runtime slice is stable.
+- Terminal UI: Bubble Tea v2.
 - Local persistence: SQLite.
 - Fast lab backend: rootless Podman over its local Unix-socket HTTP API.
 - Full-system lab backend: KVM/QEMU managed by libvirt, with disposable QCOW2 overlays.
