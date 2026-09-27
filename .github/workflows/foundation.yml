@@ -38,6 +38,13 @@ jobs:
           if [ -n "$dirty" ]; then
             echo "These files need gofmt:"
             echo "$dirty"
+            echo
+            while IFS= read -r file; do
+              [ -n "$file" ] || continue
+              echo "::group::gofmt diff: $file"
+              gofmt -d "$file"
+              echo "::endgroup::"
+            done <<< "$dirty"
             exit 1
           fi
       - name: Test
