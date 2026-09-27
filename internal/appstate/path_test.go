@@ -44,6 +44,14 @@ func TestVMRootsUseControlledXDGDirectories(t *testing.T) {
 	if want := filepath.Join(root, "data", "lpic-daily", "vm-images"); imageRoot != want {
 		t.Fatalf("VMImageRoot() = %q, want %q", imageRoot, want)
 	}
+
+	catalogPath, err := appstate.VMImageCatalogPath()
+	if err != nil {
+		t.Fatalf("VMImageCatalogPath() error = %v", err)
+	}
+	if want := filepath.Join(imageRoot, "catalog.json"); catalogPath != want {
+		t.Fatalf("VMImageCatalogPath() = %q, want %q", catalogPath, want)
+	}
 }
 
 func TestVMImageRootRequiresAbsoluteOverride(t *testing.T) {

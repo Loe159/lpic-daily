@@ -112,3 +112,10 @@ It flattens the resulting device tree into typed block-device observations and
 marks active swap devices from the kernel's `/proc/swaps` view. Curriculum
 cannot replace those probe commands. Storage checkers compare final state, not
 the learner's command sequence.
+
+
+## CLI backend dispatch checkpoint
+
+`lpic lab run` now dispatches from the lab's declared backend. A `libvirt` lab loads the trusted image catalog from `VMImageRoot()/catalog.json`, requires the trusted `qemu-img` helper, then connects to the canonical local `qemu:///system` control plane. Any missing prerequisite or authorization error fails closed; the CLI never retries the lab through Podman.
+
+The first VM learner surface is deliberately non-interactive QEMU Guest Agent execution: each normal command line is passed as the argument to `/usr/bin/bash -lc` **inside the guest**, while grading continues to use structured state probes. The serial-console capability remains internal until terminal escape/cancellation handling is implemented, so raw console streaming is not accidentally exposed as an unsafe generic terminal path.

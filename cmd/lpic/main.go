@@ -25,6 +25,7 @@ import (
 	"github.com/Loe159/lpic-daily/internal/learning"
 	progresssqlite "github.com/Loe159/lpic-daily/internal/progress/sqlite"
 	"github.com/Loe159/lpic-daily/internal/runner"
+	libvirtrunner "github.com/Loe159/lpic-daily/internal/runner/libvirt"
 	podmanrunner "github.com/Loe159/lpic-daily/internal/runner/podman"
 	"github.com/Loe159/lpic-daily/internal/study"
 	"github.com/Loe159/lpic-daily/internal/terminal"
@@ -802,14 +803,100 @@ func printLab(authored lab.Lab, out io.Writer) {
 
 func runInteractiveLab(authored lab.Lab, stdin io.Reader, stdout, stderr io.Writer) error {
 	ctx := context.Background()
-	if authored.Definition.Environment.Backend != "podman" {
-		return fmt.Errorf("backend %q is not implemented by the CLI yet", authored.Definition.Environment.Backend)
+
+	switch authored.Definition.Environment.Backend {
+	case "podman":
+		backend, err := podmanrunner.Open(ctx, "")
+		if err != nil {
+			return fmt.Errorf("open rootless Podman backend: %w", err)
+		}
+		return runInteractiveLabWithBackend(
+			ctx,
+			authored,
+			backend,
+			true,
+			stdin,
+			stdout,
+			stderr,
+		)
+	case "libvirt":
+		backend, err := openLibvirtBackend()
+		if err != nil {
+			return err
+		}
+		defer func() {
+			cleanupCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+			if err := backend.Close(cleanupCtx); err != nil {
+				fmt.Fprintln(stderr, "warning: close libvirt backend:", err)
+			}
+		}()
+		return runInteractiveLabWithBackend(
+			ctx,
+			authored,
+			backend,
+			false,
+			stdin,
+			stdout,
+			stderr,
+		)
+	default:
+		return fmt.Errorf(
+			"unsupported lab backend %q",
+			authored.Definition.Environment.Backend,
+		)
+	}
+}
+
+func openLibvirtBackend() (*libvirtrunner.Backend, error) {
+	imageRoot, err := appstate.VMImageRoot()
+	if err != nil {
+		return nil, fmt.Errorf("resolve VM image root: %w", err)
+	}
+	catalogPath, err := appstate.VMImageCatalogPath()
+	if err != nil {
+		return nil, fmt.Errorf("resolve VM image catalog path: %w", err)
+	}
+	catalog, err := libvirtrunner.LoadImageCatalog(catalogPath, imageRoot)
+	if err != nil {
+		return nil, fmt.Errorf("load VM image catalog: %w", err)
 	}
 
-	backend, err := podmanrunner.Open(ctx, "")
+	stateRoot, err := appstate.VMStateRoot()
 	if err != nil {
-		return fmt.Errorf("open rootless Podman backend: %w", err)
+		return nil, fmt.Errorf("resolve VM state root: %w", err)
 	}
+	commands, err := libvirtrunner.NewExecCommandRunner()
+	if err != nil {
+		return nil, err
+	}
+	control, err := libvirtrunner.OpenSystem()
+	if err != nil {
+		return nil, err
+	}
+
+	backend, err := libvirtrunner.NewBackend(
+		control,
+		catalog,
+		imageRoot,
+		stateRoot,
+		commands,
+	)
+	if err != nil {
+		_ = control.Close()
+		return nil, fmt.Errorf("initialize libvirt backend: %w", err)
+	}
+	return backend, nil
+}
+
+func runInteractiveLabWithBackend(
+	ctx context.Context,
+	authored lab.Lab,
+	backend runner.Runner,
+	persistentShell bool,
+	stdin io.Reader,
+	stdout, stderr io.Writer,
+) error {
 	session, err := lab.Start(ctx, authored, backend)
 	if err != nil {
 		return err
@@ -824,8 +911,13 @@ func runInteractiveLab(authored lab.Lab, stdin io.Reader, stdout, stderr io.Writ
 
 	printLab(authored, stdout)
 	fmt.Fprintln(stdout)
-	fmt.Fprintln(stdout, "Mode commandes sandboxé. Chaque ligne est exécutée dans un nouveau shell du lab.")
-	fmt.Fprintln(stdout, "Commandes LPIC Daily : :shell  :check  :hint  :quit")
+	if persistentShell {
+		fmt.Fprintln(stdout, "Mode commandes sandboxé. Chaque ligne est exécutée dans un nouveau shell du lab.")
+		fmt.Fprintln(stdout, "Commandes LPIC Daily : :shell  :check  :hint  :quit")
+	} else {
+		fmt.Fprintln(stdout, "Mode commandes VM. Chaque ligne est exécutée dans la VM via QEMU Guest Agent.")
+		fmt.Fprintln(stdout, "Commandes LPIC Daily : :check  :hint  :quit")
+	}
 	fmt.Fprintln(stdout)
 
 	scanner := bufio.NewScanner(stdin)
@@ -867,6 +959,10 @@ func runInteractiveLab(authored lab.Lab, stdin io.Reader, stdout, stderr io.Writ
 			}
 			continue
 		case ":shell":
+			if !persistentShell {
+				fmt.Fprintln(stdout, "Le shell PTY n'est pas disponible pour ce backend ; utilise le mode commandes.")
+				continue
+			}
 			fmt.Fprintln(stdout, "Ouverture d'un shell persistant dans la sandbox. Tape exit ou Ctrl-D pour revenir.")
 			result, err := runPersistentShell(ctx, backend, session.Instance, stdin, stdout)
 			if err != nil {
@@ -928,7 +1024,7 @@ func runInteractiveLab(authored lab.Lab, stdin io.Reader, stdout, stderr io.Writ
 			Stderr: stderr,
 		})
 		if err != nil {
-			return fmt.Errorf("execute sandbox command: %w", err)
+			return fmt.Errorf("execute lab command: %w", err)
 		}
 		if result.ExitCode != 0 {
 			fmt.Fprintf(stderr, "[exit %d]\n", result.ExitCode)
@@ -1054,7 +1150,7 @@ Usage:
   lpic labs                      list built-in labs (alias of "lpic lab list")
   lpic lab list                  list built-in labs
   lpic lab show <id>             show a lab without spoilers
-  lpic lab run <id>              run a lab through rootless Podman
+  lpic lab run <id>              run a lab through its declared isolated backend
   lpic lab hint <id> <1-4>       reveal one graduated hint
   lpic lab debrief <id>          reveal the lab debrief
   lpic version                   print application version

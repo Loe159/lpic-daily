@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -14,6 +15,7 @@ import (
 )
 
 const (
+	partitionFilesystemsID     = "lpic1.104.1.partition-filesystems"
 	shellEnvironmentRepairID = "lpic1.103.1.shell-environment-repair"
 	sharedDropboxID          = "lpic1.104.5.shared-dropbox"
 	stuckWorkerID            = "lpic1.103.5.stuck-worker"
@@ -290,6 +292,29 @@ func TestLabRunFailsClosedWhenRootlessPodmanIsUnavailable(t *testing.T) {
 	}
 	if strings.Contains(stdout.String(), "Lab réussi") {
 		t.Fatalf("lab falsely reported success: %q", stdout.String())
+	}
+}
+
+func TestLibvirtLabRunFailsClosedWithoutTrustedImageCatalog(t *testing.T) {
+	root := t.TempDir()
+	t.Setenv("LPIC_DAILY_VM_IMAGE_DIR", filepath.Join(root, "vm-images"))
+	t.Setenv("LPIC_DAILY_STATE_DIR", filepath.Join(root, "state"))
+
+	var stdout bytes.Buffer
+	err := runWithIO(
+		[]string{"lab", "run", partitionFilesystemsID},
+		strings.NewReader(""),
+		&stdout,
+		&bytes.Buffer{},
+	)
+	if err == nil || !strings.Contains(err.Error(), "load VM image catalog") {
+		t.Fatalf("error = %v, want trusted VM image catalog failure", err)
+	}
+	if strings.Contains(err.Error(), "Podman") {
+		t.Fatalf("libvirt lab unexpectedly fell back to Podman: %v", err)
+	}
+	if strings.Contains(stdout.String(), "Lab réussi") {
+		t.Fatalf("libvirt lab falsely reported success: %q", stdout.String())
 	}
 }
 

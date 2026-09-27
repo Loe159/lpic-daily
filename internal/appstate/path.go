@@ -50,6 +50,14 @@ func VMImageRoot() (string, error) {
 	return filepath.Join(filepath.Clean(base), "lpic-daily", "vm-images"), nil
 }
 
+func VMImageCatalogPath() (string, error) {
+	root, err := VMImageRoot()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(root, "catalog.json"), nil
+}
+
 func stateBase() (string, error) {
 	if override := os.Getenv("LPIC_DAILY_STATE_DIR"); override != "" {
 		if !filepath.IsAbs(override) {
