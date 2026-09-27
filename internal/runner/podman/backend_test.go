@@ -166,6 +166,77 @@ func TestOpenRejectsRootfulAndAcceptsRootlessV2(t *testing.T) {
 	}
 }
 
+func TestManagedContainerLifecyclePrepareStartResetDestroy(t *testing.T) {
+	var (
+		createCalls int
+		startCalls  int
+		deleteCalls int
+	)
+
+	socket, stop := fakePodmanSocket(t, func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.Method == http.MethodGet && r.URL.Path == apiBase+"/info":
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(`{"host":{"cgroupVersion":"v2","security":{"rootless":true}}}`))
+		case r.Method == http.MethodGet && strings.HasPrefix(r.URL.Path, apiBase+"/images/") && strings.HasSuffix(r.URL.Path, "/exists"):
+			w.WriteHeader(http.StatusNoContent)
+		case r.Method == http.MethodPost && r.URL.Path == apiBase+"/containers/create":
+			createCalls++
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(`{"Id":"podman-container-id"}`))
+		case r.Method == http.MethodPost && strings.HasSuffix(r.URL.Path, "/start"):
+			startCalls++
+			w.WriteHeader(http.StatusNoContent)
+		case r.Method == http.MethodDelete && strings.HasPrefix(r.URL.Path, apiBase+"/containers/"):
+			deleteCalls++
+			if r.URL.Query().Get("force") != "true" || r.URL.Query().Get("ignore") != "true" {
+				t.Errorf("unsafe delete query: %s", r.URL.RawQuery)
+			}
+			w.WriteHeader(http.StatusNoContent)
+		default:
+			t.Errorf("unexpected Podman request: %s %s", r.Method, r.URL.String())
+			http.Error(w, "unexpected", http.StatusNotFound)
+		}
+	})
+	defer stop()
+
+	ctx := context.Background()
+	backend, err := Open(ctx, "unix://"+socket)
+	if err != nil {
+		t.Fatalf("Open() error = %v", err)
+	}
+
+	instance, err := backend.Prepare(ctx, validDefinition())
+	if err != nil {
+		t.Fatalf("Prepare() error = %v", err)
+	}
+	if instance.ID == "" {
+		t.Fatal("Prepare() returned empty instance ID")
+	}
+	if err := backend.Start(ctx, instance); err != nil {
+		t.Fatalf("Start() error = %v", err)
+	}
+	if err := backend.Reset(ctx, instance); err != nil {
+		t.Fatalf("Reset() error = %v", err)
+	}
+	if err := backend.Destroy(ctx, instance); err != nil {
+		t.Fatalf("Destroy() error = %v", err)
+	}
+
+	if createCalls != 2 {
+		t.Fatalf("create calls = %d, want 2 (prepare + reset)", createCalls)
+	}
+	if startCalls != 1 {
+		t.Fatalf("start calls = %d, want 1", startCalls)
+	}
+	if deleteCalls != 2 {
+		t.Fatalf("delete calls = %d, want 2 (reset + destroy)", deleteCalls)
+	}
+	if err := backend.Reset(ctx, instance); err == nil || !strings.Contains(err.Error(), "unknown managed instance") {
+		t.Fatalf("Reset() after Destroy error = %v, want unknown managed instance", err)
+	}
+}
+
 func fakePodmanSocket(t *testing.T, handler http.HandlerFunc) (string, func()) {
 	t.Helper()
 	socket := filepath.Join(t.TempDir(), "podman.sock")

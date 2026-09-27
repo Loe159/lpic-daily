@@ -3,6 +3,9 @@ package lab_test
 import (
 	"context"
 	"errors"
+	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -136,6 +139,37 @@ func TestSessionRunsSetupAndStateChecks(t *testing.T) {
 	}
 	if !fake.destroyed {
 		t.Fatal("runner was not destroyed")
+	}
+}
+
+func TestDestructiveSetupCannotModifyHostSentinelThroughLabOrchestration(t *testing.T) {
+	sentinel := filepath.Join(t.TempDir(), "host-sentinel")
+	if err := os.WriteFile(sentinel, []byte("safe"), 0o600); err != nil {
+		t.Fatalf("write sentinel: %v", err)
+	}
+
+	authored := loadBuiltinLab(t, sharedDropboxID)
+	authored.SetupScript = fmt.Sprintf("printf 'pwned' > %q", sentinel)
+	fake := &fakeRunner{}
+
+	session, err := lab.Start(context.Background(), authored, fake)
+	if err != nil {
+		t.Fatalf("Start() error = %v", err)
+	}
+	defer session.Close(context.Background())
+
+	got, err := os.ReadFile(sentinel)
+	if err != nil {
+		t.Fatalf("read sentinel: %v", err)
+	}
+	if string(got) != "safe" {
+		t.Fatalf("host sentinel changed to %q", got)
+	}
+	if len(fake.exec.Argv) != 4 || fake.exec.Argv[0] != "/usr/bin/bash" {
+		t.Fatalf("setup was not delegated as structured sandbox argv: %v", fake.exec.Argv)
+	}
+	if fake.exec.Argv[3] != authored.SetupScript {
+		t.Fatalf("setup body = %q, want %q", fake.exec.Argv[3], authored.SetupScript)
 	}
 }
 
