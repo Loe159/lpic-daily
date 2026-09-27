@@ -179,9 +179,7 @@ func (backend *Backend) waitForGuestAgent(ctx context.Context, domainName string
 		timer := time.NewTimer(guestAgentReadyRetry)
 		select {
 		case <-waitCtx.Done():
-			if !timer.Stop() {
-				<-timer.C
-			}
+			timer.Stop()
 		case <-timer.C:
 		}
 	}
