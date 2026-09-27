@@ -15,6 +15,7 @@ import (
 
 	lpicdaily "github.com/Loe159/lpic-daily"
 	"github.com/Loe159/lpic-daily/internal/appstate"
+	"github.com/Loe159/lpic-daily/internal/assessment"
 	"github.com/Loe159/lpic-daily/internal/content"
 	"github.com/Loe159/lpic-daily/internal/curriculum"
 	"github.com/Loe159/lpic-daily/internal/desktop"
@@ -96,6 +97,8 @@ func runWithIO(args []string, stdin io.Reader, stdout, stderr io.Writer) error {
 		return runDashboard(stdin, stdout, stderr)
 	case "notify":
 		return runNotify(args[1:], stdout)
+	case "assess":
+		return runAssessment(args[1:], stdin, stdout)
 	case "learn":
 		return runLearn(args[1:], stdin, stdout)
 	case "question":
@@ -383,6 +386,91 @@ func openProgressStore(ctx context.Context) (*progresssqlite.Store, error) {
 		return nil, fmt.Errorf("open progress database: %w", err)
 	}
 	return store, nil
+}
+
+func runAssessment(args []string, stdin io.Reader, stdout io.Writer) error {
+	if len(args) != 0 {
+		return fmt.Errorf("usage: lpic assess")
+	}
+
+	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		return fmt.Errorf("load curriculum: %w", err)
+	}
+	contentBundle, err := content.Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		return fmt.Errorf("load content: %w", err)
+	}
+	questions, err := assessment.Questions(contentBundle)
+	if err != nil {
+		return err
+	}
+
+	ctx := context.Background()
+	store, err := openProgressStore(ctx)
+	if err != nil {
+		return err
+	}
+	defer store.Close()
+
+	fmt.Fprintln(stdout, "Évaluation initiale · 103.1")
+	fmt.Fprintln(stdout, "Réponds sans consulter les cours. Les réponses correctes enregistrent uniquement des preuves de rappel.")
+	fmt.Fprintln(stdout)
+
+	correct := 0
+	for index, question := range questions {
+		fmt.Fprintf(stdout, "%d/%d · %s\n", index+1, len(questions), question.PromptFR)
+		fmt.Fprint(stdout, "Réponse: ")
+
+		line, err := readLine(stdin)
+		if err != nil {
+			return fmt.Errorf("read assessment answer %d: %w", index+1, err)
+		}
+		answer, err := parseAnswer(question, strings.TrimSpace(line))
+		if err != nil {
+			return fmt.Errorf("assessment question %d: %w", index+1, err)
+		}
+		pass, err := question.Grade(answer)
+		if err != nil {
+			return fmt.Errorf("grade assessment question %d: %w", index+1, err)
+		}
+		now := time.Now()
+		if err := study.RecordQuestion(ctx, store, question, pass, now); err != nil {
+			return err
+		}
+		eventType := gamification.EventQuestionFailed
+		if pass {
+			correct++
+			eventType = gamification.EventQuestionPassed
+			fmt.Fprintln(stdout, "Correct.")
+		} else {
+			fmt.Fprintln(stdout, "Incorrect.")
+		}
+		recordGamificationBestEffort(
+			ctx,
+			store,
+			eventType,
+			now,
+			map[string]string{
+				"source_item_id": question.ID,
+				"mode":           "initial-assessment",
+			},
+			stdout,
+		)
+		fmt.Fprintln(stdout)
+	}
+
+	ready, err := assessment.FoundationReady(ctx, curriculumBundle, store)
+	if err != nil {
+		return err
+	}
+	fmt.Fprintf(stdout, "Résultat: %d/%d\n", correct, len(questions))
+	if ready {
+		fmt.Fprintln(stdout, "Foundation 103.1 prête : les objectifs dépendants peuvent être proposés.")
+	} else {
+		fmt.Fprintln(stdout, "Foundation 103.1 pas encore prête : LPIC Daily proposera les concepts manquants.")
+	}
+	return nil
 }
 
 func runLearn(args []string, stdin io.Reader, stdout io.Writer) error {
@@ -953,6 +1041,7 @@ func printUsage(out io.Writer) {
 Usage:
   lpic tui                       open the interactive daily dashboard
   lpic notify [--force]           send today's desktop notification once
+  lpic assess                     run the Phase-1 initial recall assessment
   lpic today [--quick]           build today's adaptive session from local progress
   lpic learn <lesson-id>          read a lesson and record exposure when confirmed
   lpic question <question-id>     answer a deterministic question and record evidence

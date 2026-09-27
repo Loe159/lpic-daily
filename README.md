@@ -21,6 +21,7 @@ Current daily workflow:
 ```bash
 go run ./cmd/lpic tui
 go run ./cmd/lpic today
+go run ./cmd/lpic assess
 go run ./cmd/lpic learn lpic1.103.1.lesson.shell-sequences
 go run ./cmd/lpic question lpic1.103.1.q.sequence-and
 go run ./cmd/lpic validate
@@ -54,6 +55,8 @@ Inside command mode:
 ```
 
 Each normal input line is executed by `bash -lc` **inside the sandbox**, not on the host. Use `:shell` when the exercise needs persistent shell state, job control, interactive programs or foreground/background process handling. The PTY is created by Podman inside the same disposable lab; terminal resizes are forwarded to the guest.
+
+The optional `lpic assess` flow tests the seven 103.1 foundation concepts through recall questions. Successful answers can satisfy the normal prerequisite-readiness calculation without fabricating lesson completion.
 
 The application never pulls lab images implicitly. Missing images or an unusable/rootful Podman service fail closed.
 

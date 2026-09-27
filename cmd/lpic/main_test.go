@@ -2,8 +2,13 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"strings"
 	"testing"
+
+	lpicdaily "github.com/Loe159/lpic-daily"
+	"github.com/Loe159/lpic-daily/internal/curriculum"
+	"github.com/Loe159/lpic-daily/internal/learning"
 )
 
 const (
@@ -29,6 +34,69 @@ func TestTodayStartsWith1031AndCreatesLocalProgressStore(t *testing.T) {
 		if !strings.Contains(output, want) {
 			t.Fatalf("today output missing %q: %q", want, output)
 		}
+	}
+}
+
+func TestInitialAssessmentUnlocksDependentObjectiveWithoutLessonEvidence(t *testing.T) {
+	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
+
+	input := strings.Join([]string{
+		"&&",
+		"export FOO=bar",
+		"/opt/tools/tool",
+		"simples",
+		"history",
+		"type",
+		"uname -r",
+		"",
+	}, "\n")
+
+	var stdout bytes.Buffer
+	if err := runWithIO(
+		[]string{"assess"},
+		strings.NewReader(input),
+		&stdout,
+		&bytes.Buffer{},
+	); err != nil {
+		t.Fatalf("assess error = %v", err)
+	}
+	if !strings.Contains(stdout.String(), "Résultat: 7/7") ||
+		!strings.Contains(stdout.String(), "Foundation 103.1 prête") {
+		t.Fatalf("assessment output = %q", stdout.String())
+	}
+
+	ctx := context.Background()
+	store, err := openProgressStore(ctx)
+	if err != nil {
+		t.Fatalf("open progress store = %v", err)
+	}
+	defer store.Close()
+
+	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("curriculum.Load() error = %v", err)
+	}
+	for _, conceptID := range curriculumBundle.Phase1.ObjectiveConcepts["103.1"] {
+		events, err := store.EvidenceForConcept(ctx, conceptID)
+		if err != nil {
+			t.Fatalf("EvidenceForConcept(%s) error = %v", conceptID, err)
+		}
+		if len(events) == 0 {
+			t.Fatalf("no assessment evidence for %s", conceptID)
+		}
+		for _, event := range events {
+			if event.ActivityKind == learning.ActivityLesson {
+				t.Fatalf("assessment fabricated lesson evidence: %#v", event)
+			}
+		}
+	}
+
+	var today bytes.Buffer
+	if err := runWithIO([]string{"today"}, strings.NewReader(""), &today, &bytes.Buffer{}); err != nil {
+		t.Fatalf("today after assessment error = %v", err)
+	}
+	if !strings.Contains(today.String(), "103.5") {
+		t.Fatalf("today did not unlock preferred dependent objective: %q", today.String())
 	}
 }
 
