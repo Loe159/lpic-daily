@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=LPIC Daily
+Comment=Session quotidienne LPIC-1
+Exec=lpic tui
+Terminal=true
+Categories=Education;System;

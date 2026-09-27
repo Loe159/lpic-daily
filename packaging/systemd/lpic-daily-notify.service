@@ -1,0 +1,7 @@
+[Unit]
+Description=LPIC Daily desktop notification
+After=graphical-session.target
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/lpic notify
