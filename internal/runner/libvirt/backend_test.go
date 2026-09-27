@@ -2,6 +2,7 @@ package libvirt
 
 import (
 	"context"
+	"io"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
@@ -21,7 +22,8 @@ type fakeControlPlane struct {
 	destroys    int
 	undefines   int
 	removeNVRAM bool
-	closed      bool
+	consoleOpens int
+	closed       bool
 }
 
 func newFakeControlPlane() *fakeControlPlane {
@@ -51,6 +53,15 @@ func (fake *fakeControlPlane) StartDomain(name string) error {
 	fake.active[name] = true
 	return nil
 }
+func (fake *fakeControlPlane) OpenConsole(name string, input io.Reader, output io.Writer) error {
+	if !fake.active[name] {
+		return errors.New("domain not active")
+	}
+	fake.consoleOpens++
+	_, err := io.Copy(output, input)
+	return err
+}
+
 func (fake *fakeControlPlane) DomainState(name string) (DomainState, error) {
 	if _, exists := fake.defined[name]; !exists {
 		return DomainState{}, errors.New("domain missing")
@@ -178,6 +189,41 @@ func TestBackendPrepareStartDestroyLifecycle(t *testing.T) {
 	}
 	if err := backend.Destroy(ctx, instance); err != nil {
 		t.Fatalf("second Destroy() must be idempotent: %v", err)
+	}
+}
+
+func TestBackendSerialConsoleRequiresActiveManagedVM(t *testing.T) {
+	backend, control, _, definition := backendFixture(t)
+	ctx := context.Background()
+
+	instance, err := backend.Prepare(ctx, definition)
+	if err != nil {
+		t.Fatalf("Prepare() error = %v", err)
+	}
+	var output strings.Builder
+	request := runner.ConsoleRequest{
+		Stdin:  strings.NewReader("grub> help\n"),
+		Stdout: &output,
+	}
+	if err := backend.OpenConsole(ctx, instance, request); err == nil ||
+		!strings.Contains(err.Error(), "not active") {
+		t.Fatalf("OpenConsole(inactive) error = %v", err)
+	}
+	if err := backend.Start(ctx, instance); err != nil {
+		t.Fatalf("Start() error = %v", err)
+	}
+	if err := backend.OpenConsole(ctx, instance, request); err != nil {
+		t.Fatalf("OpenConsole() error = %v", err)
+	}
+	if output.String() != "grub> help\n" || control.consoleOpens != 1 {
+		t.Fatalf("console output=%q opens=%d", output.String(), control.consoleOpens)
+	}
+	if err := backend.OpenConsole(
+		ctx,
+		runner.Instance{ID: "lpic-daily-not-tracked"},
+		request,
+	); err == nil || !errors.Is(err, errUnknownVMInstance) {
+		t.Fatalf("OpenConsole(unmanaged) error = %v", err)
 	}
 }
 

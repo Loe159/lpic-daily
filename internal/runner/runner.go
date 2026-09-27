@@ -170,6 +170,28 @@ type Process struct {
 	Args    []string
 }
 
+type ConsoleRequest struct {
+	Stdin  io.Reader
+	Stdout io.Writer
+}
+
+func (request ConsoleRequest) Validate() error {
+	if request.Stdin == nil {
+		return errors.New("console stdin is required")
+	}
+	if request.Stdout == nil {
+		return errors.New("console stdout is required")
+	}
+	return nil
+}
+
+// ConsoleRunner is an optional capability for full-machine backends.
+// It is intentionally separate from Runner because container labs do not
+// require a firmware/boot serial console.
+type ConsoleRunner interface {
+	OpenConsole(context.Context, Instance, ConsoleRequest) error
+}
+
 type Runner interface {
 	Prepare(context.Context, Definition) (Instance, error)
 	Start(context.Context, Instance) error

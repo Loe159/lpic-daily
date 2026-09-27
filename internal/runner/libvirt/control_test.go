@@ -1,7 +1,9 @@
 package libvirt
 
 import (
+	"bytes"
 	"errors"
+	"io"
 	"strings"
 	"testing"
 
@@ -19,6 +21,9 @@ type fakeRawLibvirt struct {
 	undefineFlags golibvirt.DomainUndefineFlagsValues
 	state         int32
 	reason        int32
+	consoleDomain golibvirt.Domain
+	consoleDevice golibvirt.OptString
+	consoleFlags  uint32
 	disconnected  bool
 	err           error
 }
@@ -60,6 +65,23 @@ func (fake *fakeRawLibvirt) DomainCreateWithFlags(
 		return golibvirt.Domain{}, fake.err
 	}
 	return domain, nil
+}
+
+func (fake *fakeRawLibvirt) DomainOpenConsoleBidirectional(
+	domain golibvirt.Domain,
+	device golibvirt.OptString,
+	input io.Reader,
+	output io.Writer,
+	flags uint32,
+) error {
+	fake.consoleDomain = domain
+	fake.consoleDevice = device
+	fake.consoleFlags = flags
+	if fake.err != nil {
+		return fake.err
+	}
+	_, err := io.Copy(output, input)
+	return err
 }
 
 func (fake *fakeRawLibvirt) DomainGetState(
@@ -119,6 +141,21 @@ func TestRPCControlPlaneLifecycleUsesManagedDomainOnly(t *testing.T) {
 	if err := control.StartDomain(name); err != nil {
 		t.Fatalf("StartDomain() error = %v", err)
 	}
+	var console bytes.Buffer
+	if err := control.OpenConsole(name, strings.NewReader("boot\n"), &console); err != nil {
+		t.Fatalf("OpenConsole() error = %v", err)
+	}
+	if console.String() != "boot\n" {
+		t.Fatalf("console output = %q", console.String())
+	}
+	if raw.consoleDomain.Name != name || raw.consoleFlags != 0 || len(raw.consoleDevice) != 0 {
+		t.Fatalf(
+			"console call domain=%q device=%v flags=%d",
+			raw.consoleDomain.Name,
+			raw.consoleDevice,
+			raw.consoleFlags,
+		)
+	}
 	state, err := control.DomainState(name)
 	if err != nil || state.State != 1 || state.Reason != 2 {
 		t.Fatalf("DomainState() = %#v, %v", state, err)
@@ -156,6 +193,13 @@ func TestRPCControlPlaneRejectsUnmanagedNamesBeforeRPC(t *testing.T) {
 		func() error { return control.DestroyDomain("qemu-test") },
 		func() error { return control.UndefineDomain("../../vm", false) },
 		func() error { return control.DefineDomain("foreign", "<domain/>") },
+		func() error {
+			return control.OpenConsole(
+				"foreign-console",
+				strings.NewReader(""),
+				&bytes.Buffer{},
+			)
+		},
 	} {
 		if err := action(); err == nil || !strings.Contains(err.Error(), "not LPIC Daily-managed") {
 			t.Fatalf("unmanaged action error = %v", err)

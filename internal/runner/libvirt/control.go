@@ -2,6 +2,7 @@ package libvirt
 
 import (
 	"errors"
+	"io"
 	"fmt"
 	"net/url"
 	"strings"
@@ -28,12 +29,17 @@ type ControlPlane interface {
 	Close() error
 }
 
+type ConsoleControlPlane interface {
+	OpenConsole(string, io.Reader, io.Writer) error
+}
+
 type rawLibvirt interface {
 	ConnectGetLibVersion() (uint64, error)
 	ConnectGetCapabilities() (string, error)
 	DomainDefineXMLFlags(string, golibvirt.DomainDefineFlags) (golibvirt.Domain, error)
 	DomainLookupByName(string) (golibvirt.Domain, error)
 	DomainCreateWithFlags(golibvirt.Domain, uint32) (golibvirt.Domain, error)
+	DomainOpenConsoleBidirectional(golibvirt.Domain, golibvirt.OptString, io.Reader, io.Writer, uint32) error
 	DomainGetState(golibvirt.Domain, uint32) (int32, int32, error)
 	DomainDestroyFlags(golibvirt.Domain, golibvirt.DomainDestroyFlagsValues) error
 	DomainUndefineFlags(golibvirt.Domain, golibvirt.DomainUndefineFlagsValues) error
@@ -120,6 +126,29 @@ func (control *RPCControlPlane) StartDomain(name string) error {
 	}
 	if started.Name != name {
 		return fmt.Errorf("libvirt started unexpected domain %q, expected %q", started.Name, name)
+	}
+	return nil
+}
+
+func (control *RPCControlPlane) OpenConsole(name string, input io.Reader, output io.Writer) error {
+	if input == nil {
+		return errors.New("console input is required")
+	}
+	if output == nil {
+		return errors.New("console output is required")
+	}
+	domain, err := control.lookupManagedDomain(name)
+	if err != nil {
+		return err
+	}
+	if err := control.raw.DomainOpenConsoleBidirectional(
+		domain,
+		golibvirt.OptString(nil),
+		input,
+		output,
+		0,
+	); err != nil {
+		return fmt.Errorf("open console for domain %s: %w", name, err)
 	}
 	return nil
 }

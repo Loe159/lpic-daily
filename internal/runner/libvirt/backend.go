@@ -15,6 +15,8 @@ import (
 
 var domainSlugUnsafe = regexp.MustCompile(`[^a-z0-9.-]+`)
 
+var _ runner.ConsoleRunner = (*Backend)(nil)
+
 type Backend struct {
 	control   ControlPlane
 	catalog   *ImageCatalog
@@ -166,6 +168,40 @@ func (backend *Backend) Start(ctx context.Context, instance runner.Instance) err
 		return err
 	}
 	if err := backend.control.StartDomain(instance.ID); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (backend *Backend) OpenConsole(
+	ctx context.Context,
+	instance runner.Instance,
+	request runner.ConsoleRequest,
+) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	if err := request.Validate(); err != nil {
+		return err
+	}
+	if _, err := backend.instance(instance); err != nil {
+		return err
+	}
+	state, err := backend.control.DomainState(instance.ID)
+	if err != nil {
+		return err
+	}
+	if !state.Active {
+		return fmt.Errorf("VM instance %s is not active", instance.ID)
+	}
+	console, ok := backend.control.(ConsoleControlPlane)
+	if !ok {
+		return fmt.Errorf(
+			"%w: libvirt control plane has no serial console capability",
+			runner.ErrNotSupported,
+		)
+	}
+	if err := console.OpenConsole(instance.ID, request.Stdin, request.Stdout); err != nil {
 		return err
 	}
 	return nil

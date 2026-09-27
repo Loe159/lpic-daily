@@ -78,3 +78,22 @@ Before Phase 2 exit:
 - prove isolated network has no forwarding;
 - prove base image is unchanged after run/reset;
 - cleanup/reaper test for abandoned domains/overlays/networks.
+
+
+## Serial console capability
+
+The VM backend exposes serial-console access as the optional project-owned
+`runner.ConsoleRunner` capability rather than adding console methods to every
+runner implementation.
+
+The concrete RPC adapter uses libvirt's bidirectional domain-console stream
+against the already-generated `<serial type="pty">` / `<console type="pty">`
+device. It always:
+- resolves an LPIC Daily-managed domain by exact name;
+- uses the default serial device (no curriculum-supplied device name);
+- opens with zero force/safe flags by default;
+- requires the domain to be active before the backend exposes the stream;
+- never forwards host credentials, files, devices or sockets.
+
+A later CLI checkpoint will add terminal escape/cancellation handling around
+this stream before VM labs become learner-runnable.
