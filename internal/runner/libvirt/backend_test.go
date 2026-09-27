@@ -15,13 +15,13 @@ import (
 )
 
 type fakeControlPlane struct {
-	defined      map[string]string
-	active       map[string]bool
-	starts       int
-	destroys     int
-	undefines    int
-	removeNVRAM  bool
-	closed       bool
+	defined     map[string]string
+	active      map[string]bool
+	starts      int
+	destroys    int
+	undefines   int
+	removeNVRAM bool
+	closed      bool
 }
 
 func newFakeControlPlane() *fakeControlPlane {
