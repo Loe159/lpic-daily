@@ -4,6 +4,7 @@ go 1.27.0
 
 require (
 	charm.land/bubbletea/v2 v2.0.10
+	github.com/digitalocean/go-libvirt v0.0.0-20260814190004-1a83157e1858
 	golang.org/x/sys v0.47.0
 	modernc.org/sqlite v1.59.0
 )
