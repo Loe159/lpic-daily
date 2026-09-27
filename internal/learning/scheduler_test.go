@@ -171,3 +171,44 @@ func TestSuccessfulRecognitionAllowsNextNewConcept(t *testing.T) {
 		t.Fatalf("items = %#v, want next new concept", session.Items)
 	}
 }
+
+func TestRecommendedPrerequisitesRankButDoNotBlock(t *testing.T) {
+	bundle := loadBundle(t)
+	now := time.Date(2026, 9, 27, 3, 0, 0, 0, time.UTC)
+
+	session, err := learning.BuildSession(learning.SessionInput{
+		Now:                now,
+		Bundle:             bundle,
+		Projections:        map[string]learning.MasteryProjection{},
+		ObjectiveReadiness: map[string]bool{"103.1": true},
+		ScopeObjectives:    []string{"103.5", "104.5"},
+		Policy:             learning.DefaultSessionPolicy(),
+	})
+	if err != nil {
+		t.Fatalf("BuildSession() error = %v", err)
+	}
+	if len(session.Items) != 1 {
+		t.Fatalf("items = %#v, want one new concept", session.Items)
+	}
+	if session.Items[0].ObjectiveID != "103.5" {
+		t.Fatalf("selected objective = %s, want 103.5 because 104.5 has unmet recommended 103.3", session.Items[0].ObjectiveID)
+	}
+
+	onlyPermissions, err := learning.BuildSession(learning.SessionInput{
+		Now:                now,
+		Bundle:             bundle,
+		Projections:        map[string]learning.MasteryProjection{},
+		ObjectiveReadiness: map[string]bool{"103.1": true},
+		ScopeObjectives:    []string{"104.5"},
+		Policy:             learning.DefaultSessionPolicy(),
+	})
+	if err != nil {
+		t.Fatalf("BuildSession(104.5) error = %v", err)
+	}
+	if len(onlyPermissions.Items) != 1 || onlyPermissions.Items[0].ObjectiveID != "104.5" {
+		t.Fatalf("recommended prerequisite incorrectly blocked 104.5: %#v", onlyPermissions.Items)
+	}
+	if onlyPermissions.Items[0].ReasonCode != "hard-ready-recommended-pending" {
+		t.Fatalf("reason = %#v", onlyPermissions.Items[0])
+	}
+}

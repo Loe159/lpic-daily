@@ -3,6 +3,7 @@ package learning
 import (
 	"fmt"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/Loe159/lpic-daily/internal/curriculum"
@@ -151,11 +152,18 @@ func BuildSession(input SessionInput) (Session, error) {
 		return session, nil
 	}
 
-	newCount := 0
+	type newCandidate struct {
+		concept               curriculum.Concept
+		unmetRecommendedCount int
+		unmetRecommended      []string
+	}
+	objectiveNodes := make(map[string]curriculum.ObjectiveNode, len(input.Bundle.Prerequisites.Nodes))
+	for _, node := range input.Bundle.Prerequisites.Nodes {
+		objectiveNodes[node.ObjectiveID] = node
+	}
+
+	var candidates []newCandidate
 	for _, concept := range input.Bundle.Concepts.Concepts {
-		if newCount >= input.Policy.MaxNewConcepts {
-			break
-		}
 		if !concept.Active || !eligible[concept.ObjectiveID] {
 			continue
 		}
@@ -165,14 +173,54 @@ func BuildSession(input SessionInput) (Session, error) {
 		if containsConcept(session.Items, concept.ID) {
 			continue
 		}
-		session.Items = append(session.Items, SessionItem{
-			ConceptID:   concept.ID,
-			ObjectiveID: concept.ObjectiveID,
-			Kind:        SessionNew,
-			ReasonCode:  "prerequisites-ready",
-			ReasonFR:    "Nouveau concept: ses hard prerequisites sont satisfaits et il appartient au périmètre actif.",
+
+		node := objectiveNodes[concept.ObjectiveID]
+		var unmet []string
+		for _, recommended := range node.RecommendedPrerequisites {
+			if !input.ObjectiveReadiness[recommended] {
+				unmet = append(unmet, recommended)
+			}
+		}
+		candidates = append(candidates, newCandidate{
+			concept:               concept,
+			unmetRecommendedCount: len(unmet),
+			unmetRecommended:      unmet,
 		})
-		newCount++
+	}
+
+	slices.SortFunc(candidates, func(a, b newCandidate) int {
+		if a.unmetRecommendedCount != b.unmetRecommendedCount {
+			return a.unmetRecommendedCount - b.unmetRecommendedCount
+		}
+		if a.concept.PedagogyOrder != b.concept.PedagogyOrder {
+			return a.concept.PedagogyOrder - b.concept.PedagogyOrder
+		}
+		if compared := compareText(a.concept.ObjectiveID, b.concept.ObjectiveID); compared != 0 {
+			return compared
+		}
+		return compareText(a.concept.ID, b.concept.ID)
+	})
+
+	for index, candidate := range candidates {
+		if index >= input.Policy.MaxNewConcepts {
+			break
+		}
+		reason := "Nouveau concept: ses hard prerequisites sont satisfaits et ses prerequisites recommandés sont prêts."
+		reasonCode := "prerequisites-ready"
+		if len(candidate.unmetRecommended) != 0 {
+			reason = fmt.Sprintf(
+				"Nouveau concept: ses hard prerequisites sont satisfaits. Prerequisite(s) recommandé(s) non prêt(s): %s; cela réduit seulement sa priorité et ne le bloque pas.",
+				strings.Join(candidate.unmetRecommended, ", "),
+			)
+			reasonCode = "hard-ready-recommended-pending"
+		}
+		session.Items = append(session.Items, SessionItem{
+			ConceptID:   candidate.concept.ID,
+			ObjectiveID: candidate.concept.ObjectiveID,
+			Kind:        SessionNew,
+			ReasonCode:  reasonCode,
+			ReasonFR:    reason,
+		})
 	}
 
 	return session, nil
