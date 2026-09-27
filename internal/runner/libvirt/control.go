@@ -33,7 +33,7 @@ type rawLibvirt interface {
 	ConnectGetCapabilities() (string, error)
 	DomainDefineXMLFlags(string, golibvirt.DomainDefineFlags) (golibvirt.Domain, error)
 	DomainLookupByName(string) (golibvirt.Domain, error)
-	DomainCreateWithFlags(golibvirt.Domain, uint32) (int32, error)
+	DomainCreateWithFlags(golibvirt.Domain, uint32) (golibvirt.Domain, error)
 	DomainGetState(golibvirt.Domain, uint32) (int32, int32, error)
 	DomainDestroyFlags(golibvirt.Domain, golibvirt.DomainDestroyFlagsValues) error
 	DomainUndefineFlags(golibvirt.Domain, golibvirt.DomainUndefineFlagsValues) error
@@ -114,8 +114,12 @@ func (control *RPCControlPlane) StartDomain(name string) error {
 	if err != nil {
 		return err
 	}
-	if _, err := control.raw.DomainCreateWithFlags(domain, 0); err != nil {
+	started, err := control.raw.DomainCreateWithFlags(domain, 0)
+	if err != nil {
 		return fmt.Errorf("start domain %s: %w", name, err)
+	}
+	if started.Name != name {
+		return fmt.Errorf("libvirt started unexpected domain %q, expected %q", started.Name, name)
 	}
 	return nil
 }
