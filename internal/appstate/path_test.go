@@ -21,3 +21,34 @@ func TestProgressDBPathHonorsDedicatedOverride(t *testing.T) {
 		t.Fatalf("path = %q, want %q", got, want)
 	}
 }
+
+func TestVMRootsUseControlledXDGDirectories(t *testing.T) {
+	root := t.TempDir()
+	t.Setenv("LPIC_DAILY_STATE_DIR", "")
+	t.Setenv("LPIC_DAILY_VM_IMAGE_DIR", "")
+	t.Setenv("XDG_STATE_HOME", filepath.Join(root, "state"))
+	t.Setenv("XDG_DATA_HOME", filepath.Join(root, "data"))
+
+	stateRoot, err := appstate.VMStateRoot()
+	if err != nil {
+		t.Fatalf("VMStateRoot() error = %v", err)
+	}
+	if want := filepath.Join(root, "state", "lpic-daily", "vms"); stateRoot != want {
+		t.Fatalf("VMStateRoot() = %q, want %q", stateRoot, want)
+	}
+
+	imageRoot, err := appstate.VMImageRoot()
+	if err != nil {
+		t.Fatalf("VMImageRoot() error = %v", err)
+	}
+	if want := filepath.Join(root, "data", "lpic-daily", "vm-images"); imageRoot != want {
+		t.Fatalf("VMImageRoot() = %q, want %q", imageRoot, want)
+	}
+}
+
+func TestVMImageRootRequiresAbsoluteOverride(t *testing.T) {
+	t.Setenv("LPIC_DAILY_VM_IMAGE_DIR", "relative/images")
+	if _, err := appstate.VMImageRoot(); err == nil {
+		t.Fatal("relative VM image override unexpectedly accepted")
+	}
+}

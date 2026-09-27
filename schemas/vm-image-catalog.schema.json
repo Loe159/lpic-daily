@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lpic-daily.dev/schemas/vm-image-catalog.schema.json",
+  "title": "LPIC Daily installed VM image catalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "images"
+  ],
+  "properties": {
+    "schema_version": {
+      "$ref": "common.schema.json#/$defs/schemaVersion"
+    },
+    "images": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "relative_path",
+          "sha256",
+          "format",
+          "architecture",
+          "distribution",
+          "version",
+          "virtual_size_mb",
+          "firmware",
+          "provenance"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$"
+          },
+          "relative_path": {
+            "type": "string",
+            "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[a-zA-Z0-9._/-]+$"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "format": {
+            "const": "qcow2"
+          },
+          "architecture": {
+            "const": "x86_64"
+          },
+          "distribution": {
+            "$ref": "common.schema.json#/$defs/distribution"
+          },
+          "version": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 32
+          },
+          "virtual_size_mb": {
+            "type": "integer",
+            "minimum": 1024,
+            "maximum": 32768
+          },
+          "firmware": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "bios",
+                "uefi"
+              ]
+            }
+          },
+          "provenance": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source_url",
+              "build_recipe",
+              "built_at"
+            ],
+            "properties": {
+              "source_url": {
+                "type": "string",
+                "format": "uri",
+                "minLength": 8
+              },
+              "build_recipe": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "built_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
