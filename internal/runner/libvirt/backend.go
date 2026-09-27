@@ -32,8 +32,9 @@ type Backend struct {
 }
 
 type managedInstance struct {
-	Definition runner.Definition
-	Paths      OverlayPaths
+	Definition    runner.Definition
+	Paths         OverlayPaths
+	DomainDefined bool
 }
 
 func NewBackend(
@@ -154,8 +155,9 @@ func (backend *Backend) prepareNamed(
 		return fmt.Errorf("VM instance %s already tracked", name)
 	}
 	backend.instances[name] = managedInstance{
-		Definition: definition,
-		Paths:      paths,
+		Definition:    definition,
+		Paths:         paths,
+		DomainDefined: true,
 	}
 	backend.mu.Unlock()
 
@@ -274,30 +276,37 @@ func (backend *Backend) destroyManaged(
 		return err
 	}
 
-	var errs []error
-	state, stateErr := backend.control.DomainState(name)
-	if stateErr != nil {
-		errs = append(errs, stateErr)
-	} else if state.Active {
-		if err := backend.control.DestroyDomain(name); err != nil {
-			errs = append(errs, err)
+	if managed.DomainDefined {
+		state, err := backend.control.DomainState(name)
+		if err != nil {
+			return err
 		}
+		if state.Active {
+			if err := backend.control.DestroyDomain(name); err != nil {
+				return err
+			}
+		}
+
+		removeNVRAM := managed.Definition.Machine != nil &&
+			managed.Definition.Machine.Firmware == runner.FirmwareUEFI
+		if err := backend.control.UndefineDomain(name, removeNVRAM); err != nil {
+			return err
+		}
+
+		managed.DomainDefined = false
+		backend.mu.Lock()
+		backend.instances[name] = managed
+		backend.mu.Unlock()
 	}
 
-	removeNVRAM := managed.Definition.Machine != nil &&
-		managed.Definition.Machine.Firmware == runner.FirmwareUEFI
-	if err := backend.control.UndefineDomain(name, removeNVRAM); err != nil {
-		errs = append(errs, err)
-	}
 	if err := backend.overlays.Destroy(name); err != nil {
-		errs = append(errs, err)
+		return err
 	}
 
 	backend.mu.Lock()
 	delete(backend.instances, name)
 	backend.mu.Unlock()
-
-	return errors.Join(errs...)
+	return nil
 }
 
 func (backend *Backend) Close(ctx context.Context) error {
