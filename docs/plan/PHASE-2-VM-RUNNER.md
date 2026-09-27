@@ -23,6 +23,22 @@ First end-to-end targets:
 - network none by default, isolated libvirt network when requested;
 - no Internet/LAN forwarding in Phase 2.
 
+## Current checkpoint
+
+Implemented and unit/CI-validated:
+- system-libvirt control plane, strict trusted image catalog, SHA-256 verification and disposable QCOW2 lifecycle;
+- generated bounded VM domain XML, serial-console capability, QEMU Guest Agent execution and structured storage probes;
+- authored 104.1 partition/filesystem lab with state-based grading;
+- `lpic lab run` dispatches `libvirt` labs to `qemu:///system` only and fails closed instead of falling back to Podman;
+- `lpic doctor` reports `qemu-img`, VM image catalog and system-libvirt readiness; the live libvirt probe is bounded to two seconds.
+
+Not yet end-to-end:
+- no released/reproducible VM base-image build/install pipeline exists, so 104.1 is not runnable on a fresh installation yet;
+- serial console is intentionally not exposed by the CLI until cancellation/escape handling is robust;
+- 102.2 bootloader lab, isolated libvirt networking and real KVM security/immutability tests remain outstanding.
+
+Next implementation tranche: make serial-console interaction cancellable and safe, then add the first 102.2 boot/reboot scenario. The guest image pipeline must be completed before either VM reference lab can count as end-to-end acceptance.
+
 ## Work order
 
 1. **Contracts and threat model**
