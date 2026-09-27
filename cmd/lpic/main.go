@@ -929,10 +929,10 @@ func runInteractiveLabWithBackend(
 	fmt.Fprintln(stdout)
 	if persistentShell {
 		fmt.Fprintln(stdout, "Mode commandes sandboxé. Chaque ligne est exécutée dans un nouveau shell du lab.")
-		fmt.Fprintln(stdout, "Commandes LPIC Daily : :shell  :check  :hint  :quit")
+		fmt.Fprintln(stdout, "Commandes LPIC Daily : :shell  :check  :hint  :reset  :quit")
 	} else {
 		fmt.Fprintln(stdout, "Mode commandes VM. Chaque ligne est exécutée dans la VM via QEMU Guest Agent.")
-		fmt.Fprintln(stdout, "Commandes LPIC Daily : :check  :hint  :quit")
+		fmt.Fprintln(stdout, "Commandes LPIC Daily : :check  :hint  :reset  :quit")
 	}
 	fmt.Fprintln(stdout)
 
@@ -994,6 +994,14 @@ func runInteractiveLabWithBackend(
 			if result.ExitCode != 0 {
 				fmt.Fprintf(stderr, "[shell exit %d]\n", result.ExitCode)
 			}
+			continue
+		case ":reset":
+			if err := session.Reset(sessionCtx); err != nil {
+				return fmt.Errorf("reset lab: %w", err)
+			}
+			nextHint = 0
+			highestHintLevel = 0
+			fmt.Fprintln(stdout, "Lab réinitialisé dans son état de départ.")
 			continue
 		case ":check":
 			results, err := session.Evaluate(sessionCtx)
