@@ -39,8 +39,8 @@ func TestMigrationAndEvidenceRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatalf("SchemaVersion() error = %v", err)
 	}
-	if version != 1 {
-		t.Fatalf("schema version = %d, want 1", version)
+	if version != 2 {
+		t.Fatalf("schema version = %d, want 2", version)
 	}
 
 	at := time.Date(2026, 9, 26, 12, 0, 0, 123456789, time.UTC)
