@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	partitionFilesystemsID     = "lpic1.104.1.partition-filesystems"
+	partitionFilesystemsID   = "lpic1.104.1.partition-filesystems"
 	shellEnvironmentRepairID = "lpic1.103.1.shell-environment-repair"
 	sharedDropboxID          = "lpic1.104.5.shared-dropbox"
 	stuckWorkerID            = "lpic1.103.5.stuck-worker"
