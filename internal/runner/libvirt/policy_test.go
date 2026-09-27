@@ -47,6 +47,8 @@ func TestBuildDomainXMLContainsOnlyManagedVirtualResources(t *testing.T) {
 		`<model type="virtio"></model>`,
 		`<serial type="pty">`,
 		`<console type="pty">`,
+		`<channel type="unix">`,
+		`<target type="virtio" name="org.qemu.guest_agent.0"></target>`,
 	} {
 		if !strings.Contains(payload, want) {
 			t.Fatalf("domain XML missing %q:\n%s", want, payload)

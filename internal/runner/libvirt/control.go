@@ -33,6 +33,10 @@ type ConsoleControlPlane interface {
 	OpenConsole(string, io.Reader, io.Writer) error
 }
 
+type AgentControlPlane interface {
+	AgentCommand(string, string, int32) (string, error)
+}
+
 type rawLibvirt interface {
 	ConnectGetLibVersion() (uint64, error)
 	ConnectGetCapabilities() (string, error)
@@ -40,6 +44,7 @@ type rawLibvirt interface {
 	DomainLookupByName(string) (golibvirt.Domain, error)
 	DomainCreateWithFlags(golibvirt.Domain, uint32) (golibvirt.Domain, error)
 	DomainOpenConsoleBidirectional(golibvirt.Domain, golibvirt.OptString, io.Reader, io.Writer, uint32) error
+	QEMUDomainAgentCommand(golibvirt.Domain, string, int32, uint32) (golibvirt.OptString, error)
 	DomainGetState(golibvirt.Domain, uint32) (int32, int32, error)
 	DomainDestroyFlags(golibvirt.Domain, golibvirt.DomainDestroyFlagsValues) error
 	DomainUndefineFlags(golibvirt.Domain, golibvirt.DomainUndefineFlagsValues) error
@@ -151,6 +156,27 @@ func (control *RPCControlPlane) OpenConsole(name string, input io.Reader, output
 		return fmt.Errorf("open console for domain %s: %w", name, err)
 	}
 	return nil
+}
+
+func (control *RPCControlPlane) AgentCommand(name, command string, timeoutSeconds int32) (string, error) {
+	if strings.TrimSpace(command) == "" {
+		return "", errors.New("guest-agent command is required")
+	}
+	if timeoutSeconds <= 0 || timeoutSeconds > 60 {
+		return "", errors.New("guest-agent timeout must be between 1 and 60 seconds")
+	}
+	domain, err := control.lookupManagedDomain(name)
+	if err != nil {
+		return "", err
+	}
+	result, err := control.raw.QEMUDomainAgentCommand(domain, command, timeoutSeconds, 0)
+	if err != nil {
+		return "", fmt.Errorf("guest-agent command for domain %s: %w", name, err)
+	}
+	if len(result) != 1 {
+		return "", fmt.Errorf("guest-agent command for domain %s returned %d results", name, len(result))
+	}
+	return result[0], nil
 }
 
 func (control *RPCControlPlane) DomainState(name string) (DomainState, error) {

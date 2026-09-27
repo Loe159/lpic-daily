@@ -206,6 +206,7 @@ type featuresXML struct {
 type devicesXML struct {
 	Disks      []diskXML      `xml:"disk"`
 	Interfaces []interfaceXML `xml:"interface,omitempty"`
+	Channels   []channelXML   `xml:"channel,omitempty"`
 	Serial     serialXML      `xml:"serial"`
 	Console    consoleXML     `xml:"console"`
 }
@@ -244,6 +245,16 @@ type interfaceSourceXML struct {
 
 type interfaceModelXML struct {
 	Type string `xml:"type,attr"`
+}
+
+type channelXML struct {
+	Type   string           `xml:"type,attr"`
+	Target channelTargetXML `xml:"target"`
+}
+
+type channelTargetXML struct {
+	Type string `xml:"type,attr"`
+	Name string `xml:"name,attr"`
 }
 
 type serialXML struct {
@@ -322,6 +333,13 @@ func BuildDomainXML(spec DomainSpec, stateRoot string) (string, error) {
 			Model:  interfaceModelXML{Type: "virtio"},
 		}}
 	}
+	doc.Devices.Channels = []channelXML{{
+		Type: "unix",
+		Target: channelTargetXML{
+			Type: "virtio",
+			Name: "org.qemu.guest_agent.0",
+		},
+	}}
 	doc.Devices.Serial = serialXML{Type: "pty", Target: serialTargetXML{Type: "isa-serial", Port: 0}}
 	doc.Devices.Console = consoleXML{Type: "pty", Target: consoleTargetXML{Type: "serial", Port: 0}}
 

@@ -24,6 +24,8 @@ type fakeRawLibvirt struct {
 	consoleDomain golibvirt.Domain
 	consoleDevice golibvirt.OptString
 	consoleFlags  uint32
+	agentCommand  string
+	agentTimeout  int32
 	disconnected  bool
 	err           error
 }
@@ -82,6 +84,24 @@ func (fake *fakeRawLibvirt) DomainOpenConsoleBidirectional(
 	}
 	_, err := io.Copy(output, input)
 	return err
+}
+
+func (fake *fakeRawLibvirt) QEMUDomainAgentCommand(
+	domain golibvirt.Domain,
+	command string,
+	timeout int32,
+	flags uint32,
+) (golibvirt.OptString, error) {
+	if fake.err != nil {
+		return nil, fake.err
+	}
+	fake.consoleDomain = domain
+	fake.agentCommand = command
+	fake.agentTimeout = timeout
+	if flags != 0 {
+		return nil, errors.New("unexpected guest-agent flags")
+	}
+	return golibvirt.OptString{`{"return":{"ok":true}}`}, nil
 }
 
 func (fake *fakeRawLibvirt) DomainGetState(
@@ -156,6 +176,20 @@ func TestRPCControlPlaneLifecycleUsesManagedDomainOnly(t *testing.T) {
 			raw.consoleFlags,
 		)
 	}
+	agentResult, err := control.AgentCommand(name, `{"execute":"guest-ping"}`, 5)
+	if err != nil {
+		t.Fatalf("AgentCommand() error = %v", err)
+	}
+	if agentResult != `{"return":{"ok":true}}` ||
+		raw.agentCommand != `{"execute":"guest-ping"}` ||
+		raw.agentTimeout != 5 {
+		t.Fatalf(
+			"agent result=%q command=%q timeout=%d",
+			agentResult,
+			raw.agentCommand,
+			raw.agentTimeout,
+		)
+	}
 	state, err := control.DomainState(name)
 	if err != nil || state.State != 1 || state.Reason != 2 {
 		t.Fatalf("DomainState() = %#v, %v", state, err)
@@ -199,6 +233,10 @@ func TestRPCControlPlaneRejectsUnmanagedNamesBeforeRPC(t *testing.T) {
 				strings.NewReader(""),
 				&bytes.Buffer{},
 			)
+		},
+		func() error {
+			_, err := control.AgentCommand("foreign-agent", `{"execute":"guest-ping"}`, 5)
+			return err
 		},
 	} {
 		if err := action(); err == nil || !strings.Contains(err.Error(), "not LPIC Daily-managed") {
