@@ -64,3 +64,18 @@ Before Phase 1 implementation, formalize threats for:
 - local privilege escalation through helper APIs;
 - isolation between simultaneous labs;
 - update/signing mechanism.
+
+
+## Real rootless Podman host-safety integration test
+
+Unit tests verify that generated Podman requests are non-privileged, drop capabilities before applying a predefined allowlist, use private namespaces, expose no host mounts/devices and default to no network. A separate integration test validates the boundary against a real rootless Podman service.
+
+The test creates a sentinel file on the host, starts a disposable lab whose setup deliberately deletes and overwrites the **same absolute path** inside the guest, destroys the lab, then verifies that the host sentinel still exists with identical contents.
+
+Run on a Linux machine with rootless Podman:
+
+```bash
+./scripts/test_podman_host_safety.sh
+```
+
+Set `LPIC_DAILY_SKIP_IMAGE_BUILD=1` only when `localhost/lpic-daily/fedora-phase1:1` is already present locally. Normal CI compiles this integration test to prevent drift; it is not claimed as executed until a compatible rootless Podman environment actually runs the script.
