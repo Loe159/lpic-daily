@@ -156,9 +156,8 @@ func TestBackendPrepareStartDestroyLifecycle(t *testing.T) {
 		t.Fatalf("instance ID = %q", instance.ID)
 	}
 	xml := control.defined[instance.ID]
-	if !strings.Contains(xml, "<target dev="vdb" bus="virtio"></target>") {
-		t.Fatalf("domain XML missing scratch disk:
-%s", xml)
+	if !strings.Contains(xml, `<target dev="vdb" bus="virtio"></target>`) {
+		t.Fatalf("domain XML missing scratch disk:\n%s", xml)
 	}
 	if len(commands.Calls) != 2 {
 		t.Fatalf("qemu-img calls = %d, want root overlay + scratch disk", len(commands.Calls))
