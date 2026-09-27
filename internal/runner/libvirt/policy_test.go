@@ -32,25 +32,24 @@ func TestBuildDomainXMLContainsOnlyManagedVirtualResources(t *testing.T) {
 	}
 
 	for _, want := range []string{
-		"<domain type="kvm">",
+		`<domain type="kvm">`,
 		"<name>lpic-daily-storage-abc123</name>",
-		"<memory unit="MiB">1024</memory>",
-		"<vcpu placement="static">2</vcpu>",
+		`<memory unit="MiB">1024</memory>`,
+		`<vcpu placement="static">2</vcpu>`,
 		"<period>100000</period>",
 		"<quota>150000</quota>",
-		"<os firmware="efi">",
-		"<source file="" + rootDisk + ""></source>",
-		"<target dev="vda" bus="virtio"></target>",
-		"<source file="" + dataDisk + ""></source>",
-		"<target dev="vdb" bus="virtio"></target>",
-		"<source network="lpic-daily-net-abc123"></source>",
-		"<model type="virtio"></model>",
+		`<os firmware="efi">`,
+		"<source file=\\\"" + rootDisk + "\\"></source>",
+		`<target dev="vda" bus="virtio"></target>`,
+		"<source file=\\\"" + dataDisk + "\\"></source>",
+		`<target dev="vdb" bus="virtio"></target>`,
+		`<source network="lpic-daily-net-abc123"></source>`,
+		`<model type="virtio"></model>`,
 		"<serial type="pty">",
 		"<console type="pty">",
 	} {
 		if !strings.Contains(payload, want) {
-			t.Fatalf("domain XML missing %q:
-%s", want, payload)
+			t.Fatalf("domain XML missing %q:\\n%s", want, payload)
 		}
 	}
 	for _, forbidden := range []string{
@@ -62,8 +61,7 @@ func TestBuildDomainXMLContainsOnlyManagedVirtualResources(t *testing.T) {
 		"<channel",
 	} {
 		if strings.Contains(payload, forbidden) {
-			t.Fatalf("domain XML contains forbidden %q:
-%s", forbidden, payload)
+			t.Fatalf("domain XML contains forbidden %q:\\n%s", forbidden, payload)
 		}
 	}
 }
@@ -101,18 +99,16 @@ func TestIsolatedNetworkXMLHasNoForwarding(t *testing.T) {
 		t.Fatalf("BuildIsolatedNetworkXML() error = %v", err)
 	}
 	if strings.Contains(payload, "<forward") {
-		t.Fatalf("isolated network unexpectedly forwards traffic:
-%s", payload)
+		t.Fatalf("isolated network unexpectedly forwards traffic:\\n%s", payload)
 	}
 	for _, want := range []string{
 		"<name>lpic-daily-net-abc</name>",
-		"address="192.168.77.1"",
-		"start="192.168.77.10"",
-		"end="192.168.77.200"",
+		`address="192.168.77.1"`,
+		`start="192.168.77.10"`,
+		`end="192.168.77.200"`,
 	} {
 		if !strings.Contains(payload, want) {
-			t.Fatalf("network XML missing %q:
-%s", want, payload)
+			t.Fatalf("network XML missing %q:\\n%s", want, payload)
 		}
 	}
 
