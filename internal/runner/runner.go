@@ -170,6 +170,27 @@ type Process struct {
 	Args    []string
 }
 
+type BlockDevice struct {
+	Path           string
+	DeviceType     string
+	Filesystem     string
+	PartitionTable string
+	Mountpoint     string
+	SizeBytes      uint64
+	SwapActive     bool
+}
+
+type StorageSnapshot struct {
+	Devices []BlockDevice
+}
+
+// StorageProbe is an optional structured state capability. It deliberately
+// exposes observations rather than guest commands so checkers remain
+// independent from the transport used by a full-machine backend.
+type StorageProbe interface {
+	StorageSnapshot(context.Context, Instance) (StorageSnapshot, error)
+}
+
 type ConsoleRequest struct {
 	Stdin  io.Reader
 	Stdout io.Writer

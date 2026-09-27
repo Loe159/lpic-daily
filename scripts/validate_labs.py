@@ -178,6 +178,7 @@ def main():
                 "process-running",
                 "process-absent",
                 "command-exit",
+                "block-device-state",
             }:
                 errors.append(f"{lab_id}: unknown check type {check_type!r}")
 

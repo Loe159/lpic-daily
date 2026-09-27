@@ -412,6 +412,42 @@
                 "maximum": 255
               }
             }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "type",
+              "path"
+            ],
+            "properties": {
+              "type": {
+                "const": "block-device-state"
+              },
+              "path": {
+                "type": "string",
+                "pattern": "^/dev/"
+              },
+              "device_type": {
+                "type": "string",
+                "minLength": 1
+              },
+              "filesystem": {
+                "type": "string",
+                "minLength": 1
+              },
+              "partition_table": {
+                "type": "string",
+                "minLength": 1
+              },
+              "mountpoint": {
+                "type": "string",
+                "pattern": "^/"
+              },
+              "swap_active": {
+                "type": "boolean"
+              }
+            }
           }
         ]
       }

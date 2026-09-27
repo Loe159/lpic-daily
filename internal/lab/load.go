@@ -177,6 +177,16 @@ func (lab Lab) CompileChecks() ([]checker.Check, error) {
 				Argv:         append([]string(nil), item.Argv...),
 				ExpectedExit: item.ExpectedExit,
 			})
+		case "block-device-state":
+			checks = append(checks, checker.BlockDeviceState{
+				CheckID:        id,
+				Path:           item.Path,
+				DeviceType:     item.DeviceType,
+				Filesystem:     item.Filesystem,
+				PartitionTable: item.PartitionTable,
+				Mountpoint:     item.Mountpoint,
+				SwapActive:     item.SwapActive,
+			})
 		default:
 			return nil, fmt.Errorf("%s: unsupported check type %q", id, item.Type)
 		}

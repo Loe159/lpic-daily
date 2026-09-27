@@ -61,7 +61,12 @@ type CheckDefinition struct {
 	Pattern      string   `json:"pattern,omitempty"`
 	Match        string   `json:"match,omitempty"`
 	Argv         []string `json:"argv,omitempty"`
-	ExpectedExit int      `json:"expected_exit,omitempty"`
+	ExpectedExit   int      `json:"expected_exit,omitempty"`
+	DeviceType     string   `json:"device_type,omitempty"`
+	Filesystem     string   `json:"filesystem,omitempty"`
+	PartitionTable string   `json:"partition_table,omitempty"`
+	Mountpoint     string   `json:"mountpoint,omitempty"`
+	SwapActive     *bool    `json:"swap_active,omitempty"`
 }
 
 type Hint struct {
