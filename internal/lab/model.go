@@ -27,7 +27,7 @@ type Environment struct {
 	Network            string    `json:"network"`
 	CapabilityProfile  string    `json:"capability_profile"`
 	WritableGuestPaths []string  `json:"writable_guest_paths"`
-	Machine            *Machine  `json:"machine,omitempty"`
+	Machine            *Machine   `json:"machine,omitempty"`
 }
 
 type Machine struct {

@@ -18,15 +18,15 @@ type ImageCatalog struct {
 }
 
 type ImageCatalogEntry struct {
-	ID            string   `json:"id"`
-	RelativePath  string   `json:"relative_path"`
-	SHA256        string   `json:"sha256"`
-	Format        string   `json:"format"`
-	Architecture  string   `json:"architecture"`
-	Distribution  string   `json:"distribution"`
-	Version       string   `json:"version"`
-	VirtualSizeMB int      `json:"virtual_size_mb"`
-	Firmware      []string `json:"firmware"`
+	ID            string     `json:"id"`
+	RelativePath  string     `json:"relative_path"`
+	SHA256        string     `json:"sha256"`
+	Format        string     `json:"format"`
+	Architecture  string     `json:"architecture"`
+	Distribution  string     `json:"distribution"`
+	Version       string     `json:"version"`
+	VirtualSizeMB int        `json:"virtual_size_mb"`
+	Firmware      []string   `json:"firmware"`
 	Provenance    Provenance `json:"provenance"`
 }
 

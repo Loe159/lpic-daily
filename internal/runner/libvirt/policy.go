@@ -158,19 +158,19 @@ func pathWithinRoot(root, candidate string) error {
 }
 
 type domainXML struct {
-	XMLName     xml.Name      `xml:"domain"`
-	Type        string        `xml:"type,attr"`
-	Name        string        `xml:"name"`
-	Description string        `xml:"description"`
-	Memory      memoryXML     `xml:"memory"`
-	VCPU        vcpuXML       `xml:"vcpu"`
-	CPUTune     cpuTuneXML    `xml:"cputune"`
-	OS          osXML         `xml:"os"`
-	Features    featuresXML   `xml:"features"`
-	Devices     devicesXML    `xml:"devices"`
-	OnPoweroff  string        `xml:"on_poweroff"`
-	OnReboot    string        `xml:"on_reboot"`
-	OnCrash     string        `xml:"on_crash"`
+	XMLName     xml.Name    `xml:"domain"`
+	Type        string      `xml:"type,attr"`
+	Name        string      `xml:"name"`
+	Description string      `xml:"description"`
+	Memory      memoryXML   `xml:"memory"`
+	VCPU        vcpuXML     `xml:"vcpu"`
+	CPUTune     cpuTuneXML  `xml:"cputune"`
+	OS          osXML       `xml:"os"`
+	Features    featuresXML `xml:"features"`
+	Devices     devicesXML  `xml:"devices"`
+	OnPoweroff  string      `xml:"on_poweroff"`
+	OnReboot    string      `xml:"on_reboot"`
+	OnCrash     string      `xml:"on_crash"`
 }
 
 type memoryXML struct {
@@ -204,10 +204,10 @@ type featuresXML struct {
 }
 
 type devicesXML struct {
-	Disks      []diskXML     `xml:"disk"`
+	Disks      []diskXML      `xml:"disk"`
 	Interfaces []interfaceXML `xml:"interface,omitempty"`
-	Serial     serialXML     `xml:"serial"`
-	Console    consoleXML    `xml:"console"`
+	Serial     serialXML      `xml:"serial"`
+	Console    consoleXML     `xml:"console"`
 }
 
 type diskXML struct {
@@ -233,9 +233,9 @@ type diskTargetXML struct {
 }
 
 type interfaceXML struct {
-	Type   string               `xml:"type,attr"`
-	Source interfaceSourceXML   `xml:"source"`
-	Model  interfaceModelXML    `xml:"model"`
+	Type   string             `xml:"type,attr"`
+	Source interfaceSourceXML `xml:"source"`
+	Model  interfaceModelXML  `xml:"model"`
 }
 
 type interfaceSourceXML struct {
@@ -265,7 +265,6 @@ type consoleTargetXML struct {
 	Type string `xml:"type,attr"`
 	Port int    `xml:"port,attr"`
 }
-
 func BuildDomainXML(spec DomainSpec, stateRoot string) (string, error) {
 	if err := spec.Validate(stateRoot); err != nil {
 		return "", err
@@ -333,14 +332,14 @@ func BuildDomainXML(spec DomainSpec, stateRoot string) (string, error) {
 }
 
 type networkXML struct {
-	XMLName xml.Name   `xml:"network"`
-	Name    string     `xml:"name"`
-	IP      networkIP  `xml:"ip"`
+	XMLName xml.Name  `xml:"network"`
+	Name    string    `xml:"name"`
+	IP      networkIP `xml:"ip"`
 }
 
 type networkIP struct {
-	Address string `xml:"address,attr"`
-	Netmask string `xml:"netmask,attr"`
+	Address string  `xml:"address,attr"`
+	Netmask string  `xml:"netmask,attr"`
 	DHCP    dhcpXML `xml:"dhcp"`
 }
 
@@ -352,7 +351,6 @@ type dhcpRangeXML struct {
 	Start string `xml:"start,attr"`
 	End   string `xml:"end,attr"`
 }
-
 func BuildIsolatedNetworkXML(name string, subnetOctet int) (string, error) {
 	if !managedNamePattern.MatchString(name) {
 		return "", fmt.Errorf("invalid managed network name %q", name)

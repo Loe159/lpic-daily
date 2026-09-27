@@ -151,8 +151,8 @@ func Validate(bundle *Bundle) error {
 		}
 	}
 
-	if len(bundle.Schemas) != 9 {
-		errs = append(errs, fmt.Errorf("expected 9 schema files, got %d", len(bundle.Schemas)))
+	if len(bundle.Schemas) != 10 {
+		errs = append(errs, fmt.Errorf("expected 10 schema files, got %d", len(bundle.Schemas)))
 	}
 	schemaIDs := make(map[string]string)
 	for name, schema := range bundle.Schemas {
