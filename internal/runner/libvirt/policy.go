@@ -329,8 +329,7 @@ func BuildDomainXML(spec DomainSpec, stateRoot string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("marshal domain XML: %w", err)
 	}
-	return xml.Header + string(payload) + "
-", nil
+	return xml.Header + string(payload) + "\\n", nil
 }
 
 type networkXML struct {
