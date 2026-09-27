@@ -153,3 +153,53 @@ func TestCommandExitReportsWrongExitWithoutExecutionError(t *testing.T) {
 		t.Fatalf("command check = %#v, want ordinary failed check", result)
 	}
 }
+
+func TestStateChecksAcceptDifferentCommandHistoriesWithSameFinalState(t *testing.T) {
+	histories := [][]string{
+		{
+			"chown root:project /srv/shared",
+			"chmod 3770 /srv/shared",
+		},
+		{
+			"chgrp project /srv/shared",
+			"chmod u=rwx,g=rwx,o= /srv/shared",
+			"chmod g+s,+t /srv/shared",
+		},
+	}
+
+	checks := []checker.Check{
+		checker.FileMode{CheckID: "mode", Path: "/srv/shared", Mode: 0o3770},
+		checker.FileOwner{CheckID: "owner", Path: "/srv/shared", User: "root", Group: "project"},
+	}
+
+	for index, history := range histories {
+		probe := &fakeProbe{
+			files: map[string]runner.FileInfo{
+				"/srv/shared": {
+					Path:  "/srv/shared",
+					Mode:  0o3770,
+					UID:   0,
+					GID:   2000,
+					User:  "root",
+					Group: "project",
+					IsDir: true,
+				},
+			},
+		}
+
+		results, err := checker.EvaluateAll(
+			context.Background(),
+			probe,
+			runner.Instance{ID: "fake"},
+			checks,
+		)
+		if err != nil {
+			t.Fatalf("history %d (%v): EvaluateAll() error = %v", index+1, history, err)
+		}
+		for _, result := range results {
+			if !result.Pass {
+				t.Fatalf("history %d (%v): check failed: %#v", index+1, history, result)
+			}
+		}
+	}
+}
