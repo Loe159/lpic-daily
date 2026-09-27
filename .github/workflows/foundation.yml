@@ -67,3 +67,43 @@ jobs:
         run: go test ./...
       - name: Validate embedded content on Fedora
         run: go run ./cmd/lpic validate
+
+  podman-security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Install rootless Podman prerequisites
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y podman uidmap slirp4netns fuse-overlayfs
+      - name: Build Phase-1 lab image
+        shell: bash
+        run: |
+          export XDG_RUNTIME_DIR="$RUNNER_TEMP/lpic-daily-runtime"
+          mkdir -p "$XDG_RUNTIME_DIR"
+          chmod 700 "$XDG_RUNTIME_DIR"
+          podman info
+          podman build -t localhost/lpic-daily/fedora-phase1:1 -f labs/images/fedora-phase1/Containerfile labs/images/fedora-phase1
+          echo "XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR" >> "$GITHUB_ENV"
+      - name: Start rootless Podman API
+        shell: bash
+        run: |
+          mkdir -p "$XDG_RUNTIME_DIR/podman"
+          podman system service --time=0 "unix://$XDG_RUNTIME_DIR/podman/podman.sock" >"$RUNNER_TEMP/podman-service.log" 2>&1 &
+          for attempt in $(seq 1 30); do
+            if [ -S "$XDG_RUNTIME_DIR/podman/podman.sock" ]; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat "$RUNNER_TEMP/podman-service.log"
+          exit 1
+      - name: Run destructive host-sentinel isolation test
+        env:
+          LPIC_DAILY_RUN_PODMAN_INTEGRATION: "1"
+        run: go test -tags=integration ./internal/runner/podman -run '^TestHostFilesystemSentinelSurvivesDestructiveLab$' -count=1 -v

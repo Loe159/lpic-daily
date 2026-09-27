@@ -19,7 +19,7 @@ func TestHostFilesystemSentinelSurvivesDestructiveLab(t *testing.T) {
 		t.Skip("set LPIC_DAILY_RUN_PODMAN_INTEGRATION=1 to run the real rootless Podman isolation test")
 	}
 
-	sentinel, err := os.CreateTemp("/tmp", "lpic-daily-host-sentinel-*")
+	sentinel, err := os.CreateTemp("", "lpic-daily-host-sentinel-*")
 	if err != nil {
 		t.Fatalf("CreateTemp() error = %v", err)
 	}
@@ -34,7 +34,7 @@ func TestHostFilesystemSentinelSurvivesDestructiveLab(t *testing.T) {
 	}
 	defer os.Remove(sentinelPath)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
 	backend, err := podmanrunner.Open(ctx, "")
@@ -54,12 +54,13 @@ func TestHostFilesystemSentinelSurvivesDestructiveLab(t *testing.T) {
 			},
 			Resources: lab.Resources{
 				MemoryMB:       128,
+				CPUPercent:     100,
 				PIDs:           64,
 				TimeoutSeconds: 60,
 			},
 		},
 		SetupScript: fmt.Sprintf(
-			"rm -rf -- %s\nprintf 'guest overwrite\\n' > %s\n",
+			"rm -rf -- %q\nprintf 'guest overwrite\\n' > %q\n",
 			sentinelPath,
 			sentinelPath,
 		),
