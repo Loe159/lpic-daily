@@ -905,6 +905,14 @@ func runInteractiveLabWithBackend(
 	sessionCtx, cancelSession := context.WithTimeout(ctx, timeout)
 	defer cancelSession()
 
+	if inputFile, ok := stdin.(*os.File); ok {
+		if deadline, ok := sessionCtx.Deadline(); ok {
+			if err := inputFile.SetReadDeadline(deadline); err == nil {
+				defer inputFile.SetReadDeadline(time.Time{})
+			}
+		}
+	}
+
 	session, err := lab.Start(sessionCtx, authored, backend)
 	if err != nil {
 		return err
@@ -934,8 +942,14 @@ func runInteractiveLabWithBackend(
 	highestHintLevel := 0
 
 	for {
+		if err := sessionCtx.Err(); err != nil {
+			return fmt.Errorf("lab session ended: %w", err)
+		}
 		fmt.Fprint(stdout, "lpic> ")
 		if !scanner.Scan() {
+			if err := sessionCtx.Err(); err != nil {
+				return fmt.Errorf("lab session ended: %w", err)
+			}
 			if err := scanner.Err(); err != nil {
 				return fmt.Errorf("read command: %w", err)
 			}
