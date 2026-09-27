@@ -54,13 +54,24 @@ func TestBuildDomainXMLContainsOnlyManagedVirtualResources(t *testing.T) {
 			t.Fatalf("domain XML missing %q:\n%s", want, payload)
 		}
 	}
+	var decoded domainXML
+	if err := xml.Unmarshal([]byte(payload), &decoded); err != nil {
+		t.Fatalf("domain XML does not round-trip: %v", err)
+	}
+	if len(decoded.Devices.Channels) != 1 ||
+		decoded.Devices.Channels[0].Type != "unix" ||
+		decoded.Devices.Channels[0].Target.Type != "virtio" ||
+		decoded.Devices.Channels[0].Target.Name != "org.qemu.guest_agent.0" {
+		t.Fatalf("unexpected guest-agent channels: %#v", decoded.Devices.Channels)
+	}
+
 	for _, forbidden := range []string{
 		"<hostdev",
 		"<filesystem",
 		"<graphics",
 		"<emulator>",
 		"qemu:commandline",
-		"<channel",
+		"<redirdev",
 	} {
 		if strings.Contains(payload, forbidden) {
 			t.Fatalf("domain XML contains forbidden %q:\n%s", forbidden, payload)
