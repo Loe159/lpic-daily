@@ -37,9 +37,21 @@ func Start(ctx context.Context, authored Lab, backend runner.Runner) (*Session, 
 		_ = backend.Destroy(cleanupCtx, instance)
 	}
 
-	if err := backend.Start(ctx, instance); err != nil {
+	if err := startAndSetup(ctx, authored, backend, instance); err != nil {
 		cleanup()
-		return nil, fmt.Errorf("start lab %s: %w", authored.Definition.ID, err)
+		return nil, err
+	}
+
+	return &Session{
+		Lab:      authored,
+		Runner:   backend,
+		Instance: instance,
+	}, nil
+}
+
+func startAndSetup(ctx context.Context, authored Lab, backend runner.Runner, instance runner.Instance) error {
+	if err := backend.Start(ctx, instance); err != nil {
+		return fmt.Errorf("start lab %s: %w", authored.Definition.ID, err)
 	}
 
 	switch authored.Definition.Setup.ExecutionScope {
@@ -48,29 +60,51 @@ func Start(ctx context.Context, authored Lab, backend runner.Runner) (*Session, 
 			Argv: []string{"/usr/bin/bash", "-eu", "-c", authored.SetupScript},
 		})
 		if err != nil {
-			cleanup()
-			return nil, fmt.Errorf("run setup for %s: %w", authored.Definition.ID, err)
+			return fmt.Errorf("run setup for %s: %w", authored.Definition.ID, err)
 		}
 		if result.ExitCode != 0 {
-			cleanup()
-			return nil, fmt.Errorf("setup for %s exited with code %d", authored.Definition.ID, result.ExitCode)
+			return fmt.Errorf("setup for %s exited with code %d", authored.Definition.ID, result.ExitCode)
 		}
 	case "none":
 		// The trusted VM image + disposable disks are the complete initial state.
 	default:
-		cleanup()
-		return nil, fmt.Errorf(
+		return fmt.Errorf(
 			"unsupported setup execution scope %q for %s",
 			authored.Definition.Setup.ExecutionScope,
 			authored.Definition.ID,
 		)
 	}
+	return nil
+}
 
-	return &Session{
-		Lab:      authored,
-		Runner:   backend,
-		Instance: instance,
-	}, nil
+func (session *Session) Reset(ctx context.Context) error {
+	if session == nil || session.Runner == nil {
+		return errors.New("session is not initialized")
+	}
+	if session.closed {
+		return errors.New("session is closed")
+	}
+	if session.Lab.Definition.ResetPolicy != "disposable" {
+		return fmt.Errorf("unsupported reset policy %q", session.Lab.Definition.ResetPolicy)
+	}
+
+	if err := session.Runner.Reset(ctx, session.Instance); err != nil {
+		return fmt.Errorf("reset lab %s: %w", session.Lab.Definition.ID, err)
+	}
+	if err := startAndSetup(ctx, session.Lab, session.Runner, session.Instance); err != nil {
+		cleanupCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 10*time.Second)
+		defer cancel()
+		cleanupErr := session.Runner.Destroy(cleanupCtx, session.Instance)
+		session.closed = true
+		if cleanupErr != nil {
+			return errors.Join(
+				fmt.Errorf("restore lab %s after reset: %w", session.Lab.Definition.ID, err),
+				fmt.Errorf("cleanup failed reset: %w", cleanupErr),
+			)
+		}
+		return fmt.Errorf("restore lab %s after reset: %w", session.Lab.Definition.ID, err)
+	}
+	return nil
 }
 
 func (session *Session) Evaluate(ctx context.Context) ([]checker.Result, error) {
