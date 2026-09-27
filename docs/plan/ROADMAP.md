@@ -19,7 +19,7 @@
 
 Exit criterion: a fresh implementation agent can determine what to build and validate without inventing ordering, IDs or content contracts.
 
-## Phase 1 — vertical slice
+## Phase 1 — vertical slice (complete)
 Build the complete adaptive daily loop for **103.1, 103.5 and 104.5**:
 - curriculum/schema loader;
 - SQLite progress/migrations;
@@ -33,9 +33,9 @@ Build the complete adaptive daily loop for **103.1, 103.5 and 104.5**:
 - daily desktop-notification adapter on Fedora;
 - CI/security invariant tests.
 
-Exit criteria are canonical in `docs/plan/PHASE-1-ACCEPTANCE.md`.
+Exit criteria are canonical in `docs/plan/PHASE-1-ACCEPTANCE.md` and were accepted on 2026-09-27.
 
-## Phase 2 — VM runner
+## Phase 2 — VM runner (current)
 Add libvirt/QEMU/KVM images and cover one boot objective + one storage objective end to end. Establish Fedora, Debian and openSUSE guest-image pipeline and isolated multi-machine lab networking.
 
 ## Phase 3 — Exam 101 curriculum
