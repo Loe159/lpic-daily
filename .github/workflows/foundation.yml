@@ -115,7 +115,7 @@ jobs:
           done
           cat "$RUNNER_TEMP/podman-service.log"
           exit 1
-      - name: Run destructive host-sentinel isolation test
+      - name: Run real Podman security and Phase-1 lab conformance tests
         env:
           LPIC_DAILY_RUN_PODMAN_INTEGRATION: "1"
-        run: go test -tags=integration ./internal/runner/podman -run '^TestHostFilesystemSentinelSurvivesDestructiveLab$' -count=1 -v
+        run: go test -tags=integration ./internal/runner/podman -count=1 -v
