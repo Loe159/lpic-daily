@@ -43,11 +43,7 @@ jobs:
       - name: Test
         run: go test ./...
       - name: Compile Podman integration tests
-        run: go test -tags=integration ./internal/runner/podman -run '^
-        run: go vet ./...
-      - name: Validate embedded curriculum through Go loader
-        run: go run ./cmd/lpic validate
-
+        run: go test -tags=integration ./internal/runner/podman -run 'a^'
       - name: Vet
         run: go vet ./...
       - name: Validate embedded curriculum through Go loader
