@@ -125,25 +125,56 @@ func vmImageCatalogCheck() Check {
 }
 
 func systemLibvirtCheck() Check {
-	control, err := libvirtrunner.OpenSystem()
-	if err != nil {
+	type probeResult struct {
+		control *libvirtrunner.RPCControlPlane
+		err     error
+	}
+
+	results := make(chan probeResult, 1)
+	abandoned := make(chan struct{})
+	go func() {
+		control, err := libvirtrunner.OpenSystem()
+		result := probeResult{control: control, err: err}
+		select {
+		case results <- result:
+		case <-abandoned:
+			if control != nil {
+				_ = control.Close()
+			}
+		}
+	}()
+
+	timer := time.NewTimer(2 * time.Second)
+	defer timer.Stop()
+
+	select {
+	case result := <-results:
+		if result.err != nil {
+			return Check{
+				Name:   "system-libvirt",
+				Status: "warn",
+				Detail: fmt.Sprintf("qemu:///system is unavailable: %v", result.err),
+			}
+		}
+		if err := result.control.Close(); err != nil {
+			return Check{
+				Name:   "system-libvirt",
+				Status: "warn",
+				Detail: fmt.Sprintf("qemu:///system connected but did not close cleanly: %v", err),
+			}
+		}
+		return Check{
+			Name:   "system-libvirt",
+			Status: "ok",
+			Detail: "qemu:///system is reachable and advertises x86_64",
+		}
+	case <-timer.C:
+		close(abandoned)
 		return Check{
 			Name:   "system-libvirt",
 			Status: "warn",
-			Detail: fmt.Sprintf("qemu:///system is unavailable: %v", err),
+			Detail: "qemu:///system probe timed out after 2s; full-system labs remain fail-closed",
 		}
-	}
-	if err := control.Close(); err != nil {
-		return Check{
-			Name:   "system-libvirt",
-			Status: "warn",
-			Detail: fmt.Sprintf("qemu:///system connected but did not close cleanly: %v", err),
-		}
-	}
-	return Check{
-		Name:   "system-libvirt",
-		Status: "ok",
-		Detail: "qemu:///system is reachable and advertises x86_64",
 	}
 }
 
