@@ -142,6 +142,37 @@ func TestSessionRunsSetupAndStateChecks(t *testing.T) {
 	}
 }
 
+
+func TestVMSetupNoneSkipsGuestExec(t *testing.T) {
+	authored := loadBuiltinLab(t, sharedDropboxID)
+	authored.Definition.ID = "lpic1.104.1.test-vm"
+	authored.Definition.Environment.Backend = "libvirt"
+	authored.Definition.Environment.CapabilityProfile = "full-machine"
+	authored.Definition.Environment.Machine = &lab.Machine{
+		Firmware: "uefi",
+		ExtraDisks: []lab.MachineDisk{{
+			ID:     "data",
+			SizeMB: 512,
+		}},
+	}
+	authored.Definition.Setup = lab.Setup{ExecutionScope: "none"}
+	authored.SetupScript = ""
+
+	fake := &fakeRunner{failExec: true}
+	session, err := lab.Start(context.Background(), authored, fake)
+	if err != nil {
+		t.Fatalf("Start() error = %v", err)
+	}
+	defer session.Close(context.Background())
+
+	if fake.execCalls != 0 {
+		t.Fatalf("VM setup unexpectedly called Exec %d time(s)", fake.execCalls)
+	}
+	if fake.definition.Machine == nil || len(fake.definition.Machine.ExtraDisks) != 1 {
+		t.Fatalf("VM definition = %#v", fake.definition)
+	}
+}
+
 func TestDestructiveSetupCannotModifyHostSentinelThroughLabOrchestration(t *testing.T) {
 	sentinel := filepath.Join(t.TempDir(), "host-sentinel")
 	if err := os.WriteFile(sentinel, []byte("safe"), 0o600); err != nil {
@@ -176,6 +207,8 @@ func TestDestructiveSetupCannotModifyHostSentinelThroughLabOrchestration(t *test
 type fakeRunner struct {
 	definition runner.Definition
 	exec       runner.ExecRequest
+	execCalls  int
+	failExec   bool
 	started    bool
 	destroyed  bool
 }
@@ -191,7 +224,11 @@ func (fake *fakeRunner) Start(_ context.Context, _ runner.Instance) error {
 }
 
 func (fake *fakeRunner) Exec(_ context.Context, _ runner.Instance, request runner.ExecRequest) (runner.ExecResult, error) {
+	fake.execCalls++
 	fake.exec = request
+	if fake.failExec {
+		return runner.ExecResult{}, errors.New("Exec must not be called")
+	}
 	return runner.ExecResult{ExitCode: 0}, nil
 }
 

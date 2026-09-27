@@ -47,3 +47,16 @@ Schema evolution can get ahead of runtime support. If an authored check type is 
 ## Security boundary
 
 Authored shell scripts are untrusted content. They are never passed to a host shell. The setup body is passed as an argument to `/usr/bin/bash -eu -c` through the sandbox runner.
+
+
+## Full-machine setup semantics
+
+Phase-2 VM labs may use `setup.execution_scope = "none"`. In that mode the
+trusted image, firmware profile and disposable disks are the complete initial
+state and the runtime performs no guest command setup.
+
+Podman labs continue to require `execution_scope = "sandbox"` plus a local
+setup script. Until a separately authenticated structured guest transport is
+implemented, libvirt labs are required to use `none`; this prevents the
+generic lab lifecycle from accidentally treating a VM like a container and
+calling `Runner.Exec`.

@@ -42,16 +42,28 @@ func Start(ctx context.Context, authored Lab, backend runner.Runner) (*Session, 
 		return nil, fmt.Errorf("start lab %s: %w", authored.Definition.ID, err)
 	}
 
-	result, err := backend.Exec(ctx, instance, runner.ExecRequest{
-		Argv: []string{"/usr/bin/bash", "-eu", "-c", authored.SetupScript},
-	})
-	if err != nil {
+	switch authored.Definition.Setup.ExecutionScope {
+	case "sandbox":
+		result, err := backend.Exec(ctx, instance, runner.ExecRequest{
+			Argv: []string{"/usr/bin/bash", "-eu", "-c", authored.SetupScript},
+		})
+		if err != nil {
+			cleanup()
+			return nil, fmt.Errorf("run setup for %s: %w", authored.Definition.ID, err)
+		}
+		if result.ExitCode != 0 {
+			cleanup()
+			return nil, fmt.Errorf("setup for %s exited with code %d", authored.Definition.ID, result.ExitCode)
+		}
+	case "none":
+		// The trusted VM image + disposable disks are the complete initial state.
+	default:
 		cleanup()
-		return nil, fmt.Errorf("run setup for %s: %w", authored.Definition.ID, err)
-	}
-	if result.ExitCode != 0 {
-		cleanup()
-		return nil, fmt.Errorf("setup for %s exited with code %d", authored.Definition.ID, result.ExitCode)
+		return nil, fmt.Errorf(
+			"unsupported setup execution scope %q for %s",
+			authored.Definition.Setup.ExecutionScope,
+			authored.Definition.ID,
+		)
 	}
 
 	return &Session{

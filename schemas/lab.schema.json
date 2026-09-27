@@ -221,18 +221,58 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "execution_scope",
-        "script_ref"
+        "execution_scope"
       ],
       "properties": {
         "execution_scope": {
-          "const": "sandbox"
+          "enum": [
+            "sandbox",
+            "none"
+          ]
         },
         "script_ref": {
           "type": "string",
           "pattern": "^[a-zA-Z0-9._/-]+$"
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "execution_scope": {
+                "const": "sandbox"
+              }
+            },
+            "required": [
+              "execution_scope"
+            ]
+          },
+          "then": {
+            "required": [
+              "script_ref"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "execution_scope": {
+                "const": "none"
+              }
+            },
+            "required": [
+              "execution_scope"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "script_ref"
+              ]
+            }
+          }
+        }
+      ]
     },
     "checks": {
       "type": "array",

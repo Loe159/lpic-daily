@@ -54,13 +54,17 @@ func loadOne(fsys fs.FS, labPath string) (Lab, error) {
 		return Lab{}, fmt.Errorf("%s: %w", labPath, err)
 	}
 
-	setupPath, err := resolveLocalRef(base, definition.Setup.ScriptRef)
-	if err != nil {
-		return Lab{}, fmt.Errorf("%s setup: %w", definition.ID, err)
-	}
-	setupBytes, err := fs.ReadFile(fsys, setupPath)
-	if err != nil {
-		return Lab{}, fmt.Errorf("read setup for %s: %w", definition.ID, err)
+	var setupScript string
+	if definition.Setup.ExecutionScope == "sandbox" {
+		setupPath, err := resolveLocalRef(base, definition.Setup.ScriptRef)
+		if err != nil {
+			return Lab{}, fmt.Errorf("%s setup: %w", definition.ID, err)
+		}
+		setupBytes, err := fs.ReadFile(fsys, setupPath)
+		if err != nil {
+			return Lab{}, fmt.Errorf("read setup for %s: %w", definition.ID, err)
+		}
+		setupScript = string(setupBytes)
 	}
 
 	hintPaths, err := fs.Glob(fsys, path.Join(base, "hints", "*.json"))
@@ -103,7 +107,7 @@ func loadOne(fsys fs.FS, labPath string) (Lab, error) {
 	return Lab{
 		Definition:           definition,
 		Hints:                hints,
-		SetupScript:          string(setupBytes),
+		SetupScript:          setupScript,
 		ReferenceSolutionRef: definition.ReferenceSolutionRef,
 	}, nil
 }
@@ -215,13 +219,22 @@ func validateDefinition(fsys fs.FS, base string, definition Definition) error {
 		if definition.Environment.Machine != nil {
 			return errors.New("podman lab must not declare machine settings")
 		}
+		if definition.Setup.ExecutionScope != "sandbox" {
+			return errors.New("podman lab setup execution scope must be sandbox")
+		}
+		if _, err := resolveLocalRef(base, definition.Setup.ScriptRef); err != nil {
+			return fmt.Errorf("invalid setup reference: %w", err)
+		}
 	case "libvirt":
 		if definition.Environment.Machine == nil {
 			return errors.New("libvirt lab requires machine settings")
 		}
-	}
-	if definition.Setup.ExecutionScope != "sandbox" {
-		return errors.New("setup execution scope must be sandbox")
+		if definition.Setup.ExecutionScope != "none" {
+			return errors.New("libvirt Phase-2 lab setup execution scope must be none")
+		}
+		if definition.Setup.ScriptRef != "" {
+			return errors.New("libvirt setup=none must not declare script_ref")
+		}
 	}
 	if definition.ResetPolicy != "disposable" {
 		return errors.New("reset policy must be disposable")
@@ -231,9 +244,6 @@ func validateDefinition(fsys fs.FS, base string, definition Definition) error {
 	}
 	if len(definition.Checks) == 0 {
 		return errors.New("at least one check is required")
-	}
-	if _, err := resolveLocalRef(base, definition.Setup.ScriptRef); err != nil {
-		return fmt.Errorf("invalid setup reference: %w", err)
 	}
 	if definition.ReferenceSolutionRef != "" {
 		solutionPath, err := resolveLocalRef(base, definition.ReferenceSolutionRef)

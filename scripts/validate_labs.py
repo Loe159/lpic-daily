@@ -118,10 +118,18 @@ def main():
             errors.append(f"{lab_id}: timeout_seconds must be an integer from 30 to 7200")
 
         setup = lab.get("setup", {})
-        if setup.get("execution_scope") != "sandbox":
-            errors.append(f"{lab_id}: setup must execute in sandbox")
-        if not safe_local_ref(lab_dir, setup.get("script_ref")):
-            errors.append(f"{lab_id}: setup script reference is missing or unsafe")
+        backend = environment.get("backend")
+        setup_scope = setup.get("execution_scope")
+        if backend == "podman":
+            if setup_scope != "sandbox":
+                errors.append(f"{lab_id}: Podman setup must execute in sandbox")
+            if not safe_local_ref(lab_dir, setup.get("script_ref")):
+                errors.append(f"{lab_id}: setup script reference is missing or unsafe")
+        elif backend == "libvirt":
+            if setup_scope != "none":
+                errors.append(f"{lab_id}: Phase-2 libvirt setup must use execution_scope=none")
+            if "script_ref" in setup:
+                errors.append(f"{lab_id}: libvirt setup=none must not declare script_ref")
 
         solution_ref = lab.get("reference_solution_ref")
         if solution_ref is not None and not safe_local_ref(lab_dir, solution_ref):
