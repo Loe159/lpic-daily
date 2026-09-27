@@ -13,6 +13,9 @@ func TestRunAlwaysIncludesDesktopChecksEvenWithoutPodman(t *testing.T) {
 	for _, name := range []string{
 		"unprivileged-process",
 		"rootless-podman-service",
+		"qemu-img",
+		"vm-image-catalog",
+		"system-libvirt",
 		"desktop-notifications",
 		"terminal-launcher",
 	} {

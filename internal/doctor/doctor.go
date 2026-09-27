@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Loe159/lpic-daily/internal/appstate"
+	libvirtrunner "github.com/Loe159/lpic-daily/internal/runner/libvirt"
 	podmanrunner "github.com/Loe159/lpic-daily/internal/runner/podman"
 )
 
@@ -40,6 +42,14 @@ func Run() Report {
 	}
 
 	report.Checks = append(report.Checks, podmanCheck())
+	report.Checks = append(report.Checks, executableCheck(
+		"qemu-img",
+		"qemu-img",
+		"qemu-img is available for disposable VM overlays",
+		"qemu-img is missing; full-system labs are unavailable",
+	))
+	report.Checks = append(report.Checks, vmImageCatalogCheck())
+	report.Checks = append(report.Checks, systemLibvirtCheck())
 	report.Checks = append(report.Checks, executableCheck(
 		"desktop-notifications",
 		"notify-send",
@@ -87,6 +97,53 @@ func podmanCheck() Check {
 		Name:   "rootless-podman-service",
 		Status: "ok",
 		Detail: fmt.Sprintf("%s responds as rootless Podman with cgroups v2", socket),
+	}
+}
+
+func vmImageCatalogCheck() Check {
+	imageRoot, err := appstate.VMImageRoot()
+	if err != nil {
+		return Check{Name: "vm-image-catalog", Status: "warn", Detail: err.Error()}
+	}
+	catalogPath, err := appstate.VMImageCatalogPath()
+	if err != nil {
+		return Check{Name: "vm-image-catalog", Status: "warn", Detail: err.Error()}
+	}
+	catalog, err := libvirtrunner.LoadImageCatalog(catalogPath, imageRoot)
+	if err != nil {
+		return Check{
+			Name:   "vm-image-catalog",
+			Status: "warn",
+			Detail: fmt.Sprintf("%s is unavailable or invalid: %v", catalogPath, err),
+		}
+	}
+	return Check{
+		Name:   "vm-image-catalog",
+		Status: "ok",
+		Detail: fmt.Sprintf("%d trusted VM image(s) declared in %s", len(catalog.Images), catalogPath),
+	}
+}
+
+func systemLibvirtCheck() Check {
+	control, err := libvirtrunner.OpenSystem()
+	if err != nil {
+		return Check{
+			Name:   "system-libvirt",
+			Status: "warn",
+			Detail: fmt.Sprintf("qemu:///system is unavailable: %v", err),
+		}
+	}
+	if err := control.Close(); err != nil {
+		return Check{
+			Name:   "system-libvirt",
+			Status: "warn",
+			Detail: fmt.Sprintf("qemu:///system connected but did not close cleanly: %v", err),
+		}
+	}
+	return Check{
+		Name:   "system-libvirt",
+		Status: "ok",
+		Detail: "qemu:///system is reachable and advertises x86_64",
 	}
 }
 
