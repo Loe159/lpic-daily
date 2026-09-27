@@ -137,9 +137,9 @@ func TestRPCControlPlaneLifecycleUsesManagedDomainOnly(t *testing.T) {
 	raw := &fakeRawLibvirt{
 		libVersion:   1002003,
 		capabilities: "<capabilities><host><cpu><arch>x86_64</arch></cpu></host></capabilities>",
-		domain:        golibvirt.Domain{Name: name},
-		state:         1,
-		reason:        2,
+		domain:       golibvirt.Domain{Name: name},
+		state:        1,
+		reason:       2,
 	}
 	control, err := newRPCControlPlane(raw)
 	if err != nil {
