@@ -38,6 +38,14 @@ func (probe storageProbe) Processes(
 	return nil, errors.New("unused")
 }
 
+func (probe storageProbe) Exec(
+	context.Context,
+	runner.Instance,
+	runner.ExecRequest,
+) (runner.ExecResult, error) {
+	return runner.ExecResult{}, errors.New("unused")
+}
+
 func (probe storageProbe) StorageSnapshot(
 	context.Context,
 	runner.Instance,

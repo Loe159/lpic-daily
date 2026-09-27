@@ -53,14 +53,14 @@ type Setup struct {
 }
 
 type CheckDefinition struct {
-	Type         string   `json:"type"`
-	Path         string   `json:"path,omitempty"`
-	Mode         string   `json:"mode,omitempty"`
-	User         string   `json:"user,omitempty"`
-	Group        string   `json:"group,omitempty"`
-	Pattern      string   `json:"pattern,omitempty"`
-	Match        string   `json:"match,omitempty"`
-	Argv         []string `json:"argv,omitempty"`
+	Type           string   `json:"type"`
+	Path           string   `json:"path,omitempty"`
+	Mode           string   `json:"mode,omitempty"`
+	User           string   `json:"user,omitempty"`
+	Group          string   `json:"group,omitempty"`
+	Pattern        string   `json:"pattern,omitempty"`
+	Match          string   `json:"match,omitempty"`
+	Argv           []string `json:"argv,omitempty"`
 	ExpectedExit   int      `json:"expected_exit,omitempty"`
 	DeviceType     string   `json:"device_type,omitempty"`
 	Filesystem     string   `json:"filesystem,omitempty"`
