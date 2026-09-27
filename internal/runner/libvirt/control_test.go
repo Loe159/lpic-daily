@@ -11,21 +11,21 @@ import (
 )
 
 type fakeRawLibvirt struct {
-	libVersion     uint64
-	capabilities   string
-	domain         golibvirt.Domain
-	definedXML     string
-	defineFlags    golibvirt.DomainDefineFlags
-	createFlags    uint32
-	destroyFlags   golibvirt.DomainDestroyFlagsValues
-	undefineFlags  golibvirt.DomainUndefineFlagsValues
-	state          int32
-	reason         int32
-	consoleDomain  golibvirt.Domain
-	consoleDevice  golibvirt.OptString
-	consoleFlags   uint32
-	disconnected   bool
-	err            error
+	libVersion    uint64
+	capabilities  string
+	domain        golibvirt.Domain
+	definedXML    string
+	defineFlags   golibvirt.DomainDefineFlags
+	createFlags   uint32
+	destroyFlags  golibvirt.DomainDestroyFlagsValues
+	undefineFlags golibvirt.DomainUndefineFlagsValues
+	state         int32
+	reason        int32
+	consoleDomain golibvirt.Domain
+	consoleDevice golibvirt.OptString
+	consoleFlags  uint32
+	disconnected  bool
+	err           error
 }
 
 func (fake *fakeRawLibvirt) ConnectGetLibVersion() (uint64, error) {
