@@ -19,14 +19,14 @@ var (
 )
 
 type ImageDescriptor struct {
-	ID             string
-	Path           string
-	SHA256         string
-	Format         string
-	Architecture   string
-	Distribution   string
-	VirtualSizeMB  int
-	FirmwareModes  []runner.FirmwareMode
+	ID            string
+	Path          string
+	SHA256        string
+	Format        string
+	Architecture  string
+	Distribution  string
+	VirtualSizeMB int
+	FirmwareModes []runner.FirmwareMode
 }
 
 func (image ImageDescriptor) Validate(imageRoot string) error {
@@ -265,6 +265,7 @@ type consoleTargetXML struct {
 	Type string `xml:"type,attr"`
 	Port int    `xml:"port,attr"`
 }
+
 func BuildDomainXML(spec DomainSpec, stateRoot string) (string, error) {
 	if err := spec.Validate(stateRoot); err != nil {
 		return "", err
@@ -328,7 +329,7 @@ func BuildDomainXML(spec DomainSpec, stateRoot string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("marshal domain XML: %w", err)
 	}
-	return xml.Header + string(payload) + "\\n", nil
+	return xml.Header + string(payload) + "\n", nil
 }
 
 type networkXML struct {
@@ -351,6 +352,7 @@ type dhcpRangeXML struct {
 	Start string `xml:"start,attr"`
 	End   string `xml:"end,attr"`
 }
+
 func BuildIsolatedNetworkXML(name string, subnetOctet int) (string, error) {
 	if !managedNamePattern.MatchString(name) {
 		return "", fmt.Errorf("invalid managed network name %q", name)

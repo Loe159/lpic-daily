@@ -21,13 +21,13 @@ type Definition struct {
 }
 
 type Environment struct {
-	Backend            string    `json:"backend"`
-	ImageRef           string    `json:"image_ref"`
-	Distribution       string    `json:"distribution"`
-	Network            string    `json:"network"`
-	CapabilityProfile  string    `json:"capability_profile"`
-	WritableGuestPaths []string  `json:"writable_guest_paths"`
-	Machine            *Machine   `json:"machine,omitempty"`
+	Backend            string   `json:"backend"`
+	ImageRef           string   `json:"image_ref"`
+	Distribution       string   `json:"distribution"`
+	Network            string   `json:"network"`
+	CapabilityProfile  string   `json:"capability_profile"`
+	WritableGuestPaths []string `json:"writable_guest_paths"`
+	Machine            *Machine `json:"machine,omitempty"`
 }
 
 type Machine struct {
