@@ -141,7 +141,7 @@ func runDashboard(stdin io.Reader, stdout, stderr io.Writer) error {
 
 	ctx := context.Background()
 	for {
-		store, err := openProgressStore(ctx)
+		store, err := openProgressStore(sessionCtx)
 		if err != nil {
 			return err
 		}
@@ -802,7 +802,8 @@ func printLab(authored lab.Lab, out io.Writer) {
 }
 
 func runInteractiveLab(authored lab.Lab, stdin io.Reader, stdout, stderr io.Writer) error {
-	ctx := context.Background()
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
 
 	switch authored.Definition.Environment.Backend {
 	case "podman":
@@ -897,7 +898,14 @@ func runInteractiveLabWithBackend(
 	stdin io.Reader,
 	stdout, stderr io.Writer,
 ) error {
-	session, err := lab.Start(ctx, authored, backend)
+	timeout := time.Duration(authored.Definition.Resources.TimeoutSeconds) * time.Second
+	if timeout <= 0 {
+		return errors.New("lab runtime timeout must be positive")
+	}
+	sessionCtx, cancelSession := context.WithTimeout(ctx, timeout)
+	defer cancelSession()
+
+	session, err := lab.Start(sessionCtx, authored, backend)
 	if err != nil {
 		return err
 	}
@@ -964,7 +972,7 @@ func runInteractiveLabWithBackend(
 				continue
 			}
 			fmt.Fprintln(stdout, "Ouverture d'un shell persistant dans la sandbox. Tape exit ou Ctrl-D pour revenir.")
-			result, err := runPersistentShell(ctx, backend, session.Instance, stdin, stdout)
+			result, err := runPersistentShell(sessionCtx, backend, session.Instance, stdin, stdout)
 			if err != nil {
 				return fmt.Errorf("interactive sandbox shell: %w", err)
 			}
@@ -974,7 +982,7 @@ func runInteractiveLabWithBackend(
 			}
 			continue
 		case ":check":
-			results, err := session.Evaluate(ctx)
+			results, err := session.Evaluate(sessionCtx)
 			if err != nil {
 				return fmt.Errorf("evaluate lab: %w", err)
 			}
@@ -996,14 +1004,14 @@ func runInteractiveLabWithBackend(
 					return fmt.Errorf("lab succeeded but progress could not be opened: %w", err)
 				}
 				now := time.Now()
-				recordErr := study.RecordLab(ctx, store, authored, highestHintLevel, now)
+				recordErr := study.RecordLab(sessionCtx, store, authored, highestHintLevel, now)
 				if recordErr != nil {
 					store.Close()
 					return fmt.Errorf("lab succeeded but progress could not be recorded: %w", recordErr)
 				}
 				fmt.Fprintln(stdout, "Progression enregistrée.")
 				recordGamificationBestEffort(
-					ctx,
+					sessionCtx,
 					store,
 					gamification.EventLabPassed,
 					now,
@@ -1018,7 +1026,11 @@ func runInteractiveLabWithBackend(
 			continue
 		}
 
-		result, err := backend.Exec(ctx, session.Instance, runner.ExecRequest{
+		if err := sessionCtx.Err(); err != nil {
+			return fmt.Errorf("lab session ended: %w", err)
+		}
+
+		result, err := backend.Exec(sessionCtx, session.Instance, runner.ExecRequest{
 			Argv:   []string{"/usr/bin/bash", "-lc", line},
 			Stdout: stdout,
 			Stderr: stderr,
