@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.1.partition-filesystems.hint-3",
+  "lab_id": "lpic1.104.1.partition-filesystems",
+  "level": 3,
+  "content_fr": "Après avoir créé une GPT et deux partitions sur /dev/vdb, initialise /dev/vdb1 avec un filesystem ext4 et /dev/vdb2 avec la signature swap. Les familles de commandes à rechercher sont mkfs et mkswap.",
+  "evidence_impact": "material"
+}

@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.1.partition-filesystems.hint-2",
+  "lab_id": "lpic1.104.1.partition-filesystems",
+  "level": 2,
+  "content_fr": "Tu peux gérer GPT avec fdisk, gdisk ou parted. Réserve l'essentiel du disque à la première partition et une zone plus petite à la seconde. Le checker ne dépend pas de l'outil choisi.",
+  "evidence_impact": "material"
+}

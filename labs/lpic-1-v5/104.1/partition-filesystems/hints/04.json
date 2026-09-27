@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.1.partition-filesystems.hint-4",
+  "lab_id": "lpic1.104.1.partition-filesystems",
+  "level": 4,
+  "content_fr": "Solution de référence : crée une table GPT sur /dev/vdb, une première partition d'environ 384 MiB et une seconde avec le reste ; applique mkfs.ext4 -F à /dev/vdb1 puis mkswap à /dev/vdb2. Avec parted, cela peut se faire avec mklabel gpt puis deux mkpart.",
+  "evidence_impact": "solution-revealed"
+}

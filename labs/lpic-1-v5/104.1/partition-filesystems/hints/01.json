@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.1.partition-filesystems.hint-1",
+  "lab_id": "lpic1.104.1.partition-filesystems",
+  "level": 1,
+  "content_fr": "Commence par identifier clairement le disque système et le disque de travail. Observe /dev/vda et /dev/vdb avant toute écriture, puis vérifie si /dev/vdb possède déjà une partition table.",
+  "evidence_impact": "none"
+}
