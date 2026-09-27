@@ -15,6 +15,8 @@ import (
 
 const (
 	guestAgentCallTimeoutSeconds = int32(5)
+	guestAgentReadyTimeout       = 20 * time.Second
+	guestAgentReadyRetry         = 100 * time.Millisecond
 	maxGuestAgentResponseBytes   = 2 << 20
 	maxGuestExecOutputBytes      = 1 << 20
 )
@@ -91,6 +93,9 @@ func (backend *Backend) Exec(
 	if !state.Active {
 		return runner.ExecResult{}, fmt.Errorf("VM instance %s is not active", instance.ID)
 	}
+	if err := backend.waitForGuestAgent(ctx, instance.ID); err != nil {
+		return runner.ExecResult{}, err
+	}
 
 	environment, err := encodeGuestEnvironment(request.Env)
 	if err != nil {
@@ -147,6 +152,37 @@ func (backend *Backend) Exec(
 		case <-ctx.Done():
 			return runner.ExecResult{}, ctx.Err()
 		case <-ticker.C:
+		}
+	}
+}
+
+func (backend *Backend) waitForGuestAgent(ctx context.Context, domainName string) error {
+	waitCtx, cancel := context.WithTimeout(ctx, guestAgentReadyTimeout)
+	defer cancel()
+
+	var lastErr error
+	for {
+		if err := waitCtx.Err(); err != nil {
+			if lastErr != nil {
+				return fmt.Errorf("wait for QEMU guest agent in %s: %w (last error: %v)", domainName, err, lastErr)
+			}
+			return fmt.Errorf("wait for QEMU guest agent in %s: %w", domainName, err)
+		}
+
+		var pong struct{}
+		err := backend.agentJSON(waitCtx, domainName, qgaRequest{Execute: "guest-ping"}, &pong)
+		if err == nil {
+			return nil
+		}
+		lastErr = err
+
+		timer := time.NewTimer(guestAgentReadyRetry)
+		select {
+		case <-waitCtx.Done():
+			if !timer.Stop() {
+				<-timer.C
+			}
+		case <-timer.C:
 		}
 	}
 }
