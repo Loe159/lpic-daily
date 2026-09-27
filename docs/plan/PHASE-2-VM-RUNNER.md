@@ -30,7 +30,8 @@ Implemented and unit/CI-validated:
 - generated bounded VM domain XML, serial-console capability, QEMU Guest Agent execution and structured storage probes;
 - authored 104.1 partition/filesystem lab with state-based grading;
 - `lpic lab run` dispatches `libvirt` labs to `qemu:///system` only and fails closed instead of falling back to Podman;
-- `lpic doctor` reports `qemu-img`, VM image catalog and system-libvirt readiness; the live libvirt probe is bounded to two seconds.
+- `lpic doctor` reports `qemu-img`, VM image catalog and system-libvirt readiness; the live libvirt probe is bounded to two seconds;
+- interactive lab operations now inherit the authored wall-clock timeout and OS cancellation, QEMU Guest Agent execution waits for bounded readiness, and partial libvirt teardown failures remain tracked so cleanup can be retried without deleting disks under a live/defined domain.
 
 Not yet end-to-end:
 - no released/reproducible VM base-image build/install pipeline exists, so 104.1 is not runnable on a fresh installation yet;
