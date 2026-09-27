@@ -142,7 +142,6 @@ func TestSessionRunsSetupAndStateChecks(t *testing.T) {
 	}
 }
 
-
 func TestVMSetupNoneSkipsGuestExec(t *testing.T) {
 	authored := loadBuiltinLab(t, sharedDropboxID)
 	authored.Definition.ID = "lpic1.104.1.test-vm"

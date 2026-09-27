@@ -52,6 +52,7 @@ func TestHostFilesystemSentinelSurvivesDestructiveLab(t *testing.T) {
 				Network:           "none",
 				CapabilityProfile: "baseline",
 			},
+			Setup: lab.Setup{ExecutionScope: "sandbox"},
 			Resources: lab.Resources{
 				MemoryMB:       128,
 				CPUPercent:     100,
