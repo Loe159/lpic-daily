@@ -2,12 +2,14 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"context"
 	"strings"
 	"testing"
 
 	lpicdaily "github.com/Loe159/lpic-daily"
 	"github.com/Loe159/lpic-daily/internal/curriculum"
+	"github.com/Loe159/lpic-daily/internal/lab"
 	"github.com/Loe159/lpic-daily/internal/learning"
 )
 
@@ -254,12 +256,18 @@ func TestLabHintAndDebriefDisclosure(t *testing.T) {
 }
 
 func TestValidateIncludesLabs(t *testing.T) {
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("LoadAll() error = %v", err)
+	}
+
 	var stdout bytes.Buffer
 	if err := runWithIO([]string{"validate"}, strings.NewReader(""), &stdout, &bytes.Buffer{}); err != nil {
 		t.Fatalf("validate error = %v", err)
 	}
-	if !strings.Contains(stdout.String(), "builtin labs OK: 3") {
-		t.Fatalf("validate output = %q", stdout.String())
+	want := fmt.Sprintf("builtin labs OK: %d", len(labs))
+	if !strings.Contains(stdout.String(), want) {
+		t.Fatalf("validate output = %q, want %q", stdout.String(), want)
 	}
 }
 
