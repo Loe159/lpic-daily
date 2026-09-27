@@ -52,11 +52,14 @@ func (fake *fakeRawLibvirt) DomainLookupByName(name string) (golibvirt.Domain, e
 }
 
 func (fake *fakeRawLibvirt) DomainCreateWithFlags(
-	_ golibvirt.Domain,
+	domain golibvirt.Domain,
 	flags uint32,
-) (int32, error) {
+) (golibvirt.Domain, error) {
 	fake.createFlags = flags
-	return 1, fake.err
+	if fake.err != nil {
+		return golibvirt.Domain{}, fake.err
+	}
+	return domain, nil
 }
 
 func (fake *fakeRawLibvirt) DomainGetState(
