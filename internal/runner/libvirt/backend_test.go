@@ -16,12 +16,12 @@ import (
 )
 
 type fakeControlPlane struct {
-	defined      map[string]string
-	active       map[string]bool
-	starts       int
-	destroys     int
-	undefines    int
-	removeNVRAM  bool
+	defined        map[string]string
+	active         map[string]bool
+	starts         int
+	destroys       int
+	undefines      int
+	removeNVRAM    bool
 	consoleOpens   int
 	agentResponses []string
 	agentCommands  []string
@@ -245,7 +245,6 @@ func TestBackendSerialConsoleRequiresActiveManagedVM(t *testing.T) {
 	}
 }
 
-
 func TestBackendExecUsesStructuredGuestAgentCommand(t *testing.T) {
 	backend, control, _, definition := backendFixture(t)
 	ctx := context.Background()
@@ -354,8 +353,12 @@ func TestBackendFailsClosedForNetworkingAndGuestOperations(t *testing.T) {
 	}
 
 	instance := runner.Instance{ID: "lpic-daily-not-real"}
-	if _, err := backend.Exec(context.Background(), instance, runner.ExecRequest{}); !errors.Is(err, runner.ErrNotSupported) {
-		t.Fatalf("Exec() error = %v", err)
+	if _, err := backend.Exec(
+		context.Background(),
+		instance,
+		runner.ExecRequest{Argv: []string{"/usr/bin/true"}},
+	); !errors.Is(err, errUnknownVMInstance) {
+		t.Fatalf("Exec(unmanaged) error = %v, want errUnknownVMInstance", err)
 	}
 	if _, err := backend.Stat(context.Background(), instance, "/etc/passwd"); !errors.Is(err, runner.ErrNotSupported) {
 		t.Fatalf("Stat() error = %v", err)

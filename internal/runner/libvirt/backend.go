@@ -207,7 +207,6 @@ func (backend *Backend) OpenConsole(
 	return nil
 }
 
-
 func (backend *Backend) Stat(
 	context.Context,
 	runner.Instance,
