@@ -17,12 +17,12 @@ type lsblkDocument struct {
 }
 
 type lsblkDevice struct {
-	Path       string       `json:"path"`
-	DeviceType string       `json:"type"`
-	Filesystem string       `json:"fstype"`
-	Mountpoint string       `json:"mountpoint"`
-	PTType     string       `json:"pttype"`
-	Size       flexibleText `json:"size"`
+	Path       string        `json:"path"`
+	DeviceType string        `json:"type"`
+	Filesystem string        `json:"fstype"`
+	Mountpoint string        `json:"mountpoint"`
+	PTType     string        `json:"pttype"`
+	Size       flexibleText  `json:"size"`
 	Children   []lsblkDevice `json:"children"`
 }
 
