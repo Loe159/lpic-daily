@@ -168,8 +168,11 @@ func (model Dashboard) render() string {
 			prefix = "> "
 		}
 		kind := "Nouveau"
-		if item.Kind == learning.SessionReview {
+		switch item.Kind {
+		case learning.SessionReview:
 			kind = "Révision"
+		case learning.SessionPractice:
+			kind = "Consolidation"
 		}
 
 		title := singleLine(item.ConceptTitleFR)

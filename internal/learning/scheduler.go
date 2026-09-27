@@ -11,8 +11,9 @@ import (
 type SessionItemKind string
 
 const (
-	SessionReview SessionItemKind = "review"
-	SessionNew    SessionItemKind = "new"
+	SessionReview   SessionItemKind = "review"
+	SessionPractice SessionItemKind = "practice"
+	SessionNew      SessionItemKind = "new"
 )
 
 type SessionItem struct {
@@ -129,6 +130,27 @@ func BuildSession(input SessionInput) (Session, error) {
 		}
 	}
 
+	for _, concept := range input.Bundle.Concepts.Concepts {
+		if !concept.Active || !eligible[concept.ObjectiveID] {
+			continue
+		}
+		projection, exists := input.Projections[concept.ID]
+		if !exists || !needsImmediatePractice(projection) {
+			continue
+		}
+		if containsConcept(session.Items, concept.ID) {
+			continue
+		}
+		session.Items = append(session.Items, SessionItem{
+			ConceptID:   concept.ID,
+			ObjectiveID: concept.ObjectiveID,
+			Kind:        SessionPractice,
+			ReasonCode:  "practice-after-exposure",
+			ReasonFR:    "Consolidation immédiate: le concept a été exposé mais aucune réponse correcte n'a encore confirmé sa compréhension.",
+		})
+		return session, nil
+	}
+
 	newCount := 0
 	for _, concept := range input.Bundle.Concepts.Concepts {
 		if newCount >= input.Policy.MaxNewConcepts {
@@ -154,6 +176,15 @@ func BuildSession(input SessionInput) (Session, error) {
 	}
 
 	return session, nil
+}
+
+func needsImmediatePractice(projection MasteryProjection) bool {
+	return projection.Stage == StageExposed &&
+		projection.SuccessfulRecognition == 0 &&
+		projection.SuccessfulRecall == 0 &&
+		projection.SuccessfulGuided == 0 &&
+		projection.SuccessfulIndependent == 0 &&
+		projection.SuccessfulTransfer == 0
 }
 
 func containsConcept(items []SessionItem, conceptID string) bool {

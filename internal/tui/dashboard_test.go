@@ -85,3 +85,20 @@ func TestNewConceptDefaultsToFocusedLesson(t *testing.T) {
 		t.Fatalf("action = %#v quit=%v", model.action, quit)
 	}
 }
+
+func TestPracticeDefaultsToQuestion(t *testing.T) {
+	model := NewDashboard(study.Plan{Items: []study.Item{{
+		ConceptID:             "first",
+		ConceptTitleFR:        "Premier",
+		ObjectiveID:           "103.1",
+		Kind:                  learning.SessionPractice,
+		RecommendedQuestionID: "question.first",
+	}}}, gamification.Snapshot{})
+	model, quit := model.updateKey("enter")
+	if !quit || model.action != (Action{Kind: ActionQuestion, ID: "question.first"}) {
+		t.Fatalf("action = %#v quit=%v", model.action, quit)
+	}
+	if !strings.Contains(model.render(), "Consolidation") {
+		t.Fatalf("render = %q", model.render())
+	}
+}

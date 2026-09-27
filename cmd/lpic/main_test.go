@@ -52,8 +52,9 @@ func TestLearnRecordsExposureAndAdvancesNewConcept(t *testing.T) {
 	if err := runWithIO([]string{"today"}, strings.NewReader(""), &todayOut, &bytes.Buffer{}); err != nil {
 		t.Fatalf("today after lesson error = %v", err)
 	}
-	if !strings.Contains(todayOut.String(), "variables shell/environnement") {
-		t.Fatalf("today did not advance to next concept: %q", todayOut.String())
+	if !strings.Contains(todayOut.String(), "Consolidation · 103.1 · syntaxe shell et séquences de commandes") ||
+		!strings.Contains(todayOut.String(), "lpic1.103.1.q.sequence-and") {
+		t.Fatalf("today did not request immediate consolidation: %q", todayOut.String())
 	}
 }
 
@@ -204,5 +205,34 @@ func TestUnknownLabFails(t *testing.T) {
 	)
 	if err == nil || !strings.Contains(err.Error(), "unknown lab") {
 		t.Fatalf("error = %v, want unknown lab", err)
+	}
+}
+
+func TestCorrectRecognitionAfterLessonAdvancesToNextConcept(t *testing.T) {
+	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
+
+	if err := runWithIO(
+		[]string{"learn", "lpic1.103.1.lesson.shell-sequences"},
+		strings.NewReader("o\n"),
+		&bytes.Buffer{},
+		&bytes.Buffer{},
+	); err != nil {
+		t.Fatalf("learn error = %v", err)
+	}
+	if err := runWithIO(
+		[]string{"question", "lpic1.103.1.q.sequence-and"},
+		strings.NewReader("2\n"),
+		&bytes.Buffer{},
+		&bytes.Buffer{},
+	); err != nil {
+		t.Fatalf("question error = %v", err)
+	}
+
+	var todayOut bytes.Buffer
+	if err := runWithIO([]string{"today"}, strings.NewReader(""), &todayOut, &bytes.Buffer{}); err != nil {
+		t.Fatalf("today error = %v", err)
+	}
+	if !strings.Contains(todayOut.String(), "Nouveau · 103.1 · variables shell/environnement") {
+		t.Fatalf("today did not advance after consolidation: %q", todayOut.String())
 	}
 }

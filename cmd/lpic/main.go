@@ -225,8 +225,11 @@ func runToday(args []string, stdout io.Writer) error {
 
 	for index, item := range plan.Items {
 		kind := "Nouveau"
-		if item.Kind == learning.SessionReview {
+		switch item.Kind {
+		case learning.SessionReview:
 			kind = "Révision"
+		case learning.SessionPractice:
+			kind = "Consolidation"
 		}
 		fmt.Fprintf(
 			stdout,

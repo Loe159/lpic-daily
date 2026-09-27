@@ -166,3 +166,47 @@ func TestQuickPolicyLimitsReviews(t *testing.T) {
 		t.Fatalf("items = %#v, want exactly one review", plan.Items)
 	}
 }
+
+func TestExposedConceptRecommendsQuestionNotLesson(t *testing.T) {
+	curriculumBundle, contentBundle, labs := loadInputs(t)
+	now := time.Date(2026, 9, 27, 2, 0, 0, 0, time.UTC)
+	conceptID := "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes"
+
+	evidence := memoryEvidence{
+		conceptID: {{
+			EventID:          "lesson-1",
+			OccurredAt:       now,
+			ConceptID:        conceptID,
+			ObjectiveIDs:     []string{"103.1"},
+			SourceItemID:     "lpic1.103.1.lesson.shell-sequences",
+			ActivityKind:     learning.ActivityLesson,
+			EvidenceKind:     learning.EvidenceExposure,
+			Result:           learning.ResultPass,
+			HighestHintLevel: 0,
+			SolutionRevealed: false,
+			Distribution:     "generic",
+			AttemptIndex:     1,
+		}},
+	}
+
+	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
+		Now:        now,
+		Curriculum: curriculumBundle,
+		Content:    contentBundle,
+		Labs:       labs,
+		Evidence:   evidence,
+		Policy:     learning.DefaultSessionPolicy(),
+	})
+	if err != nil {
+		t.Fatalf("BuildPlan() error = %v", err)
+	}
+	if len(plan.Items) != 1 || plan.Items[0].Kind != learning.SessionPractice {
+		t.Fatalf("items = %#v, want immediate practice", plan.Items)
+	}
+	if plan.Items[0].RecommendedLessonID != "" {
+		t.Fatalf("practice unexpectedly recommends lesson %q", plan.Items[0].RecommendedLessonID)
+	}
+	if plan.Items[0].RecommendedQuestionID != "lpic1.103.1.q.sequence-and" {
+		t.Fatalf("practice question = %q", plan.Items[0].RecommendedQuestionID)
+	}
+}
