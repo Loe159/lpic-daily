@@ -1,0 +1,148 @@
+package libvirt
+
+import (
+	"encoding/xml"
+	"path/filepath"
+	"strings"
+	"testing"
+
+	"github.com/Loe159/lpic-daily/internal/runner"
+)
+
+func TestBuildDomainXMLContainsOnlyManagedVirtualResources(t *testing.T) {
+	stateRoot := filepath.Join(t.TempDir(), "state")
+	rootDisk := filepath.Join(stateRoot, "vm", "root.qcow2")
+	dataDisk := filepath.Join(stateRoot, "vm", "data.qcow2")
+
+	payload, err := BuildDomainXML(DomainSpec{
+		Name:         "lpic-daily-storage-abc123",
+		LabID:        "lpic1.104.1.partition-disk",
+		MemoryMB:     1024,
+		CPUPercent:   150,
+		Firmware:     runner.FirmwareUEFI,
+		RootDiskPath: rootDisk,
+		ExtraDisks: []DiskPath{{
+			ID:   "data",
+			Path: dataDisk,
+		}},
+		NetworkName: "lpic-daily-net-abc123",
+	}, stateRoot)
+	if err != nil {
+		t.Fatalf("BuildDomainXML() error = %v", err)
+	}
+
+	for _, want := range []string{
+		"<domain type="kvm">",
+		"<name>lpic-daily-storage-abc123</name>",
+		"<memory unit="MiB">1024</memory>",
+		"<vcpu placement="static">2</vcpu>",
+		"<period>100000</period>",
+		"<quota>150000</quota>",
+		"<os firmware="efi">",
+		"<source file="" + rootDisk + ""></source>",
+		"<target dev="vda" bus="virtio"></target>",
+		"<source file="" + dataDisk + ""></source>",
+		"<target dev="vdb" bus="virtio"></target>",
+		"<source network="lpic-daily-net-abc123"></source>",
+		"<model type="virtio"></model>",
+		"<serial type="pty">",
+		"<console type="pty">",
+	} {
+		if !strings.Contains(payload, want) {
+			t.Fatalf("domain XML missing %q:
+%s", want, payload)
+		}
+	}
+	for _, forbidden := range []string{
+		"<hostdev",
+		"<filesystem",
+		"<graphics",
+		"<emulator>",
+		"qemu:commandline",
+		"<channel",
+	} {
+		if strings.Contains(payload, forbidden) {
+			t.Fatalf("domain XML contains forbidden %q:
+%s", forbidden, payload)
+		}
+	}
+}
+
+func TestDomainSpecRejectsHostPathsAndUnmanagedNetwork(t *testing.T) {
+	stateRoot := filepath.Join(t.TempDir(), "state")
+	base := DomainSpec{
+		Name:         "lpic-daily-test-abc",
+		LabID:        "lpic1.104.1.test",
+		MemoryMB:     512,
+		CPUPercent:   100,
+		Firmware:     runner.FirmwareBIOS,
+		RootDiskPath: filepath.Join(stateRoot, "root.qcow2"),
+	}
+	if err := base.Validate(stateRoot); err != nil {
+		t.Fatalf("valid spec rejected: %v", err)
+	}
+
+	badPath := base
+	badPath.RootDiskPath = "/etc/passwd"
+	if err := badPath.Validate(stateRoot); err == nil || !strings.Contains(err.Error(), "escapes trusted root") {
+		t.Fatalf("bad path error = %v", err)
+	}
+
+	badNetwork := base
+	badNetwork.NetworkName = "default"
+	if err := badNetwork.Validate(stateRoot); err == nil || !strings.Contains(err.Error(), "managed network") {
+		t.Fatalf("bad network error = %v", err)
+	}
+}
+
+func TestIsolatedNetworkXMLHasNoForwarding(t *testing.T) {
+	payload, err := BuildIsolatedNetworkXML("lpic-daily-net-abc", 77)
+	if err != nil {
+		t.Fatalf("BuildIsolatedNetworkXML() error = %v", err)
+	}
+	if strings.Contains(payload, "<forward") {
+		t.Fatalf("isolated network unexpectedly forwards traffic:
+%s", payload)
+	}
+	for _, want := range []string{
+		"<name>lpic-daily-net-abc</name>",
+		"address="192.168.77.1"",
+		"start="192.168.77.10"",
+		"end="192.168.77.200"",
+	} {
+		if !strings.Contains(payload, want) {
+			t.Fatalf("network XML missing %q:
+%s", want, payload)
+		}
+	}
+
+	var decoded networkXML
+	if err := xml.Unmarshal([]byte(payload), &decoded); err != nil {
+		t.Fatalf("network XML does not round-trip: %v", err)
+	}
+}
+
+func TestImageDescriptorRejectsPathEscapesAndUnsupportedFirmware(t *testing.T) {
+	root := filepath.Join(t.TempDir(), "images")
+	image := ImageDescriptor{
+		ID:            "fedora-44-x86_64-v1",
+		Path:          filepath.Join(root, "fedora-44", "base.qcow2"),
+		SHA256:        strings.Repeat("a", 64),
+		Format:        "qcow2",
+		Architecture:  "x86_64",
+		Distribution:  "fedora",
+		VirtualSizeMB: 8192,
+		FirmwareModes: []runner.FirmwareMode{runner.FirmwareBIOS, runner.FirmwareUEFI},
+	}
+	if err := image.Validate(root); err != nil {
+		t.Fatalf("valid image descriptor rejected: %v", err)
+	}
+	if !image.SupportsFirmware(runner.FirmwareUEFI) {
+		t.Fatal("UEFI support not detected")
+	}
+
+	image.Path = "/tmp/foreign.qcow2"
+	if err := image.Validate(root); err == nil {
+		t.Fatal("escaped image path unexpectedly accepted")
+	}
+}

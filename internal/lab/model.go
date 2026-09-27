@@ -21,12 +21,23 @@ type Definition struct {
 }
 
 type Environment struct {
-	Backend            string   `json:"backend"`
-	ImageRef           string   `json:"image_ref"`
-	Distribution       string   `json:"distribution"`
-	Network            string   `json:"network"`
-	CapabilityProfile  string   `json:"capability_profile"`
-	WritableGuestPaths []string `json:"writable_guest_paths"`
+	Backend            string    `json:"backend"`
+	ImageRef           string    `json:"image_ref"`
+	Distribution       string    `json:"distribution"`
+	Network            string    `json:"network"`
+	CapabilityProfile  string    `json:"capability_profile"`
+	WritableGuestPaths []string  `json:"writable_guest_paths"`
+	Machine            *Machine  `json:"machine,omitempty"`
+}
+
+type Machine struct {
+	Firmware   string        `json:"firmware"`
+	ExtraDisks []MachineDisk `json:"extra_disks,omitempty"`
+}
+
+type MachineDisk struct {
+	ID     string `json:"id"`
+	SizeMB int    `json:"size_mb"`
 }
 
 type Resources struct {

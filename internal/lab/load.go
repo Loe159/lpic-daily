@@ -120,6 +120,17 @@ func (lab Lab) RunnerDefinition() (runner.Definition, error) {
 		PIDs:              lab.Definition.Resources.PIDs,
 		Timeout:           time.Duration(lab.Definition.Resources.TimeoutSeconds) * time.Second,
 	}
+	if machine := lab.Definition.Environment.Machine; machine != nil {
+		definition.Machine = &runner.MachineDefinition{
+			Firmware: runner.FirmwareMode(machine.Firmware),
+		}
+		for _, disk := range machine.ExtraDisks {
+			definition.Machine.ExtraDisks = append(definition.Machine.ExtraDisks, runner.VirtualDisk{
+				ID:     disk.ID,
+				SizeMB: disk.SizeMB,
+			})
+		}
+	}
 	if err := definition.Validate(); err != nil {
 		return runner.Definition{}, err
 	}
@@ -198,6 +209,16 @@ func validateDefinition(fsys fs.FS, base string, definition Definition) error {
 	}
 	if definition.Environment.Network != "none" && definition.Environment.Network != "isolated" {
 		return fmt.Errorf("unsupported network %q", definition.Environment.Network)
+	}
+	switch definition.Environment.Backend {
+	case "podman":
+		if definition.Environment.Machine != nil {
+			return errors.New("podman lab must not declare machine settings")
+		}
+	case "libvirt":
+		if definition.Environment.Machine == nil {
+			return errors.New("libvirt lab requires machine settings")
+		}
 	}
 	if definition.Setup.ExecutionScope != "sandbox" {
 		return errors.New("setup execution scope must be sandbox")

@@ -85,6 +85,29 @@ func TestBuildCreateRequestIsFailClosed(t *testing.T) {
 	}
 }
 
+func TestPrepareRejectsMachineSettings(t *testing.T) {
+	socket, stop := fakePodmanSocket(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == apiBase+"/info" {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(`{"host":{"cgroupVersion":"v2","security":{"rootless":true}}}`))
+			return
+		}
+		t.Errorf("unexpected Podman call after machine settings should have been rejected: %s %s", r.Method, r.URL.Path)
+		http.Error(w, "unexpected", http.StatusInternalServerError)
+	})
+	defer stop()
+
+	backend, err := Open(context.Background(), "unix://"+socket)
+	if err != nil {
+		t.Fatalf("Open() error = %v", err)
+	}
+	definition := validDefinition()
+	definition.Machine = &runner.MachineDefinition{Firmware: runner.FirmwareUEFI}
+	if _, err := backend.Prepare(context.Background(), definition); !errors.Is(err, runner.ErrNotSupported) {
+		t.Fatalf("Prepare() error = %v, want ErrNotSupported", err)
+	}
+}
+
 func TestBuildCreateRequestRejectsIsolatedUntilImplemented(t *testing.T) {
 	definition := validDefinition()
 	definition.Network = runner.NetworkIsolated

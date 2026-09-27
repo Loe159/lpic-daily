@@ -106,8 +106,84 @@
             "pattern": "^/"
           },
           "uniqueItems": true
+        },
+        "machine": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "firmware"
+          ],
+          "properties": {
+            "firmware": {
+              "enum": [
+                "bios",
+                "uefi"
+              ]
+            },
+            "extra_disks": {
+              "type": "array",
+              "maxItems": 4,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "id",
+                  "size_mb"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9][a-z0-9-]{0,31}$"
+                  },
+                  "size_mb": {
+                    "type": "integer",
+                    "minimum": 64,
+                    "maximum": 8192
+                  }
+                }
+              }
+            }
+          }
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "backend": {
+                "const": "libvirt"
+              }
+            },
+            "required": [
+              "backend"
+            ]
+          },
+          "then": {
+            "required": [
+              "machine"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "backend": {
+                "const": "podman"
+              }
+            },
+            "required": [
+              "backend"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "machine"
+              ]
+            }
+          }
+        }
+      ]
     },
     "resources": {
       "type": "object",

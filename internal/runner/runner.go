@@ -16,6 +16,46 @@ const (
 	NetworkIsolated NetworkMode = "isolated"
 )
 
+type FirmwareMode string
+
+const (
+	FirmwareBIOS FirmwareMode = "bios"
+	FirmwareUEFI FirmwareMode = "uefi"
+)
+
+type VirtualDisk struct {
+	ID     string
+	SizeMB int
+}
+
+type MachineDefinition struct {
+	Firmware   FirmwareMode
+	ExtraDisks []VirtualDisk
+}
+
+func (machine MachineDefinition) Validate() error {
+	if machine.Firmware != FirmwareBIOS && machine.Firmware != FirmwareUEFI {
+		return errors.New("machine firmware must be bios or uefi")
+	}
+	if len(machine.ExtraDisks) > 4 {
+		return errors.New("machine supports at most 4 extra disks")
+	}
+	seen := make(map[string]struct{}, len(machine.ExtraDisks))
+	for _, disk := range machine.ExtraDisks {
+		if disk.ID == "" {
+			return errors.New("extra disk ID is required")
+		}
+		if _, exists := seen[disk.ID]; exists {
+			return errors.New("extra disk IDs must be unique")
+		}
+		seen[disk.ID] = struct{}{}
+		if disk.SizeMB < 64 || disk.SizeMB > 8192 {
+			return errors.New("extra disk size must be between 64 and 8192 MiB")
+		}
+	}
+	return nil
+}
+
 type Definition struct {
 	LabID             string
 	ImageRef          string
@@ -26,6 +66,7 @@ type Definition struct {
 	CPUPercent        int
 	PIDs              int
 	Timeout           time.Duration
+	Machine           *MachineDefinition
 }
 
 func (definition Definition) Validate() error {
@@ -52,6 +93,11 @@ func (definition Definition) Validate() error {
 	}
 	if definition.Timeout < 30*time.Second {
 		return errors.New("timeout must be at least 30 seconds")
+	}
+	if definition.Machine != nil {
+		if err := definition.Machine.Validate(); err != nil {
+			return err
+		}
 	}
 	return nil
 }

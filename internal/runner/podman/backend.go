@@ -158,6 +158,9 @@ func (backend *Backend) Prepare(ctx context.Context, definition runner.Definitio
 	if err := definition.Validate(); err != nil {
 		return runner.Instance{}, fmt.Errorf("validate lab definition: %w", err)
 	}
+	if definition.Machine != nil {
+		return runner.Instance{}, fmt.Errorf("%w: Podman does not accept full-machine settings", runner.ErrNotSupported)
+	}
 	if definition.Network != runner.NetworkNone {
 		return runner.Instance{}, fmt.Errorf("%w: Podman Phase 1 supports network=none only", runner.ErrNotSupported)
 	}
