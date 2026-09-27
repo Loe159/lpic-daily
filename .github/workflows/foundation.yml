@@ -85,8 +85,13 @@ jobs:
         shell: bash
         run: |
           export XDG_RUNTIME_DIR="$RUNNER_TEMP/lpic-daily-runtime"
-          mkdir -p "$XDG_RUNTIME_DIR"
+          mkdir -p "$XDG_RUNTIME_DIR" "$HOME/.config/containers"
           chmod 700 "$XDG_RUNTIME_DIR"
+          cat > "$HOME/.config/containers/containers.conf" <<'EOF'
+          [engine]
+          cgroup_manager="cgroupfs"
+          events_logger="file"
+          EOF
           podman info
           podman build -t localhost/lpic-daily/fedora-phase1:1 -f labs/images/fedora-phase1/Containerfile labs/images/fedora-phase1
           echo "XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR" >> "$GITHUB_ENV"
