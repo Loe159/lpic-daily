@@ -21,5 +21,6 @@
     "lpic-required"
   ],
   "distribution": "generic",
-  "explanation_fr": "`&&` exécute la commande de droite uniquement si la commande de gauche retourne le statut 0."
+  "explanation_fr": "`&&` exécute la commande de droite uniquement si la commande de gauche retourne le statut 0.",
+  "usage": "initial-assessment"
 }

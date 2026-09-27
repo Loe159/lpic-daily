@@ -127,6 +127,9 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 
 	questions := make(map[string][]string)
 	for _, question := range input.Content.Questions {
+		if question.Usage == "initial-assessment" {
+			continue
+		}
 		for _, conceptID := range question.ConceptIDs {
 			if _, wanted := phase1Concepts[conceptID]; wanted {
 				questions[conceptID] = append(questions[conceptID], question.ID)

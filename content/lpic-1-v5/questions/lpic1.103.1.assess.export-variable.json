@@ -21,5 +21,6 @@
     "lpic-required"
   ],
   "distribution": "generic",
-  "explanation_fr": "`export FOO=bar` affecte la variable et la marque pour transmission aux processus enfants."
+  "explanation_fr": "`export FOO=bar` affecte la variable et la marque pour transmission aux processus enfants.",
+  "usage": "initial-assessment"
 }

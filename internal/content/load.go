@@ -158,6 +158,11 @@ func validateQuestion(
 	if question.EvidenceKindOnSuccess != "recognition" && question.EvidenceKindOnSuccess != "recall" {
 		return fmt.Errorf("unsupported evidence kind %q", question.EvidenceKindOnSuccess)
 	}
+	switch question.Usage {
+	case "", "daily", "initial-assessment":
+	default:
+		return fmt.Errorf("unsupported question usage %q", question.Usage)
+	}
 	if err := validateReferences(question.ObjectiveIDs, question.ConceptIDs, knownObjectives, knownConcepts); err != nil {
 		return err
 	}

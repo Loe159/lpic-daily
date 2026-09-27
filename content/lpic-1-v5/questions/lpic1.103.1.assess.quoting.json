@@ -23,5 +23,6 @@
     "lpic-required"
   ],
   "distribution": "generic",
-  "explanation_fr": "Les quotes/apostrophes simples rendent leur contenu littéral."
+  "explanation_fr": "Les quotes/apostrophes simples rendent leur contenu littéral.",
+  "usage": "initial-assessment"
 }

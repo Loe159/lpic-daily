@@ -40,6 +40,7 @@ type Question struct {
 	ObjectiveIDs          []string `json:"objective_ids"`
 	ConceptIDs            []string `json:"concept_ids"`
 	Type                  string   `json:"type"`
+	Usage                 string   `json:"usage,omitempty"`
 	PromptFR              string   `json:"prompt_fr"`
 	Choices               []Choice `json:"choices,omitempty"`
 	Grading               Grading  `json:"grading"`

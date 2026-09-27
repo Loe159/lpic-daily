@@ -21,5 +21,6 @@
     "lpic-required"
   ],
   "distribution": "generic",
-  "explanation_fr": "Le builtin `history` affiche l'historique de la session courante."
+  "explanation_fr": "Le builtin `history` affiche l'historique de la session courante.",
+  "usage": "initial-assessment"
 }

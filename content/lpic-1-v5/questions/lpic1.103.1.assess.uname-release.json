@@ -21,5 +21,6 @@
     "lpic-required"
   ],
   "distribution": "generic",
-  "explanation_fr": "`uname -r` affiche la release du noyau."
+  "explanation_fr": "`uname -r` affiche la release du noyau.",
+  "usage": "initial-assessment"
 }

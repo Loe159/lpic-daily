@@ -21,5 +21,6 @@
     "lpic-required"
   ],
   "distribution": "generic",
-  "explanation_fr": "PATH est parcouru de gauche à droite : `/opt/tools/tool` gagne."
+  "explanation_fr": "PATH est parcouru de gauche à droite : `/opt/tools/tool` gagne.",
+  "usage": "initial-assessment"
 }
