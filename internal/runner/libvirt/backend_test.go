@@ -22,8 +22,10 @@ type fakeControlPlane struct {
 	destroys     int
 	undefines    int
 	removeNVRAM  bool
-	consoleOpens int
-	closed       bool
+	consoleOpens   int
+	agentResponses []string
+	agentCommands  []string
+	closed         bool
 }
 
 func newFakeControlPlane() *fakeControlPlane {
@@ -60,6 +62,22 @@ func (fake *fakeControlPlane) OpenConsole(name string, input io.Reader, output i
 	fake.consoleOpens++
 	_, err := io.Copy(output, input)
 	return err
+}
+
+func (fake *fakeControlPlane) AgentCommand(name, command string, timeoutSeconds int32) (string, error) {
+	if !fake.active[name] {
+		return "", errors.New("domain not active")
+	}
+	if timeoutSeconds <= 0 {
+		return "", errors.New("invalid timeout")
+	}
+	fake.agentCommands = append(fake.agentCommands, command)
+	if len(fake.agentResponses) == 0 {
+		return "", errors.New("no fake guest-agent response")
+	}
+	response := fake.agentResponses[0]
+	fake.agentResponses = fake.agentResponses[1:]
+	return response, nil
 }
 
 func (fake *fakeControlPlane) DomainState(name string) (DomainState, error) {
@@ -224,6 +242,78 @@ func TestBackendSerialConsoleRequiresActiveManagedVM(t *testing.T) {
 		request,
 	); err == nil || !errors.Is(err, errUnknownVMInstance) {
 		t.Fatalf("OpenConsole(unmanaged) error = %v", err)
+	}
+}
+
+
+func TestBackendExecUsesStructuredGuestAgentCommand(t *testing.T) {
+	backend, control, _, definition := backendFixture(t)
+	ctx := context.Background()
+
+	instance, err := backend.Prepare(ctx, definition)
+	if err != nil {
+		t.Fatalf("Prepare() error = %v", err)
+	}
+	if err := backend.Start(ctx, instance); err != nil {
+		t.Fatalf("Start() error = %v", err)
+	}
+
+	control.agentResponses = []string{
+		`{"return":{"pid":42}}`,
+		`{"return":{"exited":false}}`,
+		`{"return":{"exited":true,"exitcode":7,"out-data":"b2sK","err-data":"ZXJyCg=="}}`,
+	}
+
+	var stdout strings.Builder
+	var stderr strings.Builder
+	result, err := backend.Exec(ctx, instance, runner.ExecRequest{
+		Argv:   []string{"/usr/bin/false", "--example"},
+		Env:    map[string]string{"Z_LAST": "z", "A_FIRST": "a"},
+		Stdout: &stdout,
+		Stderr: &stderr,
+	})
+	if err != nil {
+		t.Fatalf("Exec() error = %v", err)
+	}
+	if result.ExitCode != 7 || stdout.String() != "ok\n" || stderr.String() != "err\n" {
+		t.Fatalf(
+			"result=%#v stdout=%q stderr=%q",
+			result,
+			stdout.String(),
+			stderr.String(),
+		)
+	}
+	if len(control.agentCommands) != 3 {
+		t.Fatalf("agent commands = %d, want 3", len(control.agentCommands))
+	}
+	if !strings.Contains(control.agentCommands[0], `"path":"/usr/bin/false"`) ||
+		!strings.Contains(control.agentCommands[0], `"arg":["--example"]`) ||
+		!strings.Contains(control.agentCommands[0], `"env":["A_FIRST=a","Z_LAST=z"]`) {
+		t.Fatalf("guest-exec request = %s", control.agentCommands[0])
+	}
+	if strings.Contains(control.agentCommands[0], "/bin/sh") {
+		t.Fatalf("guest-exec unexpectedly introduced a shell: %s", control.agentCommands[0])
+	}
+}
+
+func TestBackendExecRejectsTTYAndWorkingDirectory(t *testing.T) {
+	backend, _, _, definition := backendFixture(t)
+	ctx := context.Background()
+	instance, err := backend.Prepare(ctx, definition)
+	if err != nil {
+		t.Fatalf("Prepare() error = %v", err)
+	}
+	if err := backend.Start(ctx, instance); err != nil {
+		t.Fatalf("Start() error = %v", err)
+	}
+
+	for _, request := range []runner.ExecRequest{
+		{Argv: []string{"/bin/bash"}, TTY: true},
+		{Argv: []string{"/bin/pwd"}, WorkingDir: "/tmp"},
+	} {
+		if _, err := backend.Exec(ctx, instance, request); !errors.Is(err, runner.ErrNotSupported) {
+			t.Fatalf("Exec(%#v) error = %v, want ErrNotSupported", request, err)
+		}
 	}
 }
 

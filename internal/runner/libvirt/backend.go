@@ -207,16 +207,6 @@ func (backend *Backend) OpenConsole(
 	return nil
 }
 
-func (backend *Backend) Exec(
-	context.Context,
-	runner.Instance,
-	runner.ExecRequest,
-) (runner.ExecResult, error) {
-	return runner.ExecResult{}, fmt.Errorf(
-		"%w: guest command transport is not implemented yet",
-		runner.ErrNotSupported,
-	)
-}
 
 func (backend *Backend) Stat(
 	context.Context,
