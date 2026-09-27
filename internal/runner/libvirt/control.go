@@ -14,6 +14,7 @@ const systemURI = "qemu:///system"
 type DomainState struct {
 	State  int32
 	Reason int32
+	Active bool
 }
 
 type ControlPlane interface {
@@ -128,7 +129,11 @@ func (control *RPCControlPlane) DomainState(name string) (DomainState, error) {
 	if err != nil {
 		return DomainState{}, fmt.Errorf("get domain %s state: %w", name, err)
 	}
-	return DomainState{State: state, Reason: reason}, nil
+	return DomainState{
+		State:  state,
+		Reason: reason,
+		Active: state != int32(golibvirt.DomainShutoff) && state != int32(golibvirt.DomainNostate),
+	}, nil
 }
 
 func (control *RPCControlPlane) DestroyDomain(name string) error {
