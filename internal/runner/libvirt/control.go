@@ -201,7 +201,7 @@ func validateSystemCapabilities(capabilities string) error {
 	}
 	if !strings.Contains(capabilities, "<arch>x86_64</arch>") &&
 		!strings.Contains(capabilities, "<arch name='x86_64'>") &&
-		!strings.Contains(capabilities, "<arch name="x86_64">") {
+		!strings.Contains(capabilities, `<arch name="x86_64">`) {
 		return errors.New("libvirt host does not advertise x86_64 capabilities")
 	}
 	return nil
