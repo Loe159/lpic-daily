@@ -133,45 +133,54 @@ func runDashboard(stdin io.Reader, stdout, stderr io.Writer) error {
 	}
 
 	ctx := context.Background()
-	store, err := openProgressStore(ctx)
-	if err != nil {
-		return err
-	}
-	plan, planErr := study.BuildPlan(ctx, study.PlanInput{
-		Now:        time.Now(),
-		Curriculum: curriculumBundle,
-		Content:    contentBundle,
-		Labs:       labs,
-		Evidence:   store,
-		Policy:     learning.DefaultSessionPolicy(),
-	})
-	gameSnapshot, gameErr := loadGamificationSnapshot(ctx, store, time.Now())
-	closeErr := store.Close()
-	if planErr != nil {
-		return planErr
-	}
-	if gameErr != nil {
-		return gameErr
-	}
-	if closeErr != nil {
-		return closeErr
-	}
+	for {
+		store, err := openProgressStore(ctx)
+		if err != nil {
+			return err
+		}
+		now := time.Now()
+		plan, planErr := study.BuildPlan(ctx, study.PlanInput{
+			Now:        now,
+			Curriculum: curriculumBundle,
+			Content:    contentBundle,
+			Labs:       labs,
+			Evidence:   store,
+			Policy:     learning.DefaultSessionPolicy(),
+		})
+		gameSnapshot, gameErr := loadGamificationSnapshot(ctx, store, now)
+		closeErr := store.Close()
+		if planErr != nil {
+			return planErr
+		}
+		if gameErr != nil {
+			return gameErr
+		}
+		if closeErr != nil {
+			return closeErr
+		}
 
-	action, err := lpicui.Run(ctx, plan, gameSnapshot, stdin, stdout)
-	if err != nil {
-		return fmt.Errorf("run TUI: %w", err)
-	}
-	switch action.Kind {
-	case lpicui.ActionNone:
-		return nil
-	case lpicui.ActionLesson:
-		return runLearn([]string{action.ID}, stdin, stdout)
-	case lpicui.ActionQuestion:
-		return runQuestion([]string{action.ID}, stdin, stdout)
-	case lpicui.ActionLab:
-		return runLabCommand([]string{"run", action.ID}, stdin, stdout, stderr)
-	default:
-		return fmt.Errorf("unsupported TUI action %q", action.Kind)
+		action, err := lpicui.Run(ctx, plan, gameSnapshot, stdin, stdout)
+		if err != nil {
+			return fmt.Errorf("run TUI: %w", err)
+		}
+
+		switch action.Kind {
+		case lpicui.ActionNone:
+			return nil
+		case lpicui.ActionLesson:
+			err = runLearn([]string{action.ID}, stdin, stdout)
+		case lpicui.ActionQuestion:
+			err = runQuestion([]string{action.ID}, stdin, stdout)
+		case lpicui.ActionLab:
+			err = runLabCommand([]string{"run", action.ID}, stdin, stdout, stderr)
+		default:
+			return fmt.Errorf("unsupported TUI action %q", action.Kind)
+		}
+		if err != nil {
+			return err
+		}
+
+		fmt.Fprintln(stdout)
 	}
 }
 
