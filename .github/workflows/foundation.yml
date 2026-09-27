@@ -48,3 +48,22 @@ jobs:
         run: go vet ./...
       - name: Validate embedded curriculum through Go loader
         run: go run ./cmd/lpic validate
+
+  fedora-core:
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:44
+    steps:
+      - name: Install Fedora runner prerequisites
+        run: dnf -y install git-core python3 tar gzip findutils
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Validate foundation on Fedora
+        run: python3 scripts/validate_foundation.py
+      - name: Test Go core on Fedora
+        run: go test ./...
+      - name: Validate embedded content on Fedora
+        run: go run ./cmd/lpic validate
