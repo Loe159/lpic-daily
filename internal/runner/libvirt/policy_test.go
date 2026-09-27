@@ -39,9 +39,9 @@ func TestBuildDomainXMLContainsOnlyManagedVirtualResources(t *testing.T) {
 		"<period>100000</period>",
 		"<quota>150000</quota>",
 		`<os firmware="efi">`,
-		"<source file=\\\"" + rootDisk + "\\"></source>",
+		"<source file=\\"" + rootDisk + "\"></source>",
 		`<target dev="vda" bus="virtio"></target>`,
-		"<source file=\\\"" + dataDisk + "\\"></source>",
+		"<source file=\\"" + dataDisk + "\"></source>",
 		`<target dev="vdb" bus="virtio"></target>`,
 		`<source network="lpic-daily-net-abc123"></source>`,
 		`<model type="virtio"></model>`,
@@ -49,7 +49,7 @@ func TestBuildDomainXMLContainsOnlyManagedVirtualResources(t *testing.T) {
 		"<console type="pty">",
 	} {
 		if !strings.Contains(payload, want) {
-			t.Fatalf("domain XML missing %q:\\n%s", want, payload)
+			t.Fatalf("domain XML missing %q:\n%s", want, payload)
 		}
 	}
 	for _, forbidden := range []string{
@@ -61,7 +61,7 @@ func TestBuildDomainXMLContainsOnlyManagedVirtualResources(t *testing.T) {
 		"<channel",
 	} {
 		if strings.Contains(payload, forbidden) {
-			t.Fatalf("domain XML contains forbidden %q:\\n%s", forbidden, payload)
+			t.Fatalf("domain XML contains forbidden %q:\n%s", forbidden, payload)
 		}
 	}
 }
@@ -99,7 +99,7 @@ func TestIsolatedNetworkXMLHasNoForwarding(t *testing.T) {
 		t.Fatalf("BuildIsolatedNetworkXML() error = %v", err)
 	}
 	if strings.Contains(payload, "<forward") {
-		t.Fatalf("isolated network unexpectedly forwards traffic:\\n%s", payload)
+		t.Fatalf("isolated network unexpectedly forwards traffic:\n%s", payload)
 	}
 	for _, want := range []string{
 		"<name>lpic-daily-net-abc</name>",
@@ -108,7 +108,7 @@ func TestIsolatedNetworkXMLHasNoForwarding(t *testing.T) {
 		`end="192.168.77.200"`,
 	} {
 		if !strings.Contains(payload, want) {
-			t.Fatalf("network XML missing %q:\\n%s", want, payload)
+			t.Fatalf("network XML missing %q:\n%s", want, payload)
 		}
 	}
 

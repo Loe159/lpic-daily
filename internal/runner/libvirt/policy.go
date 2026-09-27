@@ -375,6 +375,5 @@ func BuildIsolatedNetworkXML(name string, subnetOctet int) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("marshal network XML: %w", err)
 	}
-	return xml.Header + string(payload) + "
-", nil
+	return xml.Header + string(payload) + "\n", nil
 }
