@@ -118,7 +118,12 @@ func RecordLab(
 	}
 
 	for _, conceptID := range authored.Definition.ConceptIDs {
-		attempt, err := nextAttempt(ctx, store, conceptID, authored.Definition.ID)
+		events, err := store.EvidenceForConcept(ctx, conceptID)
+		if err != nil {
+			return fmt.Errorf("load existing lab evidence for %s: %w", conceptID, err)
+		}
+		attempt := nextAttemptFromEvents(events, authored.Definition.ID)
+		evidenceKind, err := practicalEvidenceKind(conceptID, events, highestHintLevel, at)
 		if err != nil {
 			return err
 		}
@@ -133,7 +138,7 @@ func RecordLab(
 			ObjectiveIDs:     append([]string(nil), authored.Definition.ObjectiveIDs...),
 			SourceItemID:     authored.Definition.ID,
 			ActivityKind:     learning.ActivityLab,
-			EvidenceKind:     learning.EvidenceIndependentPractice,
+			EvidenceKind:     evidenceKind,
 			Result:           learning.ResultPass,
 			HighestHintLevel: highestHintLevel,
 			SolutionRevealed: highestHintLevel == 4,
@@ -147,6 +152,29 @@ func RecordLab(
 	return nil
 }
 
+func practicalEvidenceKind(
+	conceptID string,
+	events []learning.EvidenceEvent,
+	highestHintLevel int,
+	at time.Time,
+) (learning.EvidenceKind, error) {
+	if highestHintLevel >= 2 {
+		return learning.EvidenceIndependentPractice, nil
+	}
+
+	policy := learning.DefaultProjectionPolicy()
+	projection, err := learning.ProjectMastery(conceptID, events, policy)
+	if err != nil {
+		return "", fmt.Errorf("project existing practical evidence for %s: %w", conceptID, err)
+	}
+	if projection.Stage >= learning.StageIndependent &&
+		!projection.LastStageEvidenceAt.IsZero() &&
+		!at.Before(projection.LastStageEvidenceAt.Add(policy.MinTransferGap)) {
+		return learning.EvidenceTransfer, nil
+	}
+	return learning.EvidenceIndependentPractice, nil
+}
+
 func nextAttempt(
 	ctx context.Context,
 	store EvidenceReader,
@@ -157,13 +185,17 @@ func nextAttempt(
 	if err != nil {
 		return 0, fmt.Errorf("load existing attempts for %s: %w", conceptID, err)
 	}
+	return nextAttemptFromEvents(events, sourceItemID), nil
+}
+
+func nextAttemptFromEvents(events []learning.EvidenceEvent, sourceItemID string) int {
 	maxAttempt := 0
 	for _, event := range events {
 		if event.SourceItemID == sourceItemID && event.AttemptIndex > maxAttempt {
 			maxAttempt = event.AttemptIndex
 		}
 	}
-	return maxAttempt + 1, nil
+	return maxAttempt + 1
 }
 
 func newEventID() (string, error) {
