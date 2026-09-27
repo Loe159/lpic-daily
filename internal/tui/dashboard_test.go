@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/Loe159/lpic-daily/internal/gamification"
 	"github.com/Loe159/lpic-daily/internal/learning"
 	"github.com/Loe159/lpic-daily/internal/study"
 )
@@ -30,7 +31,7 @@ func TestDashboardRenderSanitizesPlanText(t *testing.T) {
 		ReasonFR:              "raison\x07",
 		RecommendedLessonID:   "lesson\x1b[31m",
 		RecommendedQuestionID: "question",
-	}}})
+	}}}, gamification.Snapshot{XP: 42, CurrentStreakDays: 2})
 
 	rendered := model.render()
 	if strings.ContainsRune(rendered, '\x1b') || strings.ContainsRune(rendered, '\r') || strings.ContainsRune(rendered, '\x07') {
@@ -55,7 +56,7 @@ func TestDashboardNavigationAndDefaultAction(t *testing.T) {
 			Kind:                  learning.SessionReview,
 			RecommendedQuestionID: "question.second",
 		},
-	}})
+	}}, gamification.Snapshot{})
 
 	model, quit := model.updateKey("down")
 	if quit || model.cursor != 1 {
@@ -78,7 +79,7 @@ func TestNewConceptDefaultsToFocusedLesson(t *testing.T) {
 		Kind:                  learning.SessionNew,
 		RecommendedLessonID:   "lesson.first",
 		RecommendedQuestionID: "question.first",
-	}}})
+	}}}, gamification.Snapshot{})
 	model, quit := model.updateKey("enter")
 	if !quit || model.action != (Action{Kind: ActionLesson, ID: "lesson.first"}) {
 		t.Fatalf("action = %#v quit=%v", model.action, quit)

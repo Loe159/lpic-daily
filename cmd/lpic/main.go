@@ -18,6 +18,7 @@ import (
 	"github.com/Loe159/lpic-daily/internal/content"
 	"github.com/Loe159/lpic-daily/internal/curriculum"
 	"github.com/Loe159/lpic-daily/internal/doctor"
+	"github.com/Loe159/lpic-daily/internal/gamification"
 	"github.com/Loe159/lpic-daily/internal/lab"
 	"github.com/Loe159/lpic-daily/internal/learning"
 	progresssqlite "github.com/Loe159/lpic-daily/internal/progress/sqlite"
@@ -144,15 +145,19 @@ func runDashboard(stdin io.Reader, stdout, stderr io.Writer) error {
 		Evidence:   store,
 		Policy:     learning.DefaultSessionPolicy(),
 	})
+	gameSnapshot, gameErr := loadGamificationSnapshot(ctx, store, time.Now())
 	closeErr := store.Close()
 	if planErr != nil {
 		return planErr
+	}
+	if gameErr != nil {
+		return gameErr
 	}
 	if closeErr != nil {
 		return closeErr
 	}
 
-	action, err := lpicui.Run(ctx, plan, stdin, stdout)
+	action, err := lpicui.Run(ctx, plan, gameSnapshot, stdin, stdout)
 	if err != nil {
 		return fmt.Errorf("run TUI: %w", err)
 	}
@@ -293,10 +298,19 @@ func runLearn(args []string, stdin io.Reader, stdout io.Writer) error {
 	}
 	defer store.Close()
 
-	if err := study.RecordLesson(ctx, store, lesson, time.Now()); err != nil {
+	now := time.Now()
+	if err := study.RecordLesson(ctx, store, lesson, now); err != nil {
 		return err
 	}
 	fmt.Fprintln(stdout, "Progression enregistrée.")
+	recordGamificationBestEffort(
+		ctx,
+		store,
+		gamification.EventLessonCompleted,
+		now,
+		map[string]string{"source_item_id": lesson.ID},
+		stdout,
+	)
 	return nil
 }
 
@@ -340,9 +354,22 @@ func runQuestion(args []string, stdin io.Reader, stdout io.Writer) error {
 	}
 	defer store.Close()
 
-	if err := study.RecordQuestion(ctx, store, question, pass, time.Now()); err != nil {
+	now := time.Now()
+	if err := study.RecordQuestion(ctx, store, question, pass, now); err != nil {
 		return err
 	}
+	eventType := gamification.EventQuestionFailed
+	if pass {
+		eventType = gamification.EventQuestionPassed
+	}
+	recordGamificationBestEffort(
+		ctx,
+		store,
+		eventType,
+		now,
+		map[string]string{"source_item_id": question.ID},
+		stdout,
+	)
 
 	if pass {
 		fmt.Fprintln(stdout, "Correct.")
@@ -403,6 +430,48 @@ func parseAnswer(question content.Question, line string) (content.Answer, error)
 		return content.Answer{ChoiceIDs: ids}, nil
 	default:
 		return content.Answer{Text: line}, nil
+	}
+}
+
+func loadGamificationSnapshot(
+	ctx context.Context,
+	store *progresssqlite.Store,
+	now time.Time,
+) (gamification.Snapshot, error) {
+	events, err := store.GamificationEvents(ctx)
+	if err != nil {
+		return gamification.Snapshot{}, fmt.Errorf("load gamification: %w", err)
+	}
+	snapshot, err := gamification.Project(events, time.Local, now)
+	if err != nil {
+		return gamification.Snapshot{}, fmt.Errorf("project gamification: %w", err)
+	}
+	return snapshot, nil
+}
+
+func recordGamificationBestEffort(
+	ctx context.Context,
+	store *progresssqlite.Store,
+	eventType gamification.EventType,
+	at time.Time,
+	metadata map[string]string,
+	out io.Writer,
+) {
+	snapshot, unlocked, err := gamification.RecordActivity(
+		ctx,
+		store,
+		eventType,
+		at,
+		metadata,
+		time.Local,
+	)
+	if err != nil {
+		fmt.Fprintf(out, "Avertissement: gamification non enregistrée: %v\n", err)
+		return
+	}
+	fmt.Fprintf(out, "XP: %d · série: %d jour(s)\n", snapshot.XP, snapshot.CurrentStreakDays)
+	for _, achievement := range unlocked {
+		fmt.Fprintf(out, "Achievement débloqué: %s (+%d XP)\n", achievement.TitleFR, achievement.XPReward)
 	}
 }
 
@@ -616,15 +685,24 @@ func runInteractiveLab(authored lab.Lab, stdin io.Reader, stdout, stderr io.Writ
 				if err != nil {
 					return fmt.Errorf("lab succeeded but progress could not be opened: %w", err)
 				}
-				recordErr := study.RecordLab(ctx, store, authored, highestHintLevel, time.Now())
-				closeErr := store.Close()
+				now := time.Now()
+				recordErr := study.RecordLab(ctx, store, authored, highestHintLevel, now)
 				if recordErr != nil {
+					store.Close()
 					return fmt.Errorf("lab succeeded but progress could not be recorded: %w", recordErr)
 				}
-				if closeErr != nil {
+				fmt.Fprintln(stdout, "Progression enregistrée.")
+				recordGamificationBestEffort(
+					ctx,
+					store,
+					gamification.EventLabPassed,
+					now,
+					map[string]string{"source_item_id": authored.Definition.ID},
+					stdout,
+				)
+				if closeErr := store.Close(); closeErr != nil {
 					return fmt.Errorf("lab succeeded but progress store could not be closed: %w", closeErr)
 				}
-				fmt.Fprintln(stdout, "Progression enregistrée.")
 				return nil
 			}
 			continue

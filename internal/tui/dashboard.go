@@ -7,6 +7,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
+	"github.com/Loe159/lpic-daily/internal/gamification"
 	"github.com/Loe159/lpic-daily/internal/learning"
 	"github.com/Loe159/lpic-daily/internal/study"
 )
@@ -27,15 +28,17 @@ type Action struct {
 
 type Dashboard struct {
 	plan   study.Plan
+	game   gamification.Snapshot
 	cursor int
 	width  int
 	height int
 	action Action
 }
 
-func NewDashboard(plan study.Plan) Dashboard {
+func NewDashboard(plan study.Plan, game gamification.Snapshot) Dashboard {
 	return Dashboard{
 		plan:  plan,
+		game:  game,
 		width: 80,
 	}
 }
@@ -140,6 +143,16 @@ func (model Dashboard) render() string {
 
 	var output strings.Builder
 	output.WriteString("LPIC Daily · Aujourd'hui\n")
+	output.WriteString(clip(
+		fmt.Sprintf(
+			"XP %d · série %d jour(s) · achievements %d",
+			model.game.XP,
+			model.game.CurrentStreakDays,
+			len(model.game.UnlockedAchievements),
+		),
+		width,
+	))
+	output.WriteString("\n")
 	output.WriteString(strings.Repeat("─", min(width, 72)))
 	output.WriteString("\n")
 
