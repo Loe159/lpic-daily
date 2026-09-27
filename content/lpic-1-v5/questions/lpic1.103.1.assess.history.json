@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.assess.history",
+  "objective_ids": [
+    "103.1"
+  ],
+  "concept_ids": [
+    "lpic1.103.1.historique"
+  ],
+  "type": "fill-in",
+  "prompt_fr": "Quel builtin Bash affiche l'historique connu du shell courant ?",
+  "grading": {
+    "strategy": "exact-text",
+    "accepted_answers": [
+      "history"
+    ],
+    "case_sensitive": true
+  },
+  "evidence_kind_on_success": "recall",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic",
+  "explanation_fr": "Le builtin `history` affiche l'historique de la session courante."
+}

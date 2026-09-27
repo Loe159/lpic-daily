@@ -25,6 +25,7 @@
           "lpic1.103.1.lesson.shell-sequences"
         ],
         "questions": [
+          "lpic1.103.1.assess.shell-sequence",
           "lpic1.103.1.q.sequence-and"
         ]
       }
@@ -41,6 +42,7 @@
           "lpic1.103.1.lesson.variables-environment"
         ],
         "questions": [
+          "lpic1.103.1.assess.export-variable",
           "lpic1.103.1.q.export"
         ]
       }
@@ -57,6 +59,7 @@
           "lpic1.103.1.lesson.path-resolution"
         ],
         "questions": [
+          "lpic1.103.1.assess.path-resolution",
           "lpic1.103.1.q.path-order"
         ]
       }
@@ -73,6 +76,7 @@
           "lpic1.103.1.lesson.quoting-arguments"
         ],
         "questions": [
+          "lpic1.103.1.assess.quoting",
           "lpic1.103.1.q.single-quotes"
         ]
       }
@@ -87,6 +91,7 @@
           "lpic1.103.1.lesson.command-line-foundations"
         ],
         "questions": [
+          "lpic1.103.1.assess.history",
           "lpic1.103.1.q.history"
         ]
       }
@@ -101,6 +106,7 @@
           "lpic1.103.1.lesson.identify-document-command"
         ],
         "questions": [
+          "lpic1.103.1.assess.type",
           "lpic1.103.1.q.type"
         ]
       }
@@ -115,6 +121,7 @@
           "lpic1.103.1.lesson.command-line-foundations"
         ],
         "questions": [
+          "lpic1.103.1.assess.uname-release",
           "lpic1.103.1.q.uname-release"
         ]
       }

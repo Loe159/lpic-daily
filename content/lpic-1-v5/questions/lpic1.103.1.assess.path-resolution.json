@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.assess.path-resolution",
+  "objective_ids": [
+    "103.1"
+  ],
+  "concept_ids": [
+    "lpic1.103.1.path-et-resolution-de-commande"
+  ],
+  "type": "fill-in",
+  "prompt_fr": "PATH vaut `/opt/tools:/usr/bin` et `tool` existe dans les deux répertoires. Quel chemin sera exécuté pour `tool` ?",
+  "grading": {
+    "strategy": "exact-text",
+    "accepted_answers": [
+      "/opt/tools/tool"
+    ],
+    "case_sensitive": true
+  },
+  "evidence_kind_on_success": "recall",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic",
+  "explanation_fr": "PATH est parcouru de gauche à droite : `/opt/tools/tool` gagne."
+}

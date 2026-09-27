@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.assess.quoting",
+  "objective_ids": [
+    "103.1"
+  ],
+  "concept_ids": [
+    "lpic1.103.1.quoting-escaping"
+  ],
+  "type": "fill-in",
+  "prompt_fr": "Quel type de quotes empêche l'expansion de `$HOME` : simples ou doubles ?",
+  "grading": {
+    "strategy": "exact-text",
+    "accepted_answers": [
+      "simples",
+      "quotes simples",
+      "apostrophes simples"
+    ],
+    "case_sensitive": false
+  },
+  "evidence_kind_on_success": "recall",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic",
+  "explanation_fr": "Les quotes/apostrophes simples rendent leur contenu littéral."
+}

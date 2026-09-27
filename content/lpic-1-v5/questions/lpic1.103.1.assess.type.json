@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.assess.type",
+  "objective_ids": [
+    "103.1"
+  ],
+  "concept_ids": [
+    "lpic1.103.1.documentation-et-identification-d-une-commande"
+  ],
+  "type": "fill-in",
+  "prompt_fr": "Quel builtin Bash indique si un nom est un alias, une fonction, un builtin ou un exécutable ?",
+  "grading": {
+    "strategy": "exact-text",
+    "accepted_answers": [
+      "type"
+    ],
+    "case_sensitive": true
+  },
+  "evidence_kind_on_success": "recall",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic",
+  "explanation_fr": "`type` identifie la nature du nom résolu par le shell."
+}

@@ -16,8 +16,8 @@ func TestBuiltinPhase1ContentCoversEveryConcept(t *testing.T) {
 	if len(bundle.Lessons) != 25 {
 		t.Fatalf("lessons = %d, want 25 (22 introductions + 3 deepen)", len(bundle.Lessons))
 	}
-	if len(bundle.Questions) != 22 {
-		t.Fatalf("questions = %d, want 22", len(bundle.Questions))
+	if len(bundle.Questions) != 29 {
+		t.Fatalf("questions = %d, want 29 (22 daily + 7 initial assessment)", len(bundle.Questions))
 	}
 
 	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
@@ -57,8 +57,8 @@ func TestBuiltinPhase1ContentCoversEveryConcept(t *testing.T) {
 		if introductions[conceptID] != 1 {
 			t.Errorf("concept %s focused introduction coverage = %d, want exactly 1", conceptID, introductions[conceptID])
 		}
-		if questionCoverage[conceptID] != 1 {
-			t.Errorf("concept %s question coverage = %d, want exactly 1", conceptID, questionCoverage[conceptID])
+		if questionCoverage[conceptID] < 1 {
+			t.Errorf("concept %s has no question coverage", conceptID)
 		}
 	}
 }

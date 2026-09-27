@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.assess.shell-sequence",
+  "objective_ids": [
+    "103.1"
+  ],
+  "concept_ids": [
+    "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes"
+  ],
+  "type": "fill-in",
+  "prompt_fr": "Quel opérateur Bash exécute `cmd2` uniquement si `cmd1` réussit ?",
+  "grading": {
+    "strategy": "exact-text",
+    "accepted_answers": [
+      "&&"
+    ],
+    "case_sensitive": true
+  },
+  "evidence_kind_on_success": "recall",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic",
+  "explanation_fr": "`&&` exécute la commande de droite uniquement si la commande de gauche retourne le statut 0."
+}

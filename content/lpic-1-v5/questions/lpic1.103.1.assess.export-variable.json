@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.assess.export-variable",
+  "objective_ids": [
+    "103.1"
+  ],
+  "concept_ids": [
+    "lpic1.103.1.variables-shell-environnement"
+  ],
+  "type": "fill-in",
+  "prompt_fr": "Écris une commande Bash qui crée `FOO=bar` et l'exporte vers les processus enfants en une seule ligne.",
+  "grading": {
+    "strategy": "exact-text",
+    "accepted_answers": [
+      "export FOO=bar"
+    ],
+    "case_sensitive": true
+  },
+  "evidence_kind_on_success": "recall",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic",
+  "explanation_fr": "`export FOO=bar` affecte la variable et la marque pour transmission aux processus enfants."
+}
