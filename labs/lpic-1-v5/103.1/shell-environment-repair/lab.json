@@ -37,7 +37,8 @@
   "resources": {
     "memory_mb": 256,
     "pids": 96,
-    "timeout_seconds": 1200
+    "timeout_seconds": 1200,
+    "cpu_percent": 100
   },
   "setup": {
     "execution_scope": "sandbox",

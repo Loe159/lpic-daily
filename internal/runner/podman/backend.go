@@ -51,11 +51,17 @@ type namespace struct {
 
 type linuxResources struct {
 	Memory *linuxMemory `json:"memory,omitempty"`
+	CPU    *linuxCPU    `json:"cpu,omitempty"`
 	Pids   *linuxPids   `json:"pids,omitempty"`
 }
 
 type linuxMemory struct {
 	Limit *int64 `json:"limit,omitempty"`
+}
+
+type linuxCPU struct {
+	Quota  *int64  `json:"quota,omitempty"`
+	Period *uint64 `json:"period,omitempty"`
 }
 
 type linuxPids struct {
@@ -292,6 +298,8 @@ func buildCreateRequest(definition runner.Definition, name string) (createReques
 	falseValue := false
 	trueValue := true
 	memoryBytes := int64(definition.MemoryMB) * 1024 * 1024
+	cpuPeriod := uint64(100000)
+	cpuQuota := int64(cpuPeriod) * int64(definition.CPUPercent) / 100
 
 	return createRequest{
 		Name:         name,
@@ -318,6 +326,7 @@ func buildCreateRequest(definition runner.Definition, name string) (createReques
 		ImageVolumeMode: "ignore",
 		ResourceLimits: &linuxResources{
 			Memory: &linuxMemory{Limit: &memoryBytes},
+			CPU:    &linuxCPU{Quota: &cpuQuota, Period: &cpuPeriod},
 			Pids:   &linuxPids{Limit: int64(definition.PIDs)},
 		},
 	}, nil

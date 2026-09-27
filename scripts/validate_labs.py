@@ -103,6 +103,20 @@ def main():
                 f"{lab_id}: Phase-1 Podman content must use network=none until isolated networking is implemented"
             )
 
+        resources = lab.get("resources", {})
+        cpu_percent = resources.get("cpu_percent")
+        if not isinstance(cpu_percent, int) or isinstance(cpu_percent, bool) or not 10 <= cpu_percent <= 400:
+            errors.append(f"{lab_id}: cpu_percent must be an integer from 10 to 400")
+        memory_mb = resources.get("memory_mb")
+        if not isinstance(memory_mb, int) or isinstance(memory_mb, bool) or not 64 <= memory_mb <= 16384:
+            errors.append(f"{lab_id}: memory_mb must be an integer from 64 to 16384")
+        pids = resources.get("pids")
+        if not isinstance(pids, int) or isinstance(pids, bool) or not 16 <= pids <= 4096:
+            errors.append(f"{lab_id}: pids must be an integer from 16 to 4096")
+        timeout_seconds = resources.get("timeout_seconds")
+        if not isinstance(timeout_seconds, int) or isinstance(timeout_seconds, bool) or not 30 <= timeout_seconds <= 7200:
+            errors.append(f"{lab_id}: timeout_seconds must be an integer from 30 to 7200")
+
         setup = lab.get("setup", {})
         if setup.get("execution_scope") != "sandbox":
             errors.append(f"{lab_id}: setup must execute in sandbox")

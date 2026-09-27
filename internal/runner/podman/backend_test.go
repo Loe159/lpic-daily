@@ -23,6 +23,7 @@ func validDefinition() runner.Definition {
 		Network:           runner.NetworkNone,
 		CapabilityProfile: "identity-files",
 		MemoryMB:          256,
+		CPUPercent:        100,
 		PIDs:              128,
 		Timeout:           20 * time.Minute,
 	}
@@ -57,6 +58,17 @@ func TestBuildCreateRequestIsFailClosed(t *testing.T) {
 	}
 	if got, want := *request.ResourceLimits.Memory.Limit, int64(256*1024*1024); got != want {
 		t.Fatalf("memory limit = %d, want %d", got, want)
+	}
+	if request.ResourceLimits.CPU == nil ||
+		request.ResourceLimits.CPU.Quota == nil ||
+		request.ResourceLimits.CPU.Period == nil {
+		t.Fatal("CPU quota/period limit is required")
+	}
+	if got, want := *request.ResourceLimits.CPU.Period, uint64(100000); got != want {
+		t.Fatalf("CPU period = %d, want %d", got, want)
+	}
+	if got, want := *request.ResourceLimits.CPU.Quota, int64(100000); got != want {
+		t.Fatalf("CPU quota = %d, want %d for 100%% CPU", got, want)
 	}
 	if request.ResourceLimits.Pids == nil || request.ResourceLimits.Pids.Limit != 128 {
 		t.Fatal("PID limit is required")

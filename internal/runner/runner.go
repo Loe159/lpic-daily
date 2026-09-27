@@ -23,6 +23,7 @@ type Definition struct {
 	Network           NetworkMode
 	CapabilityProfile string
 	MemoryMB          int
+	CPUPercent        int
 	PIDs              int
 	Timeout           time.Duration
 }
@@ -42,6 +43,9 @@ func (definition Definition) Validate() error {
 	}
 	if definition.MemoryMB < 64 {
 		return errors.New("memory limit must be at least 64 MiB")
+	}
+	if definition.CPUPercent < 10 || definition.CPUPercent > 400 {
+		return errors.New("CPU limit must be between 10 and 400 percent")
 	}
 	if definition.PIDs < 16 {
 		return errors.New("PID limit must be at least 16")

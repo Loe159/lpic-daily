@@ -31,6 +31,7 @@ type Environment struct {
 
 type Resources struct {
 	MemoryMB       int `json:"memory_mb"`
+	CPUPercent     int `json:"cpu_percent"`
 	PIDs           int `json:"pids"`
 	TimeoutSeconds int `json:"timeout_seconds"`
 }

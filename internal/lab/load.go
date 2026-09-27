@@ -116,6 +116,7 @@ func (lab Lab) RunnerDefinition() (runner.Definition, error) {
 		Network:           runner.NetworkMode(lab.Definition.Environment.Network),
 		CapabilityProfile: lab.Definition.Environment.CapabilityProfile,
 		MemoryMB:          lab.Definition.Resources.MemoryMB,
+		CPUPercent:        lab.Definition.Resources.CPUPercent,
 		PIDs:              lab.Definition.Resources.PIDs,
 		Timeout:           time.Duration(lab.Definition.Resources.TimeoutSeconds) * time.Second,
 	}
