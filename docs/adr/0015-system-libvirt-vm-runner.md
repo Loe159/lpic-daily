@@ -97,3 +97,18 @@ device. It always:
 
 A later CLI checkpoint will add terminal escape/cancellation handling around
 this stream before VM labs become learner-runnable.
+
+
+## Structured storage probe
+
+The VM backend implements the optional `runner.StorageProbe` capability through
+QEMU Guest Agent structured execution.
+
+The probe runs fixed project-owned argv only:
+- `/usr/bin/lsblk --json --bytes --output PATH,TYPE,FSTYPE,MOUNTPOINT,PTTYPE,SIZE`;
+- `/usr/bin/cat /proc/swaps`.
+
+It flattens the resulting device tree into typed block-device observations and
+marks active swap devices from the kernel's `/proc/swaps` view. Curriculum
+cannot replace those probe commands. Storage checkers compare final state, not
+the learner's command sequence.

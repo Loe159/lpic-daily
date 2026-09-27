@@ -15,7 +15,10 @@ import (
 
 var domainSlugUnsafe = regexp.MustCompile(`[^a-z0-9.-]+`)
 
-var _ runner.ConsoleRunner = (*Backend)(nil)
+var (
+	_ runner.ConsoleRunner = (*Backend)(nil)
+	_ runner.StorageProbe  = (*Backend)(nil)
+)
 
 type Backend struct {
 	control   ControlPlane
