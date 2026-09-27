@@ -45,8 +45,8 @@ func TestBuildDomainXMLContainsOnlyManagedVirtualResources(t *testing.T) {
 		`<target dev="vdb" bus="virtio"></target>`,
 		`<source network="lpic-daily-net-abc123"></source>`,
 		`<model type="virtio"></model>`,
-		"<serial type="pty">",
-		"<console type="pty">",
+		`<serial type="pty">`,
+		`<console type="pty">`,
 	} {
 		if !strings.Contains(payload, want) {
 			t.Fatalf("domain XML missing %q:\n%s", want, payload)
