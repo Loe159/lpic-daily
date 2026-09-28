@@ -661,6 +661,41 @@ func TestBackendRejectsImageDistributionMismatchBeforeOverlayCreation(t *testing
 	}
 }
 
+func TestBackendScenarioSharesOneIsolatedNetwork(t *testing.T) {
+	backend, control, _, definition := backendFixture(t)
+	definition.Network = runner.NetworkIsolated
+	second := definition
+	second.LabID = "lpic1.109.2.peer-network"
+	ctx := context.Background()
+
+	scenario, err := backend.PrepareScenario(ctx, []runner.Definition{definition, second})
+	if err != nil {
+		t.Fatalf("PrepareScenario() error = %v", err)
+	}
+	if len(scenario.Instances) != 2 {
+		t.Fatalf("scenario instances = %d, want 2", len(scenario.Instances))
+	}
+	if len(control.networks) != 1 || !control.networkActive[scenario.NetworkName] {
+		t.Fatalf("scenario network state = %#v", control)
+	}
+	for _, instance := range scenario.Instances {
+		xml := control.defined[instance.ID]
+		if !strings.Contains(xml, `<source network="`+scenario.NetworkName+`"></source>`) {
+			t.Fatalf("domain %s does not use shared network:\n%s", instance.ID, xml)
+		}
+	}
+	if err := backend.DestroyScenario(ctx, scenario); err != nil {
+		t.Fatalf("DestroyScenario() error = %v", err)
+	}
+	if len(control.defined) != 0 || len(control.networks) != 0 {
+		t.Fatalf("scenario cleanup leaked resources: domains=%#v networks=%#v", control.defined, control.networks)
+	}
+	if control.networkStarts != 1 || control.networkDestroys != 1 || control.networkUndefines != 1 {
+		t.Fatalf("scenario network lifecycle = starts:%d destroys:%d undefines:%d",
+			control.networkStarts, control.networkDestroys, control.networkUndefines)
+	}
+}
+
 func TestBackendReapRemovesAbandonedResources(t *testing.T) {
 	backend, control, _, _ := backendFixture(t)
 	name := "lpic-daily-orphan-abc123"
