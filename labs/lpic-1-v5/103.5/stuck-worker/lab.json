@@ -28,6 +28,7 @@
     "modern-practice"
   ],
   "estimated_minutes": 18,
+  "practice_context": "process-incident",
   "environment": {
     "backend": "podman",
     "image_ref": "localhost/lpic-daily/fedora-phase1:1",
