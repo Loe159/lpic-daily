@@ -220,6 +220,7 @@ func (store *Store) migrate(ctx context.Context) error {
 		return err
 	}
 
+	latestSupported := 0
 	for _, entry := range entries {
 		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".sql") {
 			continue
@@ -231,6 +232,9 @@ func (store *Store) migrate(ctx context.Context) error {
 		version, err := strconv.Atoi(prefix)
 		if err != nil || version < 1 {
 			return fmt.Errorf("migration %s has invalid version prefix", entry.Name())
+		}
+		if version > latestSupported {
+			latestSupported = version
 		}
 		if version <= current {
 			continue
@@ -244,6 +248,14 @@ func (store *Store) migrate(ctx context.Context) error {
 			name:    entry.Name(),
 			sql:     string(body),
 		})
+	}
+
+	if current > latestSupported {
+		return fmt.Errorf(
+			"database schema version %d is newer than this binary supports (%d); refusing to open it",
+			current,
+			latestSupported,
+		)
 	}
 
 	sort.Slice(pending, func(i, j int) bool {
