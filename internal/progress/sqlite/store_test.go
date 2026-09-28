@@ -117,3 +117,52 @@ func TestEvidenceBatchRollsBackAtomically(t *testing.T) {
 		}
 	}
 }
+
+
+func TestLabDisclosureKeepsStrongestLevelUntilCleared(t *testing.T) {
+	ctx := context.Background()
+	store, err := Open(ctx, ":memory:")
+	if err != nil {
+		t.Fatalf("Open() error = %v", err)
+	}
+	defer store.Close()
+
+	at := time.Date(2026, 9, 28, 12, 0, 0, 0, time.UTC)
+	const labID = "lpic1.104.5.shared-dropbox"
+	if err := store.RecordLabDisclosure(ctx, labID, 2, false, at); err != nil {
+		t.Fatalf("RecordLabDisclosure(level 2) error = %v", err)
+	}
+	if err := store.RecordLabDisclosure(ctx, labID, 1, false, at.Add(time.Minute)); err != nil {
+		t.Fatalf("RecordLabDisclosure(level 1) error = %v", err)
+	}
+
+	disclosure, err := store.LabDisclosure(ctx, labID)
+	if err != nil {
+		t.Fatalf("LabDisclosure() error = %v", err)
+	}
+	if disclosure.HighestHintLevel != 2 || disclosure.SolutionRevealed {
+		t.Fatalf("disclosure = %#v, want level 2 without solution", disclosure)
+	}
+
+	if err := store.RecordLabDisclosure(ctx, labID, 4, true, at.Add(2*time.Minute)); err != nil {
+		t.Fatalf("RecordLabDisclosure(level 4) error = %v", err)
+	}
+	disclosure, err = store.LabDisclosure(ctx, labID)
+	if err != nil {
+		t.Fatalf("LabDisclosure() error = %v", err)
+	}
+	if disclosure.HighestHintLevel != 4 || !disclosure.SolutionRevealed {
+		t.Fatalf("disclosure = %#v, want level 4 solution reveal", disclosure)
+	}
+
+	if err := store.ClearLabDisclosure(ctx, labID); err != nil {
+		t.Fatalf("ClearLabDisclosure() error = %v", err)
+	}
+	disclosure, err = store.LabDisclosure(ctx, labID)
+	if err != nil {
+		t.Fatalf("LabDisclosure() after clear error = %v", err)
+	}
+	if disclosure.HighestHintLevel != 0 || disclosure.SolutionRevealed {
+		t.Fatalf("disclosure after clear = %#v, want empty", disclosure)
+	}
+}
