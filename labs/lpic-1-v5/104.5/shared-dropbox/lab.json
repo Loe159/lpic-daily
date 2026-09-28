@@ -2,15 +2,15 @@
   "schema_version": "1.0.0",
   "id": "lpic1.104.5.shared-dropbox",
   "title_fr": "Sécuriser un répertoire partagé",
-  "brief_fr": "Tu administres /srv/shared pour une équipe. Configure ce répertoire afin que les membres du groupe project puissent y collaborer sans ouvrir l'accès aux autres utilisateurs et sans permettre à un membre de supprimer librement les fichiers d'un autre membre.",
+  "brief_fr": "Tu administres /srv/shared pour une équipe. Configure ce répertoire afin que les membres du groupe project puissent y collaborer sans ouvrir l'accès aux autres utilisateurs et sans permettre à un membre de supprimer librement les fichiers d'un autre membre. Crée aussi /srv/shared/team-note avec un umask adapté pour obtenir des droits de collaboration sûrs.",
   "success_criteria_fr": [
     "/srv/shared appartient à root et au groupe project.",
     "Le propriétaire et les membres du groupe project ont un accès complet au répertoire, les autres utilisateurs n'ont aucun droit.",
     "Les nouvelles entrées créées dans le répertoire héritent du groupe project.",
     "Dans ce répertoire partagé, un utilisateur ordinaire ne peut pas supprimer ou renommer le fichier d'un autre utilisateur uniquement parce qu'il a le droit d'écrire dans le répertoire.",
-    "Les nouveaux fichiers créés par alice et bob utilisent le groupe project, restent modifiables par le groupe et n'accordent aucun droit aux autres grâce à un umask adapté."
+    "/srv/shared/team-note appartient au groupe project et a le mode 0660, résultat compatible avec un umask 0007 lors de sa création."
   ],
-  "debrief_fr": "Le mode final est 3770 : 770 donne rwx au propriétaire et au groupe, 2 active SGID sur le répertoire pour conserver le groupe project sur les nouvelles entrées, et 1 active le sticky bit pour restreindre suppression et renommage. Ces special permission bits n'ont pas le même effet sur un répertoire que sur un fichier exécutable.",
+  "debrief_fr": "Le mode final du répertoire est 3770 : 770 donne rwx au propriétaire et au groupe, 2 active SGID pour conserver le groupe project sur les nouvelles entrées, et 1 active le sticky bit pour restreindre suppression et renommage. Pour un fichier régulier créé à partir du mode de base 0666, un umask 0007 retire tous les droits à others et produit 0660. Ces mécanismes sont complémentaires : SGID agit sur le groupe hérité, sticky sur la suppression dans le répertoire, et umask sur les droits initiaux des nouvelles entrées.",
   "objective_ids": [
     "104.5"
   ],
@@ -33,11 +33,9 @@
     "image_ref": "localhost/lpic-daily/fedora-phase1:1",
     "distribution": "fedora",
     "network": "none",
-    "capability_profile": "shared-files-users",
+    "capability_profile": "identity-files",
     "writable_guest_paths": [
-      "/srv/shared",
-      "/home/alice",
-      "/home/bob"
+      "/srv/shared"
     ]
   },
   "resources": {
@@ -76,24 +74,15 @@
       "mode": "3770"
     },
     {
-      "type": "command-exit",
-      "argv": [
-        "/usr/bin/bash",
-        "-eu",
-        "-c",
-        "rm -f /srv/shared/.lpic-umask-alice /srv/shared/.lpic-umask-bob; runuser -l alice -c 'touch /srv/shared/.lpic-umask-alice'; runuser -l bob -c 'touch /srv/shared/.lpic-umask-bob'; test \"$(stat -c '%a:%G' /srv/shared/.lpic-umask-alice)\" = '660:project'; test \"$(stat -c '%a:%G' /srv/shared/.lpic-umask-bob)\" = '660:project'"
-      ],
-      "expected_exit": 0
+      "type": "file-owner",
+      "path": "/srv/shared/team-note",
+      "user": "root",
+      "group": "project"
     },
     {
-      "type": "command-exit",
-      "argv": [
-        "/usr/bin/bash",
-        "-eu",
-        "-c",
-        "rm -f /srv/shared/.lpic-sticky-probe; runuser -l alice -c 'touch /srv/shared/.lpic-sticky-probe'; if runuser -l bob -c 'rm /srv/shared/.lpic-sticky-probe'; then exit 1; fi; test -e /srv/shared/.lpic-sticky-probe"
-      ],
-      "expected_exit": 0
+      "type": "file-mode",
+      "path": "/srv/shared/team-note",
+      "mode": "0660"
     }
   ],
   "hint_ids": [

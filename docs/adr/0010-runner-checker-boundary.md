@@ -31,7 +31,6 @@ A caller may intentionally run `/bin/sh -c ...` **inside the sandbox** using str
 Initial profiles are intentionally narrow:
 - `baseline`: no extra capabilities;
 - `identity-files`: `CHOWN`, `FOWNER`, `FSETID` (nécessaire pour poser SGID sur un répertoire appartenant à un autre groupe dans le user namespace rootless);
-- `shared-files-users`: `CHOWN`, `FOWNER`, `FSETID`, `SETGID`, `SETUID`, réservé aux labs multi-utilisateurs qui doivent réellement changer d'identité dans le conteneur rootless; ces capacités restent confinées au user namespace du conteneur et ne permettent pas de devenir root sur l'hôte;
 - `process-lab`: `KILL`.
 
 The concrete Podman adapter must drop capabilities by default and map only these approved additions. Adding a capability profile requires security review.

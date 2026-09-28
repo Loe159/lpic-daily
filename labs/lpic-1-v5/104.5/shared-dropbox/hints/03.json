@@ -3,6 +3,6 @@
   "id": "lpic1.104.5.shared-dropbox.hint-3",
   "lab_id": "lpic1.104.5.shared-dropbox",
   "level": 3,
-  "content_fr": "Tu dois modifier ownership puis mode. Le résultat final attendu combine rwx pour owner/group, aucun droit pour others, SGID et sticky bit. Pense aussi au umask des utilisateurs : les nouveaux fichiers doivent rester accessibles en écriture au groupe project sans donner de droits aux autres.",
+  "content_fr": "Tu dois modifier ownership puis mode. Le résultat final attendu combine rwx pour owner/group, aucun droit pour others, SGID et sticky bit. Pour team-note, pars des droits de création habituels d'un fichier régulier et choisis un umask qui retire tous les droits à others sans retirer l'écriture au groupe.",
   "evidence_impact": "material"
 }
