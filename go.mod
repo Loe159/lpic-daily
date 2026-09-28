@@ -5,6 +5,7 @@ go 1.27.0
 require (
 	charm.land/bubbletea/v2 v2.0.10
 	github.com/digitalocean/go-libvirt v0.0.0-20260814190004-1a83157e1858
+	github.com/santhosh-tekuri/jsonschema/v6 v6.0.3
 	golang.org/x/sys v0.47.0
 	modernc.org/sqlite v1.59.0
 )
@@ -30,6 +31,7 @@ require (
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	golang.org/x/crypto v0.48.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect
+	golang.org/x/text v0.14.0 // indirect
 	modernc.org/libc v1.75.7 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
