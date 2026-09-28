@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/Loe159/lpic-daily/internal/curriculum"
+	"github.com/Loe159/lpic-daily/internal/schemavalidation"
 )
 
 const (
@@ -29,6 +30,10 @@ func Load(fsys fs.FS) (*Bundle, error) {
 	curriculumBundle, err := curriculum.Load(fsys)
 	if err != nil {
 		return nil, fmt.Errorf("load curriculum for content validation: %w", err)
+	}
+	schemaValidator, err := schemavalidation.New(fsys)
+	if err != nil {
+		return nil, fmt.Errorf("compile content schemas: %w", err)
 	}
 
 	lessonPaths, err := fs.Glob(fsys, lessonGlob)
@@ -69,6 +74,9 @@ func Load(fsys fs.FS) (*Bundle, error) {
 	seenIDs := make(map[string]string, len(lessonPaths)+len(questionPaths))
 
 	for _, name := range lessonPaths {
+		if err := schemaValidator.ValidateFile("lesson.schema.json", name); err != nil {
+			return nil, err
+		}
 		var lesson Lesson
 		if err := decodeStrictFile(fsys, name, &lesson); err != nil {
 			return nil, err
@@ -84,6 +92,9 @@ func Load(fsys fs.FS) (*Bundle, error) {
 	}
 
 	for _, name := range questionPaths {
+		if err := schemaValidator.ValidateFile("question.schema.json", name); err != nil {
+			return nil, err
+		}
 		var question Question
 		if err := decodeStrictFile(fsys, name, &question); err != nil {
 			return nil, err
