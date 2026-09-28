@@ -104,6 +104,16 @@ func (backend *Backend) Processes(
 	pidIndex := titleIndex(response.Titles, "PID")
 	commandIndex := titleIndex(response.Titles, "COMMAND", "COMM")
 	argsIndex := titleIndex(response.Titles, "ARGS")
+	if argsIndex < 0 {
+		// Some Podman versions label both comm and args columns as COMMAND
+		// even when ps_args=pid,comm,args. In that case the second COMMAND
+		// column is the full argument vector.
+		commandColumns := titleIndexes(response.Titles, "COMMAND")
+		if len(commandColumns) >= 2 {
+			commandIndex = commandColumns[0]
+			argsIndex = commandColumns[1]
+		}
+	}
 	if pidIndex < 0 || commandIndex < 0 || argsIndex < 0 {
 		return nil, fmt.Errorf("unexpected Podman top titles: %v", response.Titles)
 	}
@@ -286,6 +296,16 @@ func validateGuestPath(guestPath string) error {
 		return errors.New("guest path must be absolute")
 	}
 	return nil
+}
+
+func titleIndexes(titles []string, candidate string) []int {
+	indexes := make([]int, 0, len(titles))
+	for index, title := range titles {
+		if strings.EqualFold(strings.TrimSpace(title), candidate) {
+			indexes = append(indexes, index)
+		}
+	}
+	return indexes
 }
 
 func titleIndex(titles []string, candidates ...string) int {

@@ -43,4 +43,13 @@ func TestPhase1CapabilityProfilesAreAllowlisted(t *testing.T) {
 	if profile.Name != "identity-files" {
 		t.Fatalf("profile name = %q", profile.Name)
 	}
+	want := []string{"CHOWN", "FOWNER", "FSETID"}
+	if len(profile.Capabilities) != len(want) {
+		t.Fatalf("capabilities = %v, want %v", profile.Capabilities, want)
+	}
+	for index, capability := range want {
+		if profile.Capabilities[index] != capability {
+			t.Fatalf("capabilities = %v, want %v", profile.Capabilities, want)
+		}
+	}
 }

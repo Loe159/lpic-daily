@@ -60,6 +60,7 @@ type MasteryProjection struct {
 	Partials              int
 	LastEvidenceAt        time.Time
 	LastSuccessAt         time.Time
+	LastStageEvidenceAt   time.Time
 }
 
 func ProjectMastery(conceptID string, events []EvidenceEvent, policy ProjectionPolicy) (MasteryProjection, error) {
@@ -114,31 +115,41 @@ func ProjectMastery(conceptID string, events []EvidenceEvent, policy ProjectionP
 		}
 
 		effective := EffectiveEvidenceKind(event)
+		demonstratedStage := StageUnseen
 		switch effective {
 		case EvidenceExposure:
 			projection.SuccessfulExposure++
-			projection.Stage = maxStage(projection.Stage, StageExposed)
+			demonstratedStage = StageExposed
 		case EvidenceRecognition:
 			projection.SuccessfulRecognition++
-			projection.Stage = maxStage(projection.Stage, StageExposed)
+			demonstratedStage = StageExposed
 		case EvidenceRecall:
 			projection.SuccessfulRecall++
-			projection.Stage = maxStage(projection.Stage, StageRecall)
+			demonstratedStage = StageRecall
 		case EvidenceGuidedPractice:
 			projection.SuccessfulGuided++
-			projection.Stage = maxStage(projection.Stage, StageGuided)
+			demonstratedStage = StageGuided
 		case EvidenceIndependentPractice:
 			projection.SuccessfulIndependent++
-			projection.Stage = maxStage(projection.Stage, StageIndependent)
+			demonstratedStage = StageIndependent
 			independent = append(independent, event)
 		case EvidenceTransfer:
 			if qualifiesAsTransfer(event, independent, policy.MinTransferGap) {
 				projection.SuccessfulTransfer++
-				projection.Stage = maxStage(projection.Stage, StageTransfer)
+				demonstratedStage = StageTransfer
 			} else {
 				projection.SuccessfulIndependent++
-				projection.Stage = maxStage(projection.Stage, StageIndependent)
+				demonstratedStage = StageIndependent
 				independent = append(independent, event)
+			}
+		}
+		if demonstratedStage != StageUnseen {
+			projection.Stage = maxStage(projection.Stage, demonstratedStage)
+			// Reviews are anchored to evidence that actually supports the
+			// current mastery stage. Failures and weaker later activities must
+			// not postpone the next review.
+			if demonstratedStage == projection.Stage && event.OccurredAt.After(projection.LastStageEvidenceAt) {
+				projection.LastStageEvidenceAt = event.OccurredAt
 			}
 		}
 	}
@@ -148,10 +159,13 @@ func ProjectMastery(conceptID string, events []EvidenceEvent, policy ProjectionP
 
 func qualifiesAsTransfer(current EvidenceEvent, previous []EvidenceEvent, minGap time.Duration) bool {
 	for _, event := range previous {
-		if event.SourceItemID == current.SourceItemID {
+		if current.OccurredAt.Sub(event.OccurredAt) < minGap {
 			continue
 		}
-		if current.OccurredAt.Sub(event.OccurredAt) >= minGap {
+		// A different activity is genuine transfer. Repeating the same
+		// practical activity as a later attempt is accepted as independent
+		// confirmation, which is the Phase-1 path to full practical mastery.
+		if event.SourceItemID != current.SourceItemID || current.AttemptIndex > event.AttemptIndex {
 			return true
 		}
 	}

@@ -49,9 +49,10 @@ func TestSessionUnlocksProcessesAfterShellReadiness(t *testing.T) {
 	for _, concept := range bundle.Concepts.Concepts {
 		if concept.ObjectiveID == "103.1" {
 			projections[concept.ID] = learning.MasteryProjection{
-				ConceptID:      concept.ID,
-				Stage:          learning.StageRecall,
-				LastEvidenceAt: now,
+				ConceptID:           concept.ID,
+				Stage:               learning.StageRecall,
+				LastEvidenceAt:      now,
+				LastStageEvidenceAt: now,
 			}
 		}
 	}
@@ -86,9 +87,10 @@ func TestOverdueReviewPrecedesNewMaterial(t *testing.T) {
 
 	projections := map[string]learning.MasteryProjection{
 		shellConcept: {
-			ConceptID:      shellConcept,
-			Stage:          learning.StageRecall,
-			LastEvidenceAt: now.Add(-10 * 24 * time.Hour),
+			ConceptID:           shellConcept,
+			Stage:               learning.StageRecall,
+			LastEvidenceAt:      now.Add(-10 * 24 * time.Hour),
+			LastStageEvidenceAt: now.Add(-10 * 24 * time.Hour),
 		},
 	}
 
@@ -111,6 +113,41 @@ func TestOverdueReviewPrecedesNewMaterial(t *testing.T) {
 	}
 	if session.Items[1].Kind != learning.SessionNew {
 		t.Fatalf("second item = %#v, want new concept", session.Items[1])
+	}
+}
+
+func TestFailedReviewDoesNotPostponeNextReview(t *testing.T) {
+	bundle := loadBundle(t)
+	now := time.Date(2026, 9, 27, 12, 0, 0, 0, time.UTC)
+
+	var shellConcept string
+	for _, concept := range bundle.Concepts.Concepts {
+		if concept.ObjectiveID == "103.1" {
+			shellConcept = concept.ID
+			break
+		}
+	}
+
+	session, err := learning.BuildSession(learning.SessionInput{
+		Now:    now,
+		Bundle: bundle,
+		Projections: map[string]learning.MasteryProjection{
+			shellConcept: {
+				ConceptID:           shellConcept,
+				Stage:               learning.StageRecall,
+				LastEvidenceAt:      now,
+				LastStageEvidenceAt: now.Add(-4 * 24 * time.Hour),
+			},
+		},
+		ObjectiveReadiness: map[string]bool{},
+		ScopeObjectives:    []string{"103.1"},
+		Policy:             learning.DefaultSessionPolicy(),
+	})
+	if err != nil {
+		t.Fatalf("BuildSession() error = %v", err)
+	}
+	if len(session.Items) == 0 || session.Items[0].Kind != learning.SessionReview {
+		t.Fatalf("items = %#v, want review to remain due after later failure", session.Items)
 	}
 }
 

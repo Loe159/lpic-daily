@@ -180,6 +180,29 @@ func TestProcessesParsesStableDescriptors(t *testing.T) {
 	}
 }
 
+func TestProcessesAcceptsDuplicateCommandTitlesFromPodman(t *testing.T) {
+	backend, stop := openFakeBackend(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet || !strings.HasSuffix(r.URL.Path, "/top") {
+			http.NotFound(w, r)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = io.WriteString(w, `{
+			"Titles":["PID","COMMAND","COMMAND"],
+			"Processes":[["42","worker","worker --safe"]]
+		}`)
+	})
+	defer stop()
+
+	processes, err := backend.Processes(context.Background(), runner.Instance{ID: "ctr"})
+	if err != nil {
+		t.Fatalf("Processes() error = %v", err)
+	}
+	if len(processes) != 1 || processes[0].Command != "worker" || strings.Join(processes[0].Args, " ") != "worker --safe" {
+		t.Fatalf("processes = %#v", processes)
+	}
+}
+
 func TestEncodeEnvironmentIsDeterministic(t *testing.T) {
 	got, err := encodeEnvironment(map[string]string{"Z": "2", "A": "1"})
 	if err != nil {

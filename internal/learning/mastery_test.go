@@ -86,6 +86,26 @@ func TestSolutionRevealCannotCountAsIndependent(t *testing.T) {
 	}
 }
 
+func TestLaterIndependentConfirmationCanReachTransfer(t *testing.T) {
+	start := time.Date(2026, 9, 24, 8, 0, 0, 0, time.UTC)
+	independent := event("lab-a", start, learning.ActivityLab, learning.EvidenceIndependentPractice)
+	confirmation := event("lab-a-confirmation", start.Add(25*time.Hour), learning.ActivityLab, learning.EvidenceTransfer)
+	confirmation.SourceItemID = independent.SourceItemID
+	confirmation.AttemptIndex = 2
+
+	got, err := learning.ProjectMastery(
+		conceptID,
+		[]learning.EvidenceEvent{independent, confirmation},
+		learning.DefaultProjectionPolicy(),
+	)
+	if err != nil {
+		t.Fatalf("ProjectMastery() error = %v", err)
+	}
+	if got.Stage != learning.StageTransfer || got.SuccessfulTransfer != 1 {
+		t.Fatalf("projection = %#v, want confirmed transfer", got)
+	}
+}
+
 func TestTransferRequiresDifferentLaterContext(t *testing.T) {
 	start := time.Date(2026, 9, 24, 8, 0, 0, 0, time.UTC)
 	independent := event("lab-a", start, learning.ActivityLab, learning.EvidenceIndependentPractice)
@@ -145,5 +165,11 @@ func TestLaterFailureDoesNotEraseDemonstratedStage(t *testing.T) {
 	}
 	if got.Failures != 1 {
 		t.Fatalf("failures = %d, want 1", got.Failures)
+	}
+	if !got.LastEvidenceAt.Equal(failure.OccurredAt) {
+		t.Fatalf("last evidence = %s, want failure at %s", got.LastEvidenceAt, failure.OccurredAt)
+	}
+	if !got.LastStageEvidenceAt.Equal(transfer.OccurredAt) {
+		t.Fatalf("stage anchor = %s, want transfer at %s", got.LastStageEvidenceAt, transfer.OccurredAt)
 	}
 }

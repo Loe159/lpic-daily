@@ -85,14 +85,14 @@ func BuildSession(input SessionInput) (Session, error) {
 			continue
 		}
 		projection, exists := input.Projections[concept.ID]
-		if !exists || projection.Stage == StageUnseen || projection.LastEvidenceAt.IsZero() {
+		if !exists || projection.Stage == StageUnseen || projection.LastStageEvidenceAt.IsZero() {
 			continue
 		}
 		interval, exists := input.Policy.ReviewIntervals[projection.Stage]
 		if !exists {
 			continue
 		}
-		dueAt := projection.LastEvidenceAt.Add(interval)
+		dueAt := projection.LastStageEvidenceAt.Add(interval)
 		if dueAt.After(input.Now) {
 			continue
 		}
