@@ -6,6 +6,7 @@ import (
 	"time"
 
 	lpicdaily "github.com/Loe159/lpic-daily"
+	"github.com/Loe159/lpic-daily/internal/checker"
 	"github.com/Loe159/lpic-daily/internal/content"
 	"github.com/Loe159/lpic-daily/internal/lab"
 	"github.com/Loe159/lpic-daily/internal/learning"
@@ -257,5 +258,73 @@ func TestFailedLabAttemptIsStoredWithoutAdvancingMastery(t *testing.T) {
 	}
 	if projection.Stage != learning.StageUnseen || projection.Failures != 1 {
 		t.Fatalf("projection = %#v, want unseen with one failure", projection)
+	}
+}
+
+func TestLabConceptResultsPreserveMixedCheckOutcomes(t *testing.T) {
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("lab.LoadAll() error = %v", err)
+	}
+	var shared lab.Lab
+	for _, authored := range labs {
+		if authored.Definition.ID == "lpic1.104.5.shared-dropbox" {
+			shared = authored
+			break
+		}
+	}
+	if shared.Definition.ID == "" {
+		t.Fatal("shared-dropbox lab not found")
+	}
+
+	results := make([]checker.Result, len(shared.Definition.Checks))
+	for index := range results {
+		results[index] = checker.Result{CheckID: "check", Pass: true}
+	}
+	failedIndex := -1
+	for index, check := range shared.Definition.Checks {
+		if check.Type == "file-mode" && check.Path == "/srv/shared" {
+			failedIndex = index
+			break
+		}
+	}
+	if failedIndex < 0 {
+		t.Fatal("shared directory mode check not found")
+	}
+	results[failedIndex].Pass = false
+
+	conceptResults, err := study.LabConceptResults(shared, results)
+	if err != nil {
+		t.Fatalf("LabConceptResults() error = %v", err)
+	}
+	if got := conceptResults["lpic1.104.5.permissions-rwx-fichier-dossier"]; got != learning.ResultPass {
+		t.Fatalf("permissions result = %s, want pass", got)
+	}
+	if got := conceptResults["lpic1.104.5.sticky-bit"]; got != learning.ResultPartial {
+		t.Fatalf("sticky result = %s, want partial", got)
+	}
+	if got := conceptResults["lpic1.104.5.proprietaire-groupe"]; got != learning.ResultPass {
+		t.Fatalf("ownership result = %s, want pass", got)
+	}
+
+	store := newRecordingStore()
+	at := time.Date(2026, 9, 28, 18, 0, 0, 0, time.UTC)
+	if err := study.RecordLabConceptResults(
+		context.Background(),
+		store,
+		shared,
+		conceptResults,
+		0,
+		at,
+	); err != nil {
+		t.Fatalf("RecordLabConceptResults() error = %v", err)
+	}
+	permissionEvents := store.events["lpic1.104.5.permissions-rwx-fichier-dossier"]
+	stickyEvents := store.events["lpic1.104.5.sticky-bit"]
+	if len(permissionEvents) != 1 || permissionEvents[0].Result != learning.ResultPass {
+		t.Fatalf("permission events = %#v, want pass", permissionEvents)
+	}
+	if len(stickyEvents) != 1 || stickyEvents[0].Result != learning.ResultPartial {
+		t.Fatalf("sticky events = %#v, want partial", stickyEvents)
 	}
 }

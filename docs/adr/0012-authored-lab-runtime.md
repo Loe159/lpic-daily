@@ -12,6 +12,7 @@ The runtime:
 - loads the setup script and hints;
 - deliberately does **not** load the reference-solution script into normal runtime memory;
 - compiles authored state checks to project-owned checker types;
+- preserves each check-to-concept mapping through grading so a mixed lab attempt records pass/partial/fail evidence per concept instead of assigning one lab-wide result;
 - requires every state check to map to one or more declared concept IDs and rejects labs with declared concepts that have no check evidence;
 - maps the authored environment to `runner.Definition`;
 - executes setup only through `runner.Exec`, inside the already-created sandbox.

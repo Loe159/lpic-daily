@@ -577,7 +577,7 @@ func TestInteractiveSolutionHintPersistsAcrossRestart(t *testing.T) {
 	}
 }
 
-func TestFailedLabCheckRecordsFailureEvidence(t *testing.T) {
+func TestFailedLabCheckRecordsConceptGranularEvidence(t *testing.T) {
 	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
 
 	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
@@ -610,20 +610,44 @@ func TestFailedLabCheckRecordsFailureEvidence(t *testing.T) {
 		t.Fatalf("open progress store: %v", err)
 	}
 	defer store.Close()
-	conceptID := authored.Definition.ConceptIDs[0]
-	events, err := store.EvidenceForConcept(context.Background(), conceptID)
+
+	assertResult := func(conceptID string, want learning.Result) learning.EvidenceEvent {
+		t.Helper()
+		events, err := store.EvidenceForConcept(context.Background(), conceptID)
+		if err != nil {
+			t.Fatalf("EvidenceForConcept(%s) error = %v", conceptID, err)
+		}
+		if len(events) != 1 || events[0].Result != want {
+			t.Fatalf("events for %s = %#v, want one %s result", conceptID, events, want)
+		}
+		return events[0]
+	}
+
+	permission := assertResult("lpic1.104.5.permissions-rwx-fichier-dossier", learning.ResultPass)
+	sticky := assertResult("lpic1.104.5.sticky-bit", learning.ResultPartial)
+
+	permissionProjection, err := learning.ProjectMastery(
+		permission.ConceptID,
+		[]learning.EvidenceEvent{permission},
+		learning.DefaultProjectionPolicy(),
+	)
 	if err != nil {
-		t.Fatalf("EvidenceForConcept() error = %v", err)
+		t.Fatalf("permission ProjectMastery() error = %v", err)
 	}
-	if len(events) != 1 || events[0].Result != learning.ResultFail {
-		t.Fatalf("events = %#v, want one failed lab attempt", events)
+	if permissionProjection.Stage != learning.StageIndependent {
+		t.Fatalf("permission projection = %#v, want independent", permissionProjection)
 	}
-	projection, err := learning.ProjectMastery(conceptID, events, learning.DefaultProjectionPolicy())
+
+	stickyProjection, err := learning.ProjectMastery(
+		sticky.ConceptID,
+		[]learning.EvidenceEvent{sticky},
+		learning.DefaultProjectionPolicy(),
+	)
 	if err != nil {
-		t.Fatalf("ProjectMastery() error = %v", err)
+		t.Fatalf("sticky ProjectMastery() error = %v", err)
 	}
-	if projection.Failures != 1 || projection.Stage != learning.StageUnseen {
-		t.Fatalf("projection = %#v, want one failure without mastery advancement", projection)
+	if stickyProjection.Stage != learning.StageUnseen || stickyProjection.Partials != 1 {
+		t.Fatalf("sticky projection = %#v, want unseen with one partial", stickyProjection)
 	}
 }
 
@@ -675,20 +699,24 @@ func TestPersistentShellRequirementBlocksStateOnlySuccess(t *testing.T) {
 	}
 }
 
-func TestPTYInteractionEvidenceRequiresJobControlInputs(t *testing.T) {
-	var evidence ptyInteractionEvidence
-	evidence.Observe([]byte("echo fake markers\r"))
-	if evidence.JobControlObserved() {
-		t.Fatal("ordinary shell input must not satisfy job-control evidence")
+func TestPersistentShellFailureTargetsJobControlConcept(t *testing.T) {
+	definition := lab.Definition{
+		ConceptIDs: []string{
+			"lpic1.103.5.jobs-du-shell",
+			"lpic1.103.5.signaux",
+		},
 	}
-	evidence.Observe([]byte{'\x1a'})
-	evidence.Observe([]byte("jobs -s\r"))
-	evidence.Observe([]byte("bg %+\r"))
-	if !evidence.JobControlObserved() {
-		t.Fatal("Ctrl-Z + jobs + bg should satisfy PTY interaction evidence")
+	results := map[string]learning.Result{
+		"lpic1.103.5.jobs-du-shell": learning.ResultPass,
+		"lpic1.103.5.signaux":       learning.ResultPass,
 	}
-	evidence.Reset()
-	if evidence.JobControlObserved() {
-		t.Fatal("reset must clear PTY interaction evidence")
+
+	markPersistentShellConceptFailure(definition, results)
+
+	if got := results["lpic1.103.5.jobs-du-shell"]; got != learning.ResultFail {
+		t.Fatalf("job-control result = %s, want fail", got)
+	}
+	if got := results["lpic1.103.5.signaux"]; got != learning.ResultPass {
+		t.Fatalf("unrelated signal result = %s, want pass", got)
 	}
 }

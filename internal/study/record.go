@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Loe159/lpic-daily/internal/checker"
 	"github.com/Loe159/lpic-daily/internal/content"
 	"github.com/Loe159/lpic-daily/internal/lab"
 	"github.com/Loe159/lpic-daily/internal/learning"
@@ -98,7 +99,11 @@ func RecordLab(
 	highestHintLevel int,
 	at time.Time,
 ) error {
-	return RecordLabAttempt(ctx, store, authored, learning.ResultPass, highestHintLevel, at)
+	results := make(map[string]learning.Result, len(authored.Definition.ConceptIDs))
+	for _, conceptID := range authored.Definition.ConceptIDs {
+		results[conceptID] = learning.ResultPass
+	}
+	return RecordLabConceptResults(ctx, store, authored, results, highestHintLevel, at)
 }
 
 func RecordLabAttempt(
@@ -109,15 +114,48 @@ func RecordLabAttempt(
 	highestHintLevel int,
 	at time.Time,
 ) error {
-	if store == nil {
-		return fmt.Errorf("evidence store is required")
-	}
 	if result != learning.ResultPass && result != learning.ResultPartial && result != learning.ResultFail {
 		return fmt.Errorf("invalid lab result %q", result)
+	}
+	results := make(map[string]learning.Result, len(authored.Definition.ConceptIDs))
+	for _, conceptID := range authored.Definition.ConceptIDs {
+		results[conceptID] = result
+	}
+	return RecordLabConceptResults(ctx, store, authored, results, highestHintLevel, at)
+}
+
+func RecordLabConceptResults(
+	ctx context.Context,
+	store EvidenceStore,
+	authored lab.Lab,
+	conceptResults map[string]learning.Result,
+	highestHintLevel int,
+	at time.Time,
+) error {
+	if store == nil {
+		return fmt.Errorf("evidence store is required")
 	}
 	if highestHintLevel < 0 || highestHintLevel > 4 {
 		return fmt.Errorf("hint level %d outside 0..4", highestHintLevel)
 	}
+
+	declared := make(map[string]struct{}, len(authored.Definition.ConceptIDs))
+	for _, conceptID := range authored.Definition.ConceptIDs {
+		declared[conceptID] = struct{}{}
+		result, exists := conceptResults[conceptID]
+		if !exists {
+			return fmt.Errorf("missing lab result for concept %s", conceptID)
+		}
+		if result != learning.ResultPass && result != learning.ResultPartial && result != learning.ResultFail {
+			return fmt.Errorf("invalid lab result %q for concept %s", result, conceptID)
+		}
+	}
+	for conceptID := range conceptResults {
+		if _, exists := declared[conceptID]; !exists {
+			return fmt.Errorf("lab result references undeclared concept %s", conceptID)
+		}
+	}
+
 	batch := make([]learning.EvidenceEvent, 0, len(authored.Definition.ConceptIDs))
 	for _, conceptID := range authored.Definition.ConceptIDs {
 		events, err := store.EvidenceForConcept(ctx, conceptID)
@@ -144,7 +182,7 @@ func RecordLabAttempt(
 			EventID: eventID, OccurredAt: at, ConceptID: conceptID,
 			ObjectiveIDs: append([]string(nil), authored.Definition.ObjectiveIDs...),
 			SourceItemID: authored.Definition.ID, ActivityKind: learning.ActivityLab,
-			EvidenceKind: evidenceKind, Result: result,
+			EvidenceKind: evidenceKind, Result: conceptResults[conceptID],
 			HighestHintLevel: highestHintLevel, SolutionRevealed: highestHintLevel == 4,
 			Distribution: distributionOrGeneric(authored.Definition.Environment.Distribution),
 			AttemptIndex: attempt,
@@ -154,6 +192,58 @@ func RecordLabAttempt(
 		return fmt.Errorf("record lab evidence: %w", err)
 	}
 	return nil
+}
+
+func LabConceptResults(authored lab.Lab, checkResults []checker.Result) (map[string]learning.Result, error) {
+	if len(checkResults) != len(authored.Definition.Checks) {
+		return nil, fmt.Errorf(
+			"lab %s returned %d check results for %d authored checks",
+			authored.Definition.ID,
+			len(checkResults),
+			len(authored.Definition.Checks),
+		)
+	}
+
+	type tally struct {
+		passed int
+		failed int
+	}
+	declared := make(map[string]struct{}, len(authored.Definition.ConceptIDs))
+	tallies := make(map[string]tally, len(authored.Definition.ConceptIDs))
+	for _, conceptID := range authored.Definition.ConceptIDs {
+		declared[conceptID] = struct{}{}
+	}
+
+	for index, result := range checkResults {
+		for _, conceptID := range authored.Definition.Checks[index].ConceptIDs {
+			if _, exists := declared[conceptID]; !exists {
+				return nil, fmt.Errorf("check %d maps undeclared concept %s", index+1, conceptID)
+			}
+			current := tallies[conceptID]
+			if result.Pass {
+				current.passed++
+			} else {
+				current.failed++
+			}
+			tallies[conceptID] = current
+		}
+	}
+
+	results := make(map[string]learning.Result, len(authored.Definition.ConceptIDs))
+	for _, conceptID := range authored.Definition.ConceptIDs {
+		current := tallies[conceptID]
+		switch {
+		case current.passed == 0 && current.failed == 0:
+			return nil, fmt.Errorf("concept %s has no evaluated state check", conceptID)
+		case current.failed == 0:
+			results[conceptID] = learning.ResultPass
+		case current.passed == 0:
+			results[conceptID] = learning.ResultFail
+		default:
+			results[conceptID] = learning.ResultPartial
+		}
+	}
+	return results, nil
 }
 
 func practicalEvidenceKind(
