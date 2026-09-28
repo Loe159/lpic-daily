@@ -3,7 +3,9 @@
 package podman_test
 
 import (
+	"bytes"
 	"context"
+	"io"
 	"io/fs"
 	"os"
 	"testing"
@@ -64,15 +66,24 @@ func TestPhase1BuiltInLabsConformOnRootlessPodman(t *testing.T) {
 				}
 			}()
 
+			solve := func() {
+				t.Helper()
+				if authored.Definition.ID == "lpic1.103.5.stuck-worker" {
+					runStuckWorkerPTY(t, ctx, backend, session.Instance)
+					return
+				}
+				runReferenceSolution(t, ctx, backend, session.Instance, solution)
+			}
+
 			assertLabNotSolved(t, ctx, session)
-			runReferenceSolution(t, ctx, backend, session.Instance, solution)
+			solve()
 			assertLabSolved(t, ctx, session)
 
 			if err := session.Reset(ctx); err != nil {
 				t.Fatalf("Reset() error = %v", err)
 			}
 			assertLabNotSolved(t, ctx, session)
-			runReferenceSolution(t, ctx, backend, session.Instance, solution)
+			solve()
 			assertLabSolved(t, ctx, session)
 		})
 	}
@@ -80,6 +91,99 @@ func TestPhase1BuiltInLabsConformOnRootlessPodman(t *testing.T) {
 	for id := range phase1ReferenceSolutions {
 		if !seen[id] {
 			t.Errorf("Phase-1 conformance lab %s was not loaded", id)
+		}
+	}
+}
+
+func runStuckWorkerPTY(
+	t *testing.T,
+	ctx context.Context,
+	backend runner.Runner,
+	instance runner.Instance,
+) {
+	t.Helper()
+
+	input, writer := io.Pipe()
+	writeDone := make(chan error, 1)
+	go func() {
+		write := func(value string, delay time.Duration) error {
+			if _, err := io.WriteString(writer, value); err != nil {
+				return err
+			}
+			time.Sleep(delay)
+			return nil
+		}
+
+		if err := write("kill -TERM \"$(cat /run/lpic/stuck-worker.pid)\"\n", 100*time.Millisecond); err != nil {
+			writeDone <- err
+			return
+		}
+		if err := write("/usr/local/bin/lpic-signal-probe\n", 300*time.Millisecond); err != nil {
+			writeDone <- err
+			return
+		}
+		if _, err := writer.Write([]byte{0x1a}); err != nil {
+			writeDone <- err
+			return
+		}
+		time.Sleep(200 * time.Millisecond)
+		if err := write("jobs -s | grep -q lpic-signal-probe && printf 'stopped\\n' > /run/lpic/probe-stopped\n", 100*time.Millisecond); err != nil {
+			writeDone <- err
+			return
+		}
+		if err := write("bg\n", 200*time.Millisecond); err != nil {
+			writeDone <- err
+			return
+		}
+		if err := write("jobs -r | grep -q lpic-signal-probe && printf 'running\\n' > /run/lpic/probe-background\n", 100*time.Millisecond); err != nil {
+			writeDone <- err
+			return
+		}
+		if err := write("kill -TERM %1\n", 200*time.Millisecond); err != nil {
+			writeDone <- err
+			return
+		}
+		if err := write("wait %1\n", 100*time.Millisecond); err != nil {
+			writeDone <- err
+			return
+		}
+		if err := write("exit\n", 0); err != nil {
+			writeDone <- err
+			return
+		}
+		writeDone <- writer.Close()
+	}()
+
+	var output bytes.Buffer
+	result, err := backend.Exec(ctx, instance, runner.ExecRequest{
+		Argv:        []string{"/usr/bin/bash", "--noprofile", "--norc", "-i"},
+		Stdin:       input,
+		Stdout:      &output,
+		Stderr:      &output,
+		TTY:         true,
+		InitialSize: runner.TerminalSize{Width: 100, Height: 30},
+	})
+	if err != nil {
+		_ = input.Close()
+		t.Fatalf("PTY job-control exec error = %v; output=%q", err, output.String())
+	}
+	if writeErr := <-writeDone; writeErr != nil {
+		t.Fatalf("PTY input error = %v; output=%q", writeErr, output.String())
+	}
+	if result.ExitCode != 0 {
+		t.Fatalf("PTY job-control exit = %d, want 0; output=%q", result.ExitCode, output.String())
+	}
+
+	for path, want := range map[string]string{
+		"/run/lpic/probe-stopped":    "stopped",
+		"/run/lpic/probe-background": "running",
+	} {
+		content, err := backend.ReadFile(ctx, instance, path, 64)
+		if err != nil {
+			t.Fatalf("read PTY marker %s: %v; output=%q", path, err, output.String())
+		}
+		if string(bytes.TrimSpace(content)) != want {
+			t.Fatalf("PTY marker %s = %q, want %q; output=%q", path, content, want, output.String())
 		}
 	}
 }
