@@ -68,12 +68,12 @@ def main():
             errors.append(f"{lab_id}: debrief_fr is missing/too short")
 
         practice_context = lab.get("practice_context")
-        if practice_context is not None and (
+        if (
             not isinstance(practice_context, str)
-            or not practice_context
+            or not 3 <= len(practice_context) <= 64
             or any(character not in "abcdefghijklmnopqrstuvwxyz0123456789.-" for character in practice_context)
         ):
-            errors.append(f"{lab_id}: practice_context must be a lowercase stable context id")
+            errors.append(f"{lab_id}: practice_context must be a 3-64 character lowercase stable context id")
 
         criteria = lab.get("success_criteria_fr")
         if not isinstance(criteria, list) or not criteria:
