@@ -274,20 +274,23 @@ func runNotifyWithExecutor(
 		newItems,
 	)
 
-	// Reserve the local day atomically before the external notification side
-	// effect. This prevents concurrent timer/manual invocations, or a crash
-	// after notify-send succeeds, from producing a second automatic delivery.
-	if force {
-		if err := store.MarkNotificationSent(ctx, localDay, now); err != nil {
-			return err
-		}
-	} else {
-		claimed, err := store.ClaimNotification(ctx, localDay, now)
+	claimed := false
+	if !force {
+		var err error
+		claimed, err = store.ClaimNotification(ctx, localDay, now)
 		if err != nil {
 			return err
 		}
 		if !claimed {
-			fmt.Fprintln(stdout, "Notification quotidienne déjà envoyée.")
+			sent, err := store.NotificationSent(ctx, localDay)
+			if err != nil {
+				return err
+			}
+			if sent {
+				fmt.Fprintln(stdout, "Notification quotidienne déjà envoyée.")
+			} else {
+				fmt.Fprintln(stdout, "Notification quotidienne déjà en cours d'envoi.")
+			}
 			return nil
 		}
 	}
@@ -297,6 +300,14 @@ func runNotifyWithExecutor(
 		Body:  body,
 	})
 	if err != nil {
+		if claimed {
+			if releaseErr := store.ReleaseNotificationClaim(ctx, localDay); releaseErr != nil {
+				return errors.Join(err, releaseErr)
+			}
+		}
+		return err
+	}
+	if err := store.MarkNotificationSent(ctx, localDay, now); err != nil {
 		return err
 	}
 	fmt.Fprintln(stdout, "Notification quotidienne envoyée.")
