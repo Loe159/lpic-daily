@@ -3,6 +3,6 @@
   "id": "lpic1.103.1.transfer-shell-handoff.hint-4",
   "lab_id": "lpic1.103.1.transfer-shell-handoff",
   "level": 4,
-  "content_fr": "Réécris le profil avec PATH approuvé, REPORT_ENV=production, REPORT_FILE attendu, HISTSIZE=3000/HISTFILESIZE=6000, puis écris le résumé et lance report-status depuis bash -lc.",
+  "content_fr": "Configure /root/.bashrc avec le PATH approuvé, HANDOFF_ROLE=primary, HANDOFF_FILE=\"/var/lib/lpic/reports/handoff notes.txt\", HISTSIZE=1500, HISTFILESIZE=3000 et HISTCONTROL=ignoredups ; depuis ce shell, écris handoff-summary puis handoff-ready.",
   "evidence_impact": "solution-revealed"
 }
