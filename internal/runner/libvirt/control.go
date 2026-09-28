@@ -38,6 +38,11 @@ type NetworkControlPlane interface {
 	UndefineNetwork(string) error
 }
 
+type ResourceInventory interface {
+	ListManagedDomains() ([]string, error)
+	ListManagedNetworks() ([]string, error)
+}
+
 type ConsoleControlPlane interface {
 	OpenConsole(string, io.Reader, io.Writer) error
 }
@@ -64,6 +69,8 @@ type rawLibvirt interface {
 	NetworkIsActive(golibvirt.Network) (int32, error)
 	NetworkDestroy(golibvirt.Network) error
 	NetworkUndefine(golibvirt.Network) error
+	ConnectListAllDomains(int32, golibvirt.ConnectListAllDomainsFlags) ([]golibvirt.Domain, uint32, error)
+	ConnectListAllNetworks(int32, golibvirt.ConnectListAllNetworksFlags) ([]golibvirt.Network, uint32, error)
 	Disconnect() error
 }
 
@@ -308,6 +315,40 @@ func (control *RPCControlPlane) UndefineNetwork(name string) error {
 		return fmt.Errorf("undefine network %s: %w", name, err)
 	}
 	return nil
+}
+
+func (control *RPCControlPlane) ListManagedDomains() ([]string, error) {
+	domains, _, err := control.raw.ConnectListAllDomains(
+		1,
+		golibvirt.ConnectListDomainsActive|golibvirt.ConnectListDomainsInactive,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("list libvirt domains: %w", err)
+	}
+	names := make([]string, 0, len(domains))
+	for _, domain := range domains {
+		if managedNamePattern.MatchString(domain.Name) {
+			names = append(names, domain.Name)
+		}
+	}
+	return names, nil
+}
+
+func (control *RPCControlPlane) ListManagedNetworks() ([]string, error) {
+	networks, _, err := control.raw.ConnectListAllNetworks(
+		1,
+		golibvirt.ConnectListNetworksActive|golibvirt.ConnectListNetworksInactive,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("list libvirt networks: %w", err)
+	}
+	names := make([]string, 0, len(networks))
+	for _, network := range networks {
+		if managedNamePattern.MatchString(network.Name) {
+			names = append(names, network.Name)
+		}
+	}
+	return names, nil
 }
 
 func (control *RPCControlPlane) Close() error {
