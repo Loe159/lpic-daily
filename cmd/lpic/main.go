@@ -1116,7 +1116,7 @@ func runInteractiveLabWithBackend(
 				return fmt.Errorf("evaluate lab: %w", err)
 			}
 			passed := true
-			if authored.Definition.RequiresPersistentShell && !usedPersistentShell {
+			if authored.Definition.NeedsPersistentShell && !usedPersistentShell {
 				fmt.Fprintf(
 					stdout,
 					"  %-11s %s.persistent-shell — ce lab exige un passage par :shell pour valider le job control réel\n",
