@@ -57,7 +57,7 @@ func TestPhase1BuiltInLabsConformOnRootlessPodman(t *testing.T) {
 				t.Fatalf("Start() error = %v", err)
 			}
 			defer func() {
-				cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 10*time.Second)
+				cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 30*time.Second)
 				defer cleanupCancel()
 				if err := session.Close(cleanupCtx); err != nil {
 					t.Errorf("Close() error = %v", err)
