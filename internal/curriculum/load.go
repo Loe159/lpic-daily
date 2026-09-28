@@ -7,6 +7,8 @@ import (
 	"io/fs"
 	"path"
 	"strings"
+
+	"github.com/Loe159/lpic-daily/internal/schemavalidation"
 )
 
 const (
@@ -20,13 +22,24 @@ const (
 func Load(fsys fs.FS) (*Bundle, error) {
 	var bundle Bundle
 
+	schemaValidator, err := schemavalidation.New(fsys)
+	if err != nil {
+		return nil, fmt.Errorf("compile curriculum schemas: %w", err)
+	}
+
 	if err := decodeStrictFile(fsys, objectivesPath, &bundle.Objectives); err != nil {
+		return nil, err
+	}
+	if err := schemaValidator.ValidateFile("objective-graph.schema.json", prerequisitesPath); err != nil {
 		return nil, err
 	}
 	if err := decodeStrictFile(fsys, prerequisitesPath, &bundle.Prerequisites); err != nil {
 		return nil, err
 	}
 	if err := decodeStrictFile(fsys, conceptsPath, &bundle.Concepts); err != nil {
+		return nil, err
+	}
+	if err := validateConceptInstances(fsys, schemaValidator); err != nil {
 		return nil, err
 	}
 	if err := decodeStrictFile(fsys, phase1Path, &bundle.Phase1); err != nil {
@@ -76,6 +89,25 @@ func decodeStrictFile(fsys fs.FS, name string, out any) error {
 			return fmt.Errorf("decode %s: trailing JSON value", name)
 		}
 		return fmt.Errorf("decode %s trailing data: %w", name, err)
+	}
+	return nil
+}
+
+func validateConceptInstances(fsys fs.FS, schemaValidator *schemavalidation.Validator) error {
+	raw, err := fs.ReadFile(fsys, conceptsPath)
+	if err != nil {
+		return fmt.Errorf("read %s for schema validation: %w", conceptsPath, err)
+	}
+	var envelope struct {
+		Concepts []json.RawMessage `json:"concepts"`
+	}
+	if err := json.Unmarshal(raw, &envelope); err != nil {
+		return fmt.Errorf("decode %s for schema validation: %w", conceptsPath, err)
+	}
+	for index, concept := range envelope.Concepts {
+		if err := schemaValidator.Validate("concept.schema.json", concept); err != nil {
+			return fmt.Errorf("%s concept %d: %w", conceptsPath, index+1, err)
+		}
 	}
 	return nil
 }
