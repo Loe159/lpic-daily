@@ -68,7 +68,7 @@ func TestLoadBuiltinSharedDropbox(t *testing.T) {
 			t.Fatalf("hint %d level = %d", index, hint.Level)
 		}
 	}
-	if !strings.Contains(got.SetupScript, "groupadd") {
+	if !strings.Contains(got.SetupScript, "getent group project") || !strings.Contains(got.SetupScript, "/srv/shared") {
 		t.Fatal("setup script was not loaded")
 	}
 	if got.ReferenceSolutionRef == "" {
