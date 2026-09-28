@@ -52,16 +52,19 @@ def expected_digest(image, cache_dir):
         checksum_path = cache_dir / (image["source_filename"] + ".checksum")
         download(integrity["checksum_url"], checksum_path)
         text = checksum_path.read_text(encoding="utf-8", errors="strict")
-        pattern = re.compile(r"(?im)^([0-9a-f]+)\s+[* ]?" + re.escape(image["source_filename"]) + r"$")
-        match = pattern.search(text)
-        if not match:
-            # openSUSE .sha256 files may contain only the digest and basename with variable spacing.
+        filename = re.escape(image["source_filename"])
+        patterns = [
+            re.compile(r"(?im)^([0-9a-f]+)\s+[* ]?" + filename + r"$"),
+            re.compile(r"(?im)^SHA(?:256|512)\s*\(" + filename + r"\)\s*=\s*([0-9a-f]+)$"),
+        ]
+        match = next((candidate.search(text) for candidate in patterns if candidate.search(text)), None)
+        if match:
+            value = match.group(1).lower()
+        else:
             tokens = text.strip().split()
             if len(tokens) < 1 or not re.fullmatch(r"[0-9a-fA-F]+", tokens[0]):
                 raise SystemExit(f"cannot parse checksum from {integrity['checksum_url']}")
             value = tokens[0].lower()
-        else:
-            value = match.group(1).lower()
         encoding = "hex"
     return bytes.fromhex(value) if encoding == "hex" else base64.b64decode(value, validate=True)
 
@@ -162,7 +165,7 @@ def main():
         os.chmod(installed_tmp, 0o444)
         os.replace(installed_tmp, final_path)
 
-    final_sha = hashlib.sha256(final_path.read_bytes()).hexdigest()
+    final_sha = digest(final_path, "sha256").hex()
     virtual_size = qemu_virtual_size_mb(final_path)
     relative_path = str(final_path.relative_to(image_root))
     built_at = dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
