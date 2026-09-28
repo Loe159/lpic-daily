@@ -261,7 +261,6 @@ func TestFailedLabAttemptIsStoredWithoutAdvancingMastery(t *testing.T) {
 	}
 }
 
-
 func TestLabConceptResultsPreserveMixedCheckOutcomes(t *testing.T) {
 	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
 	if err != nil {

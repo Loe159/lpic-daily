@@ -246,7 +246,6 @@ func TestIndependentConceptRecommendsUnusedTransferLab(t *testing.T) {
 	}
 }
 
-
 func TestBuildPlanDefaultsIntervalsWithoutOverwritingCustomLimits(t *testing.T) {
 	curriculumBundle, contentBundle, labs := loadInputs(t)
 	now := time.Date(2026, 9, 28, 18, 0, 0, 0, time.UTC)

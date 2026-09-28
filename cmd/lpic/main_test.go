@@ -699,8 +699,6 @@ func TestPersistentShellRequirementBlocksStateOnlySuccess(t *testing.T) {
 	}
 }
 
-
-
 func TestPersistentShellFailureTargetsJobControlConcept(t *testing.T) {
 	definition := lab.Definition{
 		ConceptIDs: []string{
