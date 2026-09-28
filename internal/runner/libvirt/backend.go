@@ -102,6 +102,16 @@ func (backend *Backend) prepareNamed(
 	name string,
 	definition runner.Definition,
 ) error {
+	return backend.prepareNamedOnNetwork(ctx, name, definition, "", true)
+}
+
+func (backend *Backend) prepareNamedOnNetwork(
+	ctx context.Context,
+	name string,
+	definition runner.Definition,
+	sharedNetworkName string,
+	manageNetwork bool,
+) error {
 	image, err := backend.catalog.Resolve(definition.ImageRef, backend.imageRoot)
 	if err != nil {
 		return err
@@ -127,6 +137,12 @@ func (backend *Backend) prepareNamed(
 			)
 		}
 		networkName = name
+		if sharedNetworkName != "" {
+			if err := validateManagedResourceName("network", sharedNetworkName); err != nil {
+				return err
+			}
+			networkName = sharedNetworkName
+		}
 	}
 
 	paths, err := backend.overlays.Create(ctx, name, image, *definition.Machine)
@@ -149,7 +165,7 @@ func (backend *Backend) prepareNamed(
 		_ = releaseInstanceLease(paths.Lease)
 	}()
 
-	if networkControl != nil {
+	if networkControl != nil && manageNetwork {
 		networkXML, err := BuildIsolatedNetworkXML(networkName, networkSubnetOctet(networkName))
 		if err != nil {
 			return fmt.Errorf("build isolated network XML for %s: %w", networkName, err)
@@ -206,6 +222,117 @@ func (backend *Backend) prepareNamed(
 
 	cleanup = false
 	return nil
+}
+
+type Scenario struct {
+	NetworkName string
+	Instances   []runner.Instance
+}
+
+func (backend *Backend) PrepareScenario(
+	ctx context.Context,
+	definitions []runner.Definition,
+) (Scenario, error) {
+	if len(definitions) < 2 || len(definitions) > 8 {
+		return Scenario{}, errors.New("isolated VM scenario requires 2..8 machines")
+	}
+	networkControl, ok := backend.control.(NetworkControlPlane)
+	if !ok {
+		return Scenario{}, fmt.Errorf(
+			"%w: libvirt control plane has no isolated-network capability",
+			runner.ErrNotSupported,
+		)
+	}
+	networkName, err := vmInstanceName("scenario-network")
+	if err != nil {
+		return Scenario{}, err
+	}
+	networkXML, err := BuildIsolatedNetworkXML(networkName, networkSubnetOctet(networkName))
+	if err != nil {
+		return Scenario{}, err
+	}
+	if err := networkControl.DefineNetwork(networkName, networkXML); err != nil {
+		return Scenario{}, err
+	}
+	networkStarted := false
+	cleanupNetwork := true
+	defer func() {
+		if !cleanupNetwork {
+			return
+		}
+		if networkStarted {
+			_ = networkControl.DestroyNetwork(networkName)
+		}
+		_ = networkControl.UndefineNetwork(networkName)
+	}()
+	if err := networkControl.StartNetwork(networkName); err != nil {
+		return Scenario{}, err
+	}
+	networkStarted = true
+
+	scenario := Scenario{NetworkName: networkName}
+	for _, definition := range definitions {
+		if err := definition.Validate(); err != nil {
+			_ = backend.destroyScenarioInstances(context.Background(), scenario.Instances)
+			return Scenario{}, fmt.Errorf("validate scenario VM definition: %w", err)
+		}
+		if definition.Network != runner.NetworkIsolated {
+			_ = backend.destroyScenarioInstances(context.Background(), scenario.Instances)
+			return Scenario{}, errors.New("scenario machines must use network=isolated")
+		}
+		name, err := vmInstanceName(definition.LabID)
+		if err != nil {
+			_ = backend.destroyScenarioInstances(context.Background(), scenario.Instances)
+			return Scenario{}, err
+		}
+		if err := backend.prepareNamedOnNetwork(ctx, name, definition, networkName, false); err != nil {
+			_ = backend.destroyScenarioInstances(context.Background(), scenario.Instances)
+			return Scenario{}, err
+		}
+		scenario.Instances = append(scenario.Instances, runner.Instance{ID: name})
+	}
+	cleanupNetwork = false
+	return scenario, nil
+}
+
+func (backend *Backend) DestroyScenario(ctx context.Context, scenario Scenario) error {
+	if scenario.NetworkName == "" {
+		return errors.New("scenario network name is required")
+	}
+	if err := validateManagedResourceName("network", scenario.NetworkName); err != nil {
+		return err
+	}
+	var errs []error
+	if err := backend.destroyScenarioInstances(ctx, scenario.Instances); err != nil {
+		errs = append(errs, err)
+	}
+	networkControl, ok := backend.control.(NetworkControlPlane)
+	if !ok {
+		errs = append(errs, fmt.Errorf("%w: cannot destroy scenario network", runner.ErrNotSupported))
+		return errors.Join(errs...)
+	}
+	active, err := networkControl.NetworkActive(scenario.NetworkName)
+	if err != nil {
+		errs = append(errs, err)
+	} else if active {
+		if err := networkControl.DestroyNetwork(scenario.NetworkName); err != nil {
+			errs = append(errs, err)
+		}
+	}
+	if err := networkControl.UndefineNetwork(scenario.NetworkName); err != nil {
+		errs = append(errs, err)
+	}
+	return errors.Join(errs...)
+}
+
+func (backend *Backend) destroyScenarioInstances(ctx context.Context, instances []runner.Instance) error {
+	var errs []error
+	for index := len(instances) - 1; index >= 0; index-- {
+		if err := backend.Destroy(ctx, instances[index]); err != nil {
+			errs = append(errs, err)
+		}
+	}
+	return errors.Join(errs...)
 }
 
 func (backend *Backend) Start(ctx context.Context, instance runner.Instance) error {
