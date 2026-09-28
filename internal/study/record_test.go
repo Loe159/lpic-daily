@@ -174,7 +174,6 @@ func TestLabHintLevelControlsEffectivePracticalEvidence(t *testing.T) {
 	}
 }
 
-
 func TestFailedLabAttemptIsStoredWithoutAdvancingMastery(t *testing.T) {
 	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
 	if err != nil {
