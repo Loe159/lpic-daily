@@ -3,6 +3,6 @@
   "id": "lpic1.104.5.transfer-team-share-audit.hint-2",
   "lab_id": "lpic1.104.5.transfer-team-share-audit",
   "level": 2,
-  "content_fr": "3770 combine 770, SGID et sticky. L'umask doit être un comportement du nouveau shell, pas seulement un chmod après création.",
+  "content_fr": "incoming doit protéger les fichiers entre membres avec le sticky bit, tandis que team doit transmettre le groupe project avec SGID. Les deux restent accessibles au groupe et fermés aux others.",
   "evidence_impact": "material"
 }
