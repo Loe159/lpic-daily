@@ -173,3 +173,47 @@ func TestLabHintLevelControlsEffectivePracticalEvidence(t *testing.T) {
 		t.Fatalf("effective evidence = %s, want guided-practice", got)
 	}
 }
+
+
+func TestFailedLabAttemptIsStoredWithoutAdvancingMastery(t *testing.T) {
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("lab.LoadAll() error = %v", err)
+	}
+	var shared lab.Lab
+	for _, authored := range labs {
+		if authored.Definition.ID == "lpic1.104.5.shared-dropbox" {
+			shared = authored
+			break
+		}
+	}
+	if shared.Definition.ID == "" {
+		t.Fatal("shared-dropbox lab not found")
+	}
+
+	store := newRecordingStore()
+	at := time.Date(2026, 9, 28, 12, 30, 0, 0, time.UTC)
+	if err := study.RecordLabAttempt(
+		context.Background(),
+		store,
+		shared,
+		learning.ResultFail,
+		0,
+		at,
+	); err != nil {
+		t.Fatalf("RecordLabAttempt() error = %v", err)
+	}
+
+	conceptID := shared.Definition.ConceptIDs[0]
+	events := store.events[conceptID]
+	if len(events) != 1 || events[0].Result != learning.ResultFail {
+		t.Fatalf("events = %#v, want one failed lab attempt", events)
+	}
+	projection, err := learning.ProjectMastery(conceptID, events, learning.DefaultProjectionPolicy())
+	if err != nil {
+		t.Fatalf("ProjectMastery() error = %v", err)
+	}
+	if projection.Stage != learning.StageUnseen || projection.Failures != 1 {
+		t.Fatalf("projection = %#v, want unseen with one failure", projection)
+	}
+}
