@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+[[ "${REPORT_ENV:-}" == "production" ]] || exit 21
+[[ "$#" -eq 1 ]] || exit 22
+[[ "$1" == "/var/lib/lpic/reports/daily report.txt" ]] || exit 23
+
+printf 'ready\n' > /run/lpic/report-ok

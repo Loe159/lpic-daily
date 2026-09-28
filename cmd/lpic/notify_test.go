@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"errors"
 	"strings"
 	"testing"
 	"time"
@@ -15,13 +16,14 @@ type notificationCall struct {
 
 type notificationExecutor struct {
 	output []byte
+	runErr error
 	runs   []notificationCall
 	starts []notificationCall
 }
 
 func (executor *notificationExecutor) Run(_ context.Context, name string, args ...string) ([]byte, error) {
 	executor.runs = append(executor.runs, notificationCall{name: name, args: append([]string(nil), args...)})
-	return executor.output, nil
+	return executor.output, executor.runErr
 }
 
 func (executor *notificationExecutor) Start(_ context.Context, name string, args ...string) error {
@@ -90,5 +92,26 @@ func TestNotifyDoesNotCountPracticeAsNewConcept(t *testing.T) {
 	args := strings.Join(executor.runs[0].args, " ")
 	if !strings.Contains(args, "1 consolidation(s)") || !strings.Contains(args, "0 nouveau(x) concept(s)") {
 		t.Fatalf("notification args = %q, practice was counted incorrectly", args)
+	}
+}
+
+func TestNotifyFailureReleasesDailyClaim(t *testing.T) {
+	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
+	now := time.Date(2026, 9, 28, 9, 0, 0, 0, time.Local)
+	executor := &notificationExecutor{runErr: errors.New("notification service unavailable")}
+
+	if err := runNotifyWithExecutor(context.Background(), false, &bytes.Buffer{}, executor, now); err == nil {
+		t.Fatal("failed notify unexpectedly succeeded")
+	}
+	if len(executor.runs) != 1 {
+		t.Fatalf("notify runs = %d, want 1", len(executor.runs))
+	}
+
+	executor.runErr = nil
+	if err := runNotifyWithExecutor(context.Background(), false, &bytes.Buffer{}, executor, now.Add(time.Minute)); err != nil {
+		t.Fatalf("retry notify error = %v", err)
+	}
+	if len(executor.runs) != 2 {
+		t.Fatalf("notify retry runs = %d, want 2", len(executor.runs))
 	}
 }

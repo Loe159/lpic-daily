@@ -614,3 +614,51 @@ func TestFailedLabCheckRecordsFailureEvidence(t *testing.T) {
 		t.Fatalf("projection = %#v, want one failure without mastery advancement", projection)
 	}
 }
+
+func TestPersistentShellRequirementBlocksStateOnlySuccess(t *testing.T) {
+	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
+
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("LoadAll() error = %v", err)
+	}
+	authored, err := findLab(labs, sharedDropboxID)
+	if err != nil {
+		t.Fatalf("findLab() error = %v", err)
+	}
+	authored.Definition.NeedsPersistentShell = true
+
+	var stdout, stderr bytes.Buffer
+	if err := runInteractiveLabWithBackend(
+		context.Background(),
+		authored,
+		&scriptedLabRunner{},
+		true,
+		strings.NewReader(":check\n:quit\n"),
+		&stdout,
+		&stderr,
+	); err != nil {
+		t.Fatalf("runInteractiveLabWithBackend() error = %v; stderr=%q", err, stderr.String())
+	}
+	if !strings.Contains(stdout.String(), ".persistent-shell") {
+		t.Fatalf("missing persistent-shell rejection: %q", stdout.String())
+	}
+	if strings.Contains(stdout.String(), "Lab réussi.") {
+		t.Fatalf("lab succeeded without persistent shell: %q", stdout.String())
+	}
+
+	store, err := openProgressStore(context.Background())
+	if err != nil {
+		t.Fatalf("open progress store: %v", err)
+	}
+	defer store.Close()
+
+	conceptID := authored.Definition.ConceptIDs[0]
+	events, err := store.EvidenceForConcept(context.Background(), conceptID)
+	if err != nil {
+		t.Fatalf("EvidenceForConcept() error = %v", err)
+	}
+	if len(events) != 1 || events[0].Result != learning.ResultFail {
+		t.Fatalf("events = %#v, want one failed attempt", events)
+	}
+}

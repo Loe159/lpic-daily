@@ -65,6 +65,9 @@
       "minimum": 1,
       "maximum": 120
     },
+    "requires_persistent_shell": {
+      "type": "boolean"
+    },
     "environment": {
       "type": "object",
       "additionalProperties": false,

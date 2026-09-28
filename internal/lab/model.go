@@ -11,6 +11,7 @@ type Definition struct {
 	ConceptIDs           []string          `json:"concept_ids"`
 	Labels               []string          `json:"labels"`
 	EstimatedMinutes     int               `json:"estimated_minutes"`
+	NeedsPersistentShell bool              `json:"requires_persistent_shell,omitempty"`
 	Environment          Environment       `json:"environment"`
 	Resources            Resources         `json:"resources"`
 	Setup                Setup             `json:"setup"`

@@ -274,20 +274,23 @@ func runNotifyWithExecutor(
 		newItems,
 	)
 
-	// Reserve the local day atomically before the external notification side
-	// effect. This prevents concurrent timer/manual invocations, or a crash
-	// after notify-send succeeds, from producing a second automatic delivery.
-	if force {
-		if err := store.MarkNotificationSent(ctx, localDay, now); err != nil {
-			return err
-		}
-	} else {
-		claimed, err := store.ClaimNotification(ctx, localDay, now)
+	claimed := false
+	if !force {
+		var err error
+		claimed, err = store.ClaimNotification(ctx, localDay, now)
 		if err != nil {
 			return err
 		}
 		if !claimed {
-			fmt.Fprintln(stdout, "Notification quotidienne déjà envoyée.")
+			sent, err := store.NotificationSent(ctx, localDay)
+			if err != nil {
+				return err
+			}
+			if sent {
+				fmt.Fprintln(stdout, "Notification quotidienne déjà envoyée.")
+			} else {
+				fmt.Fprintln(stdout, "Notification quotidienne déjà en cours d'envoi.")
+			}
 			return nil
 		}
 	}
@@ -297,6 +300,14 @@ func runNotifyWithExecutor(
 		Body:  body,
 	})
 	if err != nil {
+		if claimed {
+			if releaseErr := store.ReleaseNotificationClaim(ctx, localDay); releaseErr != nil {
+				return errors.Join(err, releaseErr)
+			}
+		}
+		return err
+	}
+	if err := store.MarkNotificationSent(ctx, localDay, now); err != nil {
 		return err
 	}
 	fmt.Fprintln(stdout, "Notification quotidienne envoyée.")
@@ -1023,6 +1034,7 @@ func runInteractiveLabWithBackend(
 	scanner := bufio.NewScanner(stdin)
 	scanner.Buffer(make([]byte, 4096), 256<<10)
 	nextHint := nextHintIndex(authored.Hints, highestHintLevel)
+	usedPersistentShell := false
 
 	for {
 		if err := sessionCtx.Err(); err != nil {
@@ -1082,6 +1094,7 @@ func runInteractiveLabWithBackend(
 			if err != nil {
 				return fmt.Errorf("interactive sandbox shell: %w", err)
 			}
+			usedPersistentShell = true
 			fmt.Fprintln(stdout, "\n[retour LPIC Daily]")
 			if result.ExitCode != 0 {
 				fmt.Fprintf(stderr, "[shell exit %d]\n", result.ExitCode)
@@ -1094,21 +1107,32 @@ func runInteractiveLabWithBackend(
 			// Reset restores sandbox state only. Disclosure state is persisted
 			// across resets/restarts and remains attached to the learning attempt.
 			nextHint = nextHintIndex(authored.Hints, highestHintLevel)
+			usedPersistentShell = false
 			fmt.Fprintln(stdout, "Lab réinitialisé dans son état de départ.")
 			continue
 		case ":check":
-			results, err := session.Evaluate(sessionCtx)
-			if err != nil {
-				return fmt.Errorf("evaluate lab: %w", err)
-			}
 			passed := true
-			for _, result := range results {
-				state := "OK"
-				if !result.Pass {
-					state = "À CORRIGER"
-					passed = false
+			if authored.Definition.NeedsPersistentShell && !usedPersistentShell {
+				fmt.Fprintf(
+					stdout,
+					"  %-11s %s.persistent-shell — ce lab exige un passage par :shell pour valider le job control réel\n",
+					"À CORRIGER",
+					authored.Definition.ID,
+				)
+				passed = false
+			} else {
+				results, err := session.Evaluate(sessionCtx)
+				if err != nil {
+					return fmt.Errorf("evaluate lab: %w", err)
 				}
-				fmt.Fprintf(stdout, "  %-11s %s — %s\n", state, result.CheckID, result.Detail)
+				for _, result := range results {
+					state := "OK"
+					if !result.Pass {
+						state = "À CORRIGER"
+						passed = false
+					}
+					fmt.Fprintf(stdout, "  %-11s %s — %s\n", state, result.CheckID, result.Detail)
+				}
 			}
 			store, err := openProgressStore(sessionCtx)
 			if err != nil {

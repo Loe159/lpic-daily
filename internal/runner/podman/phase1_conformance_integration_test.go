@@ -75,6 +75,9 @@ func TestPhase1BuiltInLabsConformOnRootlessPodman(t *testing.T) {
 				runReferenceSolution(t, ctx, backend, session.Instance, solution)
 			}
 
+			if authored.Definition.ID == "lpic1.103.1.shell-environment-repair" {
+				assertShellLabHelpersImmutable(t, ctx, backend, session.Instance)
+			}
 			assertLabNotSolved(t, ctx, session)
 			solve()
 			assertLabSolved(t, ctx, session)
@@ -127,7 +130,7 @@ func runStuckWorkerPTY(
 			return
 		}
 		time.Sleep(200 * time.Millisecond)
-		if err := write("jobs -s | grep -q lpic-signal-probe && printf 'stopped\\n' > /run/lpic/probe-stopped\n", 100*time.Millisecond); err != nil {
+		if err := write("jobs -s | grep -q lpic-signal-probe\n", 100*time.Millisecond); err != nil {
 			writeDone <- err
 			return
 		}
@@ -135,7 +138,7 @@ func runStuckWorkerPTY(
 			writeDone <- err
 			return
 		}
-		if err := write("jobs -r | grep -q lpic-signal-probe && printf 'running\\n' > /run/lpic/probe-background\n", 100*time.Millisecond); err != nil {
+		if err := write("jobs -r | grep -q lpic-signal-probe\n", 100*time.Millisecond); err != nil {
 			writeDone <- err
 			return
 		}
@@ -143,7 +146,7 @@ func runStuckWorkerPTY(
 			writeDone <- err
 			return
 		}
-		if err := write("wait %1\n", 100*time.Millisecond); err != nil {
+		if err := write("wait %1 2>/dev/null || true\n", 100*time.Millisecond); err != nil {
 			writeDone <- err
 			return
 		}
@@ -176,7 +179,7 @@ func runStuckWorkerPTY(
 
 	for path, want := range map[string]string{
 		"/run/lpic/probe-stopped":    "stopped",
-		"/run/lpic/probe-background": "running",
+		"/run/lpic/probe-background": "background",
 	} {
 		content, err := backend.ReadFile(ctx, instance, path, 64)
 		if err != nil {
@@ -185,6 +188,29 @@ func runStuckWorkerPTY(
 		if string(bytes.TrimSpace(content)) != want {
 			t.Fatalf("PTY marker %s = %q, want %q; output=%q", path, content, want, output.String())
 		}
+	}
+}
+
+func assertShellLabHelpersImmutable(
+	t *testing.T,
+	ctx context.Context,
+	backend runner.Runner,
+	instance runner.Instance,
+) {
+	t.Helper()
+
+	result, err := backend.Exec(ctx, instance, runner.ExecRequest{
+		Argv: []string{
+			"/usr/bin/bash",
+			"-c",
+			"printf '#!/usr/bin/env bash\\nexit 0\\n' > /opt/lpic/approved/bin/report-status",
+		},
+	})
+	if err != nil {
+		t.Fatalf("immutable helper probe error = %v", err)
+	}
+	if result.ExitCode == 0 {
+		t.Fatal("shell lab helper executable was writable")
 	}
 }
 
