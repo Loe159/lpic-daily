@@ -22,7 +22,8 @@
         "qemu-guest-agent",
         "parted",
         "e2fsprogs",
-        "util-linux"
+        "util-linux",
+        "iputils"
       ],
       "recipe": "fedora-cloud-v1"
     },
