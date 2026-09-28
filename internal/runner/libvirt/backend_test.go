@@ -603,6 +603,14 @@ func TestBackendRebootRequiresActiveManagedVM(t *testing.T) {
 	if err := backend.Start(ctx, instance); err != nil {
 		t.Fatalf("Start() error = %v", err)
 	}
+	control.agentResponses = []string{
+		`{"return":{}}`,
+		`{"return":{"pid":10}}`,
+		`{"return":{"exited":true,"exitcode":0,"out-data":"Ym9vdC1hCg=="}}`,
+		`{"return":{}}`,
+		`{"return":{"pid":11}}`,
+		`{"return":{"exited":true,"exitcode":0,"out-data":"Ym9vdC1iCg=="}}`,
+	}
 	if err := backend.Reboot(ctx, instance); err != nil {
 		t.Fatalf("Reboot() error = %v", err)
 	}
