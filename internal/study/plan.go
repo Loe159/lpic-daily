@@ -145,7 +145,9 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 	}
 
 	labs := make(map[string][]string)
+	labContexts := make(map[string]string, len(input.Labs))
 	for _, authored := range input.Labs {
+		labContexts[authored.Definition.ID] = authored.Definition.PracticeContext
 		for _, conceptID := range authored.Definition.ConceptIDs {
 			if _, wanted := phase1Concepts[conceptID]; wanted {
 				labs[conceptID] = append(labs[conceptID], authored.Definition.ID)
@@ -188,6 +190,7 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 		item.RecommendedLabID = recommendedLab(
 			item.MasteryStage,
 			item.LabIDs,
+			labContexts,
 			evidenceByConcept[scheduled.ConceptID],
 			input.Now,
 		)
@@ -230,6 +233,7 @@ func recommendedLesson(kind learning.SessionItemKind, lessons []content.Lesson) 
 func recommendedLab(
 	stage learning.MasteryStage,
 	labIDs []string,
+	labContexts map[string]string,
 	events []learning.EvidenceEvent,
 	now time.Time,
 ) string {
@@ -243,7 +247,7 @@ func recommendedLab(
 	}
 
 	policy := learning.DefaultProjectionPolicy()
-	used := make(map[string]bool)
+	usedContexts := make(map[string]bool)
 	transferReady := false
 	for _, event := range events {
 		if event.Result != learning.ResultPass {
@@ -253,14 +257,17 @@ func recommendedLab(
 		if effective != learning.EvidenceIndependentPractice && effective != learning.EvidenceTransfer {
 			continue
 		}
-		used[event.SourceItemID] = true
+		if event.PracticeContext != "" {
+			usedContexts[event.PracticeContext] = true
+		}
 		if !event.OccurredAt.After(now) && now.Sub(event.OccurredAt) >= policy.MinTransferGap {
 			transferReady = true
 		}
 	}
 	if transferReady {
 		for _, labID := range candidates {
-			if !used[labID] {
+			practiceContext := labContexts[labID]
+			if practiceContext != "" && !usedContexts[practiceContext] {
 				return labID
 			}
 		}
