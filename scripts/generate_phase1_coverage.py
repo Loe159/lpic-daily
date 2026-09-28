@@ -147,8 +147,21 @@ def main():
         return 1
 
     summary = generated["summary"]
+    if summary["with_any_surface"] != summary["concepts"]:
+        uncovered = [
+            item["concept_id"]
+            for item in generated["concepts"]
+            if not any(item["surfaces"][surface] for surface in SURFACE_GLOBS)
+        ]
+        print(
+            "Phase-1 coverage FAILED: "
+            f"{len(uncovered)} concept(s) have no authored learning surface: "
+            + ", ".join(uncovered)
+        )
+        return 1
+
     print(
-        "Phase-1 coverage OK: "
+        "Phase-1 coverage OK: 
         f"{summary['concepts']} concepts; "
         f"{summary['with_any_surface']} with any surface; "
         f"{summary['with_lab']} with lab; "
