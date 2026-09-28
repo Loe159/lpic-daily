@@ -49,8 +49,8 @@ func TestSessionUnlocksProcessesAfterShellReadiness(t *testing.T) {
 	for _, concept := range bundle.Concepts.Concepts {
 		if concept.ObjectiveID == "103.1" {
 			projections[concept.ID] = learning.MasteryProjection{
-				ConceptID:      concept.ID,
-				Stage:          learning.StageRecall,
+				ConceptID:           concept.ID,
+				Stage:               learning.StageRecall,
 				LastEvidenceAt:      now,
 				LastStageEvidenceAt: now,
 			}
@@ -87,8 +87,8 @@ func TestOverdueReviewPrecedesNewMaterial(t *testing.T) {
 
 	projections := map[string]learning.MasteryProjection{
 		shellConcept: {
-			ConceptID:      shellConcept,
-			Stage:          learning.StageRecall,
+			ConceptID:           shellConcept,
+			Stage:               learning.StageRecall,
 			LastEvidenceAt:      now.Add(-10 * 24 * time.Hour),
 			LastStageEvidenceAt: now.Add(-10 * 24 * time.Hour),
 		},
