@@ -720,3 +720,31 @@ func TestPersistentShellFailureTargetsJobControlConcept(t *testing.T) {
 		t.Fatalf("unrelated signal result = %s, want pass", got)
 	}
 }
+
+func TestJobControlEvidenceRequiresCtrlZJobsAndSuccessfulBg(t *testing.T) {
+	evidence := &jobControlInteractionEvidence{}
+	evidence.observeShellEvents([]byte("jobs\n"))
+	evidence.sawCtrlZ = true
+	if evidence.Complete() {
+		t.Fatal("Ctrl-Z plus jobs must not pass without a successful bg")
+	}
+
+	evidence.observeShellEvents([]byte("bg\n"))
+	if !evidence.Complete() {
+		t.Fatal("Ctrl-Z plus jobs plus successful bg should satisfy job-control evidence")
+	}
+
+	evidence.Reset()
+	if evidence.Complete() {
+		t.Fatal("Reset() must clear job-control evidence")
+	}
+}
+
+func TestLabRequiresJobControlOnlyForJobConcept(t *testing.T) {
+	if !labRequiresJobControl(lab.Definition{ConceptIDs: []string{"lpic1.103.5.jobs-du-shell"}}) {
+		t.Fatal("jobs-du-shell should require job-control evidence")
+	}
+	if labRequiresJobControl(lab.Definition{ConceptIDs: []string{"lpic1.103.5.signaux"}}) {
+		t.Fatal("unrelated signal concept should not require job-control evidence")
+	}
+}
