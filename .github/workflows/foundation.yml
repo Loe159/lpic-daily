@@ -50,7 +50,7 @@ jobs:
       - name: Test
         run: go test ./...
       - name: Compile Podman integration tests
-        run: go test -tags=integration ./internal/runner/podman -run 'a^'
+        run: go test -tags=integration ./internal/runner/podman ./cmd/lpic -run 'a^'
       - name: Vet
         run: go vet ./...
       - name: Validate embedded curriculum through Go loader
@@ -118,7 +118,7 @@ jobs:
       - name: Run real Podman security and Phase-1 lab conformance tests
         env:
           LPIC_DAILY_RUN_PODMAN_INTEGRATION: "1"
-        run: go test -tags=integration ./internal/runner/podman -count=1 -v
+        run: go test -tags=integration ./internal/runner/podman ./cmd/lpic -count=1 -v
 
   podman-security-fedora:
     runs-on: ubuntu-latest
@@ -179,4 +179,4 @@ jobs:
         env:
           XDG_RUNTIME_DIR: /run/user/1000
           LPIC_DAILY_RUN_PODMAN_INTEGRATION: "1"
-        run: go test -tags=integration ./internal/runner/podman -count=1 -v
+        run: go test -tags=integration ./internal/runner/podman ./cmd/lpic -count=1 -v
