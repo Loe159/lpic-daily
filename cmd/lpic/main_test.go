@@ -615,7 +615,6 @@ func TestFailedLabCheckRecordsFailureEvidence(t *testing.T) {
 	}
 }
 
-
 func TestPersistentShellRequirementBlocksStateOnlySuccess(t *testing.T) {
 	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
 
