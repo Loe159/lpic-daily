@@ -668,3 +668,21 @@ func TestPersistentShellRequirementBlocksStateOnlySuccess(t *testing.T) {
 		t.Fatalf("events = %#v, want one failed attempt", events)
 	}
 }
+
+func TestPTYInteractionEvidenceRequiresJobControlInputs(t *testing.T) {
+	var evidence ptyInteractionEvidence
+	evidence.Observe([]byte("echo fake markers\r"))
+	if evidence.JobControlObserved() {
+		t.Fatal("ordinary shell input must not satisfy job-control evidence")
+	}
+	evidence.Observe([]byte{'\x1a'})
+	evidence.Observe([]byte("jobs -s\r"))
+	evidence.Observe([]byte("bg %+\r"))
+	if !evidence.JobControlObserved() {
+		t.Fatal("Ctrl-Z + jobs + bg should satisfy PTY interaction evidence")
+	}
+	evidence.Reset()
+	if evidence.JobControlObserved() {
+		t.Fatal("reset must clear PTY interaction evidence")
+	}
+}

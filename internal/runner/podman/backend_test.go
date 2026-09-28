@@ -221,6 +221,7 @@ func TestOpenRejectsRootfulAndAcceptsRootlessV2(t *testing.T) {
 }
 
 func TestManagedContainerLifecyclePrepareStartResetDestroy(t *testing.T) {
+	const imageID = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 	var (
 		createCalls int
 		startCalls  int
@@ -232,10 +233,17 @@ func TestManagedContainerLifecyclePrepareStartResetDestroy(t *testing.T) {
 		case r.Method == http.MethodGet && r.URL.Path == apiBase+"/info":
 			w.Header().Set("Content-Type", "application/json")
 			_, _ = w.Write([]byte(`{"host":{"cgroupVersion":"v2","security":{"rootless":true}}}`))
-		case r.Method == http.MethodGet && strings.HasPrefix(r.URL.Path, apiBase+"/images/") && strings.HasSuffix(r.URL.Path, "/exists"):
-			w.WriteHeader(http.StatusNoContent)
+		case r.Method == http.MethodGet && strings.HasPrefix(r.URL.Path, apiBase+"/images/") && strings.HasSuffix(r.URL.Path, "/json"):
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte("{\"Id\":\"" + imageID + "\"}"))
 		case r.Method == http.MethodPost && r.URL.Path == apiBase+"/containers/create":
 			createCalls++
+			var request createRequest
+			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+				t.Errorf("decode create request: %v", err)
+			} else if request.Image != imageID || request.RawImageName != imageID {
+				t.Errorf("container image = %q/%q, want immutable %q", request.Image, request.RawImageName, imageID)
+			}
 			w.Header().Set("Content-Type", "application/json")
 			_, _ = w.Write([]byte(`{"Id":"podman-container-id"}`))
 		case r.Method == http.MethodPost && strings.HasSuffix(r.URL.Path, "/start"):
