@@ -31,14 +31,16 @@ func Start(ctx context.Context, authored Lab, backend runner.Runner) (*Session, 
 		return nil, fmt.Errorf("prepare lab %s: %w", authored.Definition.ID, err)
 	}
 
-	cleanup := func() {
+	cleanup := func() error {
 		cleanupCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 10*time.Second)
 		defer cancel()
-		_ = backend.Destroy(cleanupCtx, instance)
+		return backend.Destroy(cleanupCtx, instance)
 	}
 
 	if err := startAndSetup(ctx, authored, backend, instance); err != nil {
-		cleanup()
+		if cleanupErr := cleanup(); cleanupErr != nil {
+			return nil, errors.Join(err, fmt.Errorf("cleanup failed start: %w", cleanupErr))
+		}
 		return nil, err
 	}
 
@@ -95,13 +97,14 @@ func (session *Session) Reset(ctx context.Context) error {
 		cleanupCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 10*time.Second)
 		defer cancel()
 		cleanupErr := session.Runner.Destroy(cleanupCtx, session.Instance)
-		session.closed = true
 		if cleanupErr != nil {
+			// Keep the session open so Close can retry cleanup.
 			return errors.Join(
 				fmt.Errorf("restore lab %s after reset: %w", session.Lab.Definition.ID, err),
 				fmt.Errorf("cleanup failed reset: %w", cleanupErr),
 			)
 		}
+		session.closed = true
 		return fmt.Errorf("restore lab %s after reset: %w", session.Lab.Definition.ID, err)
 	}
 	return nil
