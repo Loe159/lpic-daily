@@ -264,18 +264,23 @@ func runNotifyWithExecutor(
 	}
 
 	reviews := 0
+	practices := 0
 	newItems := 0
 	for _, item := range plan.Items {
-		if item.Kind == learning.SessionReview {
+		switch item.Kind {
+		case learning.SessionReview:
 			reviews++
-		} else {
+		case learning.SessionPractice:
+			practices++
+		case learning.SessionNew:
 			newItems++
 		}
 	}
 	body := fmt.Sprintf(
-		"%d activité(s) due(s) · %d révision(s) · %d nouveau(x) concept(s)",
+		"%d activité(s) due(s) · %d révision(s) · %d consolidation(s) · %d nouveau(x) concept(s)",
 		len(plan.Items),
 		reviews,
+		practices,
 		newItems,
 	)
 	open, err := desktop.SendDaily(ctx, executor, desktop.Notification{
@@ -387,6 +392,57 @@ func openProgressStore(ctx context.Context) (*progresssqlite.Store, error) {
 		return nil, fmt.Errorf("open progress database: %w", err)
 	}
 	return store, nil
+}
+
+func recordLabDisclosure(
+	ctx context.Context,
+	labID string,
+	highestHintLevel int,
+	solutionRevealed bool,
+) error {
+	store, err := openProgressStore(ctx)
+	if err != nil {
+		return err
+	}
+	if err := store.RecordLabDisclosure(
+		ctx,
+		labID,
+		highestHintLevel,
+		solutionRevealed,
+		time.Now(),
+	); err != nil {
+		_ = store.Close()
+		return err
+	}
+	if err := store.Close(); err != nil {
+		return fmt.Errorf("close progress database after lab disclosure: %w", err)
+	}
+	return nil
+}
+
+func pendingLabHintLevel(ctx context.Context, labID string) (int, error) {
+	store, err := openProgressStore(ctx)
+	if err != nil {
+		return 0, err
+	}
+	disclosure, disclosureErr := store.LabDisclosure(ctx, labID)
+	closeErr := store.Close()
+	if disclosureErr != nil {
+		return 0, disclosureErr
+	}
+	if closeErr != nil {
+		return 0, fmt.Errorf("close progress database after reading lab disclosure: %w", closeErr)
+	}
+	return disclosure.HighestHintLevel, nil
+}
+
+func nextHintIndex(hints []lab.Hint, highestHintLevel int) int {
+	for index, hint := range hints {
+		if hint.Level > highestHintLevel {
+			return index
+		}
+	}
+	return len(hints)
 }
 
 func runAssessment(args []string, stdin io.Reader, stdout io.Writer) error {
@@ -751,8 +807,17 @@ func runLabCommand(args []string, stdin io.Reader, stdout, stderr io.Writer) err
 			if hint.Level != level {
 				continue
 			}
+			solutionRevealed := hint.EvidenceImpact == "solution-revealed"
+			if err := recordLabDisclosure(
+				context.Background(),
+				authored.Definition.ID,
+				hint.Level,
+				solutionRevealed,
+			); err != nil {
+				return fmt.Errorf("record hint disclosure: %w", err)
+			}
 			fmt.Fprintf(stdout, "Indice %d/4\n%s\n", hint.Level, hint.ContentFR)
-			if hint.EvidenceImpact == "solution-revealed" {
+			if solutionRevealed {
 				fmt.Fprintln(stdout, "\nCet indice révèle la solution et réduit la force de la preuve pratique.")
 			}
 			return nil
@@ -765,6 +830,14 @@ func runLabCommand(args []string, stdin io.Reader, stdout, stderr io.Writer) err
 		authored, err := findLab(labs, args[1])
 		if err != nil {
 			return err
+		}
+		if err := recordLabDisclosure(
+			context.Background(),
+			authored.Definition.ID,
+			4,
+			true,
+		); err != nil {
+			return fmt.Errorf("record debrief disclosure: %w", err)
 		}
 		fmt.Fprintf(stdout, "%s\n\n%s\n", authored.Definition.TitleFR, authored.Definition.DebriefFR)
 		return nil
@@ -913,6 +986,11 @@ func runInteractiveLabWithBackend(
 		}
 	}
 
+	highestHintLevel, err := pendingLabHintLevel(sessionCtx, authored.Definition.ID)
+	if err != nil {
+		return fmt.Errorf("load pending lab disclosure: %w", err)
+	}
+
 	session, err := lab.Start(sessionCtx, authored, backend)
 	if err != nil {
 		return err
@@ -938,8 +1016,7 @@ func runInteractiveLabWithBackend(
 
 	scanner := bufio.NewScanner(stdin)
 	scanner.Buffer(make([]byte, 4096), 256<<10)
-	nextHint := 0
-	highestHintLevel := 0
+	nextHint := nextHintIndex(authored.Hints, highestHintLevel)
 
 	for {
 		if err := sessionCtx.Err(); err != nil {
@@ -971,12 +1048,21 @@ func runInteractiveLabWithBackend(
 				continue
 			}
 			hint := authored.Hints[nextHint]
+			solutionRevealed := hint.EvidenceImpact == "solution-revealed"
+			if err := recordLabDisclosure(
+				sessionCtx,
+				authored.Definition.ID,
+				hint.Level,
+				solutionRevealed,
+			); err != nil {
+				return fmt.Errorf("record hint disclosure: %w", err)
+			}
 			nextHint++
 			if hint.Level > highestHintLevel {
 				highestHintLevel = hint.Level
 			}
 			fmt.Fprintf(stdout, "Indice %d/4 : %s\n", hint.Level, hint.ContentFR)
-			if hint.EvidenceImpact == "solution-revealed" {
+			if solutionRevealed {
 				fmt.Fprintln(stdout, "Cet indice révèle la solution et réduira la force de la preuve pratique.")
 			}
 			continue
@@ -999,10 +1085,9 @@ func runInteractiveLabWithBackend(
 			if err := session.Reset(sessionCtx); err != nil {
 				return fmt.Errorf("reset lab: %w", err)
 			}
-			nextHint = 0
-			// Reset restores the sandbox state, not the learning attempt. Keep
-			// the strongest hint already seen so a revealed solution cannot be
-			// laundered into independent evidence by resetting the lab.
+			// Reset restores sandbox state only. Disclosure state is persisted
+			// across resets/restarts and remains attached to the learning attempt.
+			nextHint = nextHintIndex(authored.Hints, highestHintLevel)
 			fmt.Fprintln(stdout, "Lab réinitialisé dans son état de départ.")
 			continue
 		case ":check":
@@ -1019,19 +1104,23 @@ func runInteractiveLabWithBackend(
 				}
 				fmt.Fprintf(stdout, "  %-11s %s — %s\n", state, result.CheckID, result.Detail)
 			}
+			store, err := openProgressStore(sessionCtx)
+			if err != nil {
+				return fmt.Errorf("lab attempt progress could not be opened: %w", err)
+			}
+			now := time.Now()
 			if passed {
 				fmt.Fprintln(stdout, "\nLab réussi.")
 				fmt.Fprintln(stdout, authored.Definition.DebriefFR)
 
-				store, err := openProgressStore(sessionCtx)
-				if err != nil {
-					return fmt.Errorf("lab succeeded but progress could not be opened: %w", err)
-				}
-				now := time.Now()
 				recordErr := study.RecordLab(sessionCtx, store, authored, highestHintLevel, now)
 				if recordErr != nil {
-					store.Close()
+					_ = store.Close()
 					return fmt.Errorf("lab succeeded but progress could not be recorded: %w", recordErr)
+				}
+				if err := store.ClearLabDisclosure(sessionCtx, authored.Definition.ID); err != nil {
+					_ = store.Close()
+					return fmt.Errorf("lab succeeded but disclosure state could not be cleared: %w", err)
 				}
 				fmt.Fprintln(stdout, "Progression enregistrée.")
 				recordGamificationBestEffort(
@@ -1047,6 +1136,23 @@ func runInteractiveLabWithBackend(
 				}
 				return nil
 			}
+
+			recordErr := study.RecordLabAttempt(
+				sessionCtx,
+				store,
+				authored,
+				learning.ResultFail,
+				highestHintLevel,
+				now,
+			)
+			if recordErr != nil {
+				_ = store.Close()
+				return fmt.Errorf("failed lab attempt could not be recorded: %w", recordErr)
+			}
+			if closeErr := store.Close(); closeErr != nil {
+				return fmt.Errorf("failed lab attempt store could not be closed: %w", closeErr)
+			}
+			fmt.Fprintln(stdout, "\nTentative enregistrée.")
 			continue
 		}
 
