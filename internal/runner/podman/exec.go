@@ -346,9 +346,11 @@ func (backend *Backend) startTTYExec(
 		}
 	}
 
-	if !strings.EqualFold(response.Header.Get("Upgrade"), "tcp") {
+	upgradeProtocol := response.Header.Get("Upgrade")
+	if !strings.EqualFold(upgradeProtocol, "tcp") &&
+		!strings.EqualFold(upgradeProtocol, "application/vnd.docker.raw-stream") {
 		_ = conn.Close()
-		return nil, nil, fmt.Errorf("unexpected TTY upgrade protocol %q", response.Header.Get("Upgrade"))
+		return nil, nil, fmt.Errorf("unexpected TTY upgrade protocol %q", upgradeProtocol)
 	}
 	return conn, reader, nil
 }
