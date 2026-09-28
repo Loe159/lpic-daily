@@ -85,16 +85,16 @@ func TestPlanUsesStoredRecallToCreateDueReviewWithoutReplayingLesson(t *testing.
 		conceptID: {{
 			EventID:          "recall-1",
 			OccurredAt:       now.Add(-4 * 24 * time.Hour),
-			ConceptID:       conceptID,
-			ObjectiveIDs:    []string{"103.1"},
+			ConceptID:        conceptID,
+			ObjectiveIDs:     []string{"103.1"},
 			SourceItemID:     "lpic1.103.1.q.sequence-and",
 			ActivityKind:     learning.ActivityQuestion,
 			EvidenceKind:     learning.EvidenceRecall,
-			Result:          learning.ResultPass,
+			Result:           learning.ResultPass,
 			HighestHintLevel: 0,
 			SolutionRevealed: false,
 			Distribution:     "generic",
-			AttemptIndex:    1,
+			AttemptIndex:     1,
 		}},
 	}
 
@@ -135,16 +135,16 @@ func TestQuickPolicyLimitsReviews(t *testing.T) {
 		evidence[conceptID] = []learning.EvidenceEvent{{
 			EventID:          "event-" + conceptID,
 			OccurredAt:       now.Add(-10 * 24 * time.Hour),
-			ConceptID:       conceptID,
-			ObjectiveIDs:    []string{"103.1"},
+			ConceptID:        conceptID,
+			ObjectiveIDs:     []string{"103.1"},
 			SourceItemID:     "test-question",
 			ActivityKind:     learning.ActivityQuestion,
 			EvidenceKind:     learning.EvidenceRecall,
-			Result:          learning.ResultPass,
+			Result:           learning.ResultPass,
 			HighestHintLevel: 0,
 			SolutionRevealed: false,
 			Distribution:     "generic",
-			AttemptIndex:    1,
+			AttemptIndex:     1,
 		}}
 	}
 
@@ -176,16 +176,16 @@ func TestExposedConceptRecommendsQuestionNotLesson(t *testing.T) {
 		conceptID: {{
 			EventID:          "lesson-1",
 			OccurredAt:       now,
-			ConceptID:       conceptID,
-			ObjectiveIDs:    []string{"103.1"},
+			ConceptID:        conceptID,
+			ObjectiveIDs:     []string{"103.1"},
 			SourceItemID:     "lpic1.103.1.lesson.shell-sequences",
 			ActivityKind:     learning.ActivityLesson,
 			EvidenceKind:     learning.EvidenceExposure,
-			Result:          learning.ResultPass,
+			Result:           learning.ResultPass,
 			HighestHintLevel: 0,
 			SolutionRevealed: false,
 			Distribution:     "generic",
-			AttemptIndex:    1,
+			AttemptIndex:     1,
 		}},
 	}
 
@@ -256,16 +256,16 @@ func TestBuildPlanDefaultsIntervalsWithoutOverwritingCustomLimits(t *testing.T) 
 		evidence[conceptID] = []learning.EvidenceEvent{{
 			EventID:          "event-" + conceptID,
 			OccurredAt:       now.Add(-10 * 24 * time.Hour),
-			ConceptID:       conceptID,
-			ObjectiveIDs:    []string{"103.1"},
+			ConceptID:        conceptID,
+			ObjectiveIDs:     []string{"103.1"},
 			SourceItemID:     "test-question",
 			ActivityKind:     learning.ActivityQuestion,
 			EvidenceKind:     learning.EvidenceRecall,
-			Result:          learning.ResultPass,
+			Result:           learning.ResultPass,
 			HighestHintLevel: 0,
 			SolutionRevealed: false,
 			Distribution:     "generic",
-			AttemptIndex:    1,
+			AttemptIndex:     1,
 		}}
 	}
 
