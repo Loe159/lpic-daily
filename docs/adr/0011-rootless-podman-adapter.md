@@ -61,7 +61,7 @@ The first executable checkpoint deliberately separates non-interactive control f
 - setup/check commands use Docker-compatible v1.40 exec endpoints exposed by the same local Podman service;
 - exec is detached, non-privileged and polled through exec-inspect for the final exit code;
 - stdin, attached stdout/stderr and TTY requests fail with `ErrNotSupported` until the dedicated attach/PTY implementation lands;
-- filesystem probes use the native container archive endpoint and parse tar metadata, including UID/GID and names when available;
+- filesystem probes use the native container archive endpoint for type/mode/content; guest-visible UID/GID and names are read with structured `/usr/bin/stat` execution because rootless Podman archive ownership can be host-remapped differently across storage drivers/versions;
 - file reads are byte-bounded;
 - process probes request stable `pid,comm,args` descriptors from the native top endpoint.
 
