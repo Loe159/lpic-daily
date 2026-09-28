@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/Loe159/lpic-daily/internal/runner"
+	"golang.org/x/sys/unix"
 )
 
 var domainSlugUnsafe = regexp.MustCompile(`[^a-z0-9.-]+`)
@@ -521,7 +522,11 @@ func (backend *Backend) Reap(ctx context.Context) error {
 			}
 			lease, err = acquireInstanceLease(directory)
 			if err != nil {
-				// Another LPIC Daily process owns this run; it is not abandoned.
+				if errors.Is(err, unix.EWOULDBLOCK) || errors.Is(err, unix.EAGAIN) {
+					// Another LPIC Daily process owns this run; it is not abandoned.
+					continue
+				}
+				errs = append(errs, err)
 				continue
 			}
 		case errors.Is(statErr, os.ErrNotExist):
