@@ -17,6 +17,7 @@ type fakeRawLibvirt struct {
 	definedXML    string
 	defineFlags   golibvirt.DomainDefineFlags
 	createFlags   uint32
+	rebootFlags   golibvirt.DomainRebootFlagValues
 	destroyFlags  golibvirt.DomainDestroyFlagsValues
 	undefineFlags golibvirt.DomainUndefineFlagsValues
 	state         int32
@@ -26,6 +27,11 @@ type fakeRawLibvirt struct {
 	consoleFlags  uint32
 	agentCommand  string
 	agentTimeout  int32
+	network        golibvirt.Network
+	networkXML     string
+	networkActive  int32
+	networkDestroyed bool
+	networkUndefined bool
 	disconnected  bool
 	err           error
 }
@@ -67,6 +73,14 @@ func (fake *fakeRawLibvirt) DomainCreateWithFlags(
 		return golibvirt.Domain{}, fake.err
 	}
 	return domain, nil
+}
+
+func (fake *fakeRawLibvirt) DomainReboot(
+	_ golibvirt.Domain,
+	flags golibvirt.DomainRebootFlagValues,
+) error {
+	fake.rebootFlags = flags
+	return fake.err
 }
 
 func (fake *fakeRawLibvirt) DomainOpenConsoleBidirectional(
@@ -127,6 +141,54 @@ func (fake *fakeRawLibvirt) DomainUndefineFlags(
 	return fake.err
 }
 
+func (fake *fakeRawLibvirt) NetworkDefineXML(xml string) (golibvirt.Network, error) {
+	fake.networkXML = xml
+	if fake.err != nil {
+		return golibvirt.Network{}, fake.err
+	}
+	return fake.network, nil
+}
+
+func (fake *fakeRawLibvirt) NetworkLookupByName(name string) (golibvirt.Network, error) {
+	if fake.err != nil {
+		return golibvirt.Network{}, fake.err
+	}
+	network := fake.network
+	if network.Name == "" {
+		network.Name = name
+	}
+	return network, nil
+}
+
+func (fake *fakeRawLibvirt) NetworkCreate(_ golibvirt.Network) error {
+	if fake.err != nil {
+		return fake.err
+	}
+	fake.networkActive = 1
+	return nil
+}
+
+func (fake *fakeRawLibvirt) NetworkIsActive(_ golibvirt.Network) (int32, error) {
+	return fake.networkActive, fake.err
+}
+
+func (fake *fakeRawLibvirt) NetworkDestroy(_ golibvirt.Network) error {
+	if fake.err != nil {
+		return fake.err
+	}
+	fake.networkDestroyed = true
+	fake.networkActive = 0
+	return nil
+}
+
+func (fake *fakeRawLibvirt) NetworkUndefine(_ golibvirt.Network) error {
+	if fake.err != nil {
+		return fake.err
+	}
+	fake.networkUndefined = true
+	return nil
+}
+
 func (fake *fakeRawLibvirt) Disconnect() error {
 	fake.disconnected = true
 	return fake.err
@@ -138,6 +200,7 @@ func TestRPCControlPlaneLifecycleUsesManagedDomainOnly(t *testing.T) {
 		libVersion:   1002003,
 		capabilities: "<capabilities><host><cpu><arch>x86_64</arch></cpu></host></capabilities>",
 		domain:       golibvirt.Domain{Name: name},
+		network:      golibvirt.Network{Name: name},
 		state:        1,
 		reason:       2,
 	}
@@ -160,6 +223,12 @@ func TestRPCControlPlaneLifecycleUsesManagedDomainOnly(t *testing.T) {
 	}
 	if err := control.StartDomain(name); err != nil {
 		t.Fatalf("StartDomain() error = %v", err)
+	}
+	if err := control.RebootDomain(name); err != nil {
+		t.Fatalf("RebootDomain() error = %v", err)
+	}
+	if raw.rebootFlags != golibvirt.DomainRebootDefault {
+		t.Fatalf("reboot flags = %v, want default", raw.rebootFlags)
 	}
 	var console bytes.Buffer
 	if err := control.OpenConsole(name, strings.NewReader("boot\n"), &console); err != nil {
@@ -194,6 +263,28 @@ func TestRPCControlPlaneLifecycleUsesManagedDomainOnly(t *testing.T) {
 	if err != nil || state.State != 1 || state.Reason != 2 {
 		t.Fatalf("DomainState() = %#v, %v", state, err)
 	}
+	if err := control.DefineNetwork(name, "<network/>"); err != nil {
+		t.Fatalf("DefineNetwork() error = %v", err)
+	}
+	if raw.networkXML != "<network/>" {
+		t.Fatalf("network XML = %q", raw.networkXML)
+	}
+	if err := control.StartNetwork(name); err != nil {
+		t.Fatalf("StartNetwork() error = %v", err)
+	}
+	if active, err := control.NetworkActive(name); err != nil || !active {
+		t.Fatalf("NetworkActive() = %v, %v", active, err)
+	}
+	if err := control.DestroyNetwork(name); err != nil {
+		t.Fatalf("DestroyNetwork() error = %v", err)
+	}
+	if err := control.UndefineNetwork(name); err != nil {
+		t.Fatalf("UndefineNetwork() error = %v", err)
+	}
+	if !raw.networkDestroyed || !raw.networkUndefined {
+		t.Fatalf("network cleanup flags destroyed=%v undefined=%v", raw.networkDestroyed, raw.networkUndefined)
+	}
+
 	if err := control.DestroyDomain(name); err != nil {
 		t.Fatalf("DestroyDomain() error = %v", err)
 	}
@@ -220,6 +311,9 @@ func TestRPCControlPlaneRejectsUnmanagedNamesBeforeRPC(t *testing.T) {
 
 	for _, action := range []func() error{
 		func() error { return control.StartDomain("default") },
+		func() error { return control.RebootDomain("default") },
+		func() error { return control.DefineNetwork("default", "<network/>") },
+		func() error { return control.StartNetwork("default") },
 		func() error {
 			_, err := control.DomainState("other-vm")
 			return err
