@@ -55,19 +55,31 @@
       "type": "block-device-state",
       "path": "/dev/vdb",
       "device_type": "disk",
-      "partition_table": "gpt"
+      "partition_table": "gpt",
+      "concept_ids": [
+        "lpic1.104.1.mbr-versus-gpt",
+        "lpic1.104.1.creation-modification-de-partitions"
+      ]
     },
     {
       "type": "block-device-state",
       "path": "/dev/vdb1",
       "device_type": "part",
-      "filesystem": "ext4"
+      "filesystem": "ext4",
+      "concept_ids": [
+        "lpic1.104.1.ext2-ext3-ext4",
+        "lpic1.104.1.creation-de-filesystem"
+      ]
     },
     {
       "type": "block-device-state",
       "path": "/dev/vdb2",
       "device_type": "part",
-      "filesystem": "swap"
+      "filesystem": "swap",
+      "concept_ids": [
+        "lpic1.104.1.swap",
+        "lpic1.104.1.creation-de-filesystem"
+      ]
     }
   ],
   "hint_ids": [
