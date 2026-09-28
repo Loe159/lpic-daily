@@ -1027,7 +1027,7 @@ func runInteractiveLabWithBackend(
 		fmt.Fprintln(stdout, "Commandes LPIC Daily : :shell  :check  :hint  :reset  :quit")
 	} else {
 		fmt.Fprintln(stdout, "Mode commandes VM. Chaque ligne est exécutée dans la VM via QEMU Guest Agent.")
-		fmt.Fprintln(stdout, "Commandes LPIC Daily : :check  :hint  :reset  :quit")
+		fmt.Fprintln(stdout, "Commandes LPIC Daily : :console  :reboot  :check  :hint  :reset  :quit")
 	}
 	fmt.Fprintln(stdout)
 
@@ -1107,6 +1107,31 @@ func runInteractiveLabWithBackend(
 			if result.ExitCode != 0 {
 				fmt.Fprintf(stderr, "[shell exit %d]\n", result.ExitCode)
 			}
+			continue
+		case ":console":
+			if persistentShell {
+				fmt.Fprintln(stdout, "La console série est réservée aux labs VM.")
+				continue
+			}
+			fmt.Fprintln(stdout, "Console série brute ouverte. Ctrl-] revient à LPIC Daily.")
+			if err := runVMConsole(sessionCtx, backend, session.Instance, stdin, stdout); err != nil {
+				return fmt.Errorf("VM serial console: %w", err)
+			}
+			fmt.Fprintln(stdout, "\n[retour LPIC Daily]")
+			continue
+		case ":reboot":
+			if persistentShell {
+				fmt.Fprintln(stdout, "Le reboot VM n'est pas disponible pour ce backend.")
+				continue
+			}
+			rebooter, ok := backend.(runner.RebootRunner)
+			if !ok {
+				return fmt.Errorf("%w: backend has no reboot capability", runner.ErrNotSupported)
+			}
+			if err := rebooter.Reboot(sessionCtx, session.Instance); err != nil {
+				return fmt.Errorf("reboot VM: %w", err)
+			}
+			fmt.Fprintln(stdout, "Reboot demandé. La console série permet de suivre le prochain boot.")
 			continue
 		case ":reset":
 			if err := session.Reset(sessionCtx); err != nil {
@@ -1376,6 +1401,80 @@ func markPersistentShellConceptFailure(
 	for _, conceptID := range definition.ConceptIDs {
 		conceptResults[conceptID] = learning.ResultFail
 	}
+}
+
+type vmConsoleEscapeReader struct {
+	reader  io.Reader
+	escaped bool
+}
+
+func (reader *vmConsoleEscapeReader) Read(buffer []byte) (int, error) {
+	if reader == nil || reader.reader == nil {
+		return 0, io.EOF
+	}
+	if reader.escaped {
+		return 0, io.EOF
+	}
+	n, err := reader.reader.Read(buffer)
+	for index, value := range buffer[:n] {
+		if value != 0x1d {
+			continue
+		}
+		reader.escaped = true
+		if index == 0 {
+			return 0, io.EOF
+		}
+		return index, nil
+	}
+	return n, err
+}
+
+func runVMConsole(
+	ctx context.Context,
+	backend runner.Runner,
+	instance runner.Instance,
+	stdin io.Reader,
+	stdout io.Writer,
+) (returnErr error) {
+	console, ok := backend.(runner.ConsoleRunner)
+	if !ok {
+		return fmt.Errorf("%w: backend has no serial console capability", runner.ErrNotSupported)
+	}
+	stdinFile, ok := stdin.(*os.File)
+	if !ok || !terminal.IsTerminal(stdinFile) {
+		return errors.New(":console requires an interactive terminal on stdin")
+	}
+	stdoutFile, ok := stdout.(*os.File)
+	if !ok || !terminal.IsTerminal(stdoutFile) {
+		return errors.New(":console requires an interactive terminal on stdout")
+	}
+
+	state, err := terminal.MakeRaw(stdinFile)
+	if err != nil {
+		return err
+	}
+	restored := false
+	defer func() {
+		if restored {
+			return
+		}
+		if err := terminal.Restore(stdinFile, state); returnErr == nil && err != nil {
+			returnErr = err
+		}
+	}()
+
+	err = console.OpenConsole(ctx, instance, runner.ConsoleRequest{
+		Stdin:  &vmConsoleEscapeReader{reader: stdinFile},
+		Stdout: stdoutFile,
+	})
+	if restoreErr := terminal.Restore(stdinFile, state); restoreErr != nil {
+		return restoreErr
+	}
+	restored = true
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func runPersistentShell(
