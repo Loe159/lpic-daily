@@ -3,6 +3,7 @@ package sqlite
 import (
 	"context"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -70,6 +71,32 @@ func TestMigrationAndEvidenceRoundTrip(t *testing.T) {
 	}
 	if got[0].EvidenceKind != want.EvidenceKind || got[0].Result != want.Result {
 		t.Fatalf("round trip kind/result = (%s, %s), want (%s, %s)", got[0].EvidenceKind, got[0].Result, want.EvidenceKind, want.Result)
+	}
+}
+
+func TestOpenRejectsNewerSchemaVersion(t *testing.T) {
+	ctx := context.Background()
+	path := filepath.Join(t.TempDir(), "future.sqlite")
+
+	store, err := Open(ctx, path)
+	if err != nil {
+		t.Fatalf("initial Open() error = %v", err)
+	}
+	if _, err := store.db.ExecContext(ctx, "PRAGMA user_version = 999"); err != nil {
+		_ = store.Close()
+		t.Fatalf("set future schema version: %v", err)
+	}
+	if err := store.Close(); err != nil {
+		t.Fatalf("close future database: %v", err)
+	}
+
+	store, err = Open(ctx, path)
+	if err == nil {
+		_ = store.Close()
+		t.Fatal("Open() unexpectedly accepted a database from a newer schema")
+	}
+	if !strings.Contains(err.Error(), "newer than this binary supports") {
+		t.Fatalf("Open() error = %v, want newer-schema refusal", err)
 	}
 }
 
