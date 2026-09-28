@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
+ps -o pid=,ppid=,stat=,comm=,args= \
+  -p "$(cat /run/lpic/healthy-worker.pid),$(cat /run/lpic/stuck-worker.pid)" \
+  > /run/lpic/process-inspection
 kill -TERM "$(cat /run/lpic/stuck-worker.pid)"
 /usr/local/bin/lpic-signal-probe &
 probe_pid="$!"
