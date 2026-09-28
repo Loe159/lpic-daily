@@ -3,6 +3,6 @@
   "id": "lpic1.103.1.transfer-shell-handoff.hint-1",
   "lab_id": "lpic1.103.1.transfer-shell-handoff",
   "level": 1,
-  "content_fr": "Compare ce que voit un nouveau login shell : PATH, variables exportées et réglages d'historique. Ne corrige pas seulement le shell courant.",
+  "content_fr": "Ce scénario concerne un shell interactif, pas un login shell. Lance un bash avec --noprofile --rcfile /root/.bashrc -i pour vérifier ce qu’il charge réellement.",
   "evidence_impact": "none"
 }
