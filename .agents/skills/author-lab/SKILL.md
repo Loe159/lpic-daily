@@ -10,7 +10,8 @@ description: Design a safe, state-validated Linux lab
 2. Select the least-privileged backend capable of teaching the skill: rootless Podman first, libvirt VM when kernel/boot/storage/system integration requires it.
 3. Define initial state, learner goal, allowed capabilities, network policy, timeout, cleanup and deterministic checks.
 4. Validate observable final state, not exact commands.
-5. Randomize superficial values where useful while keeping grading deterministic.
-6. Add a reference solution used only by tests and authoring validation.
-7. Prove reset/cleanup works after success, failure, interruption and timeout.
+5. Assign a stable `practice_context`. Reuse it for superficial variants; use a different value only when the task context is materially different enough to count toward transfer.
+6. Randomize superficial values where useful while keeping grading deterministic.
+7. Add a reference solution used only by tests and authoring validation.
+8. Prove reset/cleanup works after success, failure, interruption and timeout.
 
