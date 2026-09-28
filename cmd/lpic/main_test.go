@@ -442,7 +442,6 @@ func (*scriptedLabRunner) Processes(context.Context, runner.Instance) ([]runner.
 func (*scriptedLabRunner) Reset(context.Context, runner.Instance) error   { return nil }
 func (*scriptedLabRunner) Destroy(context.Context, runner.Instance) error { return nil }
 
-
 func TestStandaloneSolutionHintTaintsNextSuccessfulLabAttempt(t *testing.T) {
 	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
 
