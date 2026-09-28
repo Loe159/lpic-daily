@@ -298,6 +298,27 @@ func TestLabRunFailsClosedWhenRootlessPodmanIsUnavailable(t *testing.T) {
 	}
 }
 
+func TestPrepareJobControlShellAvoidsUnsupportedNonTTYStdin(t *testing.T) {
+	fake := &scriptedLabRunner{rejectNonTTYStdin: true}
+	if err := prepareJobControlShell(context.Background(), fake, runner.Instance{ID: "scripted"}); err != nil {
+		t.Fatalf("prepareJobControlShell() error = %v", err)
+	}
+	if len(fake.execRequests) != 2 {
+		t.Fatalf("exec requests = %d, want 2", len(fake.execRequests))
+	}
+	for index, request := range fake.execRequests {
+		if request.Stdin != nil {
+			t.Fatalf("request %d unexpectedly uses stdin", index+1)
+		}
+		if request.TTY {
+			t.Fatalf("request %d unexpectedly uses TTY", index+1)
+		}
+		if len(request.Argv) < 6 || request.Argv[0] != "/usr/bin/bash" {
+			t.Fatalf("request %d argv = %#v, want structured bash file write", index+1, request.Argv)
+		}
+	}
+}
+
 func TestLibvirtLabRunFailsClosedWithoutTrustedImageCatalog(t *testing.T) {
 	root := t.TempDir()
 	t.Setenv("LPIC_DAILY_VM_IMAGE_DIR", filepath.Join(root, "vm-images"))
@@ -416,14 +437,20 @@ func TestLabResetDoesNotEraseSolutionRevealEvidence(t *testing.T) {
 }
 
 type scriptedLabRunner struct {
-	failChecks bool
+	failChecks        bool
+	rejectNonTTYStdin bool
+	execRequests      []runner.ExecRequest
 }
 
 func (*scriptedLabRunner) Prepare(context.Context, runner.Definition) (runner.Instance, error) {
 	return runner.Instance{ID: "scripted"}, nil
 }
 func (*scriptedLabRunner) Start(context.Context, runner.Instance) error { return nil }
-func (*scriptedLabRunner) Exec(context.Context, runner.Instance, runner.ExecRequest) (runner.ExecResult, error) {
+func (fake *scriptedLabRunner) Exec(_ context.Context, _ runner.Instance, request runner.ExecRequest) (runner.ExecResult, error) {
+	if fake.rejectNonTTYStdin && request.Stdin != nil && !request.TTY {
+		return runner.ExecResult{}, errors.New("non-TTY stdin rejected")
+	}
+	fake.execRequests = append(fake.execRequests, request)
 	return runner.ExecResult{ExitCode: 0}, nil
 }
 func (fake *scriptedLabRunner) Stat(_ context.Context, _ runner.Instance, guestPath string) (runner.FileInfo, error) {

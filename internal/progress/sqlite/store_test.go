@@ -23,6 +23,7 @@ func testEvent(id string, at time.Time) learning.EvidenceEvent {
 		HighestHintLevel: 0,
 		SolutionRevealed: false,
 		Distribution:     "fedora",
+		PracticeContext:  "process-incident",
 		AttemptIndex:     1,
 	}
 }
@@ -40,8 +41,8 @@ func TestMigrationAndEvidenceRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatalf("SchemaVersion() error = %v", err)
 	}
-	if version != 4 {
-		t.Fatalf("schema version = %d, want 4", version)
+	if version != 5 {
+		t.Fatalf("schema version = %d, want 5", version)
 	}
 
 	at := time.Date(2026, 9, 26, 12, 0, 0, 123456789, time.UTC)
@@ -71,6 +72,9 @@ func TestMigrationAndEvidenceRoundTrip(t *testing.T) {
 	}
 	if got[0].EvidenceKind != want.EvidenceKind || got[0].Result != want.Result {
 		t.Fatalf("round trip kind/result = (%s, %s), want (%s, %s)", got[0].EvidenceKind, got[0].Result, want.EvidenceKind, want.Result)
+	}
+	if got[0].PracticeContext != want.PracticeContext {
+		t.Fatalf("round trip practice context = %q, want %q", got[0].PracticeContext, want.PracticeContext)
 	}
 }
 

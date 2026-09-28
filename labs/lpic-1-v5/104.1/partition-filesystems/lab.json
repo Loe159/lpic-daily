@@ -24,6 +24,7 @@
     "modern-practice"
   ],
   "estimated_minutes": 20,
+  "practice_context": "partition-filesystems",
   "environment": {
     "backend": "libvirt",
     "image_ref": "fedora-44-x86_64-v1",

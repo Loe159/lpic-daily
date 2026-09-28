@@ -142,6 +142,40 @@ func TestRepeatedUnhintedLabAttemptStaysIndependent(t *testing.T) {
 	}
 }
 
+func TestDifferentLabIDWithSamePracticeContextStaysIndependent(t *testing.T) {
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("lab.LoadAll() error = %v", err)
+	}
+	var shared lab.Lab
+	for _, authored := range labs {
+		if authored.Definition.ID == "lpic1.104.5.shared-dropbox" {
+			shared = authored
+			break
+		}
+	}
+	if shared.Definition.ID == "" {
+		t.Fatal("shared-dropbox lab not found")
+	}
+
+	sameContext := shared
+	sameContext.Definition.ID = "lpic1.104.5.superficial-variant"
+
+	store := newRecordingStore()
+	start := time.Date(2026, 9, 24, 20, 0, 0, 0, time.UTC)
+	if err := study.RecordLab(context.Background(), store, shared, 0, start); err != nil {
+		t.Fatalf("first RecordLab() error = %v", err)
+	}
+	if err := study.RecordLab(context.Background(), store, sameContext, 0, start.Add(25*time.Hour)); err != nil {
+		t.Fatalf("second RecordLab() error = %v", err)
+	}
+
+	events := store.events[shared.Definition.ConceptIDs[0]]
+	if len(events) != 2 || events[1].EvidenceKind != learning.EvidenceIndependentPractice {
+		t.Fatalf("evidence = %#v, want second independent-practice", events)
+	}
+}
+
 func TestDifferentUnhintedLabContextRecordsTransfer(t *testing.T) {
 	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
 	if err != nil {
@@ -160,6 +194,7 @@ func TestDifferentUnhintedLabContextRecordsTransfer(t *testing.T) {
 
 	transferContext := shared
 	transferContext.Definition.ID = "lpic1.104.5.shared-dropbox-transfer"
+	transferContext.Definition.PracticeContext = "team-share-audit-test"
 
 	store := newRecordingStore()
 	start := time.Date(2026, 9, 24, 20, 0, 0, 0, time.UTC)

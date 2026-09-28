@@ -7,4 +7,5 @@ Labs are adversarial inputs from the host's perspective. Read `docs/SECURITY.md`
 - Network is denied by default.
 - Never mount arbitrary host paths or secrets.
 - Grade observable final state, not exact command history.
+- Give every practical lab a stable `practice_context`; a transfer lab must use a materially different context ID, not merely a different lab ID.
 - Every lab must define timeout/reset/cleanup behavior and a test-only reference solution.

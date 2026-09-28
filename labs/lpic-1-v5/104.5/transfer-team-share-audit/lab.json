@@ -29,6 +29,7 @@
     "modern-practice"
   ],
   "estimated_minutes": 12,
+  "practice_context": "team-share-audit",
   "environment": {
     "backend": "podman",
     "image_ref": "localhost/lpic-daily/fedora-phase1:1",

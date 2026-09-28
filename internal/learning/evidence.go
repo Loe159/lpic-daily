@@ -47,6 +47,7 @@ type EvidenceEvent struct {
 	HighestHintLevel int
 	SolutionRevealed bool
 	Distribution     string
+	PracticeContext  string
 	AttemptIndex     int
 }
 

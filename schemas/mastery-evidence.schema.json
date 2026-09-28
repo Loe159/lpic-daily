@@ -18,6 +18,7 @@
     "highest_hint_level": { "type": "integer", "minimum": 0, "maximum": 4 },
     "solution_revealed": { "type": "boolean" },
     "distribution": { "$ref": "common.schema.json#/$defs/distribution" },
+    "practice_context": { "type": "string", "pattern": "^[a-z0-9][a-z0-9.-]{2,63}$" },
     "attempt_index": { "type": "integer", "minimum": 1 },
     "metadata": { "type": "object" }
   }

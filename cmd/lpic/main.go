@@ -1326,8 +1326,14 @@ func prepareJobControlShell(
 		{path: jobControlEventPath, content: ""},
 	} {
 		result, err := backend.Exec(ctx, instance, runner.ExecRequest{
-			Argv:  []string{"/usr/bin/tee", file.path},
-			Stdin: strings.NewReader(file.content),
+			Argv: []string{
+				"/usr/bin/bash",
+				"-c",
+				`printf '%s' "$1" > "$2"`,
+				"lpic-daily",
+				file.content,
+				file.path,
+			},
 		})
 		if err != nil {
 			return fmt.Errorf("prepare job-control shell file %s: %w", file.path, err)

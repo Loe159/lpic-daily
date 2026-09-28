@@ -29,6 +29,7 @@
     "modern-practice"
   ],
   "estimated_minutes": 15,
+  "practice_context": "shared-dropbox-policy",
   "environment": {
     "backend": "podman",
     "image_ref": "localhost/lpic-daily/fedora-phase1:1",

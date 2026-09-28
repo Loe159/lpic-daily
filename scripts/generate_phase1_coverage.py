@@ -39,7 +39,11 @@ def artifact_records(surface, pattern):
             raise ValueError(f"{path.relative_to(ROOT)}: objective_ids must be a list of strings")
 
         concepts = set(declared_concepts)
+        practice_context = None
         if surface == "labs":
+            practice_context = data.get("practice_context")
+            if not isinstance(practice_context, str) or not practice_context:
+                raise ValueError(f"{path.relative_to(ROOT)}: lab requires practice_context")
             checked_concepts = set()
             checks = data.get("checks")
             if not isinstance(checks, list) or not checks:
@@ -65,7 +69,7 @@ def artifact_records(surface, pattern):
                 )
             concepts = checked_concepts
 
-        records.append((artifact_id, concepts, set(objectives), path))
+        records.append((artifact_id, concepts, set(objectives), path, practice_context))
     return records
 
 
@@ -88,9 +92,10 @@ def generate():
         for concept_id in ordered_concepts
     }
 
+    lab_contexts = {concept_id: set() for concept_id in ordered_concepts}
     seen_artifact_ids = set()
     for surface, pattern in SURFACE_GLOBS.items():
-        for artifact_id, concept_ids, objective_ids, path in artifact_records(surface, pattern):
+        for artifact_id, concept_ids, objective_ids, path, practice_context in artifact_records(surface, pattern):
             if artifact_id in seen_artifact_ids:
                 raise ValueError(f"duplicate learning artifact id {artifact_id}")
             seen_artifact_ids.add(artifact_id)
@@ -105,6 +110,8 @@ def generate():
                         f"Phase-1 objective {objective_id}, but that objective is not referenced"
                     )
                 mapped[concept_id][surface].append(artifact_id)
+                if surface == "labs":
+                    lab_contexts[concept_id].add(practice_context)
 
     concepts = []
     for concept_id in ordered_concepts:
@@ -117,6 +124,7 @@ def generate():
             "concept_id": concept_id,
             "objective_id": objective_id,
             "surfaces": surfaces,
+            "lab_contexts": sorted(lab_contexts[concept_id]),
         })
 
     return {
@@ -134,6 +142,7 @@ def generate():
             ),
             "with_lab": sum(bool(item["surfaces"]["labs"]) for item in concepts),
             "with_two_labs": sum(len(item["surfaces"]["labs"]) >= 2 for item in concepts),
+            "with_two_lab_contexts": sum(len(item["lab_contexts"]) >= 2 for item in concepts),
             "with_lesson": sum(bool(item["surfaces"]["lessons"]) for item in concepts),
             "with_question": sum(bool(item["surfaces"]["questions"]) for item in concepts),
         },
@@ -194,11 +203,11 @@ def main():
     insufficient_transfer = [
         item["concept_id"]
         for item in generated["concepts"]
-        if len(item["surfaces"]["labs"]) < 2
+        if len(item["surfaces"]["labs"]) < 2 or len(item["lab_contexts"]) < 2
     ]
     if insufficient_transfer:
         print(
-            "Phase-1 coverage FAILED: every Phase-1 concept needs two distinct lab contexts "
+            "Phase-1 coverage FAILED: every Phase-1 concept needs two labs with distinct practice_context values "
             "so independent practice can later transfer: "
             + ", ".join(insufficient_transfer)
         )
@@ -209,7 +218,8 @@ def main():
         f"{summary['concepts']} concepts; "
         f"{summary['with_any_surface']} with any surface; "
         f"{summary['with_lab']} with lab; "
-        f"{summary['with_two_labs']} with two lab contexts; "
+        f"{summary['with_two_labs']} with two labs; "
+        f"{summary['with_two_lab_contexts']} with two explicit practice contexts; "
         f"{summary['with_lesson']} with lesson; "
         f"{summary['with_question']} with question"
     )

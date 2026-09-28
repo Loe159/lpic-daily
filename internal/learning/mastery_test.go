@@ -22,6 +22,7 @@ func event(id string, at time.Time, activity learning.ActivityKind, evidence lea
 		HighestHintLevel: 0,
 		SolutionRevealed: false,
 		Distribution:     "fedora",
+		PracticeContext:  "context-" + id,
 		AttemptIndex:     1,
 	}
 }
@@ -91,6 +92,7 @@ func TestRepeatedSameActivityStaysIndependent(t *testing.T) {
 	independent := event("lab-a", start, learning.ActivityLab, learning.EvidenceIndependentPractice)
 	confirmation := event("lab-a-confirmation", start.Add(25*time.Hour), learning.ActivityLab, learning.EvidenceTransfer)
 	confirmation.SourceItemID = independent.SourceItemID
+	confirmation.PracticeContext = independent.PracticeContext
 	confirmation.AttemptIndex = 2
 
 	got, err := learning.ProjectMastery(
@@ -106,6 +108,28 @@ func TestRepeatedSameActivityStaysIndependent(t *testing.T) {
 	}
 	if got.SuccessfulTransfer != 0 || got.SuccessfulIndependent != 2 {
 		t.Fatalf("projection = %#v, want two independent confirmations and no transfer", got)
+	}
+}
+
+func TestDifferentItemIDInSamePracticeContextStaysIndependent(t *testing.T) {
+	start := time.Date(2026, 9, 24, 8, 0, 0, 0, time.UTC)
+	independent := event("lab-a", start, learning.ActivityLab, learning.EvidenceIndependentPractice)
+	confirmation := event("lab-b", start.Add(25*time.Hour), learning.ActivityLab, learning.EvidenceTransfer)
+	confirmation.PracticeContext = independent.PracticeContext
+
+	got, err := learning.ProjectMastery(
+		conceptID,
+		[]learning.EvidenceEvent{independent, confirmation},
+		learning.DefaultProjectionPolicy(),
+	)
+	if err != nil {
+		t.Fatalf("ProjectMastery() error = %v", err)
+	}
+	if got.Stage != learning.StageIndependent {
+		t.Fatalf("stage = %s, want independent", got.Stage)
+	}
+	if got.SuccessfulTransfer != 0 {
+		t.Fatalf("successful transfer = %d, want 0", got.SuccessfulTransfer)
 	}
 }
 

@@ -17,7 +17,7 @@ The raw source of truth remains append-only evidence events. The stage is a proj
 - free recall/fill-in -> `recall`;
 - guided practical success -> `guided`;
 - practical success with no or only a light hint -> `independent`;
-- transfer task -> `transfer` only after earlier independent evidence in a different activity context.
+- transfer task -> `transfer` only after earlier independent evidence in a different explicit `practice_context`; changing only a lab ID, activity kind or distribution is insufficient.
 
 A level 2+ hint caps an otherwise independent/transfer attempt at `guided`. Revealing the solution also caps it at `guided`.
 
