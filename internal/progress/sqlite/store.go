@@ -53,51 +53,60 @@ func (store *Store) Close() error {
 }
 
 func (store *Store) AppendEvidence(ctx context.Context, event learning.EvidenceEvent) error {
-	if err := event.Validate(); err != nil {
-		return fmt.Errorf("validate evidence: %w", err)
+	return store.AppendEvidenceBatch(ctx, []learning.EvidenceEvent{event})
+}
+
+func (store *Store) AppendEvidenceBatch(ctx context.Context, events []learning.EvidenceEvent) error {
+	if len(events) == 0 {
+		return nil
+	}
+	type encodedEvidence struct {
+		event            learning.EvidenceEvent
+		objectiveIDsJSON string
+		solutionRevealed int
+	}
+	encoded := make([]encodedEvidence, 0, len(events))
+	for _, event := range events {
+		if err := event.Validate(); err != nil {
+			return fmt.Errorf("validate evidence %s: %w", event.EventID, err)
+		}
+		objectiveIDs, err := json.Marshal(event.ObjectiveIDs)
+		if err != nil {
+			return fmt.Errorf("encode objective IDs for %s: %w", event.EventID, err)
+		}
+		solutionRevealed := 0
+		if event.SolutionRevealed {
+			solutionRevealed = 1
+		}
+		encoded = append(encoded, encodedEvidence{
+			event: event, objectiveIDsJSON: string(objectiveIDs), solutionRevealed: solutionRevealed,
+		})
 	}
 
-	objectiveIDs, err := json.Marshal(event.ObjectiveIDs)
+	tx, err := store.db.BeginTx(ctx, nil)
 	if err != nil {
-		return fmt.Errorf("encode objective IDs: %w", err)
+		return fmt.Errorf("begin evidence batch: %w", err)
 	}
-
-	solutionRevealed := 0
-	if event.SolutionRevealed {
-		solutionRevealed = 1
+	for _, item := range encoded {
+		event := item.event
+		_, err := tx.ExecContext(ctx,
+			`INSERT INTO mastery_evidence (
+				event_id, occurred_at, concept_id, objective_ids_json, source_item_id,
+				activity_kind, evidence_kind, result, highest_hint_level,
+				solution_revealed, distribution, attempt_index
+			) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			event.EventID, event.OccurredAt.UTC().Format(time.RFC3339Nano),
+			event.ConceptID, item.objectiveIDsJSON, event.SourceItemID,
+			string(event.ActivityKind), string(event.EvidenceKind), string(event.Result),
+			event.HighestHintLevel, item.solutionRevealed, event.Distribution, event.AttemptIndex,
+		)
+		if err != nil {
+			_ = tx.Rollback()
+			return fmt.Errorf("append evidence %s: %w", event.EventID, err)
+		}
 	}
-
-	_, err = store.db.ExecContext(
-		ctx,
-		`INSERT INTO mastery_evidence (
-			event_id,
-			occurred_at,
-			concept_id,
-			objective_ids_json,
-			source_item_id,
-			activity_kind,
-			evidence_kind,
-			result,
-			highest_hint_level,
-			solution_revealed,
-			distribution,
-			attempt_index
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-		event.EventID,
-		event.OccurredAt.UTC().Format(time.RFC3339Nano),
-		event.ConceptID,
-		string(objectiveIDs),
-		event.SourceItemID,
-		string(event.ActivityKind),
-		string(event.EvidenceKind),
-		string(event.Result),
-		event.HighestHintLevel,
-		solutionRevealed,
-		event.Distribution,
-		event.AttemptIndex,
-	)
-	if err != nil {
-		return fmt.Errorf("append evidence %s: %w", event.EventID, err)
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit evidence batch: %w", err)
 	}
 	return nil
 }

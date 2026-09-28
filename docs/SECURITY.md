@@ -22,7 +22,7 @@ Baseline controls:
 - no privileged mode;
 - drop Linux capabilities by default and add only predefined profile capabilities;
 - no host device passthrough by default;
-- read-only rootfs where compatible, explicit writable scratch volumes;
+- read-only rootfs for Phase-1 Podman labs, with declared writable guest paths backed by size-bounded tmpfs mounts;
 - never mount `$HOME`, `/`, container-engine sockets, SSH agent sockets, credentials or arbitrary host paths;
 - network `none` by default; isolated lab network only when objective requires networking;
 - CPU/memory/PID/time limits;

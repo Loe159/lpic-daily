@@ -8,6 +8,7 @@ import (
 
 type EvidenceStore interface {
 	AppendEvidence(context.Context, learning.EvidenceEvent) error
+	AppendEvidenceBatch(context.Context, []learning.EvidenceEvent) error
 	EvidenceForConcept(context.Context, string) ([]learning.EvidenceEvent, error)
 	Close() error
 }

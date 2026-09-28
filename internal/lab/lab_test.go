@@ -231,14 +231,16 @@ func TestDestructiveSetupCannotModifyHostSentinelThroughLabOrchestration(t *test
 }
 
 type fakeRunner struct {
-	definition runner.Definition
-	exec       runner.ExecRequest
-	execCalls  int
-	startCalls int
-	resetCalls int
-	failExec   bool
-	started    bool
-	destroyed  bool
+	definition      runner.Definition
+	exec            runner.ExecRequest
+	execCalls       int
+	startCalls      int
+	resetCalls      int
+	failExec        bool
+	started         bool
+	destroyed       bool
+	destroyCalls    int
+	destroyFailures int
 }
 
 func (fake *fakeRunner) Prepare(_ context.Context, definition runner.Definition) (runner.Instance, error) {
@@ -290,10 +292,52 @@ func (fake *fakeRunner) Reset(context.Context, runner.Instance) error {
 }
 
 func (fake *fakeRunner) Destroy(context.Context, runner.Instance) error {
+	fake.destroyCalls++
+	if fake.destroyFailures > 0 {
+		fake.destroyFailures--
+		return errors.New("transient destroy failure")
+	}
 	fake.destroyed = true
 	return nil
 }
 
 func (fake *fakeRunner) Close() error {
 	return nil
+}
+
+func TestStartSurfacesCleanupFailure(t *testing.T) {
+	authored := loadBuiltinLab(t, sharedDropboxID)
+	fake := &fakeRunner{failExec: true, destroyFailures: 1}
+
+	_, err := lab.Start(context.Background(), authored, fake)
+	if err == nil || !strings.Contains(err.Error(), "cleanup failed start") {
+		t.Fatalf("Start() error = %v, want surfaced cleanup failure", err)
+	}
+	if fake.destroyCalls != 1 {
+		t.Fatalf("destroy calls = %d, want 1", fake.destroyCalls)
+	}
+}
+
+func TestFailedResetCleanupRemainsRetryable(t *testing.T) {
+	authored := loadBuiltinLab(t, sharedDropboxID)
+	fake := &fakeRunner{}
+	session, err := lab.Start(context.Background(), authored, fake)
+	if err != nil {
+		t.Fatalf("Start() error = %v", err)
+	}
+
+	fake.failExec = true
+	fake.destroyFailures = 1
+	err = session.Reset(context.Background())
+	if err == nil || !strings.Contains(err.Error(), "cleanup failed reset") {
+		t.Fatalf("Reset() error = %v, want cleanup failure", err)
+	}
+
+	fake.failExec = false
+	if err := session.Close(context.Background()); err != nil {
+		t.Fatalf("Close() retry error = %v", err)
+	}
+	if fake.destroyCalls != 2 || !fake.destroyed {
+		t.Fatalf("cleanup retry destroyCalls=%d destroyed=%v, want 2/true", fake.destroyCalls, fake.destroyed)
+	}
 }

@@ -12,6 +12,7 @@ RUN dnf -y install \
     && groupadd --gid 2000 project \
     && useradd --create-home --uid 1101 --groups project alice \
     && useradd --create-home --uid 1102 --groups project bob \
+    && install -d -m 0755 /opt/lpic /var/lib/lpic/reports /srv/shared \
     && dnf clean all
 
 CMD ["/usr/bin/sleep", "infinity"]

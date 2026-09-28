@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"io"
+	"path"
+	"strings"
 	"time"
 )
 
@@ -57,16 +59,17 @@ func (machine MachineDefinition) Validate() error {
 }
 
 type Definition struct {
-	LabID             string
-	ImageRef          string
-	Distribution      string
-	Network           NetworkMode
-	CapabilityProfile string
-	MemoryMB          int
-	CPUPercent        int
-	PIDs              int
-	Timeout           time.Duration
-	Machine           *MachineDefinition
+	LabID              string
+	ImageRef           string
+	Distribution       string
+	Network            NetworkMode
+	CapabilityProfile  string
+	WritableGuestPaths []string
+	MemoryMB           int
+	CPUPercent         int
+	PIDs               int
+	Timeout            time.Duration
+	Machine            *MachineDefinition
 }
 
 func (definition Definition) Validate() error {
@@ -81,6 +84,21 @@ func (definition Definition) Validate() error {
 	}
 	if definition.CapabilityProfile == "" {
 		return errors.New("capability profile is required")
+	}
+	seenWritablePaths := make(map[string]struct{}, len(definition.WritableGuestPaths))
+	for _, guestPath := range definition.WritableGuestPaths {
+		if !strings.HasPrefix(guestPath, "/") || path.Clean(guestPath) != guestPath || guestPath == "/" {
+			return errors.New("writable guest paths must be clean absolute paths below /")
+		}
+		for _, blocked := range []string{"/dev", "/proc", "/sys"} {
+			if guestPath == blocked || strings.HasPrefix(guestPath, blocked+"/") {
+				return errors.New("writable guest paths must not target /dev, /proc, or /sys")
+			}
+		}
+		if _, exists := seenWritablePaths[guestPath]; exists {
+			return errors.New("writable guest paths must be unique")
+		}
+		seenWritablePaths[guestPath] = struct{}{}
 	}
 	if definition.MemoryMB < 64 {
 		return errors.New("memory limit must be at least 64 MiB")

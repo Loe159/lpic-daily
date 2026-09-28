@@ -53,3 +53,18 @@ func TestPhase1CapabilityProfilesAreAllowlisted(t *testing.T) {
 		}
 	}
 }
+
+func TestDefinitionRejectsUnsafeWritableGuestPaths(t *testing.T) {
+	base := runner.Definition{
+		LabID: "lab", ImageRef: "sha256:deadbeef", Distribution: "fedora",
+		Network: runner.NetworkNone, CapabilityProfile: "baseline",
+		MemoryMB: 256, CPUPercent: 100, PIDs: 128, Timeout: time.Minute,
+	}
+	for _, guestPath := range []string{"/", "relative", "/tmp/../etc", "/proc/escape", "/sys/kernel", "/dev/shm"} {
+		definition := base
+		definition.WritableGuestPaths = []string{guestPath}
+		if err := definition.Validate(); err == nil {
+			t.Fatalf("Validate() unexpectedly accepted writable guest path %q", guestPath)
+		}
+	}
+}
