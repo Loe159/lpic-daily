@@ -120,7 +120,7 @@ func TestSessionRunsSetupAndStateChecks(t *testing.T) {
 	if !strings.Contains(strings.Join(fake.exec.Argv, " "), "/usr/bin/bash -eu -c") {
 		t.Fatalf("setup argv = %v", fake.exec.Argv)
 	}
-	if !strings.Contains(fake.exec.Argv[len(fake.exec.Argv)-1], "useradd") {
+	if !strings.Contains(fake.exec.Argv[len(fake.exec.Argv)-1], "getent group project") {
 		t.Fatal("setup script was not passed into sandbox exec")
 	}
 
@@ -164,7 +164,7 @@ func TestSessionResetRestartsAndReplaysSetup(t *testing.T) {
 	if fake.startCalls != 2 || fake.execCalls != 2 {
 		t.Fatalf("reset lifecycle start=%d exec=%d, want 2/2", fake.startCalls, fake.execCalls)
 	}
-	if !strings.Contains(fake.exec.Argv[len(fake.exec.Argv)-1], "useradd") {
+	if !strings.Contains(fake.exec.Argv[len(fake.exec.Argv)-1], "getent group project") {
 		t.Fatal("reset did not replay the lab setup")
 	}
 }
