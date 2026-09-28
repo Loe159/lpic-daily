@@ -75,6 +75,9 @@ func TestPhase1BuiltInLabsConformOnRootlessPodman(t *testing.T) {
 				runReferenceSolution(t, ctx, backend, session.Instance, solution)
 			}
 
+			if authored.Definition.ID == "lpic1.103.1.shell-environment-repair" {
+				assertShellLabHelpersImmutable(t, ctx, backend, session.Instance)
+			}
 			assertLabNotSolved(t, ctx, session)
 			solve()
 			assertLabSolved(t, ctx, session)
@@ -185,6 +188,29 @@ func runStuckWorkerPTY(
 		if string(bytes.TrimSpace(content)) != want {
 			t.Fatalf("PTY marker %s = %q, want %q; output=%q", path, content, want, output.String())
 		}
+	}
+}
+
+func assertShellLabHelpersImmutable(
+	t *testing.T,
+	ctx context.Context,
+	backend runner.Runner,
+	instance runner.Instance,
+) {
+	t.Helper()
+
+	result, err := backend.Exec(ctx, instance, runner.ExecRequest{
+		Argv: []string{
+			"/usr/bin/bash",
+			"-c",
+			"printf '#!/usr/bin/env bash\\nexit 0\\n' > /opt/lpic/approved/bin/report-status",
+		},
+	})
+	if err != nil {
+		t.Fatalf("immutable helper probe error = %v", err)
+	}
+	if result.ExitCode == 0 {
+		t.Fatal("shell lab helper executable was writable")
 	}
 }
 
