@@ -180,6 +180,20 @@ func (fake *fakeControlPlane) UndefineNetwork(name string) error {
 	delete(fake.networkActive, name)
 	return nil
 }
+func (fake *fakeControlPlane) ListManagedDomains() ([]string, error) {
+	names := make([]string, 0, len(fake.defined))
+	for name := range fake.defined {
+		names = append(names, name)
+	}
+	return names, nil
+}
+func (fake *fakeControlPlane) ListManagedNetworks() ([]string, error) {
+	names := make([]string, 0, len(fake.networks))
+	for name := range fake.networks {
+		names = append(names, name)
+	}
+	return names, nil
+}
 func (fake *fakeControlPlane) Close() error {
 	fake.closed = true
 	return nil
@@ -644,6 +658,61 @@ func TestBackendRejectsImageDistributionMismatchBeforeOverlayCreation(t *testing
 	}
 	if len(control.defined) != 0 || len(commands.Calls) != 0 {
 		t.Fatalf("distribution mismatch mutated VM state")
+	}
+}
+
+func TestBackendReapRemovesAbandonedResources(t *testing.T) {
+	backend, control, _, _ := backendFixture(t)
+	name := "lpic-daily-orphan-abc123"
+	directory := filepath.Join(backend.stateRoot, name)
+	if err := os.MkdirAll(directory, 0o700); err != nil {
+		t.Fatalf("MkdirAll() error = %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(directory, "root.qcow2"), []byte("orphan"), 0o600); err != nil {
+		t.Fatalf("WriteFile() error = %v", err)
+	}
+	control.defined[name] = "<domain/>"
+	control.active[name] = true
+	control.networks[name] = "<network/>"
+	control.networkActive[name] = true
+
+	if err := backend.Reap(context.Background()); err != nil {
+		t.Fatalf("Reap() error = %v", err)
+	}
+	if _, exists := control.defined[name]; exists {
+		t.Fatal("orphan domain still defined")
+	}
+	if _, exists := control.networks[name]; exists {
+		t.Fatal("orphan network still defined")
+	}
+	if _, err := os.Stat(directory); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("orphan state directory still exists: %v", err)
+	}
+}
+
+func TestBackendReapSkipsLiveLease(t *testing.T) {
+	backend, control, _, _ := backendFixture(t)
+	name := "lpic-daily-live-abc123"
+	directory := filepath.Join(backend.stateRoot, name)
+	if err := os.MkdirAll(directory, 0o700); err != nil {
+		t.Fatalf("MkdirAll() error = %v", err)
+	}
+	lease, err := acquireInstanceLease(directory)
+	if err != nil {
+		t.Fatalf("acquireInstanceLease() error = %v", err)
+	}
+	defer releaseInstanceLease(lease)
+	control.defined[name] = "<domain/>"
+	control.active[name] = true
+
+	if err := backend.Reap(context.Background()); err != nil {
+		t.Fatalf("Reap() error = %v", err)
+	}
+	if _, exists := control.defined[name]; !exists {
+		t.Fatal("live leased domain was reaped")
+	}
+	if _, err := os.Stat(directory); err != nil {
+		t.Fatalf("live state directory removed: %v", err)
 	}
 }
 
