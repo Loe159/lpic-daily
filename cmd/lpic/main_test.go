@@ -362,7 +362,6 @@ func TestCorrectRecognitionAfterLessonAdvancesToNextConcept(t *testing.T) {
 	}
 }
 
-
 func TestLabResetDoesNotEraseSolutionRevealEvidence(t *testing.T) {
 	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
 
@@ -433,5 +432,5 @@ func (*scriptedLabRunner) ReadFile(context.Context, runner.Instance, string, int
 func (*scriptedLabRunner) Processes(context.Context, runner.Instance) ([]runner.Process, error) {
 	return nil, nil
 }
-func (*scriptedLabRunner) Reset(context.Context, runner.Instance) error { return nil }
+func (*scriptedLabRunner) Reset(context.Context, runner.Instance) error   { return nil }
 func (*scriptedLabRunner) Destroy(context.Context, runner.Instance) error { return nil }

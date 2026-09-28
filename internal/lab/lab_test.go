@@ -231,13 +231,13 @@ func TestDestructiveSetupCannotModifyHostSentinelThroughLabOrchestration(t *test
 }
 
 type fakeRunner struct {
-	definition runner.Definition
-	exec       runner.ExecRequest
-	execCalls  int
-	startCalls int
-	resetCalls int
-	failExec   bool
-	started    bool
+	definition      runner.Definition
+	exec            runner.ExecRequest
+	execCalls       int
+	startCalls      int
+	resetCalls      int
+	failExec        bool
+	started         bool
 	destroyed       bool
 	destroyCalls    int
 	destroyFailures int
@@ -304,7 +304,6 @@ func (fake *fakeRunner) Destroy(context.Context, runner.Instance) error {
 func (fake *fakeRunner) Close() error {
 	return nil
 }
-
 
 func TestStartSurfacesCleanupFailure(t *testing.T) {
 	authored := loadBuiltinLab(t, sharedDropboxID)

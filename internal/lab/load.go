@@ -114,16 +114,16 @@ func loadOne(fsys fs.FS, labPath string) (Lab, error) {
 
 func (lab Lab) RunnerDefinition() (runner.Definition, error) {
 	definition := runner.Definition{
-		LabID:             lab.Definition.ID,
-		ImageRef:          lab.Definition.Environment.ImageRef,
-		Distribution:      lab.Definition.Environment.Distribution,
-		Network:           runner.NetworkMode(lab.Definition.Environment.Network),
+		LabID:              lab.Definition.ID,
+		ImageRef:           lab.Definition.Environment.ImageRef,
+		Distribution:       lab.Definition.Environment.Distribution,
+		Network:            runner.NetworkMode(lab.Definition.Environment.Network),
 		CapabilityProfile:  lab.Definition.Environment.CapabilityProfile,
 		WritableGuestPaths: slices.Clone(lab.Definition.Environment.WritableGuestPaths),
 		MemoryMB:           lab.Definition.Resources.MemoryMB,
-		CPUPercent:        lab.Definition.Resources.CPUPercent,
-		PIDs:              lab.Definition.Resources.PIDs,
-		Timeout:           time.Duration(lab.Definition.Resources.TimeoutSeconds) * time.Second,
+		CPUPercent:         lab.Definition.Resources.CPUPercent,
+		PIDs:               lab.Definition.Resources.PIDs,
+		Timeout:            time.Duration(lab.Definition.Resources.TimeoutSeconds) * time.Second,
 	}
 	if machine := lab.Definition.Environment.Machine; machine != nil {
 		definition.Machine = &runner.MachineDefinition{
