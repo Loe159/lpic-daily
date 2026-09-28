@@ -66,3 +66,7 @@ The first executable checkpoint deliberately separates non-interactive control f
 - process probes request stable `pid,comm,args` descriptors from the native top endpoint.
 
 Podman documents that its service exposes both the native Libpod API and a Docker v1.40 compatibility API. Using the compatibility exec endpoints avoids reimplementing interactive framing for setup operations while keeping all traffic on the verified rootless Unix socket.
+
+## Immutable local image resolution
+
+Phase-1 content may refer to the locally installed image by its installation tag, but the adapter never uses that mutable tag directly for the lab lifecycle. `Prepare` inspects the tag through the rootless local Podman API, requires a canonical `sha256:<64 hex>` image ID, and creates the container from that ID. The resolved definition is retained, so `Reset` recreates from the same immutable ID even if the tag is moved concurrently. Implicit pulls remain forbidden. Release signing/provenance remains a packaging responsibility above this runtime boundary.

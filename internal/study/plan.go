@@ -72,11 +72,13 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 	}
 
 	projections := make(map[string]learning.MasteryProjection, len(phase1Concepts))
+	evidenceByConcept := make(map[string][]learning.EvidenceEvent, len(phase1Concepts))
 	for conceptID := range phase1Concepts {
 		events, err := input.Evidence.EvidenceForConcept(ctx, conceptID)
 		if err != nil {
 			return Plan{}, fmt.Errorf("load evidence for %s: %w", conceptID, err)
 		}
+		evidenceByConcept[conceptID] = slices.Clone(events)
 		projection, err := learning.ProjectMastery(
 			conceptID,
 			events,
@@ -178,9 +180,12 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 		if len(item.QuestionIDs) != 0 {
 			item.RecommendedQuestionID = item.QuestionIDs[0]
 		}
-		if len(item.LabIDs) != 0 {
-			item.RecommendedLabID = item.LabIDs[0]
-		}
+		item.RecommendedLabID = recommendedLab(
+			item.MasteryStage,
+			item.LabIDs,
+			evidenceByConcept[scheduled.ConceptID],
+			input.Now,
+		)
 
 		plan.Items = append(plan.Items, item)
 	}
@@ -215,4 +220,45 @@ func recommendedLesson(kind learning.SessionItemKind, lessons []content.Lesson) 
 		return ""
 	}
 	return candidates[0].ID
+}
+
+func recommendedLab(
+	stage learning.MasteryStage,
+	labIDs []string,
+	events []learning.EvidenceEvent,
+	now time.Time,
+) string {
+	if len(labIDs) == 0 {
+		return ""
+	}
+	candidates := slices.Clone(labIDs)
+	slices.Sort(candidates)
+	if stage < learning.StageIndependent {
+		return candidates[0]
+	}
+
+	policy := learning.DefaultProjectionPolicy()
+	used := make(map[string]bool)
+	transferReady := false
+	for _, event := range events {
+		if event.Result != learning.ResultPass {
+			continue
+		}
+		effective := learning.EffectiveEvidenceKind(event)
+		if effective != learning.EvidenceIndependentPractice && effective != learning.EvidenceTransfer {
+			continue
+		}
+		used[event.SourceItemID] = true
+		if !event.OccurredAt.After(now) && now.Sub(event.OccurredAt) >= policy.MinTransferGap {
+			transferReady = true
+		}
+	}
+	if transferReady {
+		for _, labID := range candidates {
+			if !used[labID] {
+				return labID
+			}
+		}
+	}
+	return candidates[0]
 }

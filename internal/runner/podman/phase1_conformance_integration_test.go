@@ -18,9 +18,12 @@ import (
 )
 
 var phase1ReferenceSolutions = map[string]string{
-	"lpic1.103.1.shell-environment-repair": "labs/lpic-1-v5/103.1/shell-environment-repair/reference-solution.sh",
-	"lpic1.103.5.stuck-worker":             "labs/lpic-1-v5/103.5/stuck-worker/reference-solution.sh",
-	"lpic1.104.5.shared-dropbox":           "labs/lpic-1-v5/104.5/shared-dropbox/reference-solution.sh",
+	"lpic1.103.1.shell-environment-repair":  "labs/lpic-1-v5/103.1/shell-environment-repair/reference-solution.sh",
+	"lpic1.103.1.transfer-shell-handoff":    "labs/lpic-1-v5/103.1/transfer-shell-handoff/reference-solution.sh",
+	"lpic1.103.5.stuck-worker":              "labs/lpic-1-v5/103.5/stuck-worker/reference-solution.sh",
+	"lpic1.103.5.transfer-operator-session": "labs/lpic-1-v5/103.5/transfer-operator-session/reference-solution.sh",
+	"lpic1.104.5.shared-dropbox":            "labs/lpic-1-v5/104.5/shared-dropbox/reference-solution.sh",
+	"lpic1.104.5.transfer-team-share-audit": "labs/lpic-1-v5/104.5/transfer-team-share-audit/reference-solution.sh",
 }
 
 func TestPhase1BuiltInLabsConformOnRootlessPodman(t *testing.T) {
@@ -156,6 +159,14 @@ func runStuckWorkerPTY(
 			return
 		}
 		if err := write("wait %1 2>/dev/null || true\n", 100*time.Millisecond); err != nil {
+			writeDone <- err
+			return
+		}
+		if err := write("nohup bash -c 'exec -a resilient-worker sleep infinity' >/run/lpic/resilient.log 2>&1 &\n", 100*time.Millisecond); err != nil {
+			writeDone <- err
+			return
+		}
+		if err := write("tmux new-session -d -s ops 'sleep infinity'\n", 100*time.Millisecond); err != nil {
 			writeDone <- err
 			return
 		}

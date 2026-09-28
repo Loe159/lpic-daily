@@ -103,6 +103,7 @@ def generate():
                 for item in concepts
             ),
             "with_lab": sum(bool(item["surfaces"]["labs"]) for item in concepts),
+            "with_two_labs": sum(len(item["surfaces"]["labs"]) >= 2 for item in concepts),
             "with_lesson": sum(bool(item["surfaces"]["lessons"]) for item in concepts),
             "with_question": sum(bool(item["surfaces"]["questions"]) for item in concepts),
         },
@@ -160,11 +161,25 @@ def main():
         )
         return 1
 
+    insufficient_transfer = [
+        item["concept_id"]
+        for item in generated["concepts"]
+        if len(item["surfaces"]["labs"]) < 2
+    ]
+    if insufficient_transfer:
+        print(
+            "Phase-1 coverage FAILED: every Phase-1 concept needs two distinct lab contexts "
+            "so independent practice can later transfer: "
+            + ", ".join(insufficient_transfer)
+        )
+        return 1
+
     print(
         "Phase-1 coverage OK: "
         f"{summary['concepts']} concepts; "
         f"{summary['with_any_surface']} with any surface; "
         f"{summary['with_lab']} with lab; "
+        f"{summary['with_two_labs']} with two lab contexts; "
         f"{summary['with_lesson']} with lesson; "
         f"{summary['with_question']} with question"
     )

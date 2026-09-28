@@ -3,6 +3,6 @@
   "id": "lpic1.103.5.stuck-worker.hint-2",
   "lab_id": "lpic1.103.5.stuck-worker",
   "level": 2,
-  "content_fr": "ps et pgrep peuvent t'aider à retrouver précisément stuck-worker sans toucher à healthy-worker. Pour le probe, lance /usr/local/bin/lpic-signal-probe au premier plan, puis pense au raccourci du terminal qui suspend le foreground job et aux builtins jobs/bg.",
+  "content_fr": "ps/pgrep peuvent cibler stuck-worker. Dans :shell, utilise Ctrl-Z, jobs puis bg sur le probe. Pour la suite, cherche comment nohup protège de SIGHUP et comment tmux crée une session détachée.",
   "evidence_impact": "material"
 }

@@ -1035,6 +1035,7 @@ func runInteractiveLabWithBackend(
 	scanner.Buffer(make([]byte, 4096), 256<<10)
 	nextHint := nextHintIndex(authored.Hints, highestHintLevel)
 	usedPersistentShell := false
+	ptyEvidence := &ptyInteractionEvidence{}
 
 	for {
 		if err := sessionCtx.Err(); err != nil {
@@ -1090,7 +1091,7 @@ func runInteractiveLabWithBackend(
 				continue
 			}
 			fmt.Fprintln(stdout, "Ouverture d'un shell persistant dans la sandbox. Tape exit ou Ctrl-D pour revenir.")
-			result, err := runPersistentShell(sessionCtx, backend, session.Instance, stdin, stdout)
+			result, err := runPersistentShell(sessionCtx, backend, session.Instance, stdin, stdout, ptyEvidence)
 			if err != nil {
 				return fmt.Errorf("interactive sandbox shell: %w", err)
 			}
@@ -1108,6 +1109,7 @@ func runInteractiveLabWithBackend(
 			// across resets/restarts and remains attached to the learning attempt.
 			nextHint = nextHintIndex(authored.Hints, highestHintLevel)
 			usedPersistentShell = false
+			ptyEvidence.Reset()
 			fmt.Fprintln(stdout, "Lab réinitialisé dans son état de départ.")
 			continue
 		case ":check":
@@ -1116,6 +1118,14 @@ func runInteractiveLabWithBackend(
 				fmt.Fprintf(
 					stdout,
 					"  %-11s %s.persistent-shell — ce lab exige un passage par :shell pour valider le job control réel\n",
+					"À CORRIGER",
+					authored.Definition.ID,
+				)
+				passed = false
+			} else if authored.Definition.ID == "lpic1.103.5.stuck-worker" && !ptyEvidence.JobControlObserved() {
+				fmt.Fprintf(
+					stdout,
+					"  %-11s %s.pty-job-control — Ctrl-Z, jobs et bg doivent être observés dans :shell avant la validation finale\n",
 					"À CORRIGER",
 					authored.Definition.ID,
 				)
@@ -1204,12 +1214,88 @@ func runInteractiveLabWithBackend(
 	}
 }
 
+type ptyInteractionEvidence struct {
+	sawCtrlZ bool
+	sawJobs  bool
+	sawBg    bool
+	line     []byte
+}
+
+func (evidence *ptyInteractionEvidence) Observe(data []byte) {
+	if evidence == nil {
+		return
+	}
+	for _, value := range data {
+		if value == 0x1a {
+			evidence.sawCtrlZ = true
+			continue
+		}
+		if value == '\r' || value == '\n' {
+			evidence.observeLine()
+			continue
+		}
+		if value >= 0x20 && value < 0x7f {
+			evidence.line = append(evidence.line, value)
+			if len(evidence.line) > 4096 {
+				evidence.line = evidence.line[len(evidence.line)-4096:]
+			}
+		}
+	}
+}
+
+func (evidence *ptyInteractionEvidence) observeLine() {
+	line := strings.TrimSpace(string(evidence.line))
+	evidence.line = evidence.line[:0]
+	if line == "" {
+		return
+	}
+	fields := strings.Fields(line)
+	if len(fields) == 0 {
+		return
+	}
+	switch fields[0] {
+	case "jobs":
+		evidence.sawJobs = true
+	case "bg":
+		evidence.sawBg = true
+	}
+}
+
+func (evidence *ptyInteractionEvidence) JobControlObserved() bool {
+	return evidence != nil && evidence.sawCtrlZ && evidence.sawJobs && evidence.sawBg
+}
+
+func (evidence *ptyInteractionEvidence) Reset() {
+	if evidence == nil {
+		return
+	}
+	*evidence = ptyInteractionEvidence{}
+}
+
+type observingTerminalReader struct {
+	file     *os.File
+	evidence *ptyInteractionEvidence
+}
+
+func (reader *observingTerminalReader) Read(buffer []byte) (int, error) {
+	n, err := reader.file.Read(buffer)
+	if n > 0 {
+		reader.evidence.Observe(buffer[:n])
+	}
+	return n, err
+}
+
+func (reader *observingTerminalReader) Fd() uintptr {
+	return reader.file.Fd()
+}
+
 func runPersistentShell(
 	ctx context.Context,
 	backend runner.Runner,
 	instance runner.Instance,
 	stdin io.Reader,
 	stdout io.Writer,
+	evidence *ptyInteractionEvidence,
 ) (result runner.ExecResult, returnErr error) {
 	stdinFile, ok := stdin.(*os.File)
 	if !ok || !terminal.IsTerminal(stdinFile) {
@@ -1266,10 +1352,15 @@ func runPersistentShell(
 		env["TERM"] = value
 	}
 
+	shellInput := io.Reader(stdinFile)
+	if evidence != nil {
+		shellInput = &observingTerminalReader{file: stdinFile, evidence: evidence}
+	}
+
 	result, execErr := backend.Exec(ctx, instance, runner.ExecRequest{
 		Argv:        []string{"/usr/bin/bash", "-l"},
 		Env:         env,
-		Stdin:       stdinFile,
+		Stdin:       shellInput,
 		Stdout:      stdoutFile,
 		Stderr:      stdoutFile,
 		TTY:         true,

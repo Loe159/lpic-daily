@@ -2,27 +2,32 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.1.shell-environment-repair",
   "title_fr": "Réparer un environnement de login shell",
-  "brief_fr": "Une configuration de login shell a été mal modifiée. Dans un nouveau login shell, report-status doit résoudre vers /opt/lpic/approved/bin/report-status, REPORT_ENV doit valoir production et REPORT_FILE doit contenir exactement /var/lib/lpic/reports/daily report.txt. Répare l'environnement sans modifier les deux exécutables fournis.",
+  "brief_fr": "Une configuration de login shell a été mal modifiée. Dans un nouveau login shell, report-status doit résoudre vers /opt/lpic/approved/bin/report-status, REPORT_ENV doit valoir production et REPORT_FILE doit contenir exactement /var/lib/lpic/reports/daily report.txt. Configure aussi un historique exploitable avec HISTSIZE=2000 et HISTFILESIZE=4000, puis produis /run/lpic/system-summary avec le résultat de uname -s sur la première ligne et le type Bash de report-status sur la seconde.",
   "success_criteria_fr": [
-    "Un nouveau login shell résout report-status vers /opt/lpic/approved/bin/report-status.",
-    "REPORT_ENV est exportée avec la valeur production dans un nouveau login shell.",
-    "REPORT_FILE est exportée avec la valeur littérale /var/lib/lpic/reports/daily report.txt, espace compris.",
-    "La commande report-status \"$REPORT_FILE\" réussit dans un nouveau login shell."
+    "Le report-status approuvé est résolu dans un nouveau login shell.",
+    "REPORT_ENV et REPORT_FILE sont correctement exportées, avec le quoting attendu.",
+    "report-status \"$REPORT_FILE\" réussit dans un nouveau login shell.",
+    "HISTSIZE vaut 2000 et HISTFILESIZE vaut 4000 dans un nouveau login shell.",
+    "system-summary reflète uname -s et le type réel de report-status."
   ],
-  "debrief_fr": "PATH est parcouru de gauche à droite : le premier exécutable correspondant au nom demandé gagne. Une variable shell ne devient variable d'environnement pour les processus enfants qu'après export. Enfin, les espaces séparent normalement les mots du shell ; ils doivent donc être protégés par quoting lorsqu'ils font partie d'une valeur ou d'un argument. Ici, le checker ouvre volontairement un nouveau login shell afin de vérifier que la correction est persistante et pas seulement valable dans le shell courant.",
+  "debrief_fr": "PATH est parcouru de gauche à droite. export rend une variable disponible aux processus enfants et le quoting conserve les espaces dans une valeur. Les builtins comme type permettent d'identifier une commande, uname expose les informations système et les variables HISTSIZE/HISTFILESIZE règlent l'historique. Les checks ouvrent de nouveaux login shells pour valider un état persistant.",
   "objective_ids": [
     "103.1"
   ],
   "concept_ids": [
+    "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes",
     "lpic1.103.1.variables-shell-environnement",
     "lpic1.103.1.path-et-resolution-de-commande",
-    "lpic1.103.1.quoting-escaping"
+    "lpic1.103.1.quoting-escaping",
+    "lpic1.103.1.historique",
+    "lpic1.103.1.documentation-et-identification-d-une-commande",
+    "lpic1.103.1.informations-systeme-de-base"
   ],
   "labels": [
     "lpic-required",
     "modern-practice"
   ],
-  "estimated_minutes": 12,
+  "estimated_minutes": 15,
   "environment": {
     "backend": "podman",
     "image_ref": "localhost/lpic-daily/fedora-phase1:1",
@@ -86,6 +91,24 @@
       "type": "file-content-regex",
       "path": "/run/lpic/report-ok",
       "pattern": "^ready\\n?$"
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test \"${HISTSIZE:-}\" = 2000 && test \"${HISTFILESIZE:-}\" = 4000"
+      ],
+      "expected_exit": 0
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test -f /run/lpic/system-summary && test \"$(sed -n '1p' /run/lpic/system-summary)\" = \"$(uname -s)\" && test \"$(sed -n '2p' /run/lpic/system-summary)\" = \"$(type -t report-status)\""
+      ],
+      "expected_exit": 0
     }
   ],
   "hint_ids": [

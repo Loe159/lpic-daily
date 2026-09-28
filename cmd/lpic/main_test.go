@@ -208,7 +208,7 @@ func TestLabListAliasesAndShow(t *testing.T) {
 		t.Fatalf("lab show error = %v", err)
 	}
 	output := stdout.String()
-	for _, want := range []string{"Critères de réussite", "groupe project", "héritent du groupe project", "4 niveaux d'indices"} {
+	for _, want := range []string{"Critères de réussite", "groupe project", "conserve le groupe project", "4 niveaux d'indices"} {
 		if !strings.Contains(output, want) {
 			t.Fatalf("show output missing %q: %q", want, output)
 		}
@@ -431,6 +431,12 @@ func (fake *scriptedLabRunner) Stat(_ context.Context, _ runner.Instance, guestP
 		return runner.FileInfo{
 			Path: guestPath, Mode: 0o0660, UID: 0, GID: 2000,
 			User: "root", Group: "project", IsDir: false,
+		}, nil
+	}
+	if guestPath == "/srv/shared/audit-helper" {
+		return runner.FileInfo{
+			Path: guestPath, Mode: 0o0755, UID: 0, GID: 0,
+			User: "root", Group: "root", IsDir: false,
 		}, nil
 	}
 	mode := uint32(0o3770)
@@ -666,5 +672,23 @@ func TestPersistentShellRequirementBlocksStateOnlySuccess(t *testing.T) {
 	}
 	if len(events) != 1 || events[0].Result != learning.ResultFail {
 		t.Fatalf("events = %#v, want one failed attempt", events)
+	}
+}
+
+func TestPTYInteractionEvidenceRequiresJobControlInputs(t *testing.T) {
+	var evidence ptyInteractionEvidence
+	evidence.Observe([]byte("echo fake markers\r"))
+	if evidence.JobControlObserved() {
+		t.Fatal("ordinary shell input must not satisfy job-control evidence")
+	}
+	evidence.Observe([]byte{'\x1a'})
+	evidence.Observe([]byte("jobs -s\r"))
+	evidence.Observe([]byte("bg %+\r"))
+	if !evidence.JobControlObserved() {
+		t.Fatal("Ctrl-Z + jobs + bg should satisfy PTY interaction evidence")
+	}
+	evidence.Reset()
+	if evidence.JobControlObserved() {
+		t.Fatal("reset must clear PTY interaction evidence")
 	}
 }

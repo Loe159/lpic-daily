@@ -108,6 +108,10 @@ type createResponse struct {
 	ID string `json:"Id"`
 }
 
+type imageInspectResponse struct {
+	ID string `json:"Id"`
+}
+
 type apiError struct {
 	Cause   string `json:"cause"`
 	Message string `json:"message"`
@@ -181,13 +185,11 @@ func (backend *Backend) Prepare(ctx context.Context, definition runner.Definitio
 		return runner.Instance{}, err
 	}
 
-	exists, err := backend.imageExists(ctx, definition.ImageRef)
+	imageID, err := backend.resolveImageID(ctx, definition.ImageRef)
 	if err != nil {
 		return runner.Instance{}, err
 	}
-	if !exists {
-		return runner.Instance{}, fmt.Errorf("required image %q is not present locally; implicit pulls are disabled", definition.ImageRef)
-	}
+	definition.ImageRef = imageID
 
 	name, err := instanceName(definition.LabID)
 	if err != nil {
@@ -249,23 +251,31 @@ func (backend *Backend) Destroy(ctx context.Context, instance runner.Instance) e
 	return nil
 }
 
-func (backend *Backend) imageExists(ctx context.Context, imageRef string) (bool, error) {
+func (backend *Backend) resolveImageID(ctx context.Context, imageRef string) (string, error) {
+	var response imageInspectResponse
 	err := backend.doJSON(
 		ctx,
 		http.MethodGet,
-		apiBase+"/images/"+url.PathEscape(imageRef)+"/exists",
+		apiBase+"/images/"+url.PathEscape(imageRef)+"/json",
 		nil,
 		nil,
-		nil,
+		&response,
 	)
 	var statusErr *statusError
 	if errors.As(err, &statusErr) && statusErr.Code == http.StatusNotFound {
-		return false, nil
+		return "", fmt.Errorf("required image %q is not present locally; implicit pulls are disabled", imageRef)
 	}
 	if err != nil {
-		return false, fmt.Errorf("check local image %q: %w", imageRef, err)
+		return "", fmt.Errorf("inspect local image %q: %w", imageRef, err)
 	}
-	return true, nil
+	id := strings.TrimSpace(response.ID)
+	if matched, _ := regexp.MatchString("^sha256:[0-9a-f]{64}$", id); matched {
+		return id, nil
+	}
+	if matched, _ := regexp.MatchString("^[0-9a-f]{64}$", id); matched {
+		return "sha256:" + id, nil
+	}
+	return "", fmt.Errorf("Podman returned invalid immutable image ID %q for %q", id, imageRef)
 }
 
 func (backend *Backend) create(ctx context.Context, definition runner.Definition, name string) error {

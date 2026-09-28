@@ -29,7 +29,7 @@ Build the complete adaptive daily loop for **103.1, 103.5 and 104.5**:
 - graduated hints;
 - rootless Podman runner + PTY;
 - deterministic state-based checker;
-- three reference scenarios from `PHASE-1-VERTICAL-SLICE.md`;
+- three primary scenarios plus three transfer contexts, giving every Phase-1 concept two practical contexts;
 - daily desktop-notification adapter on Fedora;
 - CI/security invariant tests.
 

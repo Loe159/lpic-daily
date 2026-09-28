@@ -3,6 +3,6 @@
   "id": "lpic1.103.1.shell-environment-repair.hint-3",
   "lab_id": "lpic1.103.1.shell-environment-repair",
   "level": 3,
-  "content_fr": "Inspecte /root/.bash_profile. Mets /opt/lpic/approved/bin avant le binaire shadow dans PATH, remplace staging par production et assure-toi que toute la valeur de REPORT_FILE est affectée comme un seul mot avant export.",
+  "content_fr": "Corrige le profil complet : PATH approuvé, variables exportées et quotées, HISTSIZE=2000/HISTFILESIZE=4000. Puis produis system-summary depuis un nouveau login shell avec uname -s et type -t report-status.",
   "evidence_impact": "material"
 }

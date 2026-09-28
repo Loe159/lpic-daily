@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.5.transfer-team-share-audit.hint-2",
+  "lab_id": "lpic1.104.5.transfer-team-share-audit",
+  "level": 2,
+  "content_fr": "3770 combine 770, SGID et sticky. L'umask doit être un comportement du nouveau shell, pas seulement un chmod après création.",
+  "evidence_impact": "material"
+}

@@ -2,7 +2,7 @@
 
 LPIC Daily is a terminal-first, local-first learning environment designed to build durable Linux administration skills while covering the complete LPIC-1 v5.0 syllabus (101-500 and 102-500).
 
-**Phase 1 is complete.** The adaptive scheduler, append-only mastery evidence, separate XP/streak/achievement projection, Bubble Tea daily dashboard, SQLite progress store, three rootless Podman reference labs, Fedora desktop-notification adapter, Fedora 44 CI and real rootless Podman host-isolation test are implemented and validated. The current roadmap phase is **Phase 2: libvirt/QEMU/KVM VM runner**, before scaling content to the full LPIC-1 curriculum.
+**Phase 1 is complete.** The adaptive scheduler, append-only mastery evidence, separate XP/streak/achievement projection, Bubble Tea daily dashboard, SQLite progress store, six rootless Podman labs with two practical contexts per Phase-1 concept, Fedora desktop-notification adapter, Fedora 44 CI and real rootless Podman host-isolation test are implemented and validated. The current roadmap phase is **Phase 2: libvirt/QEMU/KVM VM runner**, before scaling content to the full LPIC-1 curriculum.
 
 ## Current runnable slice
 
@@ -10,11 +10,14 @@ The current runnable labs are:
 
 ```text
 lpic1.103.1.shell-environment-repair
+lpic1.103.1.transfer-shell-handoff
 lpic1.103.5.stuck-worker
+lpic1.103.5.transfer-operator-session
 lpic1.104.5.shared-dropbox
+lpic1.104.5.transfer-team-share-audit
 ```
 
-`shell-environment-repair` validates PATH resolution, exported variables and quoting in fresh login shells. `stuck-worker` exercises process inspection/selection, foreground/background shell jobs and signals through the persistent PTY. `shared-dropbox` practices ownership, rwx/octal permissions, umask, SGID, sticky bit and directory semantics.
+`shell-environment-repair` and `transfer-shell-handoff` cover all seven 103.1 concepts in two contexts. `stuck-worker` and `transfer-operator-session` cover all seven 103.5 concepts, including PTY job control, `nohup`/SIGHUP behavior and terminal multiplexing. `shared-dropbox` and `transfer-team-share-audit` cover all eight 104.5 concepts, including behaviorally checked `umask`, SUID auditing, SGID and sticky-bit semantics. After independent evidence ages beyond the transfer gap, the scheduler prefers an unused lab context.
 
 Phase 2 also contains the authored VM lab `lpic1.104.1.partition-filesystems`. The CLI now dispatches `libvirt` labs only to the system libvirt backend; there is no Podman fallback. VM runs require a trusted local image catalog at `$XDG_DATA_HOME/lpic-daily/vm-images/catalog.json` (or the same path under `LPIC_DAILY_VM_IMAGE_DIR`). The reproducible VM image build/install pipeline is still in progress, so this lab is not yet part of the default runnable slice. `lpic doctor` reports `qemu-img`, trusted VM catalog and `qemu:///system` readiness separately.
 
@@ -60,7 +63,7 @@ Each normal input line is executed by `bash -lc` **inside the sandbox**, not on 
 
 The optional `lpic assess` flow tests the seven 103.1 foundation concepts through recall questions. Successful answers can satisfy the normal prerequisite-readiness calculation without fabricating lesson completion.
 
-The application never pulls lab images implicitly. Missing images or an unusable/rootful Podman service fail closed.
+The application never pulls lab images implicitly. Before create, the Podman adapter resolves the configured local tag to its immutable `sha256:` image ID; resets reuse that same ID instead of resolving the tag again. Missing images, malformed image identities or an unusable/rootful Podman service fail closed.
 
 ## Daily desktop notification
 
