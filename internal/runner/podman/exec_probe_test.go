@@ -3,6 +3,7 @@ package podman
 import (
 	"archive/tar"
 	"context"
+	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"io"
@@ -76,34 +77,45 @@ func TestExecDetachedReturnsExitCode(t *testing.T) {
 	}
 }
 
-func TestStatAndReadFileUseContainerArchive(t *testing.T) {
+func TestStatUsesGuestVisibleOwnershipAndArchiveMetadata(t *testing.T) {
 	backend, stop := openFakeBackend(t, func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodGet || !strings.HasSuffix(r.URL.Path, "/archive") {
-			http.NotFound(w, r)
-			return
-		}
-		switch r.URL.Query().Get("path") {
-		case "/srv/shared":
-			writeTar(t, w, tar.Header{
-				Name:     "shared",
-				Mode:     0o3770,
-				Typeflag: tar.TypeDir,
-				Uid:      0,
-				Gid:      2000,
-				Uname:    "root",
-				Gname:    "project",
-			}, nil)
-		case "/tmp/message":
-			writeTar(t, w, tar.Header{
-				Name:     "message",
-				Mode:     0o640,
-				Typeflag: tar.TypeReg,
-				Size:     5,
-				Uid:      1101,
-				Gid:      2000,
-				Uname:    "alice",
-				Gname:    "project",
-			}, []byte("hello"))
+		switch {
+		case r.Method == http.MethodGet && strings.HasSuffix(r.URL.Path, "/archive"):
+			switch r.URL.Query().Get("path") {
+			case "/srv/shared":
+				// Simulate Podman versions/storage drivers that remap archive
+				// ownership even though the guest itself sees root:project.
+				writeTar(t, w, tar.Header{
+					Name: "shared", Mode: 0o3770, Typeflag: tar.TypeDir,
+					Uid: 0, Gid: 0, Uname: "root", Gname: "root",
+				}, nil)
+			case "/tmp/message":
+				writeTar(t, w, tar.Header{
+					Name: "message", Mode: 0o640, Typeflag: tar.TypeReg,
+					Size: 5, Uid: 1101, Gid: 2000, Uname: "alice", Gname: "project",
+				}, []byte("hello"))
+			default:
+				http.NotFound(w, r)
+			}
+		case r.Method == http.MethodPost && r.URL.Path == compatBase+"/containers/ctr/exec":
+			var request execCreateRequest
+			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+				t.Errorf("decode stat exec: %v", err)
+				http.Error(w, "bad request", http.StatusBadRequest)
+				return
+			}
+			want := []string{"/usr/bin/stat", "--printf=%u\\n%g\\n%U\\n%G\\n", "--", "/srv/shared"}
+			if strings.Join(request.Cmd, "\x00") != strings.Join(want, "\x00") {
+				t.Errorf("stat command = %#v, want %#v", request.Cmd, want)
+			}
+			w.WriteHeader(http.StatusCreated)
+			_, _ = io.WriteString(w, `{"Id":"stat-owner"}`)
+		case r.Method == http.MethodPost && r.URL.Path == compatBase+"/exec/stat-owner/start":
+			w.Header().Set("Content-Type", "application/vnd.docker.raw-stream")
+			writeDockerFrame(t, w, 1, []byte("0\n2000\nroot\nproject\n"))
+		case r.Method == http.MethodGet && r.URL.Path == compatBase+"/exec/stat-owner/json":
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = io.WriteString(w, `{"ID":"stat-owner","Running":false,"ExitCode":0}`)
 		default:
 			http.NotFound(w, r)
 		}
@@ -249,6 +261,20 @@ func writeTar(t *testing.T, w http.ResponseWriter, header tar.Header, content []
 	}
 	if err := writer.Close(); err != nil {
 		t.Errorf("Close tar writer: %v", err)
+	}
+}
+
+func writeDockerFrame(t *testing.T, w io.Writer, stream byte, payload []byte) {
+	t.Helper()
+	var header [8]byte
+	header[0] = stream
+	binary.BigEndian.PutUint32(header[4:], uint32(len(payload)))
+	if _, err := w.Write(header[:]); err != nil {
+		t.Errorf("write Docker frame header: %v", err)
+		return
+	}
+	if _, err := w.Write(payload); err != nil {
+		t.Errorf("write Docker frame payload: %v", err)
 	}
 }
 
