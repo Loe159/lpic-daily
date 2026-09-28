@@ -130,10 +130,12 @@ jobs:
         run: |
           dnf -y install git-core python3 tar gzip findutils podman shadow-utils
           useradd --create-home --uid 1000 lpicci
-          # Nested GitHub job containers cannot delegate subordinate IDs.
-          # Podman supports a single-UID rootless mode for this kind of CI/HPC
-          # environment when VFS ignores image chown operations.
-          sed -i '/^lpicci:/d' /etc/subuid /etc/subgid
+          printf 'lpicci:100000:65536\n' >> /etc/subuid
+          printf 'lpicci:100000:65536\n' >> /etc/subgid
+          # Fedora's shadow-utils helpers lose their normal privilege metadata
+          # in the nested GitHub job container. Restore the setuid bit so the
+          # unprivileged Podman user can install its subordinate ID mappings.
+          chmod u+s /usr/bin/newuidmap /usr/bin/newgidmap
           install -d -o lpicci -g lpicci -m 0700 /run/user/1000
           install -d -o lpicci -g lpicci /home/lpicci/.config/containers
           cat > /home/lpicci/.config/containers/containers.conf <<'EOF'
@@ -146,9 +148,6 @@ jobs:
           driver="vfs"
           runroot="/run/user/1000/containers"
           graphroot="/home/lpicci/.local/share/containers/storage"
-
-          [storage.options.vfs]
-          ignore_chown_errors="true"
           EOF
           chown -R lpicci:lpicci /home/lpicci/.config
       - uses: actions/checkout@v4
