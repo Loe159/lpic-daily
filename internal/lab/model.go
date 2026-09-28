@@ -10,9 +10,9 @@ type Definition struct {
 	ObjectiveIDs         []string          `json:"objective_ids"`
 	ConceptIDs           []string          `json:"concept_ids"`
 	Labels               []string          `json:"labels"`
-	EstimatedMinutes        int               `json:"estimated_minutes"`
-	RequiresPersistentShell bool              `json:"requires_persistent_shell,omitempty"`
-	Environment             Environment       `json:"environment"`
+	EstimatedMinutes     int               `json:"estimated_minutes"`
+	NeedsPersistentShell bool              `json:"requires_persistent_shell,omitempty"`
+	Environment          Environment       `json:"environment"`
 	Resources            Resources         `json:"resources"`
 	Setup                Setup             `json:"setup"`
 	Checks               []CheckDefinition `json:"checks"`
