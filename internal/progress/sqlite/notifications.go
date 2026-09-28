@@ -18,6 +18,28 @@ func (store *Store) NotificationSent(ctx context.Context, localDay string) (bool
 	return count != 0, nil
 }
 
+func (store *Store) ClaimNotification(ctx context.Context, localDay string, at time.Time) (bool, error) {
+	if localDay == "" || at.IsZero() {
+		return false, fmt.Errorf("local day and timestamp are required")
+	}
+	result, err := store.db.ExecContext(
+		ctx,
+		`INSERT INTO notification_delivery (local_day, notified_at)
+		 VALUES (?, ?)
+		 ON CONFLICT(local_day) DO NOTHING`,
+		localDay,
+		at.UTC().Format(time.RFC3339Nano),
+	)
+	if err != nil {
+		return false, fmt.Errorf("claim notification delivery for %s: %w", localDay, err)
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return false, fmt.Errorf("inspect notification claim for %s: %w", localDay, err)
+	}
+	return rows == 1, nil
+}
+
 func (store *Store) MarkNotificationSent(ctx context.Context, localDay string, at time.Time) error {
 	if localDay == "" || at.IsZero() {
 		return fmt.Errorf("local day and timestamp are required")
