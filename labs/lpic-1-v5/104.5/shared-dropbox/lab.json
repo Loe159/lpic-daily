@@ -4,7 +4,7 @@
   "title_fr": "Sécuriser un répertoire partagé",
   "brief_fr": "Configure /srv/shared pour l'équipe project : root:project, collaboration groupe, aucun droit others, héritage du groupe et protection contre la suppression des fichiers d'un autre membre. Configure /root/.bashrc avec un umask 0007 et crée team-note depuis un shell qui charge réellement ce fichier. audit-helper porte au départ un SUID inutile : retire uniquement ce bit en gardant le fichier exécutable.",
   "success_criteria_fr": [
-    "/srv/shared appartient à root:project avec le mode 3770.",
+    "/srv/shared appartient à root:project, donne rwx au propriétaire et au groupe, aucun droit aux autres, conserve le groupe project sur les nouvelles entrées et protège les fichiers des autres membres contre suppression/renommage.",
     "team-note appartient au groupe project et est créé en mode 0660.",
     "Un shell chargeant /root/.bashrc annonce réellement umask 0007 et crée un fichier en 0660.",
     "audit-helper n'a plus de SUID et reste en mode 0755."
