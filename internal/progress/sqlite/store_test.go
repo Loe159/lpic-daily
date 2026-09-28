@@ -90,11 +90,12 @@ func TestEvidenceIsAppendOnlyByEventID(t *testing.T) {
 	}
 }
 
-
 func TestEvidenceBatchRollsBackAtomically(t *testing.T) {
 	ctx := context.Background()
 	store, err := Open(ctx, ":memory:")
-	if err != nil { t.Fatalf("Open() error = %v", err) }
+	if err != nil {
+		t.Fatalf("Open() error = %v", err)
+	}
 	defer store.Close()
 
 	at := time.Date(2026, 9, 28, 9, 0, 0, 0, time.UTC)
@@ -108,7 +109,11 @@ func TestEvidenceBatchRollsBackAtomically(t *testing.T) {
 	}
 	for _, conceptID := range []string{first.ConceptID, second.ConceptID} {
 		events, err := store.EvidenceForConcept(ctx, conceptID)
-		if err != nil { t.Fatalf("EvidenceForConcept(%s) error = %v", conceptID, err) }
-		if len(events) != 0 { t.Fatalf("batch left partial evidence for %s: %#v", conceptID, events) }
+		if err != nil {
+			t.Fatalf("EvidenceForConcept(%s) error = %v", conceptID, err)
+		}
+		if len(events) != 0 {
+			t.Fatalf("batch left partial evidence for %s: %#v", conceptID, events)
+		}
 	}
 }

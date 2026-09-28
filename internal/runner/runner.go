@@ -59,17 +59,17 @@ func (machine MachineDefinition) Validate() error {
 }
 
 type Definition struct {
-	LabID             string
-	ImageRef          string
-	Distribution      string
-	Network           NetworkMode
-	CapabilityProfile string
+	LabID              string
+	ImageRef           string
+	Distribution       string
+	Network            NetworkMode
+	CapabilityProfile  string
 	WritableGuestPaths []string
-	MemoryMB          int
-	CPUPercent        int
-	PIDs              int
-	Timeout           time.Duration
-	Machine           *MachineDefinition
+	MemoryMB           int
+	CPUPercent         int
+	PIDs               int
+	Timeout            time.Duration
+	Machine            *MachineDefinition
 }
 
 func (definition Definition) Validate() error {

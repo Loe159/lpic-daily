@@ -29,9 +29,13 @@ func RecordLesson(
 	batch := make([]learning.EvidenceEvent, 0, len(lesson.ConceptIDs))
 	for _, conceptID := range lesson.ConceptIDs {
 		attempt, err := nextAttempt(ctx, store, conceptID, lesson.ID)
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 		eventID, err := newEventID()
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 		batch = append(batch, learning.EvidenceEvent{
 			EventID: eventID, OccurredAt: at, ConceptID: conceptID,
 			ObjectiveIDs: append([]string(nil), lesson.ObjectiveIDs...),
@@ -59,13 +63,19 @@ func RecordQuestion(
 	}
 	evidenceKind := learning.EvidenceKind(question.EvidenceKindOnSuccess)
 	result := learning.ResultFail
-	if pass { result = learning.ResultPass }
+	if pass {
+		result = learning.ResultPass
+	}
 	batch := make([]learning.EvidenceEvent, 0, len(question.ConceptIDs))
 	for _, conceptID := range question.ConceptIDs {
 		attempt, err := nextAttempt(ctx, store, conceptID, question.ID)
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 		eventID, err := newEventID()
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 		batch = append(batch, learning.EvidenceEvent{
 			EventID: eventID, OccurredAt: at, ConceptID: conceptID,
 			ObjectiveIDs: append([]string(nil), question.ObjectiveIDs...),
@@ -102,9 +112,13 @@ func RecordLab(
 		}
 		attempt := nextAttemptFromEvents(events, authored.Definition.ID)
 		evidenceKind, err := practicalEvidenceKind(conceptID, events, highestHintLevel, at)
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 		eventID, err := newEventID()
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 		batch = append(batch, learning.EvidenceEvent{
 			EventID: eventID, OccurredAt: at, ConceptID: conceptID,
 			ObjectiveIDs: append([]string(nil), authored.Definition.ObjectiveIDs...),
