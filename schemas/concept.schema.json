@@ -8,7 +8,7 @@
   "properties": {
     "id": { "$ref": "common.schema.json#/$defs/conceptId" },
     "objective_id": { "$ref": "common.schema.json#/$defs/objectiveId" },
-    "title_fr": { "type": "string", "minLength": 3 },
+    "title_fr": { "type": "string", "minLength": 1 },
     "pedagogy_order": { "type": "integer", "minimum": 1 },
     "classification": { "$ref": "common.schema.json#/$defs/labels" },
     "active": { "type": "boolean" },
