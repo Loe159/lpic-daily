@@ -68,6 +68,7 @@ type Concept struct {
 	TitleFR                             string   `json:"title_fr"`
 	PedagogyOrder                       int      `json:"pedagogy_order"`
 	InheritedHardObjectivePrerequisites []string `json:"inherited_hard_objective_prerequisites"`
+	PrerequisiteConceptIDs              []string `json:"prerequisite_concept_ids,omitempty"`
 	Classification                      []string `json:"classification"`
 	Active                              bool     `json:"active"`
 }
