@@ -9,6 +9,9 @@ RUN dnf -y install \
         procps-ng \
         shadow-utils \
         util-linux \
+    && groupadd --gid 2000 project \
+    && useradd --create-home --uid 1101 --groups project alice \
+    && useradd --create-home --uid 1102 --groups project bob \
     && dnf clean all
 
 CMD ["/usr/bin/sleep", "infinity"]
