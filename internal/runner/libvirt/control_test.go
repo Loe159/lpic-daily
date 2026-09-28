@@ -189,6 +189,32 @@ func (fake *fakeRawLibvirt) NetworkUndefine(_ golibvirt.Network) error {
 	return nil
 }
 
+func (fake *fakeRawLibvirt) ConnectListAllDomains(
+	_ int32,
+	_ golibvirt.ConnectListAllDomainsFlags,
+) ([]golibvirt.Domain, uint32, error) {
+	if fake.err != nil {
+		return nil, 0, fake.err
+	}
+	if fake.domain.Name == "" {
+		return nil, 0, nil
+	}
+	return []golibvirt.Domain{fake.domain}, 1, nil
+}
+
+func (fake *fakeRawLibvirt) ConnectListAllNetworks(
+	_ int32,
+	_ golibvirt.ConnectListAllNetworksFlags,
+) ([]golibvirt.Network, uint32, error) {
+	if fake.err != nil {
+		return nil, 0, fake.err
+	}
+	if fake.network.Name == "" {
+		return nil, 0, nil
+	}
+	return []golibvirt.Network{fake.network}, 1, nil
+}
+
 func (fake *fakeRawLibvirt) Disconnect() error {
 	fake.disconnected = true
 	return fake.err
@@ -280,6 +306,14 @@ func TestRPCControlPlaneLifecycleUsesManagedDomainOnly(t *testing.T) {
 	}
 	if err := control.UndefineNetwork(name); err != nil {
 		t.Fatalf("UndefineNetwork() error = %v", err)
+	}
+	domains, err := control.ListManagedDomains()
+	if err != nil || len(domains) != 1 || domains[0] != name {
+		t.Fatalf("ListManagedDomains() = %#v, %v", domains, err)
+	}
+	networks, err := control.ListManagedNetworks()
+	if err != nil || len(networks) != 1 || networks[0] != name {
+		t.Fatalf("ListManagedNetworks() = %#v, %v", networks, err)
 	}
 	if !raw.networkDestroyed || !raw.networkUndefined {
 		t.Fatalf("network cleanup flags destroyed=%v undefined=%v", raw.networkDestroyed, raw.networkUndefined)
