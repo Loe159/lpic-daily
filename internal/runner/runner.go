@@ -231,6 +231,12 @@ type ConsoleRunner interface {
 	OpenConsole(context.Context, Instance, ConsoleRequest) error
 }
 
+// RebootRunner is an optional capability for full-machine backends.
+// It requests a guest-visible reboot without recreating the disposable disks.
+type RebootRunner interface {
+	Reboot(context.Context, Instance) error
+}
+
 type Runner interface {
 	Prepare(context.Context, Definition) (Instance, error)
 	Start(context.Context, Instance) error
