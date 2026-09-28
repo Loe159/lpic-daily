@@ -219,6 +219,7 @@ func TestLabListAliasesAndShow(t *testing.T) {
 }
 
 func TestLabHintAndDebriefDisclosure(t *testing.T) {
+	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
 	var first bytes.Buffer
 	if err := runWithIO(
 		[]string{"lab", "hint", sharedDropboxID, "1"},
@@ -414,7 +415,9 @@ func TestLabResetDoesNotEraseSolutionRevealEvidence(t *testing.T) {
 	}
 }
 
-type scriptedLabRunner struct{}
+type scriptedLabRunner struct {
+	failChecks bool
+}
 
 func (*scriptedLabRunner) Prepare(context.Context, runner.Definition) (runner.Instance, error) {
 	return runner.Instance{ID: "scripted"}, nil
@@ -423,8 +426,12 @@ func (*scriptedLabRunner) Start(context.Context, runner.Instance) error { return
 func (*scriptedLabRunner) Exec(context.Context, runner.Instance, runner.ExecRequest) (runner.ExecResult, error) {
 	return runner.ExecResult{ExitCode: 0}, nil
 }
-func (*scriptedLabRunner) Stat(_ context.Context, _ runner.Instance, guestPath string) (runner.FileInfo, error) {
-	return runner.FileInfo{Path: guestPath, Mode: 0o3770, UID: 0, GID: 2000, User: "root", Group: "project", IsDir: true}, nil
+func (fake *scriptedLabRunner) Stat(_ context.Context, _ runner.Instance, guestPath string) (runner.FileInfo, error) {
+	mode := uint32(0o3770)
+	if fake.failChecks {
+		mode = 0o0770
+	}
+	return runner.FileInfo{Path: guestPath, Mode: mode, UID: 0, GID: 2000, User: "root", Group: "project", IsDir: true}, nil
 }
 func (*scriptedLabRunner) ReadFile(context.Context, runner.Instance, string, int64) ([]byte, error) {
 	return nil, errors.New("unexpected ReadFile")
@@ -434,3 +441,177 @@ func (*scriptedLabRunner) Processes(context.Context, runner.Instance) ([]runner.
 }
 func (*scriptedLabRunner) Reset(context.Context, runner.Instance) error   { return nil }
 func (*scriptedLabRunner) Destroy(context.Context, runner.Instance) error { return nil }
+
+
+func TestStandaloneSolutionHintTaintsNextSuccessfulLabAttempt(t *testing.T) {
+	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
+
+	if err := runWithIO(
+		[]string{"lab", "hint", sharedDropboxID, "4"},
+		strings.NewReader(""),
+		&bytes.Buffer{},
+		&bytes.Buffer{},
+	); err != nil {
+		t.Fatalf("standalone hint error = %v", err)
+	}
+
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("LoadAll() error = %v", err)
+	}
+	authored, err := findLab(labs, sharedDropboxID)
+	if err != nil {
+		t.Fatalf("findLab() error = %v", err)
+	}
+
+	var stdout, stderr bytes.Buffer
+	if err := runInteractiveLabWithBackend(
+		context.Background(),
+		authored,
+		&scriptedLabRunner{},
+		false,
+		strings.NewReader(":check\n"),
+		&stdout,
+		&stderr,
+	); err != nil {
+		t.Fatalf("runInteractiveLabWithBackend() error = %v; stderr=%q", err, stderr.String())
+	}
+
+	store, err := openProgressStore(context.Background())
+	if err != nil {
+		t.Fatalf("open progress store: %v", err)
+	}
+	defer store.Close()
+
+	events, err := store.EvidenceForConcept(context.Background(), authored.Definition.ConceptIDs[0])
+	if err != nil {
+		t.Fatalf("EvidenceForConcept() error = %v", err)
+	}
+	if len(events) != 1 {
+		t.Fatalf("events = %d, want 1", len(events))
+	}
+	if events[0].HighestHintLevel != 4 || !events[0].SolutionRevealed {
+		t.Fatalf("standalone hint was laundered: %#v", events[0])
+	}
+	projection, err := learning.ProjectMastery(
+		events[0].ConceptID,
+		events,
+		learning.DefaultProjectionPolicy(),
+	)
+	if err != nil {
+		t.Fatalf("ProjectMastery() error = %v", err)
+	}
+	if projection.Stage != learning.StageGuided {
+		t.Fatalf("stage = %s, want guided after standalone solution reveal", projection.Stage)
+	}
+
+	disclosure, err := store.LabDisclosure(context.Background(), authored.Definition.ID)
+	if err != nil {
+		t.Fatalf("LabDisclosure() error = %v", err)
+	}
+	if disclosure.HighestHintLevel != 0 {
+		t.Fatalf("successful lab did not clear disclosure: %#v", disclosure)
+	}
+}
+
+func TestInteractiveSolutionHintPersistsAcrossRestart(t *testing.T) {
+	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
+
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("LoadAll() error = %v", err)
+	}
+	authored, err := findLab(labs, sharedDropboxID)
+	if err != nil {
+		t.Fatalf("findLab() error = %v", err)
+	}
+
+	var firstOut, firstErr bytes.Buffer
+	if err := runInteractiveLabWithBackend(
+		context.Background(),
+		authored,
+		&scriptedLabRunner{},
+		false,
+		strings.NewReader(":hint\n:hint\n:hint\n:hint\n:quit\n"),
+		&firstOut,
+		&firstErr,
+	); err != nil {
+		t.Fatalf("first lab run error = %v; stderr=%q", err, firstErr.String())
+	}
+
+	var secondOut, secondErr bytes.Buffer
+	if err := runInteractiveLabWithBackend(
+		context.Background(),
+		authored,
+		&scriptedLabRunner{},
+		false,
+		strings.NewReader(":check\n"),
+		&secondOut,
+		&secondErr,
+	); err != nil {
+		t.Fatalf("second lab run error = %v; stderr=%q", err, secondErr.String())
+	}
+
+	store, err := openProgressStore(context.Background())
+	if err != nil {
+		t.Fatalf("open progress store: %v", err)
+	}
+	defer store.Close()
+	events, err := store.EvidenceForConcept(context.Background(), authored.Definition.ConceptIDs[0])
+	if err != nil {
+		t.Fatalf("EvidenceForConcept() error = %v", err)
+	}
+	if len(events) != 1 || events[0].HighestHintLevel != 4 || !events[0].SolutionRevealed {
+		t.Fatalf("restart laundered interactive hint: %#v", events)
+	}
+}
+
+func TestFailedLabCheckRecordsFailureEvidence(t *testing.T) {
+	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
+
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("LoadAll() error = %v", err)
+	}
+	authored, err := findLab(labs, sharedDropboxID)
+	if err != nil {
+		t.Fatalf("findLab() error = %v", err)
+	}
+
+	var stdout, stderr bytes.Buffer
+	if err := runInteractiveLabWithBackend(
+		context.Background(),
+		authored,
+		&scriptedLabRunner{failChecks: true},
+		false,
+		strings.NewReader(":check\n:quit\n"),
+		&stdout,
+		&stderr,
+	); err != nil {
+		t.Fatalf("runInteractiveLabWithBackend() error = %v; stderr=%q", err, stderr.String())
+	}
+	if !strings.Contains(stdout.String(), "Tentative enregistrée.") {
+		t.Fatalf("failed attempt was not acknowledged: %q", stdout.String())
+	}
+
+	store, err := openProgressStore(context.Background())
+	if err != nil {
+		t.Fatalf("open progress store: %v", err)
+	}
+	defer store.Close()
+	conceptID := authored.Definition.ConceptIDs[0]
+	events, err := store.EvidenceForConcept(context.Background(), conceptID)
+	if err != nil {
+		t.Fatalf("EvidenceForConcept() error = %v", err)
+	}
+	if len(events) != 1 || events[0].Result != learning.ResultFail {
+		t.Fatalf("events = %#v, want one failed lab attempt", events)
+	}
+	projection, err := learning.ProjectMastery(conceptID, events, learning.DefaultProjectionPolicy())
+	if err != nil {
+		t.Fatalf("ProjectMastery() error = %v", err)
+	}
+	if projection.Failures != 1 || projection.Stage != learning.StageUnseen {
+		t.Fatalf("projection = %#v, want one failure without mastery advancement", projection)
+	}
+}
