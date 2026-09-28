@@ -2,14 +2,15 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.5.transfer-operator-session",
   "title_fr": "Stabiliser une session d'exploitation",
-  "brief_fr": "Une session contient queue-worker sain, leaky-worker défaillant et un probe qui doit recevoir SIGTERM. Arrête seulement leaky-worker, termine proprement le probe, lance background-worker, lance survivor-worker sous nohup et crée une session tmux détachée transfer-ops.",
+  "brief_fr": "Une session contient queue-worker sain et leaky-worker défaillant. Dans :shell, inspecte-les et enregistre PID/PPID/état/commande dans /run/lpic/transfer-process-inspection, puis identifie et arrête seulement leaky-worker. Lance transfer-job-probe au premier plan, suspends-le avec Ctrl-Z, vérifie-le avec jobs, reprends-le avec bg puis termine-le avec SIGTERM. Lance ensuite background-worker, survivor-worker sous nohup et une session tmux détachée transfer-ops.",
   "success_criteria_fr": [
     "leaky-worker est absent et queue-worker reste actif.",
-    "Le probe a enregistré sa terminaison SIGTERM.",
+    "/run/lpic/transfer-process-inspection contient un snapshot exploitable de queue-worker et leaky-worker avec leurs PID/PPID/états.",
+    "Le transfer-job-probe a réellement été suspendu, repris en arrière-plan puis terminé avec SIGTERM.",
     "background-worker et survivor-worker restent actifs.",
     "La session tmux transfer-ops existe."
   ],
-  "debrief_fr": "Ce contexte transfère inspection et sélection de processus, signaux, arrière-plan, persistance avec nohup et multiplexage avec tmux. Seul l'état final observable est évalué.",
+  "debrief_fr": "Ce contexte exige à nouveau inspection et sélection précises des processus, puis un vrai cycle de job control dans un PTY : foreground, Ctrl-Z, jobs, bg et SIGTERM. Il ajoute un processus lancé avec &, un survivant nohup et une session tmux détachée. Le transfert n'est donc crédité que lorsque les sept concepts 103.5 ont une preuve observable dans ce second contexte.",
   "objective_ids": [
     "103.5"
   ],
@@ -51,28 +52,86 @@
   "checks": [
     {
       "type": "process-absent",
-      "match": "leaky-worker"
+      "match": "leaky-worker",
+      "concept_ids": [
+        "lpic1.103.5.selection-par-nom-pid",
+        "lpic1.103.5.signaux"
+      ]
     },
     {
       "type": "process-running",
-      "match": "queue-worker"
+      "match": "queue-worker",
+      "concept_ids": [
+        "lpic1.103.5.selection-par-nom-pid"
+      ]
     },
     {
-      "type": "process-absent",
-      "match": "/usr/local/bin/lpic-term-probe"
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test -s /run/lpic/transfer-process-inspection && grep -Eq \"^[[:space:]]*$(cat /run/lpic/queue-worker.pid)[[:space:]]+[0-9]+[[:space:]]+[A-Z]\" /run/lpic/transfer-process-inspection && grep -q queue-worker /run/lpic/transfer-process-inspection && grep -Eq \"^[[:space:]]*$(cat /run/lpic/leaky-worker.pid)[[:space:]]+[0-9]+[[:space:]]+[A-Z]\" /run/lpic/transfer-process-inspection && grep -q leaky-worker /run/lpic/transfer-process-inspection"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.5.inspection-arbres-ressources"
+      ]
     },
     {
       "type": "file-content-regex",
-      "path": "/run/lpic/term-probe-terminated",
-      "pattern": "^terminated\\n?$"
+      "path": "/run/lpic/transfer-probe-background",
+      "pattern": "^background\\n?$",
+      "concept_ids": [
+        "lpic1.103.5.processus-avant-arriere-plan",
+        "lpic1.103.5.jobs-du-shell"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/run/lpic/transfer-probe-stopped",
+      "pattern": "^stopped\\n?$",
+      "concept_ids": [
+        "lpic1.103.5.jobs-du-shell",
+        "lpic1.103.5.signaux"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/run/lpic/transfer-probe-continued",
+      "pattern": "^continued\\n?$",
+      "concept_ids": [
+        "lpic1.103.5.processus-avant-arriere-plan",
+        "lpic1.103.5.signaux"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/run/lpic/transfer-probe-terminated",
+      "pattern": "^terminated\\n?$",
+      "concept_ids": [
+        "lpic1.103.5.signaux"
+      ]
+    },
+    {
+      "type": "process-absent",
+      "match": "/usr/local/bin/lpic-transfer-job-probe",
+      "concept_ids": [
+        "lpic1.103.5.signaux"
+      ]
     },
     {
       "type": "process-running",
-      "match": "background-worker"
+      "match": "background-worker",
+      "concept_ids": [
+        "lpic1.103.5.processus-avant-arriere-plan"
+      ]
     },
     {
       "type": "process-running",
-      "match": "survivor-worker"
+      "match": "survivor-worker",
+      "concept_ids": [
+        "lpic1.103.5.processus-survivant-a-la-session"
+      ]
     },
     {
       "type": "command-exit",
@@ -82,7 +141,10 @@
         "-t",
         "transfer-ops"
       ],
-      "expected_exit": 0
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.5.multiplexeurs-de-terminal"
+      ]
     }
   ],
   "hint_ids": [
@@ -92,5 +154,6 @@
     "lpic1.103.5.transfer-operator-session.hint-4"
   ],
   "reference_solution_ref": "reference-solution.sh",
-  "reset_policy": "disposable"
+  "reset_policy": "disposable",
+  "requires_persistent_shell": true
 }
