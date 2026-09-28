@@ -1,14 +1,14 @@
 {
   "schema_version": "1.0.0",
   "id": "lpic1.103.1.transfer-shell-handoff",
-  "title_fr": "Préparer un shell de relève",
-  "brief_fr": "Prépare un second environnement pour une relève d'administration. Corrige le login shell afin d'utiliser report-status approuvé, REPORT_ENV=production, le REPORT_FILE attendu et un historique durable avec HISTSIZE=3000/HISTFILESIZE=6000. Écris aussi /run/lpic/handoff-summary avec uname -r puis le type Bash de report-status.",
+  "title_fr": "Préparer un shell de relève interactif",
+  "brief_fr": "Tu prépares un shell interactif pour une relève d’astreinte, sans modifier le profil de login. Corrige /root/.bashrc afin qu’un bash interactif résolve report-status vers le binaire approuvé, exporte HANDOFF_ROLE=primary et HANDOFF_FILE=/var/lib/lpic/reports/handoff notes.txt, et conserve un historique exploitable avec HISTSIZE=1500, HISTFILESIZE=3000 et HISTCONTROL=ignoredups. Depuis ce shell, produis /run/lpic/handoff-summary avec l’architecture uname -m sur la première ligne et le type Bash de report-status sur la seconde, puis /run/lpic/handoff-ready contenant ready.",
   "success_criteria_fr": [
-    "Le report-status approuvé est résolu dans un nouveau login shell.",
-    "REPORT_ENV et REPORT_FILE sont correctement exportées.",
-    "HISTSIZE=3000 et HISTFILESIZE=6000 sont persistants.",
-    "handoff-summary reflète le noyau courant et le type réel de report-status.",
-    "report-status réussit avec REPORT_FILE."
+    "Un shell interactif charge /root/.bashrc et résout report-status vers le binaire approuvé.",
+    "HANDOFF_ROLE et HANDOFF_FILE sont exportées avec la valeur et le quoting attendus.",
+    "HISTSIZE=1500, HISTFILESIZE=3000 et HISTCONTROL=ignoredups sont actifs dans ce shell interactif.",
+    "handoff-summary contient l’architecture courante puis le type Bash réel de report-status.",
+    "handoff-ready est créé dans la même séquence de préparation et contient ready."
   ],
   "debrief_fr": "Ce deuxième contexte transfère les sept concepts 103.1 sans réutiliser le même état initial : séquences de shell, variables, PATH, quoting, historique, identification des commandes et informations système.",
   "objective_ids": [
@@ -56,7 +56,10 @@
       "type": "command-exit",
       "argv": [
         "/usr/bin/bash",
-        "-lc",
+        "--noprofile",
+        "--rcfile",
+        "/root/.bashrc",
+        "-ic",
         "test \"$(command -v report-status)\" = /opt/lpic/approved/bin/report-status"
       ],
       "expected_exit": 0,
@@ -69,8 +72,26 @@
       "type": "command-exit",
       "argv": [
         "/usr/bin/bash",
-        "-lc",
-        "test \"${REPORT_ENV:-}\" = production && test \"${REPORT_FILE:-}\" = \"/var/lib/lpic/reports/daily report.txt\""
+        "--noprofile",
+        "--rcfile",
+        "/root/.bashrc",
+        "-ic",
+        "test \"${HANDOFF_ROLE:-}\" = primary"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.1.variables-shell-environnement"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "--noprofile",
+        "--rcfile",
+        "/root/.bashrc",
+        "-ic",
+        "test \"${HANDOFF_FILE:-}\" = \"/var/lib/lpic/reports/handoff notes.txt\""
       ],
       "expected_exit": 0,
       "concept_ids": [
@@ -82,12 +103,16 @@
       "type": "command-exit",
       "argv": [
         "/usr/bin/bash",
-        "-lc",
-        "test \"${HISTSIZE:-}\" = 3000 && test \"${HISTFILESIZE:-}\" = 6000"
+        "--noprofile",
+        "--rcfile",
+        "/root/.bashrc",
+        "-ic",
+        "test \"${HISTSIZE:-}\" = 1500 && test \"${HISTFILESIZE:-}\" = 3000 && test \"${HISTCONTROL:-}\" = ignoredups"
       ],
       "expected_exit": 0,
       "concept_ids": [
-        "lpic1.103.1.historique"
+        "lpic1.103.1.historique",
+        "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes"
       ]
     },
     {
@@ -95,7 +120,7 @@
       "argv": [
         "/usr/bin/bash",
         "-lc",
-        "test -f /run/lpic/handoff-summary && test \"$(sed -n '1p' /run/lpic/handoff-summary)\" = \"$(uname -r)\" && test \"$(sed -n '2p' /run/lpic/handoff-summary)\" = \"$(type -t report-status)\""
+        "test -f /run/lpic/handoff-summary && test \"$(sed -n '1p' /run/lpic/handoff-summary)\" = \"$(uname -m)\" && test \"$(sed -n '2p' /run/lpic/handoff-summary)\" = file"
       ],
       "expected_exit": 0,
       "concept_ids": [
@@ -104,13 +129,9 @@
       ]
     },
     {
-      "type": "command-exit",
-      "argv": [
-        "/usr/bin/bash",
-        "-lc",
-        "report-status \"$REPORT_FILE\""
-      ],
-      "expected_exit": 0,
+      "type": "file-content-regex",
+      "path": "/run/lpic/handoff-ready",
+      "pattern": "^ready\\n?$",
       "concept_ids": [
         "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes",
         "lpic1.103.1.quoting-escaping"
