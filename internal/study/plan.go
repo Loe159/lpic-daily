@@ -257,9 +257,10 @@ func recommendedLab(
 		if effective != learning.EvidenceIndependentPractice && effective != learning.EvidenceTransfer {
 			continue
 		}
-		if event.PracticeContext != "" {
-			usedContexts[event.PracticeContext] = true
+		if event.PracticeContext == "" {
+			continue
 		}
+		usedContexts[event.PracticeContext] = true
 		if !event.OccurredAt.After(now) && now.Sub(event.OccurredAt) >= policy.MinTransferGap {
 			transferReady = true
 		}
