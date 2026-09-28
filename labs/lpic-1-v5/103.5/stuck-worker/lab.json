@@ -57,6 +57,16 @@
     },
     {
       "type": "file-content-regex",
+      "path": "/run/lpic/probe-background",
+      "pattern": "^background\\n?$"
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/run/lpic/probe-stopped",
+      "pattern": "^stopped\\n?$"
+    },
+    {
+      "type": "file-content-regex",
       "path": "/run/lpic/probe-continued",
       "pattern": "^continued\\n?$"
     },
@@ -77,5 +87,6 @@
     "lpic1.103.5.stuck-worker.hint-4"
   ],
   "reference_solution_ref": "reference-solution.sh",
-  "reset_policy": "disposable"
+  "reset_policy": "disposable",
+  "requires_persistent_shell": true
 }
