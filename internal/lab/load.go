@@ -14,11 +14,16 @@ import (
 
 	"github.com/Loe159/lpic-daily/internal/checker"
 	"github.com/Loe159/lpic-daily/internal/runner"
+	"github.com/Loe159/lpic-daily/internal/schemavalidation"
 )
 
 const labGlob = "labs/lpic-1-v5/*/*/lab.json"
 
 func LoadAll(fsys fs.FS) ([]Lab, error) {
+	schemaValidator, err := schemavalidation.New(fsys)
+	if err != nil {
+		return nil, fmt.Errorf("compile lab schemas: %w", err)
+	}
 	paths, err := fs.Glob(fsys, labGlob)
 	if err != nil {
 		return nil, fmt.Errorf("glob built-in labs: %w", err)
@@ -31,7 +36,7 @@ func LoadAll(fsys fs.FS) ([]Lab, error) {
 	labs := make([]Lab, 0, len(paths))
 	seen := make(map[string]struct{}, len(paths))
 	for _, labPath := range paths {
-		loaded, err := loadOne(fsys, labPath)
+		loaded, err := loadOne(fsys, labPath, schemaValidator)
 		if err != nil {
 			return nil, err
 		}
@@ -44,7 +49,10 @@ func LoadAll(fsys fs.FS) ([]Lab, error) {
 	return labs, nil
 }
 
-func loadOne(fsys fs.FS, labPath string) (Lab, error) {
+func loadOne(fsys fs.FS, labPath string, schemaValidator *schemavalidation.Validator) (Lab, error) {
+	if err := schemaValidator.ValidateFile("lab.schema.json", labPath); err != nil {
+		return Lab{}, err
+	}
 	var definition Definition
 	if err := decodeStrictFile(fsys, labPath, &definition); err != nil {
 		return Lab{}, err
@@ -75,6 +83,9 @@ func loadOne(fsys fs.FS, labPath string) (Lab, error) {
 
 	hintByID := make(map[string]Hint, len(hintPaths))
 	for _, hintPath := range hintPaths {
+		if err := schemaValidator.ValidateFile("hint.schema.json", hintPath); err != nil {
+			return Lab{}, err
+		}
 		var hint Hint
 		if err := decodeStrictFile(fsys, hintPath, &hint); err != nil {
 			return Lab{}, err
