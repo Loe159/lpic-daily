@@ -162,12 +162,13 @@ func qualifiesAsTransfer(current EvidenceEvent, previous []EvidenceEvent, minGap
 		if current.OccurredAt.Sub(event.OccurredAt) < minGap {
 			continue
 		}
-		// Transfer requires a materially different context. A later attempt
-		// of the same activity on the same distribution remains independent
-		// confirmation rather than being promoted to transfer.
-		if event.SourceItemID != current.SourceItemID ||
-			event.ActivityKind != current.ActivityKind ||
-			event.Distribution != current.Distribution {
+		// Transfer requires an explicit authored practice-context change.
+		// Different item IDs, activity kinds or distributions are not enough on
+		// their own because they may represent only a superficial variant.
+		if event.PracticeContext == "" || current.PracticeContext == "" {
+			continue
+		}
+		if event.PracticeContext != current.PracticeContext {
 			return true
 		}
 	}
