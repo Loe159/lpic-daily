@@ -98,7 +98,7 @@ func TestQuestionAttemptsIncrementPerSourceAndConcept(t *testing.T) {
 	}
 }
 
-func TestLaterUnhintedLabAttemptRecordsTransferConfirmation(t *testing.T) {
+func TestRepeatedUnhintedLabAttemptStaysIndependent(t *testing.T) {
 	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
 	if err != nil {
 		t.Fatalf("lab.LoadAll() error = %v", err)
@@ -128,8 +128,51 @@ func TestLaterUnhintedLabAttemptRecordsTransferConfirmation(t *testing.T) {
 	if len(events) != 2 {
 		t.Fatalf("events = %d, want 2", len(events))
 	}
-	if events[0].EvidenceKind != learning.EvidenceIndependentPractice {
-		t.Fatalf("first evidence = %s, want independent-practice", events[0].EvidenceKind)
+	if events[0].EvidenceKind != learning.EvidenceIndependentPractice ||
+		events[1].EvidenceKind != learning.EvidenceIndependentPractice {
+		t.Fatalf("evidence = %#v, want repeated independent-practice", events)
+	}
+	projection, err := learning.ProjectMastery(conceptID, events, learning.DefaultProjectionPolicy())
+	if err != nil {
+		t.Fatalf("ProjectMastery() error = %v", err)
+	}
+	if projection.Stage != learning.StageIndependent {
+		t.Fatalf("stage = %s, want independent", projection.Stage)
+	}
+}
+
+func TestDifferentUnhintedLabContextRecordsTransfer(t *testing.T) {
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("lab.LoadAll() error = %v", err)
+	}
+	var shared lab.Lab
+	for _, authored := range labs {
+		if authored.Definition.ID == "lpic1.104.5.shared-dropbox" {
+			shared = authored
+			break
+		}
+	}
+	if shared.Definition.ID == "" {
+		t.Fatal("shared-dropbox lab not found")
+	}
+
+	transferContext := shared
+	transferContext.Definition.ID = "lpic1.104.5.shared-dropbox-transfer"
+
+	store := newRecordingStore()
+	start := time.Date(2026, 9, 24, 20, 0, 0, 0, time.UTC)
+	if err := study.RecordLab(context.Background(), store, shared, 0, start); err != nil {
+		t.Fatalf("first RecordLab() error = %v", err)
+	}
+	if err := study.RecordLab(context.Background(), store, transferContext, 0, start.Add(25*time.Hour)); err != nil {
+		t.Fatalf("transfer RecordLab() error = %v", err)
+	}
+
+	conceptID := shared.Definition.ConceptIDs[0]
+	events := store.events[conceptID]
+	if len(events) != 2 {
+		t.Fatalf("events = %d, want 2", len(events))
 	}
 	if events[1].EvidenceKind != learning.EvidenceTransfer {
 		t.Fatalf("second evidence = %s, want transfer", events[1].EvidenceKind)
