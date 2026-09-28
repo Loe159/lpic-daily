@@ -7,7 +7,18 @@ cat > /usr/local/bin/lpic-signal-probe <<'EOF'
 #!/usr/bin/env bash
 set -u
 
-trap 'printf "continued\n" > /run/lpic/probe-continued' CONT
+record_resume() {
+    printf 'continued\n' > /run/lpic/probe-continued
+
+    own_pgid="$(ps -o pgid= -p "$$" | tr -d ' ')"
+    terminal_pgid="$(ps -o tpgid= -p "$$" | tr -d ' ')"
+    if [[ -n "$own_pgid" && -n "$terminal_pgid" && "$own_pgid" != "$terminal_pgid" ]]; then
+        printf 'background\n' > /run/lpic/probe-background
+    fi
+}
+
+trap 'printf "stopped\n" > /run/lpic/probe-stopped; kill -STOP "$$"' TSTP
+trap 'record_resume' CONT
 trap 'printf "terminated\n" > /run/lpic/probe-terminated; exit 0' TERM
 
 while :; do
