@@ -51,7 +51,9 @@ Namespace sandboxes/containers share the host kernel. They can be useful, but th
 - No secrets/API keys inside lab guests unless a dedicated threat model explicitly allows it.
 
 ## Validation model
-Checks should query observable guest/container state through structured probes or narrowly scoped commands. Lab success must not depend on the learner entering a specific command sequence.
+Checks should query observable guest/container state through structured probes or narrowly scoped commands. Lab success must not depend on an exact command sequence when equivalent state can prove the skill. For inherently interactive shell-job objectives, LPIC Daily may additionally collect structured shell events (for example a successful `bg` builtin) and terminal control events such as Ctrl-Z; raw command-line text is not parsed for grading.
+
+Authored JSON is validated against the embedded Draft 2020-12 schemas by the Go loaders before semantic validation and execution. Security-critical runtime limits are enforced again by the runner even if a caller bypasses authoring-time validation.
 
 ## Threat-model backlog
 Before Phase 1 implementation, formalize threats for:
