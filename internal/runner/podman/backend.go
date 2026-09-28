@@ -21,7 +21,10 @@ import (
 	"github.com/Loe159/lpic-daily/internal/runner"
 )
 
-const apiBase = "/v6.0.0/libpod"
+const (
+	apiBase = "/v6.0.0/libpod"
+	phase1WritablePathLimitBytes int64 = 32 << 20
+)
 
 var (
 	safeNamePart = regexp.MustCompile(`[^a-z0-9_.-]+`)
@@ -68,6 +71,13 @@ type linuxPids struct {
 	Limit int64 `json:"limit"`
 }
 
+type ociMount struct {
+	Destination string   `json:"destination"`
+	Type        string   `json:"type"`
+	Source      string   `json:"source"`
+	Options     []string `json:"options,omitempty"`
+}
+
 type createRequest struct {
 	Name            string            `json:"name"`
 	Image           string            `json:"image"`
@@ -87,8 +97,11 @@ type createRequest struct {
 	PidNS           namespace         `json:"pidns"`
 	UtsNS           namespace         `json:"utsns"`
 	IpcNS           namespace         `json:"ipcns"`
-	ImageVolumeMode string            `json:"image_volume_mode"`
-	ResourceLimits  *linuxResources   `json:"resource_limits"`
+	ImageVolumeMode    string          `json:"image_volume_mode"`
+	ReadOnlyFilesystem *bool           `json:"read_only_filesystem"`
+	ReadWriteTmpfs     *bool           `json:"read_write_tmpfs"`
+	Mounts             []ociMount      `json:"mounts,omitempty"`
+	ResourceLimits     *linuxResources `json:"resource_limits"`
 }
 
 type createResponse struct {
@@ -303,6 +316,18 @@ func buildCreateRequest(definition runner.Definition, name string) (createReques
 	memoryBytes := int64(definition.MemoryMB) * 1024 * 1024
 	cpuPeriod := uint64(100000)
 	cpuQuota := int64(cpuPeriod) * int64(definition.CPUPercent) / 100
+	mounts := make([]ociMount, 0, len(definition.WritableGuestPaths))
+	for _, guestPath := range definition.WritableGuestPaths {
+		mounts = append(mounts, ociMount{
+			Destination: guestPath,
+			Type:        "tmpfs",
+			Source:      "tmpfs",
+			Options: []string{
+				"rw", "rprivate", "nosuid", "nodev", "tmpcopyup",
+				fmt.Sprintf("size=%d", phase1WritablePathLimitBytes),
+			},
+		})
+	}
 
 	return createRequest{
 		Name:         name,
@@ -325,8 +350,11 @@ func buildCreateRequest(definition runner.Definition, name string) (createReques
 		NetNS:           namespace{NSMode: "none"},
 		PidNS:           namespace{NSMode: "private"},
 		UtsNS:           namespace{NSMode: "private"},
-		IpcNS:           namespace{NSMode: "private"},
-		ImageVolumeMode: "ignore",
+		IpcNS:              namespace{NSMode: "private"},
+		ImageVolumeMode:    "ignore",
+		ReadOnlyFilesystem: &trueValue,
+		ReadWriteTmpfs:     &trueValue,
+		Mounts:             mounts,
 		ResourceLimits: &linuxResources{
 			Memory: &linuxMemory{Limit: &memoryBytes},
 			CPU:    &linuxCPU{Quota: &cpuQuota, Period: &cpuPeriod},

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net"
 	"net/http"
 	"os"
@@ -21,8 +22,9 @@ func validDefinition() runner.Definition {
 		ImageRef:          "localhost/lpic-daily/fedora-phase1:1",
 		Distribution:      "fedora",
 		Network:           runner.NetworkNone,
-		CapabilityProfile: "identity-files",
-		MemoryMB:          256,
+		CapabilityProfile:  "identity-files",
+		WritableGuestPaths: []string{"/srv/shared", "/home/alice", "/home/bob"},
+		MemoryMB:           256,
 		CPUPercent:        100,
 		PIDs:              128,
 		Timeout:           20 * time.Minute,
@@ -53,6 +55,23 @@ func TestBuildCreateRequestIsFailClosed(t *testing.T) {
 	if request.ImageVolumeMode != "ignore" {
 		t.Fatalf("image volume mode = %q, want ignore", request.ImageVolumeMode)
 	}
+	if request.ReadOnlyFilesystem == nil || !*request.ReadOnlyFilesystem {
+		t.Fatal("container rootfs must be read-only")
+	}
+	if request.ReadWriteTmpfs == nil || !*request.ReadWriteTmpfs {
+		t.Fatal("standard runtime tmpfs mounts must remain writable")
+	}
+	if len(request.Mounts) != len(definition.WritableGuestPaths) {
+		t.Fatalf("tmpfs mounts = %d, want %d", len(request.Mounts), len(definition.WritableGuestPaths))
+	}
+	for index, mount := range request.Mounts {
+		if mount.Destination != definition.WritableGuestPaths[index] || mount.Type != "tmpfs" || mount.Source != "tmpfs" {
+			t.Fatalf("unsafe writable mount = %#v", mount)
+		}
+		if !strings.Contains(strings.Join(mount.Options, ","), fmt.Sprintf("size=%d", phase1WritablePathLimitBytes)) {
+			t.Fatalf("tmpfs mount is not size-bounded: %#v", mount)
+		}
+	}
 	if request.ResourceLimits == nil || request.ResourceLimits.Memory == nil || request.ResourceLimits.Memory.Limit == nil {
 		t.Fatal("memory limit is required")
 	}
@@ -78,7 +97,7 @@ func TestBuildCreateRequestIsFailClosed(t *testing.T) {
 	if err != nil {
 		t.Fatalf("marshal request: %v", err)
 	}
-	for _, forbidden := range []string{"mounts", "volumes", "devices", "host_device_list"} {
+	for _, forbidden := range []string{"volumes", "devices", "host_device_list"} {
 		if strings.Contains(string(payload), `"`+forbidden+`"`) {
 			t.Fatalf("request unexpectedly contains %s: %s", forbidden, payload)
 		}
