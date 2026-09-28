@@ -3,6 +3,6 @@
   "id": "lpic1.103.5.transfer-operator-session.hint-2",
   "lab_id": "lpic1.103.5.transfer-operator-session",
   "level": 2,
-  "content_fr": "Utilise ps pour le snapshot et pgrep/ps pour identifier précisément leaky-worker sans toucher à queue-worker. Dans :shell, lance lpic-transfer-job-probe au premier plan, puis Ctrl-Z, jobs et bg avant SIGTERM.",
+  "content_fr": "Pour la preuve d’inspection, ps peut écrire PID, PPID, état, commande et arguments dans maintenance-inspection. SIGUSR1 doit créer le marqueur reload-requested.",
   "evidence_impact": "material"
 }
