@@ -3,6 +3,6 @@
   "id": "lpic1.104.5.transfer-team-share-audit.hint-1",
   "lab_id": "lpic1.104.5.transfer-team-share-audit",
   "level": 1,
-  "content_fr": "Repars des propriétés : collaboration groupe, aucun droit others, héritage du groupe, sticky bit, création 0660 et absence de SUID inutile.",
+  "content_fr": "Ne cherche pas un mode unique pour tout le projet : incoming et team ont deux politiques différentes. Identifie quel bit spécial répond à chaque comportement.",
   "evidence_impact": "none"
 }
