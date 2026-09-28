@@ -1035,6 +1035,7 @@ func runInteractiveLabWithBackend(
 	scanner.Buffer(make([]byte, 4096), 256<<10)
 	nextHint := nextHintIndex(authored.Hints, highestHintLevel)
 	usedPersistentShell := false
+	jobControlEvidence := &jobControlInteractionEvidence{}
 
 	for {
 		if err := sessionCtx.Err(); err != nil {
@@ -1090,7 +1091,14 @@ func runInteractiveLabWithBackend(
 				continue
 			}
 			fmt.Fprintln(stdout, "Ouverture d'un shell persistant dans la sandbox. Tape exit ou Ctrl-D pour revenir.")
-			result, err := runPersistentShell(sessionCtx, backend, session.Instance, stdin, stdout)
+			result, err := runPersistentShell(
+				sessionCtx,
+				backend,
+				session.Instance,
+				stdin,
+				stdout,
+				jobControlEvidence,
+			)
 			if err != nil {
 				return fmt.Errorf("interactive sandbox shell: %w", err)
 			}
@@ -1108,6 +1116,7 @@ func runInteractiveLabWithBackend(
 			// across resets/restarts and remains attached to the learning attempt.
 			nextHint = nextHintIndex(authored.Hints, highestHintLevel)
 			usedPersistentShell = false
+			jobControlEvidence.Reset()
 			fmt.Fprintln(stdout, "Lab réinitialisé dans son état de départ.")
 			continue
 		case ":check":
@@ -1120,10 +1129,20 @@ func runInteractiveLabWithBackend(
 			if err != nil {
 				return fmt.Errorf("derive per-concept lab results: %w", err)
 			}
+			requiresJobControl := labRequiresJobControl(authored.Definition)
 			if authored.Definition.NeedsPersistentShell && !usedPersistentShell {
 				fmt.Fprintf(
 					stdout,
-					"  %-11s %s.persistent-shell — ce lab exige un passage par :shell pour valider le job control réel\n",
+					"  %-11s %s.persistent-shell — ce lab exige un passage par :shell pour valider l'interaction terminal réelle\n",
+					"À CORRIGER",
+					authored.Definition.ID,
+				)
+				passed = false
+				markPersistentShellConceptFailure(authored.Definition, conceptResults)
+			} else if requiresJobControl && !jobControlEvidence.Complete() {
+				fmt.Fprintf(
+					stdout,
+					"  %-11s %s.job-control — la validation exige Ctrl-Z, une observation avec jobs et un bg réussi dans :shell\n",
 					"À CORRIGER",
 					authored.Definition.ID,
 				)
@@ -1208,6 +1227,135 @@ func runInteractiveLabWithBackend(
 	}
 }
 
+func labRequiresJobControl(definition lab.Definition) bool {
+	const jobControlConcept = "lpic1.103.5.jobs-du-shell"
+	for _, conceptID := range definition.ConceptIDs {
+		if conceptID == jobControlConcept {
+			return true
+		}
+	}
+	return false
+}
+
+type jobControlInteractionEvidence struct {
+	sawCtrlZ bool
+	sawJobs  bool
+	sawBg    bool
+}
+
+func (evidence *jobControlInteractionEvidence) Complete() bool {
+	return evidence != nil && evidence.sawCtrlZ && evidence.sawJobs && evidence.sawBg
+}
+
+func (evidence *jobControlInteractionEvidence) Reset() {
+	if evidence != nil {
+		*evidence = jobControlInteractionEvidence{}
+	}
+}
+
+func (evidence *jobControlInteractionEvidence) observeShellEvents(raw []byte) {
+	if evidence == nil {
+		return
+	}
+	for _, event := range strings.Fields(string(raw)) {
+		switch event {
+		case "jobs":
+			evidence.sawJobs = true
+		case "bg":
+			evidence.sawBg = true
+		}
+	}
+}
+
+type ctrlZObservingTerminalReader struct {
+	file     *os.File
+	evidence *jobControlInteractionEvidence
+}
+
+func (reader *ctrlZObservingTerminalReader) Read(buffer []byte) (int, error) {
+	n, err := reader.file.Read(buffer)
+	for _, value := range buffer[:n] {
+		if value == 0x1a && reader.evidence != nil {
+			reader.evidence.sawCtrlZ = true
+		}
+	}
+	return n, err
+}
+
+func (reader *ctrlZObservingTerminalReader) Fd() uintptr {
+	return reader.file.Fd()
+}
+
+const (
+	jobControlShellRCPath = "/tmp/.lpic-daily-shell-rc"
+	jobControlEventPath   = "/tmp/.lpic-daily-job-control-events"
+)
+
+const jobControlShellRC = `
+__lpic_daily_job_control_log="/tmp/.lpic-daily-job-control-events"
+
+jobs() {
+    builtin jobs "$@"
+    local status=$?
+    if (( status == 0 )); then
+        printf 'jobs\\n' >> "$__lpic_daily_job_control_log"
+    fi
+    return "$status"
+}
+
+bg() {
+    builtin bg "$@"
+    local status=$?
+    if (( status == 0 )); then
+        printf 'bg\\n' >> "$__lpic_daily_job_control_log"
+    fi
+    return "$status"
+}
+`
+
+func prepareJobControlShell(
+	ctx context.Context,
+	backend runner.Runner,
+	instance runner.Instance,
+) error {
+	for _, file := range []struct {
+		path    string
+		content string
+	}{
+		{path: jobControlShellRCPath, content: jobControlShellRC},
+		{path: jobControlEventPath, content: ""},
+	} {
+		result, err := backend.Exec(ctx, instance, runner.ExecRequest{
+			Argv:  []string{"/usr/bin/tee", file.path},
+			Stdin: strings.NewReader(file.content),
+		})
+		if err != nil {
+			return fmt.Errorf("prepare job-control shell file %s: %w", file.path, err)
+		}
+		if result.ExitCode != 0 {
+			return fmt.Errorf("prepare job-control shell file %s: exit %d", file.path, result.ExitCode)
+		}
+	}
+	return nil
+}
+
+func collectJobControlEvidence(
+	ctx context.Context,
+	backend runner.Runner,
+	instance runner.Instance,
+	evidence *jobControlInteractionEvidence,
+) error {
+	if evidence == nil {
+		return nil
+	}
+	raw, err := backend.ReadFile(ctx, instance, jobControlEventPath, 4096)
+	if err != nil {
+		return fmt.Errorf("read job-control shell evidence: %w", err)
+	}
+	evidence.observeShellEvents(raw)
+	return nil
+}
+
 func markPersistentShellConceptFailure(
 	definition lab.Definition,
 	conceptResults map[string]learning.Result,
@@ -1230,6 +1378,7 @@ func runPersistentShell(
 	instance runner.Instance,
 	stdin io.Reader,
 	stdout io.Writer,
+	evidence *jobControlInteractionEvidence,
 ) (result runner.ExecResult, returnErr error) {
 	stdinFile, ok := stdin.(*os.File)
 	if !ok || !terminal.IsTerminal(stdinFile) {
@@ -1243,6 +1392,11 @@ func runPersistentShell(
 	width, height, err := terminal.Size(stdoutFile)
 	if err != nil {
 		return runner.ExecResult{}, err
+	}
+	if evidence != nil {
+		if err := prepareJobControlShell(ctx, backend, instance); err != nil {
+			return runner.ExecResult{}, err
+		}
 	}
 
 	state, err := terminal.MakeRaw(stdinFile)
@@ -1286,10 +1440,17 @@ func runPersistentShell(
 		env["TERM"] = value
 	}
 
+	shellInput := io.Reader(stdinFile)
+	shellArgv := []string{"/usr/bin/bash", "-l"}
+	if evidence != nil {
+		shellInput = &ctrlZObservingTerminalReader{file: stdinFile, evidence: evidence}
+		shellArgv = []string{"/usr/bin/bash", "--noprofile", "--rcfile", jobControlShellRCPath, "-i"}
+	}
+
 	result, execErr := backend.Exec(ctx, instance, runner.ExecRequest{
-		Argv:        []string{"/usr/bin/bash", "-l"},
+		Argv:        shellArgv,
 		Env:         env,
-		Stdin:       stdinFile,
+		Stdin:       shellInput,
 		Stdout:      stdoutFile,
 		Stderr:      stdoutFile,
 		TTY:         true,
@@ -1304,6 +1465,14 @@ func runPersistentShell(
 	}
 	restored = true
 
+	if evidence != nil {
+		if evidenceErr := collectJobControlEvidence(ctx, backend, instance, evidence); evidenceErr != nil {
+			if execErr != nil {
+				return runner.ExecResult{}, errors.Join(execErr, evidenceErr)
+			}
+			return runner.ExecResult{}, evidenceErr
+		}
+	}
 	if execErr != nil {
 		return runner.ExecResult{}, execErr
 	}
