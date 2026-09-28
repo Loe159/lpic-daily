@@ -23,10 +23,19 @@ type ControlPlane interface {
 	Capabilities() (string, error)
 	DefineDomain(string, string) error
 	StartDomain(string) error
+	RebootDomain(string) error
 	DomainState(string) (DomainState, error)
 	DestroyDomain(string) error
 	UndefineDomain(string, bool) error
 	Close() error
+}
+
+type NetworkControlPlane interface {
+	DefineNetwork(string, string) error
+	StartNetwork(string) error
+	NetworkActive(string) (bool, error)
+	DestroyNetwork(string) error
+	UndefineNetwork(string) error
 }
 
 type ConsoleControlPlane interface {
@@ -43,11 +52,18 @@ type rawLibvirt interface {
 	DomainDefineXMLFlags(string, golibvirt.DomainDefineFlags) (golibvirt.Domain, error)
 	DomainLookupByName(string) (golibvirt.Domain, error)
 	DomainCreateWithFlags(golibvirt.Domain, uint32) (golibvirt.Domain, error)
+	DomainReboot(golibvirt.Domain, golibvirt.DomainRebootFlagValues) error
 	DomainOpenConsoleBidirectional(golibvirt.Domain, golibvirt.OptString, io.Reader, io.Writer, uint32) error
 	QEMUDomainAgentCommand(golibvirt.Domain, string, int32, uint32) (golibvirt.OptString, error)
 	DomainGetState(golibvirt.Domain, uint32) (int32, int32, error)
 	DomainDestroyFlags(golibvirt.Domain, golibvirt.DomainDestroyFlagsValues) error
 	DomainUndefineFlags(golibvirt.Domain, golibvirt.DomainUndefineFlagsValues) error
+	NetworkDefineXML(string) (golibvirt.Network, error)
+	NetworkLookupByName(string) (golibvirt.Network, error)
+	NetworkCreate(golibvirt.Network) error
+	NetworkIsActive(golibvirt.Network) (int32, error)
+	NetworkDestroy(golibvirt.Network) error
+	NetworkUndefine(golibvirt.Network) error
 	Disconnect() error
 }
 
@@ -131,6 +147,17 @@ func (control *RPCControlPlane) StartDomain(name string) error {
 	}
 	if started.Name != name {
 		return fmt.Errorf("libvirt started unexpected domain %q, expected %q", started.Name, name)
+	}
+	return nil
+}
+
+func (control *RPCControlPlane) RebootDomain(name string) error {
+	domain, err := control.lookupManagedDomain(name)
+	if err != nil {
+		return err
+	}
+	if err := control.raw.DomainReboot(domain, golibvirt.DomainRebootDefault); err != nil {
+		return fmt.Errorf("reboot domain %s: %w", name, err)
 	}
 	return nil
 }
@@ -221,6 +248,68 @@ func (control *RPCControlPlane) UndefineDomain(name string, removeNVRAM bool) er
 	return nil
 }
 
+func (control *RPCControlPlane) DefineNetwork(name, networkXML string) error {
+	if err := validateManagedResourceName("network", name); err != nil {
+		return err
+	}
+	if strings.TrimSpace(networkXML) == "" {
+		return errors.New("network XML is required")
+	}
+	network, err := control.raw.NetworkDefineXML(networkXML)
+	if err != nil {
+		return fmt.Errorf("define network %s: %w", name, err)
+	}
+	if network.Name != name {
+		return fmt.Errorf("libvirt defined unexpected network %q, expected %q", network.Name, name)
+	}
+	return nil
+}
+
+func (control *RPCControlPlane) StartNetwork(name string) error {
+	network, err := control.lookupManagedNetwork(name)
+	if err != nil {
+		return err
+	}
+	if err := control.raw.NetworkCreate(network); err != nil {
+		return fmt.Errorf("start network %s: %w", name, err)
+	}
+	return nil
+}
+
+func (control *RPCControlPlane) NetworkActive(name string) (bool, error) {
+	network, err := control.lookupManagedNetwork(name)
+	if err != nil {
+		return false, err
+	}
+	active, err := control.raw.NetworkIsActive(network)
+	if err != nil {
+		return false, fmt.Errorf("get network %s active state: %w", name, err)
+	}
+	return active != 0, nil
+}
+
+func (control *RPCControlPlane) DestroyNetwork(name string) error {
+	network, err := control.lookupManagedNetwork(name)
+	if err != nil {
+		return err
+	}
+	if err := control.raw.NetworkDestroy(network); err != nil {
+		return fmt.Errorf("destroy network %s: %w", name, err)
+	}
+	return nil
+}
+
+func (control *RPCControlPlane) UndefineNetwork(name string) error {
+	network, err := control.lookupManagedNetwork(name)
+	if err != nil {
+		return err
+	}
+	if err := control.raw.NetworkUndefine(network); err != nil {
+		return fmt.Errorf("undefine network %s: %w", name, err)
+	}
+	return nil
+}
+
 func (control *RPCControlPlane) Close() error {
 	if control == nil || control.raw == nil {
 		return nil
@@ -244,6 +333,20 @@ func (control *RPCControlPlane) lookupManagedDomain(name string) (golibvirt.Doma
 		return golibvirt.Domain{}, fmt.Errorf("libvirt returned unexpected domain %q for %q", domain.Name, name)
 	}
 	return domain, nil
+}
+
+func (control *RPCControlPlane) lookupManagedNetwork(name string) (golibvirt.Network, error) {
+	if err := validateManagedResourceName("network", name); err != nil {
+		return golibvirt.Network{}, err
+	}
+	network, err := control.raw.NetworkLookupByName(name)
+	if err != nil {
+		return golibvirt.Network{}, fmt.Errorf("lookup network %s: %w", name, err)
+	}
+	if network.Name != name {
+		return golibvirt.Network{}, fmt.Errorf("libvirt returned unexpected network %q for %q", network.Name, name)
+	}
+	return network, nil
 }
 
 func validateManagedResourceName(kind, name string) error {
