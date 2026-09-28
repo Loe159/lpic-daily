@@ -37,6 +37,9 @@ func TestDashboardRenderSanitizesPlanText(t *testing.T) {
 	if strings.ContainsRune(rendered, '\x1b') || strings.ContainsRune(rendered, '\r') || strings.ContainsRune(rendered, '\x07') {
 		t.Fatalf("render contains control sequence: %q", rendered)
 	}
+	if !strings.Contains(rendered, "Maîtrise: unseen") {
+		t.Fatalf("render lost mastery stage label: %q", rendered)
+	}
 }
 
 func TestDashboardNavigationAndDefaultAction(t *testing.T) {
