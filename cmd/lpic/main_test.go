@@ -427,6 +427,12 @@ func (*scriptedLabRunner) Exec(context.Context, runner.Instance, runner.ExecRequ
 	return runner.ExecResult{ExitCode: 0}, nil
 }
 func (fake *scriptedLabRunner) Stat(_ context.Context, _ runner.Instance, guestPath string) (runner.FileInfo, error) {
+	if guestPath == "/srv/shared/team-note" {
+		return runner.FileInfo{
+			Path: guestPath, Mode: 0o0660, UID: 0, GID: 2000,
+			User: "root", Group: "project", IsDir: false,
+		}, nil
+	}
 	mode := uint32(0o3770)
 	if fake.failChecks {
 		mode = 0o0770

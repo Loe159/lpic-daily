@@ -270,18 +270,20 @@ func (fake *fakeRunner) Exec(_ context.Context, _ runner.Instance, request runne
 }
 
 func (fake *fakeRunner) Stat(_ context.Context, _ runner.Instance, path string) (runner.FileInfo, error) {
-	if path != "/srv/shared" {
+	switch path {
+	case "/srv/shared":
+		return runner.FileInfo{
+			Path: path, Mode: 0o3770, UID: 0, GID: 2000,
+			User: "root", Group: "project", IsDir: true,
+		}, nil
+	case "/srv/shared/team-note":
+		return runner.FileInfo{
+			Path: path, Mode: 0o0660, UID: 0, GID: 2000,
+			User: "root", Group: "project", IsDir: false,
+		}, nil
+	default:
 		return runner.FileInfo{}, errors.New("not found")
 	}
-	return runner.FileInfo{
-		Path:  path,
-		Mode:  0o3770,
-		UID:   0,
-		GID:   2000,
-		User:  "root",
-		Group: "project",
-		IsDir: true,
-	}, nil
 }
 
 func (fake *fakeRunner) ReadFile(context.Context, runner.Instance, string, int64) ([]byte, error) {
