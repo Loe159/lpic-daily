@@ -12,7 +12,10 @@ RUN dnf -y install \
     && groupadd --gid 2000 project \
     && useradd --create-home --uid 1101 --groups project alice \
     && useradd --create-home --uid 1102 --groups project bob \
-    && install -d -m 0755 /opt/lpic /var/lib/lpic/reports /srv/shared \
+    && install -d -m 0755 /opt/lpic/approved/bin /opt/lpic/shadow/bin /var/lib/lpic/reports /srv/shared \
     && dnf clean all
+
+COPY --chmod=0755 report-status-approved /opt/lpic/approved/bin/report-status
+COPY --chmod=0755 report-status-shadow /opt/lpic/shadow/bin/report-status
 
 CMD ["/usr/bin/sleep", "infinity"]
