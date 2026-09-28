@@ -3,6 +3,6 @@
   "id": "lpic1.103.1.transfer-shell-handoff.hint-3",
   "lab_id": "lpic1.103.1.transfer-shell-handoff",
   "level": 3,
-  "content_fr": "Le résumé attendu contient uname -r puis type -t report-status, produits depuis un nouveau bash -lc après correction du profil.",
+  "content_fr": "Le résumé doit être produit depuis le shell interactif corrigé : uname -m en première ligne puis type -t report-status en seconde. La création de handoff-ready peut être chaînée avec &&.",
   "evidence_impact": "material"
 }
