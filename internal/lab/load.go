@@ -213,6 +213,9 @@ func validateDefinition(fsys fs.FS, base string, definition Definition) error {
 	if definition.ID == "" || strings.TrimSpace(definition.TitleFR) == "" {
 		return errors.New("lab id and title are required")
 	}
+	if strings.TrimSpace(definition.PracticeContext) == "" {
+		return errors.New("practice_context is required")
+	}
 	if len(strings.TrimSpace(definition.BriefFR)) < 20 {
 		return errors.New("brief_fr must contain a useful learner-facing prompt")
 	}
