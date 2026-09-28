@@ -100,17 +100,17 @@ func (definition Definition) Validate() error {
 		}
 		seenWritablePaths[guestPath] = struct{}{}
 	}
-	if definition.MemoryMB < 64 {
-		return errors.New("memory limit must be at least 64 MiB")
+	if definition.MemoryMB < 64 || definition.MemoryMB > 16384 {
+		return errors.New("memory limit must be between 64 and 16384 MiB")
 	}
 	if definition.CPUPercent < 10 || definition.CPUPercent > 400 {
 		return errors.New("CPU limit must be between 10 and 400 percent")
 	}
-	if definition.PIDs < 16 {
-		return errors.New("PID limit must be at least 16")
+	if definition.PIDs < 16 || definition.PIDs > 4096 {
+		return errors.New("PID limit must be between 16 and 4096")
 	}
-	if definition.Timeout < 30*time.Second {
-		return errors.New("timeout must be at least 30 seconds")
+	if definition.Timeout < 30*time.Second || definition.Timeout > 2*time.Hour {
+		return errors.New("timeout must be between 30 seconds and 2 hours")
 	}
 	if definition.Machine != nil {
 		if err := definition.Machine.Validate(); err != nil {
