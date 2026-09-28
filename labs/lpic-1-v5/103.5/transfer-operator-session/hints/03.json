@@ -3,6 +3,6 @@
   "id": "lpic1.103.5.transfer-operator-session.hint-3",
   "lab_id": "lpic1.103.5.transfer-operator-session",
   "level": 3,
-  "content_fr": "Utilise nohup pour survivor-worker et tmux new-session -d -s transfer-ops pour la session détachée. Ne touche pas à queue-worker.",
+  "content_fr": "Après le snapshot, arrête seulement leaky-worker. Workflow du probe : foreground, Ctrl-Z, jobs, bg, SIGTERM. Lance background-worker avec &, survivor-worker avec nohup et crée tmux transfer-ops.",
   "evidence_impact": "material"
 }
