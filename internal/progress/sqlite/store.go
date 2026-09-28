@@ -61,7 +61,7 @@ func (store *Store) AppendEvidenceBatch(ctx context.Context, events []learning.E
 		return nil
 	}
 	type encodedEvidence struct {
-		event learning.EvidenceEvent
+		event            learning.EvidenceEvent
 		objectiveIDsJSON string
 		solutionRevealed int
 	}
@@ -75,14 +75,18 @@ func (store *Store) AppendEvidenceBatch(ctx context.Context, events []learning.E
 			return fmt.Errorf("encode objective IDs for %s: %w", event.EventID, err)
 		}
 		solutionRevealed := 0
-		if event.SolutionRevealed { solutionRevealed = 1 }
+		if event.SolutionRevealed {
+			solutionRevealed = 1
+		}
 		encoded = append(encoded, encodedEvidence{
 			event: event, objectiveIDsJSON: string(objectiveIDs), solutionRevealed: solutionRevealed,
 		})
 	}
 
 	tx, err := store.db.BeginTx(ctx, nil)
-	if err != nil { return fmt.Errorf("begin evidence batch: %w", err) }
+	if err != nil {
+		return fmt.Errorf("begin evidence batch: %w", err)
+	}
 	for _, item := range encoded {
 		event := item.event
 		_, err := tx.ExecContext(ctx,
@@ -101,7 +105,9 @@ func (store *Store) AppendEvidenceBatch(ctx context.Context, events []learning.E
 			return fmt.Errorf("append evidence %s: %w", event.EventID, err)
 		}
 	}
-	if err := tx.Commit(); err != nil { return fmt.Errorf("commit evidence batch: %w", err) }
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit evidence batch: %w", err)
+	}
 	return nil
 }
 
