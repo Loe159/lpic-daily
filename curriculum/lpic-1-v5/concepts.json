@@ -2110,7 +2110,7 @@
     {
       "id": "lpic1.105.2.if",
       "objective_id": "105.2",
-      "title_fr": "condition if",
+      "title_fr": "if",
       "pedagogy_order": 4,
       "inherited_hard_objective_prerequisites": [
         "105.1",
