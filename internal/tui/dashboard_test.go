@@ -89,6 +89,38 @@ func TestNewConceptDefaultsToFocusedLesson(t *testing.T) {
 	}
 }
 
+func TestGuidedReviewDefaultsToLab(t *testing.T) {
+	model := NewDashboard(study.Plan{Items: []study.Item{{
+		ConceptID:             "first",
+		ConceptTitleFR:        "Premier",
+		ObjectiveID:           "103.1",
+		Kind:                  learning.SessionReview,
+		MasteryStage:          learning.StageGuided,
+		RecommendedQuestionID: "question.first",
+		RecommendedLabID:      "lab.first",
+	}}}, gamification.Snapshot{})
+	model, quit := model.updateKey("enter")
+	if !quit || model.action != (Action{Kind: ActionLab, ID: "lab.first"}) {
+		t.Fatalf("action = %#v quit=%v", model.action, quit)
+	}
+}
+
+func TestRecallReviewDefaultsToQuestion(t *testing.T) {
+	model := NewDashboard(study.Plan{Items: []study.Item{{
+		ConceptID:             "first",
+		ConceptTitleFR:        "Premier",
+		ObjectiveID:           "103.1",
+		Kind:                  learning.SessionReview,
+		MasteryStage:          learning.StageRecall,
+		RecommendedQuestionID: "question.first",
+		RecommendedLabID:      "lab.first",
+	}}}, gamification.Snapshot{})
+	model, quit := model.updateKey("enter")
+	if !quit || model.action != (Action{Kind: ActionQuestion, ID: "question.first"}) {
+		t.Fatalf("action = %#v quit=%v", model.action, quit)
+	}
+}
+
 func TestPracticeDefaultsToQuestion(t *testing.T) {
 	model := NewDashboard(study.Plan{Items: []study.Item{{
 		ConceptID:             "first",
