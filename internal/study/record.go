@@ -98,8 +98,22 @@ func RecordLab(
 	highestHintLevel int,
 	at time.Time,
 ) error {
+	return RecordLabAttempt(ctx, store, authored, learning.ResultPass, highestHintLevel, at)
+}
+
+func RecordLabAttempt(
+	ctx context.Context,
+	store EvidenceStore,
+	authored lab.Lab,
+	result learning.Result,
+	highestHintLevel int,
+	at time.Time,
+) error {
 	if store == nil {
 		return fmt.Errorf("evidence store is required")
+	}
+	if result != learning.ResultPass && result != learning.ResultPartial && result != learning.ResultFail {
+		return fmt.Errorf("invalid lab result %q", result)
 	}
 	if highestHintLevel < 0 || highestHintLevel > 4 {
 		return fmt.Errorf("hint level %d outside 0..4", highestHintLevel)
@@ -123,7 +137,7 @@ func RecordLab(
 			EventID: eventID, OccurredAt: at, ConceptID: conceptID,
 			ObjectiveIDs: append([]string(nil), authored.Definition.ObjectiveIDs...),
 			SourceItemID: authored.Definition.ID, ActivityKind: learning.ActivityLab,
-			EvidenceKind: evidenceKind, Result: learning.ResultPass,
+			EvidenceKind: evidenceKind, Result: result,
 			HighestHintLevel: highestHintLevel, SolutionRevealed: highestHintLevel == 4,
 			Distribution: distributionOrGeneric(authored.Definition.Environment.Distribution),
 			AttemptIndex: attempt,
