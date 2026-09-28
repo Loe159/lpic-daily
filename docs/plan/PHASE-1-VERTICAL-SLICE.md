@@ -80,9 +80,19 @@ Créer/configurer un espace partagé respectant une politique: owner/group, droi
 Tests du moteur:
 - plusieurs utilisateurs dans la sandbox;
 - permission state;
-- umask;
+- umask vérifié par création d'un fichier depuis un nouveau shell configuré;
+- audit d'un bit SUID inutile;
 - state checker owner/mode;
 - reset complet.
+
+### Contextes de transfer
+
+Chaque objectif du slice dispose aussi d'un second lab couvrant les mêmes concept IDs dans un état initial différent:
+- transfer-shell-handoff pour 103.1;
+- transfer-operator-session pour 103.5;
+- transfer-team-share-audit pour 104.5.
+
+La matrice de couverture impose au moins deux lab IDs distincts pour chacun des 22 concepts. Après une preuve independent assez ancienne, le planificateur recommande prioritairement le contexte encore inutilisé afin que transfer soit atteignable dans le produit réel.
 
 ## Storyboard d'une séance
 

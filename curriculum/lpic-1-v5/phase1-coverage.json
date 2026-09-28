@@ -10,16 +10,20 @@
   "summary": {
     "concepts": 22,
     "with_any_surface": 22,
-    "with_lab": 15,
+    "with_lab": 22,
     "with_lesson": 22,
-    "with_question": 22
+    "with_question": 22,
+    "with_two_labs": 22
   },
   "concepts": [
     {
       "concept_id": "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes",
       "objective_id": "103.1",
       "surfaces": {
-        "labs": [],
+        "labs": [
+          "lpic1.103.1.shell-environment-repair",
+          "lpic1.103.1.transfer-shell-handoff"
+        ],
         "lessons": [
           "lpic1.103.1.lesson.command-line-foundations",
           "lpic1.103.1.lesson.shell-sequences"
@@ -35,7 +39,8 @@
       "objective_id": "103.1",
       "surfaces": {
         "labs": [
-          "lpic1.103.1.shell-environment-repair"
+          "lpic1.103.1.shell-environment-repair",
+          "lpic1.103.1.transfer-shell-handoff"
         ],
         "lessons": [
           "lpic1.103.1.lesson.command-line-foundations",
@@ -52,7 +57,8 @@
       "objective_id": "103.1",
       "surfaces": {
         "labs": [
-          "lpic1.103.1.shell-environment-repair"
+          "lpic1.103.1.shell-environment-repair",
+          "lpic1.103.1.transfer-shell-handoff"
         ],
         "lessons": [
           "lpic1.103.1.lesson.command-line-foundations",
@@ -69,7 +75,8 @@
       "objective_id": "103.1",
       "surfaces": {
         "labs": [
-          "lpic1.103.1.shell-environment-repair"
+          "lpic1.103.1.shell-environment-repair",
+          "lpic1.103.1.transfer-shell-handoff"
         ],
         "lessons": [
           "lpic1.103.1.lesson.command-line-foundations",
@@ -85,7 +92,10 @@
       "concept_id": "lpic1.103.1.historique",
       "objective_id": "103.1",
       "surfaces": {
-        "labs": [],
+        "labs": [
+          "lpic1.103.1.shell-environment-repair",
+          "lpic1.103.1.transfer-shell-handoff"
+        ],
         "lessons": [
           "lpic1.103.1.lesson.bash-history",
           "lpic1.103.1.lesson.command-line-foundations"
@@ -100,7 +110,10 @@
       "concept_id": "lpic1.103.1.documentation-et-identification-d-une-commande",
       "objective_id": "103.1",
       "surfaces": {
-        "labs": [],
+        "labs": [
+          "lpic1.103.1.shell-environment-repair",
+          "lpic1.103.1.transfer-shell-handoff"
+        ],
         "lessons": [
           "lpic1.103.1.lesson.command-line-foundations",
           "lpic1.103.1.lesson.identify-document-command"
@@ -115,7 +128,10 @@
       "concept_id": "lpic1.103.1.informations-systeme-de-base",
       "objective_id": "103.1",
       "surfaces": {
-        "labs": [],
+        "labs": [
+          "lpic1.103.1.shell-environment-repair",
+          "lpic1.103.1.transfer-shell-handoff"
+        ],
         "lessons": [
           "lpic1.103.1.lesson.basic-system-info",
           "lpic1.103.1.lesson.command-line-foundations"
@@ -131,7 +147,8 @@
       "objective_id": "103.5",
       "surfaces": {
         "labs": [
-          "lpic1.103.5.stuck-worker"
+          "lpic1.103.5.stuck-worker",
+          "lpic1.103.5.transfer-operator-session"
         ],
         "lessons": [
           "lpic1.103.5.lesson.foreground-background",
@@ -147,7 +164,8 @@
       "objective_id": "103.5",
       "surfaces": {
         "labs": [
-          "lpic1.103.5.stuck-worker"
+          "lpic1.103.5.stuck-worker",
+          "lpic1.103.5.transfer-operator-session"
         ],
         "lessons": [
           "lpic1.103.5.lesson.processes-jobs-signals",
@@ -163,7 +181,8 @@
       "objective_id": "103.5",
       "surfaces": {
         "labs": [
-          "lpic1.103.5.stuck-worker"
+          "lpic1.103.5.stuck-worker",
+          "lpic1.103.5.transfer-operator-session"
         ],
         "lessons": [
           "lpic1.103.5.lesson.process-signals",
@@ -179,7 +198,8 @@
       "objective_id": "103.5",
       "surfaces": {
         "labs": [
-          "lpic1.103.5.stuck-worker"
+          "lpic1.103.5.stuck-worker",
+          "lpic1.103.5.transfer-operator-session"
         ],
         "lessons": [
           "lpic1.103.5.lesson.inspect-processes",
@@ -194,7 +214,10 @@
       "concept_id": "lpic1.103.5.processus-survivant-a-la-session",
       "objective_id": "103.5",
       "surfaces": {
-        "labs": [],
+        "labs": [
+          "lpic1.103.5.stuck-worker",
+          "lpic1.103.5.transfer-operator-session"
+        ],
         "lessons": [
           "lpic1.103.5.lesson.nohup-sighup",
           "lpic1.103.5.lesson.processes-jobs-signals"
@@ -209,7 +232,8 @@
       "objective_id": "103.5",
       "surfaces": {
         "labs": [
-          "lpic1.103.5.stuck-worker"
+          "lpic1.103.5.stuck-worker",
+          "lpic1.103.5.transfer-operator-session"
         ],
         "lessons": [
           "lpic1.103.5.lesson.processes-jobs-signals",
@@ -224,7 +248,10 @@
       "concept_id": "lpic1.103.5.multiplexeurs-de-terminal",
       "objective_id": "103.5",
       "surfaces": {
-        "labs": [],
+        "labs": [
+          "lpic1.103.5.stuck-worker",
+          "lpic1.103.5.transfer-operator-session"
+        ],
         "lessons": [
           "lpic1.103.5.lesson.processes-jobs-signals",
           "lpic1.103.5.lesson.terminal-multiplexers"
@@ -239,7 +266,8 @@
       "objective_id": "104.5",
       "surfaces": {
         "labs": [
-          "lpic1.104.5.shared-dropbox"
+          "lpic1.104.5.shared-dropbox",
+          "lpic1.104.5.transfer-team-share-audit"
         ],
         "lessons": [
           "lpic1.104.5.lesson.permissions-special-bits",
@@ -255,7 +283,8 @@
       "objective_id": "104.5",
       "surfaces": {
         "labs": [
-          "lpic1.104.5.shared-dropbox"
+          "lpic1.104.5.shared-dropbox",
+          "lpic1.104.5.transfer-team-share-audit"
         ],
         "lessons": [
           "lpic1.104.5.lesson.permission-notation",
@@ -271,7 +300,8 @@
       "objective_id": "104.5",
       "surfaces": {
         "labs": [
-          "lpic1.104.5.shared-dropbox"
+          "lpic1.104.5.shared-dropbox",
+          "lpic1.104.5.transfer-team-share-audit"
         ],
         "lessons": [
           "lpic1.104.5.lesson.owner-group",
@@ -287,7 +317,8 @@
       "objective_id": "104.5",
       "surfaces": {
         "labs": [
-          "lpic1.104.5.shared-dropbox"
+          "lpic1.104.5.shared-dropbox",
+          "lpic1.104.5.transfer-team-share-audit"
         ],
         "lessons": [
           "lpic1.104.5.lesson.permissions-special-bits",
@@ -302,7 +333,10 @@
       "concept_id": "lpic1.104.5.suid",
       "objective_id": "104.5",
       "surfaces": {
-        "labs": [],
+        "labs": [
+          "lpic1.104.5.shared-dropbox",
+          "lpic1.104.5.transfer-team-share-audit"
+        ],
         "lessons": [
           "lpic1.104.5.lesson.permissions-special-bits",
           "lpic1.104.5.lesson.suid"
@@ -317,7 +351,8 @@
       "objective_id": "104.5",
       "surfaces": {
         "labs": [
-          "lpic1.104.5.shared-dropbox"
+          "lpic1.104.5.shared-dropbox",
+          "lpic1.104.5.transfer-team-share-audit"
         ],
         "lessons": [
           "lpic1.104.5.lesson.permissions-special-bits",
@@ -333,7 +368,8 @@
       "objective_id": "104.5",
       "surfaces": {
         "labs": [
-          "lpic1.104.5.shared-dropbox"
+          "lpic1.104.5.shared-dropbox",
+          "lpic1.104.5.transfer-team-share-audit"
         ],
         "lessons": [
           "lpic1.104.5.lesson.permissions-special-bits",
@@ -349,7 +385,8 @@
       "objective_id": "104.5",
       "surfaces": {
         "labs": [
-          "lpic1.104.5.shared-dropbox"
+          "lpic1.104.5.shared-dropbox",
+          "lpic1.104.5.transfer-team-share-audit"
         ],
         "lessons": [
           "lpic1.104.5.lesson.permissions-special-bits",

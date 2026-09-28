@@ -26,7 +26,8 @@ Baseline controls:
 - never mount `$HOME`, `/`, container-engine sockets, SSH agent sockets, credentials or arbitrary host paths;
 - network `none` by default; isolated lab network only when objective requires networking;
 - CPU/memory/PID/time limits;
-- fresh disposable container per lab unless a scenario explicitly defines a controlled multi-step state.
+- fresh disposable container per lab unless a scenario explicitly defines a controlled multi-step state;
+- resolve a mutable local image tag to Podman's immutable `sha256:` image ID before create, and retain that ID across resets.
 
 ## Backend B: KVM/QEMU + libvirt
 Use when objectives require the complete guest system: firmware/bootloader, kernel/initramfs, systemd boot behavior, block devices/partitioning/filesystem recovery, realistic network incidents or privileged administration.

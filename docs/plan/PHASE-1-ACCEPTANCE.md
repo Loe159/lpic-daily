@@ -7,7 +7,7 @@ Validation baseline at acceptance:
 - Go tests, vet and formatting on Ubuntu;
 - complete Go core/content validation on Fedora 44;
 - real rootless Podman destructive host-sentinel integration test;
-- three built-in Phase-1 labs and 22 concept coverage matrix.
+- six built-in Phase-1 labs; all 22 concepts have two distinct lab contexts; generated coverage validation enforces that invariant.
 
 Goal: prove the product loop and security model before scaling curriculum production.
 
@@ -37,6 +37,7 @@ All **22 concepts** currently mapped to these three objectives must have traceab
 - [x] Concept-level coverage remains traceable to stable concept IDs.
 - [x] Content can label `lpic-required`, `lpic-legacy`, and `modern-practice` where applicable.
 - [x] All 22 slice concepts appear in the coverage matrix.
+- [x] Every Phase-1 concept has at least two distinct lab contexts so independent evidence can later become transfer evidence.
 
 ## Technical acceptance
 - [x] Go application builds and tests on Fedora.
@@ -44,6 +45,7 @@ All **22 concepts** currently mapped to these three objectives must have traceab
 - [x] SQLite schema has versioned migrations.
 - [x] Curriculum/content schemas are versioned and fail closed on invalid input.
 - [x] Rootless Podman runner implements prepare/start/check/reset/destroy lifecycle.
+- [x] Mutable local image tags are resolved to an immutable image ID before create; reset keeps the same ID.
 - [x] State-based checker accepts at least two different valid command paths to the same correct final state.
 - [x] PTY path supports the 103.5 jobs/process scenario.
 - [x] No host-shell execution fallback exists.
@@ -62,6 +64,7 @@ All **22 concepts** currently mapped to these three objectives must have traceab
 - [x] Evidence is append-only and mastery is a derived projection.
 - [x] A lesson completion only records exposure.
 - [x] Practical full mastery requires independent practical evidence and later confirmation/transfer.
+- [x] Once the transfer gap is satisfied, the study plan prefers an unused lab context when available.
 - [x] Solution reveal prevents that attempt from counting as independent practice.
 - [x] Initial assessment can satisfy prerequisites without fabricating lesson completion.
 - [x] Scheduler uses hard prerequisites as eligibility and recommended prerequisites as ranking only.

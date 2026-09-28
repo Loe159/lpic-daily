@@ -77,7 +77,7 @@ The scheduler uses:
 - need for distribution variation;
 - desired session intensity/length.
 
-The learner can inspect why an item was scheduled.
+The learner can inspect why an item was scheduled. Once independent practical evidence is old enough for transfer, scheduling should prefer an unused practical context when one exists.
 
 An initial/adaptive assessment may satisfy a prerequisite by evidence; the system must not invent a fake lesson completion.
 
