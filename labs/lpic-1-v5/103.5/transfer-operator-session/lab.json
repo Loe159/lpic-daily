@@ -1,14 +1,14 @@
 {
   "schema_version": "1.0.0",
   "id": "lpic1.103.5.transfer-operator-session",
-  "title_fr": "Stabiliser une session d'exploitation",
-  "brief_fr": "Une session contient queue-worker sain et leaky-worker défaillant. Dans :shell, inspecte-les et enregistre PID/PPID/état/commande dans /run/lpic/transfer-process-inspection, puis identifie et arrête seulement leaky-worker. Lance transfer-job-probe au premier plan, suspends-le avec Ctrl-Z, vérifie-le avec jobs, reprends-le avec bg puis termine-le avec SIGTERM. Lance ensuite background-worker, survivor-worker sous nohup et une session tmux détachée transfer-ops.",
+  "title_fr": "Conduire une relève de maintenance",
+  "brief_fr": "Pendant une maintenance, reload-worker doit rester actif mais recevoir un rechargement sans interruption. Dans :shell, localise-le par nom, enregistre un snapshot PID/PPID/état/commande dans /run/lpic/maintenance-inspection puis envoie-lui SIGUSR1 et vérifie qu’il reste actif. Lance ensuite lpic-maintenance-job-probe au premier plan, suspends-le avec Ctrl-Z, observe-le avec jobs, reprends-le avec bg puis termine-le avec SIGTERM. Enfin démarre batch-worker en arrière-plan, handoff-daemon avec nohup et une session tmux détachée nommée maintenance-ops.",
   "success_criteria_fr": [
-    "leaky-worker est absent et queue-worker reste actif.",
-    "/run/lpic/transfer-process-inspection contient un snapshot exploitable de queue-worker et leaky-worker avec leurs PID/PPID/états.",
-    "Le transfer-job-probe a réellement été suspendu, repris en arrière-plan puis terminé avec SIGTERM.",
-    "background-worker et survivor-worker restent actifs.",
-    "La session tmux transfer-ops existe."
+    "reload-worker reste actif après réception de SIGUSR1 et /run/lpic/reload-requested confirme le rechargement.",
+    "/run/lpic/maintenance-inspection contient un snapshot exploitable du reload-worker avec PID, PPID, état et commande.",
+    "Le maintenance-job-probe a réellement été suspendu, observé via jobs, repris en arrière-plan puis terminé.",
+    "batch-worker et handoff-daemon restent actifs, le second ayant été lancé avec nohup.",
+    "Une session tmux détachée maintenance-ops existe."
   ],
   "debrief_fr": "Ce contexte exige à nouveau inspection et sélection précises des processus, puis un vrai cycle de job control dans un PTY : foreground, Ctrl-Z, jobs, bg et SIGTERM. Il ajoute un processus lancé avec &, un survivant nohup et une session tmux détachée. Le transfert n'est donc crédité que lorsque les sept concepts 103.5 ont une preuve observable dans ce second contexte.",
   "objective_ids": [
@@ -52,17 +52,18 @@
   },
   "checks": [
     {
-      "type": "process-absent",
-      "match": "leaky-worker",
+      "type": "process-running",
+      "match": "reload-worker",
       "concept_ids": [
-        "lpic1.103.5.selection-par-nom-pid",
-        "lpic1.103.5.signaux"
+        "lpic1.103.5.selection-par-nom-pid"
       ]
     },
     {
-      "type": "process-running",
-      "match": "queue-worker",
+      "type": "file-content-regex",
+      "path": "/run/lpic/reload-requested",
+      "pattern": "^reload\\n?$",
       "concept_ids": [
+        "lpic1.103.5.signaux",
         "lpic1.103.5.selection-par-nom-pid"
       ]
     },
@@ -71,7 +72,7 @@
       "argv": [
         "/usr/bin/bash",
         "-lc",
-        "test -s /run/lpic/transfer-process-inspection && grep -Eq \"^[[:space:]]*$(cat /run/lpic/queue-worker.pid)[[:space:]]+[0-9]+[[:space:]]+[A-Z]\" /run/lpic/transfer-process-inspection && grep -q queue-worker /run/lpic/transfer-process-inspection && grep -Eq \"^[[:space:]]*$(cat /run/lpic/leaky-worker.pid)[[:space:]]+[0-9]+[[:space:]]+[A-Z]\" /run/lpic/transfer-process-inspection && grep -q leaky-worker /run/lpic/transfer-process-inspection"
+        "test -s /run/lpic/maintenance-inspection && grep -Eq \"^[[:space:]]*$(cat /run/lpic/reload-worker.pid)[[:space:]]+[0-9]+[[:space:]]+[A-Z]\" /run/lpic/maintenance-inspection && grep -q reload-worker /run/lpic/maintenance-inspection"
       ],
       "expected_exit": 0,
       "concept_ids": [
@@ -80,7 +81,7 @@
     },
     {
       "type": "file-content-regex",
-      "path": "/run/lpic/transfer-probe-background",
+      "path": "/run/lpic/maintenance-probe-background",
       "pattern": "^background\\n?$",
       "concept_ids": [
         "lpic1.103.5.processus-avant-arriere-plan",
@@ -89,7 +90,7 @@
     },
     {
       "type": "file-content-regex",
-      "path": "/run/lpic/transfer-probe-stopped",
+      "path": "/run/lpic/maintenance-probe-stopped",
       "pattern": "^stopped\\n?$",
       "concept_ids": [
         "lpic1.103.5.jobs-du-shell",
@@ -98,7 +99,7 @@
     },
     {
       "type": "file-content-regex",
-      "path": "/run/lpic/transfer-probe-continued",
+      "path": "/run/lpic/maintenance-probe-continued",
       "pattern": "^continued\\n?$",
       "concept_ids": [
         "lpic1.103.5.processus-avant-arriere-plan",
@@ -107,7 +108,7 @@
     },
     {
       "type": "file-content-regex",
-      "path": "/run/lpic/transfer-probe-terminated",
+      "path": "/run/lpic/maintenance-probe-terminated",
       "pattern": "^terminated\\n?$",
       "concept_ids": [
         "lpic1.103.5.signaux"
@@ -115,21 +116,21 @@
     },
     {
       "type": "process-absent",
-      "match": "/usr/local/bin/lpic-transfer-job-probe",
+      "match": "/usr/local/bin/lpic-maintenance-job-probe",
       "concept_ids": [
         "lpic1.103.5.signaux"
       ]
     },
     {
       "type": "process-running",
-      "match": "background-worker",
+      "match": "batch-worker",
       "concept_ids": [
         "lpic1.103.5.processus-avant-arriere-plan"
       ]
     },
     {
       "type": "process-running",
-      "match": "survivor-worker",
+      "match": "handoff-daemon",
       "concept_ids": [
         "lpic1.103.5.processus-survivant-a-la-session"
       ]
@@ -140,7 +141,7 @@
         "/usr/bin/tmux",
         "has-session",
         "-t",
-        "transfer-ops"
+        "maintenance-ops"
       ],
       "expected_exit": 0,
       "concept_ids": [
