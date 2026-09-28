@@ -181,7 +181,7 @@ func (model Dashboard) render() string {
 		output.WriteString("\n")
 
 		if index == model.cursor {
-			output.WriteString(clip(fmt.Sprintf("   Maîtrise: %s", singleLine(string(item.MasteryStage))), width))
+			output.WriteString(clip(fmt.Sprintf("   Maîtrise: %s", singleLine(item.MasteryStage.String())), width))
 			output.WriteString("\n")
 			output.WriteString(clip("   "+singleLine(item.ReasonFR), width))
 			output.WriteString("\n")
