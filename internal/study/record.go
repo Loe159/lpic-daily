@@ -253,12 +253,11 @@ func practicalEvidenceKind(
 	highestHintLevel int,
 	at time.Time,
 ) (learning.EvidenceKind, error) {
-	if highestHintLevel >= 2 {
-		return learning.EvidenceIndependentPractice, nil
-	}
-
 	if practiceContext == "" {
 		return "", fmt.Errorf("practice context is required for practical evidence")
+	}
+	if highestHintLevel >= 2 {
+		return learning.EvidenceIndependentPractice, nil
 	}
 
 	policy := learning.DefaultProjectionPolicy()
