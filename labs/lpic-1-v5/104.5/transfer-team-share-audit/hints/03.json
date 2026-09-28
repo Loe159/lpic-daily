@@ -3,6 +3,6 @@
   "id": "lpic1.104.5.transfer-team-share-audit.hint-3",
   "lab_id": "lpic1.104.5.transfer-team-share-audit",
   "level": 3,
-  "content_fr": "Place umask 0007 dans /root/.bashrc, utilise un bash avec --rcfile pour créer handoff-note et ramène audit-helper à 0755.",
+  "content_fr": "Vérifie séparément 1770 sur incoming et 2770 sur team. Le fichier handoff-note doit être créé depuis un bash chargeant /root/.bashrc avec umask 0007.",
   "evidence_impact": "material"
 }
