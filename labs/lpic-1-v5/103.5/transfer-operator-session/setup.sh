@@ -39,6 +39,6 @@ done
 EOF
 chmod 0755 /usr/local/bin/lpic-reload-worker
 
-nohup bash -c 'exec -a reload-worker /usr/local/bin/lpic-reload-worker' >/dev/null 2>&1 &
+nohup bash -c 'exec -a reload-worker /usr/bin/bash /usr/local/bin/lpic-reload-worker' >/dev/null 2>&1 &
 printf '%s\n' "$!" > /run/lpic/reload-worker.pid
 sleep 0.1
