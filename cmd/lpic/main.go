@@ -1111,10 +1111,6 @@ func runInteractiveLabWithBackend(
 			fmt.Fprintln(stdout, "Lab réinitialisé dans son état de départ.")
 			continue
 		case ":check":
-			results, err := session.Evaluate(sessionCtx)
-			if err != nil {
-				return fmt.Errorf("evaluate lab: %w", err)
-			}
 			passed := true
 			if authored.Definition.NeedsPersistentShell && !usedPersistentShell {
 				fmt.Fprintf(
@@ -1124,14 +1120,19 @@ func runInteractiveLabWithBackend(
 					authored.Definition.ID,
 				)
 				passed = false
-			}
-			for _, result := range results {
-				state := "OK"
-				if !result.Pass {
-					state = "À CORRIGER"
-					passed = false
+			} else {
+				results, err := session.Evaluate(sessionCtx)
+				if err != nil {
+					return fmt.Errorf("evaluate lab: %w", err)
 				}
-				fmt.Fprintf(stdout, "  %-11s %s — %s\n", state, result.CheckID, result.Detail)
+				for _, result := range results {
+					state := "OK"
+					if !result.Pass {
+						state = "À CORRIGER"
+						passed = false
+					}
+					fmt.Fprintf(stdout, "  %-11s %s — %s\n", state, result.CheckID, result.Detail)
+				}
 			}
 			store, err := openProgressStore(sessionCtx)
 			if err != nil {
