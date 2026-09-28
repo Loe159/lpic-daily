@@ -242,9 +242,9 @@ func runTransferOperatorPTY(
 			value string
 			delay time.Duration
 		}{
-			{"ps -o pid=,ppid=,stat=,comm=,args= -p \"$(cat /run/lpic/queue-worker.pid),$(cat /run/lpic/leaky-worker.pid)\" > /run/lpic/transfer-process-inspection\n", 100 * time.Millisecond},
-			{"kill -TERM \"$(pgrep -f '^leaky-worker' | head -n1)\"\n", 100 * time.Millisecond},
-			{"/usr/local/bin/lpic-transfer-job-probe\n", 300 * time.Millisecond},
+			{"ps -o pid=,ppid=,stat=,comm=,args= -p \"$(cat /run/lpic/reload-worker.pid)\" > /run/lpic/maintenance-inspection\n", 100 * time.Millisecond},
+			{"kill -USR1 \"$(pgrep -f '^reload-worker' | head -n1)\"\n", 100 * time.Millisecond},
+			{"/usr/local/bin/lpic-maintenance-job-probe\n", 300 * time.Millisecond},
 		}
 		for _, command := range commands {
 			if err := write(command.value, command.delay); err != nil {
@@ -261,14 +261,14 @@ func runTransferOperatorPTY(
 			value string
 			delay time.Duration
 		}{
-			{"jobs -s | grep -q lpic-transfer-job-probe\n", 100 * time.Millisecond},
+			{"jobs -s | grep -q lpic-maintenance-job-probe\n", 100 * time.Millisecond},
 			{"bg\n", 200 * time.Millisecond},
-			{"jobs -r | grep -q lpic-transfer-job-probe\n", 100 * time.Millisecond},
+			{"jobs -r | grep -q lpic-maintenance-job-probe\n", 100 * time.Millisecond},
 			{"kill -TERM %1\n", 200 * time.Millisecond},
 			{"wait %1 2>/dev/null || true\n", 100 * time.Millisecond},
-			{"bash -c 'exec -a background-worker sleep infinity' &\n", 100 * time.Millisecond},
-			{"nohup bash -c 'exec -a survivor-worker sleep infinity' >/run/lpic/survivor.log 2>&1 &\n", 100 * time.Millisecond},
-			{"tmux new-session -d -s transfer-ops 'sleep infinity'\n", 100 * time.Millisecond},
+			{"bash -c 'exec -a batch-worker sleep infinity' &\n", 100 * time.Millisecond},
+			{"nohup bash -c 'exec -a handoff-daemon sleep infinity' >/run/lpic/handoff-daemon.log 2>&1 &\n", 100 * time.Millisecond},
+			{"tmux new-session -d -s maintenance-ops 'sleep infinity'\n", 100 * time.Millisecond},
 			{"exit\n", 0},
 		} {
 			if err := write(command.value, command.delay); err != nil {
