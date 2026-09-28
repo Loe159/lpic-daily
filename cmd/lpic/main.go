@@ -1023,6 +1023,7 @@ func runInteractiveLabWithBackend(
 	scanner := bufio.NewScanner(stdin)
 	scanner.Buffer(make([]byte, 4096), 256<<10)
 	nextHint := nextHintIndex(authored.Hints, highestHintLevel)
+	usedPersistentShell := false
 
 	for {
 		if err := sessionCtx.Err(); err != nil {
@@ -1082,6 +1083,7 @@ func runInteractiveLabWithBackend(
 			if err != nil {
 				return fmt.Errorf("interactive sandbox shell: %w", err)
 			}
+			usedPersistentShell = true
 			fmt.Fprintln(stdout, "\n[retour LPIC Daily]")
 			if result.ExitCode != 0 {
 				fmt.Fprintf(stderr, "[shell exit %d]\n", result.ExitCode)
@@ -1094,6 +1096,7 @@ func runInteractiveLabWithBackend(
 			// Reset restores sandbox state only. Disclosure state is persisted
 			// across resets/restarts and remains attached to the learning attempt.
 			nextHint = nextHintIndex(authored.Hints, highestHintLevel)
+			usedPersistentShell = false
 			fmt.Fprintln(stdout, "Lab réinitialisé dans son état de départ.")
 			continue
 		case ":check":
@@ -1102,6 +1105,15 @@ func runInteractiveLabWithBackend(
 				return fmt.Errorf("evaluate lab: %w", err)
 			}
 			passed := true
+			if authored.Definition.RequiresPersistentShell && !usedPersistentShell {
+				fmt.Fprintf(
+					stdout,
+					"  %-11s %s.persistent-shell — ce lab exige un passage par :shell pour valider le job control réel\n",
+					"À CORRIGER",
+					authored.Definition.ID,
+				)
+				passed = false
+			}
 			for _, result := range results {
 				state := "OK"
 				if !result.Pass {
