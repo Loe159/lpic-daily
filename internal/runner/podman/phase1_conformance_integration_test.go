@@ -146,7 +146,7 @@ func runStuckWorkerPTY(
 			writeDone <- err
 			return
 		}
-		if err := write("wait %1\n", 100*time.Millisecond); err != nil {
+		if err := write("wait %1 2>/dev/null || true\n", 100*time.Millisecond); err != nil {
 			writeDone <- err
 			return
 		}
