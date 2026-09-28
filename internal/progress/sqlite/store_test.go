@@ -197,7 +197,6 @@ func TestLabDisclosureKeepsStrongestLevelUntilCleared(t *testing.T) {
 	}
 }
 
-
 func TestMigrationSixBackfillsKnownPhase1PracticeContexts(t *testing.T) {
 	ctx := context.Background()
 	path := filepath.Join(t.TempDir(), "legacy-progress.sqlite")
