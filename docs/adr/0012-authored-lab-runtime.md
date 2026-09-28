@@ -12,6 +12,7 @@ The runtime:
 - loads the setup script and hints;
 - deliberately does **not** load the reference-solution script into normal runtime memory;
 - compiles authored state checks to project-owned checker types;
+- requires every state check to map to one or more declared concept IDs and rejects labs with declared concepts that have no check evidence;
 - maps the authored environment to `runner.Definition`;
 - executes setup only through `runner.Exec`, inside the already-created sandbox.
 
@@ -40,9 +41,11 @@ Any prepare/start/setup failure triggers best-effort destruction with a bounded 
 
 A lab may carry `reference_solution_ref` for authoring, CI and future content verification. The normal loader validates that the referenced file exists but does not read its content. Graduated hints remain the learner-facing disclosure mechanism.
 
-## Unsupported check types
+## Check types and fail-closed behavior
 
-Schema evolution can get ahead of runtime support. If an authored check type is known to the schema but not implemented by the runtime, compilation fails closed. Phase 1 currently does this for `command-exit`.
+Schema evolution can get ahead of runtime support. If an authored check type is known to the schema but not implemented by the runtime, compilation fails closed.
+
+The current runtime implements `file-exists`, `file-mode`, `file-owner`, `file-content-regex`, `process-running`, `process-absent`, `command-exit` and `block-device-state`. `command-exit` executes only through the selected sandbox/guest runner with structured argv; it is not a host-shell escape hatch.
 
 ## Security boundary
 
