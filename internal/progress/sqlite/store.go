@@ -93,12 +93,12 @@ func (store *Store) AppendEvidenceBatch(ctx context.Context, events []learning.E
 			`INSERT INTO mastery_evidence (
 				event_id, occurred_at, concept_id, objective_ids_json, source_item_id,
 				activity_kind, evidence_kind, result, highest_hint_level,
-				solution_revealed, distribution, attempt_index
-			) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+				solution_revealed, distribution, practice_context, attempt_index
+			) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 			event.EventID, event.OccurredAt.UTC().Format(time.RFC3339Nano),
 			event.ConceptID, item.objectiveIDsJSON, event.SourceItemID,
 			string(event.ActivityKind), string(event.EvidenceKind), string(event.Result),
-			event.HighestHintLevel, item.solutionRevealed, event.Distribution, event.AttemptIndex,
+			event.HighestHintLevel, item.solutionRevealed, event.Distribution, event.PracticeContext, event.AttemptIndex,
 		)
 		if err != nil {
 			_ = tx.Rollback()
@@ -130,6 +130,7 @@ func (store *Store) EvidenceForConcept(ctx context.Context, conceptID string) ([
 			highest_hint_level,
 			solution_revealed,
 			distribution,
+			practice_context,
 			attempt_index
 		FROM mastery_evidence
 		WHERE concept_id = ?
@@ -165,6 +166,7 @@ func (store *Store) EvidenceForConcept(ctx context.Context, conceptID string) ([
 			&event.HighestHintLevel,
 			&solutionRevealed,
 			&event.Distribution,
+			&event.PracticeContext,
 			&event.AttemptIndex,
 		); err != nil {
 			return nil, fmt.Errorf("scan evidence row: %w", err)
