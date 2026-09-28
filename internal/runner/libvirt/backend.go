@@ -7,7 +7,10 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -142,6 +145,7 @@ func (backend *Backend) prepareNamed(
 			_ = networkControl.UndefineNetwork(networkName)
 		}
 		_ = backend.overlays.Destroy(name)
+		_ = releaseInstanceLease(paths.Lease)
 	}()
 
 	if networkControl != nil {
@@ -434,11 +438,158 @@ func (backend *Backend) destroyManaged(
 	if err := backend.overlays.Destroy(name); err != nil {
 		return err
 	}
+	if err := releaseInstanceLease(managed.Paths.Lease); err != nil {
+		return fmt.Errorf("release VM instance lease: %w", err)
+	}
+	managed.Paths.Lease = nil
 
 	backend.mu.Lock()
 	delete(backend.instances, name)
 	backend.mu.Unlock()
 	return nil
+}
+
+func (backend *Backend) Reap(ctx context.Context) error {
+	if backend == nil {
+		return nil
+	}
+	inventory, ok := backend.control.(ResourceInventory)
+	if !ok {
+		return fmt.Errorf("%w: libvirt control plane has no resource inventory", runner.ErrNotSupported)
+	}
+	if err := os.MkdirAll(backend.stateRoot, 0o700); err != nil {
+		return fmt.Errorf("create VM state root: %w", err)
+	}
+
+	domains, err := inventory.ListManagedDomains()
+	if err != nil {
+		return err
+	}
+	networks, err := inventory.ListManagedNetworks()
+	if err != nil {
+		return err
+	}
+	domainSet := make(map[string]struct{}, len(domains))
+	networkSet := make(map[string]struct{}, len(networks))
+	candidates := make(map[string]struct{}, len(domains)+len(networks))
+	for _, name := range domains {
+		domainSet[name] = struct{}{}
+		candidates[name] = struct{}{}
+	}
+	for _, name := range networks {
+		networkSet[name] = struct{}{}
+		candidates[name] = struct{}{}
+	}
+
+	entries, err := os.ReadDir(backend.stateRoot)
+	if err != nil {
+		return fmt.Errorf("read VM state root: %w", err)
+	}
+	for _, entry := range entries {
+		if entry.IsDir() && managedNamePattern.MatchString(entry.Name()) {
+			candidates[entry.Name()] = struct{}{}
+		}
+	}
+
+	names := make([]string, 0, len(candidates))
+	for name := range candidates {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+
+	var errs []error
+	for _, name := range names {
+		if err := ctx.Err(); err != nil {
+			errs = append(errs, err)
+			break
+		}
+		backend.mu.RLock()
+		_, tracked := backend.instances[name]
+		backend.mu.RUnlock()
+		if tracked {
+			continue
+		}
+
+		directory := filepath.Join(backend.stateRoot, name)
+		var lease *os.File
+		info, statErr := os.Lstat(directory)
+		switch {
+		case statErr == nil:
+			if info.Mode()&os.ModeSymlink != 0 || !info.IsDir() {
+				errs = append(errs, fmt.Errorf("refusing orphan cleanup for unsafe state path %s", directory))
+				continue
+			}
+			lease, err = acquireInstanceLease(directory)
+			if err != nil {
+				// Another LPIC Daily process owns this run; it is not abandoned.
+				continue
+			}
+		case errors.Is(statErr, os.ErrNotExist):
+			// New code creates and leases state before defining libvirt resources.
+			// A managed resource without state is therefore abandoned.
+		default:
+			errs = append(errs, fmt.Errorf("inspect orphan state %s: %w", directory, statErr))
+			continue
+		}
+
+		if _, exists := domainSet[name]; exists {
+			state, stateErr := backend.control.DomainState(name)
+			if stateErr != nil {
+				errs = append(errs, stateErr)
+				_ = releaseInstanceLease(lease)
+				continue
+			}
+			if state.Active {
+				if destroyErr := backend.control.DestroyDomain(name); destroyErr != nil {
+					errs = append(errs, destroyErr)
+					_ = releaseInstanceLease(lease)
+					continue
+				}
+			}
+			if undefineErr := backend.control.UndefineDomain(name, true); undefineErr != nil {
+				errs = append(errs, undefineErr)
+				_ = releaseInstanceLease(lease)
+				continue
+			}
+		}
+		if _, exists := networkSet[name]; exists {
+			networkControl, supported := backend.control.(NetworkControlPlane)
+			if !supported {
+				errs = append(errs, fmt.Errorf("%w: cannot reap network %s", runner.ErrNotSupported, name))
+				_ = releaseInstanceLease(lease)
+				continue
+			}
+			active, activeErr := networkControl.NetworkActive(name)
+			if activeErr != nil {
+				errs = append(errs, activeErr)
+				_ = releaseInstanceLease(lease)
+				continue
+			}
+			if active {
+				if destroyErr := networkControl.DestroyNetwork(name); destroyErr != nil {
+					errs = append(errs, destroyErr)
+					_ = releaseInstanceLease(lease)
+					continue
+				}
+			}
+			if undefineErr := networkControl.UndefineNetwork(name); undefineErr != nil {
+				errs = append(errs, undefineErr)
+				_ = releaseInstanceLease(lease)
+				continue
+			}
+		}
+		if statErr == nil {
+			if removeErr := backend.overlays.Destroy(name); removeErr != nil {
+				errs = append(errs, removeErr)
+				_ = releaseInstanceLease(lease)
+				continue
+			}
+		}
+		if releaseErr := releaseInstanceLease(lease); releaseErr != nil {
+			errs = append(errs, releaseErr)
+		}
+	}
+	return errors.Join(errs...)
 }
 
 func (backend *Backend) Close(ctx context.Context) error {
