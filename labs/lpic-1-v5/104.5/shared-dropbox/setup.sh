@@ -10,6 +10,5 @@ rm -f /srv/shared/*
 
 for user in alice bob; do
     printf 'umask 0022\n' > "/home/$user/.bash_profile"
-    chown "$user:$user" "/home/$user/.bash_profile"
     chmod 0644 "/home/$user/.bash_profile"
 done
