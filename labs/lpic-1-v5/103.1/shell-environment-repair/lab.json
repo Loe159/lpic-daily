@@ -32,7 +32,6 @@
     "writable_guest_paths": [
       "/root",
       "/run/lpic",
-      "/opt/lpic",
       "/var/lib/lpic/reports"
     ]
   },
