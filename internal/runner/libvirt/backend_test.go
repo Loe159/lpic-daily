@@ -18,9 +18,15 @@ import (
 type fakeControlPlane struct {
 	defined        map[string]string
 	active         map[string]bool
+	networks       map[string]string
+	networkActive  map[string]bool
 	starts         int
+	reboots        int
 	destroys       int
 	undefines      int
+	networkStarts  int
+	networkDestroys int
+	networkUndefines int
 	removeNVRAM    bool
 	consoleOpens   int
 	agentResponses []string
@@ -33,8 +39,10 @@ type fakeControlPlane struct {
 
 func newFakeControlPlane() *fakeControlPlane {
 	return &fakeControlPlane{
-		defined: make(map[string]string),
-		active:  make(map[string]bool),
+		defined:       make(map[string]string),
+		active:        make(map[string]bool),
+		networks:      make(map[string]string),
+		networkActive: make(map[string]bool),
 	}
 }
 
@@ -56,6 +64,13 @@ func (fake *fakeControlPlane) StartDomain(name string) error {
 	}
 	fake.starts++
 	fake.active[name] = true
+	return nil
+}
+func (fake *fakeControlPlane) RebootDomain(name string) error {
+	if !fake.active[name] {
+		return errors.New("domain not active")
+	}
+	fake.reboots++
 	return nil
 }
 func (fake *fakeControlPlane) OpenConsole(name string, input io.Reader, output io.Writer) error {
@@ -121,6 +136,48 @@ func (fake *fakeControlPlane) UndefineDomain(name string, removeNVRAM bool) erro
 	fake.removeNVRAM = removeNVRAM
 	delete(fake.defined, name)
 	delete(fake.active, name)
+	return nil
+}
+func (fake *fakeControlPlane) DefineNetwork(name, xml string) error {
+	if _, exists := fake.networks[name]; exists {
+		return errors.New("network already defined")
+	}
+	fake.networks[name] = xml
+	fake.networkActive[name] = false
+	return nil
+}
+func (fake *fakeControlPlane) StartNetwork(name string) error {
+	if _, exists := fake.networks[name]; !exists {
+		return errors.New("network missing")
+	}
+	fake.networkStarts++
+	fake.networkActive[name] = true
+	return nil
+}
+func (fake *fakeControlPlane) NetworkActive(name string) (bool, error) {
+	if _, exists := fake.networks[name]; !exists {
+		return false, errors.New("network missing")
+	}
+	return fake.networkActive[name], nil
+}
+func (fake *fakeControlPlane) DestroyNetwork(name string) error {
+	if !fake.networkActive[name] {
+		return errors.New("network not active")
+	}
+	fake.networkDestroys++
+	fake.networkActive[name] = false
+	return nil
+}
+func (fake *fakeControlPlane) UndefineNetwork(name string) error {
+	if _, exists := fake.networks[name]; !exists {
+		return errors.New("network missing")
+	}
+	if fake.networkActive[name] {
+		return errors.New("network active")
+	}
+	fake.networkUndefines++
+	delete(fake.networks, name)
+	delete(fake.networkActive, name)
 	return nil
 }
 func (fake *fakeControlPlane) Close() error {
@@ -502,17 +559,60 @@ func TestBackendResetRecreatesSameManagedIdentity(t *testing.T) {
 	}
 }
 
-func TestBackendFailsClosedForNetworkingAndGuestOperations(t *testing.T) {
-	backend, control, commands, definition := backendFixture(t)
+func TestBackendIsolatedNetworkLifecycle(t *testing.T) {
+	backend, control, _, definition := backendFixture(t)
 	definition.Network = runner.NetworkIsolated
+	ctx := context.Background()
 
-	if _, err := backend.Prepare(context.Background(), definition); !errors.Is(err, runner.ErrNotSupported) {
+	instance, err := backend.Prepare(ctx, definition)
+	if err != nil {
 		t.Fatalf("Prepare(network=isolated) error = %v", err)
 	}
-	if len(control.defined) != 0 || len(commands.Calls) != 0 {
-		t.Fatalf("unsupported network mutated VM state: control=%#v commands=%#v", control, commands.Calls)
+	if len(control.networks) != 1 || !control.networkActive[instance.ID] {
+		t.Fatalf("isolated network state = %#v", control)
 	}
+	networkXML := control.networks[instance.ID]
+	if strings.Contains(networkXML, "<forward") {
+		t.Fatalf("isolated network forwards traffic:\n%s", networkXML)
+	}
+	domainXML := control.defined[instance.ID]
+	if !strings.Contains(domainXML, `<source network="`+instance.ID+`"></source>`) {
+		t.Fatalf("domain XML does not attach isolated network:\n%s", domainXML)
+	}
+	if err := backend.Start(ctx, instance); err != nil {
+		t.Fatalf("Start() error = %v", err)
+	}
+	if err := backend.Destroy(ctx, instance); err != nil {
+		t.Fatalf("Destroy() error = %v", err)
+	}
+	if len(control.networks) != 0 || control.networkDestroys != 1 || control.networkUndefines != 1 {
+		t.Fatalf("network cleanup state = %#v", control)
+	}
+}
 
+func TestBackendRebootRequiresActiveManagedVM(t *testing.T) {
+	backend, control, _, definition := backendFixture(t)
+	ctx := context.Background()
+	instance, err := backend.Prepare(ctx, definition)
+	if err != nil {
+		t.Fatalf("Prepare() error = %v", err)
+	}
+	if err := backend.Reboot(ctx, instance); err == nil || !strings.Contains(err.Error(), "not active") {
+		t.Fatalf("Reboot(inactive) error = %v", err)
+	}
+	if err := backend.Start(ctx, instance); err != nil {
+		t.Fatalf("Start() error = %v", err)
+	}
+	if err := backend.Reboot(ctx, instance); err != nil {
+		t.Fatalf("Reboot() error = %v", err)
+	}
+	if control.reboots != 1 {
+		t.Fatalf("reboots = %d, want 1", control.reboots)
+	}
+}
+
+func TestBackendFailsClosedForUnsupportedGuestOperations(t *testing.T) {
+	backend, _, _, _ := backendFixture(t)
 	instance := runner.Instance{ID: "lpic-daily-not-real"}
 	if _, err := backend.Exec(
 		context.Background(),
