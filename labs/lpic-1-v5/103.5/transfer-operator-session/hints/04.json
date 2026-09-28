@@ -3,6 +3,6 @@
   "id": "lpic1.103.5.transfer-operator-session.hint-4",
   "lab_id": "lpic1.103.5.transfer-operator-session",
   "level": 4,
-  "content_fr": "Écris avec ps le snapshot des deux workers dans /run/lpic/transfer-process-inspection, cible leaky-worker avec pgrep puis SIGTERM. Dans :shell lance lpic-transfer-job-probe, Ctrl-Z, jobs, bg et SIGTERM. Lance ensuite background-worker avec &, survivor-worker avec nohup et tmux new-session -d -s transfer-ops.",
+  "content_fr": "Repère reload-worker avec pgrep, écris son snapshot avec ps puis envoie SIGUSR1. Dans :shell exécute lpic-maintenance-job-probe, Ctrl-Z, jobs, bg, SIGTERM ; démarre ensuite batch-worker avec &, handoff-daemon avec nohup et tmux new-session -d -s maintenance-ops.",
   "evidence_impact": "solution-revealed"
 }
