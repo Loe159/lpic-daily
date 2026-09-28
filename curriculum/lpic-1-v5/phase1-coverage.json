@@ -13,7 +13,8 @@
     "with_lab": 22,
     "with_lesson": 22,
     "with_question": 22,
-    "with_two_labs": 22
+    "with_two_labs": 22,
+    "with_two_lab_contexts": 22
   },
   "concepts": [
     {
@@ -32,7 +33,11 @@
           "lpic1.103.1.assess.shell-sequence",
           "lpic1.103.1.q.sequence-and"
         ]
-      }
+      },
+      "lab_contexts": [
+        "shell-env-repair",
+        "shell-handoff"
+      ]
     },
     {
       "concept_id": "lpic1.103.1.variables-shell-environnement",
@@ -50,7 +55,11 @@
           "lpic1.103.1.assess.export-variable",
           "lpic1.103.1.q.export"
         ]
-      }
+      },
+      "lab_contexts": [
+        "shell-env-repair",
+        "shell-handoff"
+      ]
     },
     {
       "concept_id": "lpic1.103.1.path-et-resolution-de-commande",
@@ -68,7 +77,11 @@
           "lpic1.103.1.assess.path-resolution",
           "lpic1.103.1.q.path-order"
         ]
-      }
+      },
+      "lab_contexts": [
+        "shell-env-repair",
+        "shell-handoff"
+      ]
     },
     {
       "concept_id": "lpic1.103.1.quoting-escaping",
@@ -86,7 +99,11 @@
           "lpic1.103.1.assess.quoting",
           "lpic1.103.1.q.single-quotes"
         ]
-      }
+      },
+      "lab_contexts": [
+        "shell-env-repair",
+        "shell-handoff"
+      ]
     },
     {
       "concept_id": "lpic1.103.1.historique",
@@ -104,7 +121,11 @@
           "lpic1.103.1.assess.history",
           "lpic1.103.1.q.history"
         ]
-      }
+      },
+      "lab_contexts": [
+        "shell-env-repair",
+        "shell-handoff"
+      ]
     },
     {
       "concept_id": "lpic1.103.1.documentation-et-identification-d-une-commande",
@@ -122,7 +143,11 @@
           "lpic1.103.1.assess.type",
           "lpic1.103.1.q.type"
         ]
-      }
+      },
+      "lab_contexts": [
+        "shell-env-repair",
+        "shell-handoff"
+      ]
     },
     {
       "concept_id": "lpic1.103.1.informations-systeme-de-base",
@@ -140,7 +165,11 @@
           "lpic1.103.1.assess.uname-release",
           "lpic1.103.1.q.uname-release"
         ]
-      }
+      },
+      "lab_contexts": [
+        "shell-env-repair",
+        "shell-handoff"
+      ]
     },
     {
       "concept_id": "lpic1.103.5.processus-avant-arriere-plan",
@@ -157,7 +186,11 @@
         "questions": [
           "lpic1.103.5.q.background-ampersand"
         ]
-      }
+      },
+      "lab_contexts": [
+        "operator-session",
+        "process-incident"
+      ]
     },
     {
       "concept_id": "lpic1.103.5.jobs-du-shell",
@@ -174,7 +207,11 @@
         "questions": [
           "lpic1.103.5.q.jobs"
         ]
-      }
+      },
+      "lab_contexts": [
+        "operator-session",
+        "process-incident"
+      ]
     },
     {
       "concept_id": "lpic1.103.5.signaux",
@@ -191,7 +228,11 @@
         "questions": [
           "lpic1.103.5.q.default-kill-signal"
         ]
-      }
+      },
+      "lab_contexts": [
+        "operator-session",
+        "process-incident"
+      ]
     },
     {
       "concept_id": "lpic1.103.5.inspection-arbres-ressources",
@@ -208,7 +249,11 @@
         "questions": [
           "lpic1.103.5.q.ps-snapshot"
         ]
-      }
+      },
+      "lab_contexts": [
+        "operator-session",
+        "process-incident"
+      ]
     },
     {
       "concept_id": "lpic1.103.5.processus-survivant-a-la-session",
@@ -225,7 +270,11 @@
         "questions": [
           "lpic1.103.5.q.nohup"
         ]
-      }
+      },
+      "lab_contexts": [
+        "operator-session",
+        "process-incident"
+      ]
     },
     {
       "concept_id": "lpic1.103.5.selection-par-nom-pid",
@@ -242,7 +291,11 @@
         "questions": [
           "lpic1.103.5.q.pgrep"
         ]
-      }
+      },
+      "lab_contexts": [
+        "operator-session",
+        "process-incident"
+      ]
     },
     {
       "concept_id": "lpic1.103.5.multiplexeurs-de-terminal",
@@ -259,7 +312,11 @@
         "questions": [
           "lpic1.103.5.q.multiplexer"
         ]
-      }
+      },
+      "lab_contexts": [
+        "operator-session",
+        "process-incident"
+      ]
     },
     {
       "concept_id": "lpic1.104.5.permissions-rwx-fichier-dossier",
@@ -276,7 +333,11 @@
         "questions": [
           "lpic1.104.5.q.directory-x"
         ]
-      }
+      },
+      "lab_contexts": [
+        "shared-dropbox-policy",
+        "team-share-audit"
+      ]
     },
     {
       "concept_id": "lpic1.104.5.notation-symbolique-octale",
@@ -293,7 +354,11 @@
         "questions": [
           "lpic1.104.5.q.octal-750"
         ]
-      }
+      },
+      "lab_contexts": [
+        "shared-dropbox-policy",
+        "team-share-audit"
+      ]
     },
     {
       "concept_id": "lpic1.104.5.proprietaire-groupe",
@@ -310,7 +375,11 @@
         "questions": [
           "lpic1.104.5.q.chown-owner-group"
         ]
-      }
+      },
+      "lab_contexts": [
+        "shared-dropbox-policy",
+        "team-share-audit"
+      ]
     },
     {
       "concept_id": "lpic1.104.5.umask",
@@ -327,7 +396,11 @@
         "questions": [
           "lpic1.104.5.q.umask-027"
         ]
-      }
+      },
+      "lab_contexts": [
+        "shared-dropbox-policy",
+        "team-share-audit"
+      ]
     },
     {
       "concept_id": "lpic1.104.5.suid",
@@ -344,7 +417,11 @@
         "questions": [
           "lpic1.104.5.q.suid-effective-uid"
         ]
-      }
+      },
+      "lab_contexts": [
+        "shared-dropbox-policy",
+        "team-share-audit"
+      ]
     },
     {
       "concept_id": "lpic1.104.5.sgid",
@@ -361,7 +438,11 @@
         "questions": [
           "lpic1.104.5.q.sgid-directory"
         ]
-      }
+      },
+      "lab_contexts": [
+        "shared-dropbox-policy",
+        "team-share-audit"
+      ]
     },
     {
       "concept_id": "lpic1.104.5.sticky-bit",
@@ -378,7 +459,11 @@
         "questions": [
           "lpic1.104.5.q.sticky-directory"
         ]
-      }
+      },
+      "lab_contexts": [
+        "shared-dropbox-policy",
+        "team-share-audit"
+      ]
     },
     {
       "concept_id": "lpic1.104.5.effets-speciaux-sur-repertoires",
@@ -395,7 +480,11 @@
         "questions": [
           "lpic1.104.5.q.special-directory-combination"
         ]
-      }
+      },
+      "lab_contexts": [
+        "shared-dropbox-policy",
+        "team-share-audit"
+      ]
     }
   ]
 }
