@@ -68,7 +68,6 @@ func TestNotifyActionLaunchesTUI(t *testing.T) {
 	}
 }
 
-
 func TestNotifyDoesNotCountPracticeAsNewConcept(t *testing.T) {
 	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
 	if err := runWithIO(
