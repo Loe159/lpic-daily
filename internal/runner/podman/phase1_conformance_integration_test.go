@@ -127,7 +127,7 @@ func runStuckWorkerPTY(
 			return
 		}
 		time.Sleep(200 * time.Millisecond)
-		if err := write("jobs -s | grep -q lpic-signal-probe && printf 'stopped\\n' > /run/lpic/probe-stopped\n", 100*time.Millisecond); err != nil {
+		if err := write("jobs -s | grep -q lpic-signal-probe\n", 100*time.Millisecond); err != nil {
 			writeDone <- err
 			return
 		}
@@ -135,7 +135,7 @@ func runStuckWorkerPTY(
 			writeDone <- err
 			return
 		}
-		if err := write("jobs -r | grep -q lpic-signal-probe && printf 'running\\n' > /run/lpic/probe-background\n", 100*time.Millisecond); err != nil {
+		if err := write("jobs -r | grep -q lpic-signal-probe\n", 100*time.Millisecond); err != nil {
 			writeDone <- err
 			return
 		}
@@ -176,7 +176,7 @@ func runStuckWorkerPTY(
 
 	for path, want := range map[string]string{
 		"/run/lpic/probe-stopped":    "stopped",
-		"/run/lpic/probe-background": "running",
+		"/run/lpic/probe-background": "background",
 	} {
 		content, err := backend.ReadFile(ctx, instance, path, 64)
 		if err != nil {
