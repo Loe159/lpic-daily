@@ -54,6 +54,15 @@
       "path": "/srv/shared"
     },
     {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/test",
+        "-d",
+        "/srv/shared"
+      ],
+      "expected_exit": 0
+    },
+    {
       "type": "file-owner",
       "path": "/srv/shared",
       "user": "root",
