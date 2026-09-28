@@ -1,0 +1,81 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.2.grub-kernel-parameter",
+  "title_fr": "Rendre un paramètre noyau persistant avec GRUB 2",
+  "brief_fr": "La VM Fedora démarre normalement. Ajoute le paramètre noyau lpic_daily_boot=phase2 à la configuration persistante de GRUB 2, régénère grub.cfg puis redémarre la VM avec :reboot. Le résultat doit être effectif au boot suivant.",
+  "success_criteria_fr": [
+    "La configuration GRUB 2 générée contient lpic_daily_boot=phase2.",
+    "Après :reboot, /proc/cmdline contient lpic_daily_boot=phase2."
+  ],
+  "debrief_fr": "Modifier le fichier source ne suffit pas : GRUB 2 doit disposer d'une configuration régénérée, puis un redémarrage réel doit charger le nouveau paramètre. Le checker observe la configuration générée et l'état du noyau après boot, sans imposer une suite de commandes.",
+  "objective_ids": [
+    "102.2"
+  ],
+  "concept_ids": [
+    "lpic1.102.2.emplacement-configuration-du-bootloader",
+    "lpic1.102.2.generation-de-configuration-grub-2"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "estimated_minutes": 20,
+  "practice_context": "grub-persistent-kernel-parameter",
+  "environment": {
+    "backend": "libvirt",
+    "image_ref": "fedora-44-x86_64-v1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "full-machine",
+    "writable_guest_paths": [],
+    "machine": {
+      "firmware": "uefi"
+    }
+  },
+  "resources": {
+    "memory_mb": 1024,
+    "cpu_percent": 100,
+    "pids": 128,
+    "timeout_seconds": 1800
+  },
+  "setup": {
+    "execution_scope": "none"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/grep",
+        "-q",
+        "lpic_daily_boot=phase2",
+        "/boot/grub2/grub.cfg"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.2.emplacement-configuration-du-bootloader",
+        "lpic1.102.2.generation-de-configuration-grub-2"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/grep",
+        "-qw",
+        "lpic_daily_boot=phase2",
+        "/proc/cmdline"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.2.emplacement-configuration-du-bootloader"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.102.2.grub-kernel-parameter.hint-1",
+    "lpic1.102.2.grub-kernel-parameter.hint-2",
+    "lpic1.102.2.grub-kernel-parameter.hint-3",
+    "lpic1.102.2.grub-kernel-parameter.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

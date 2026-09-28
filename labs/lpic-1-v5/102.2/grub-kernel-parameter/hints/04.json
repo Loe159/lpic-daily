@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.2.grub-kernel-parameter.hint-4",
+  "lab_id": "lpic1.102.2.grub-kernel-parameter",
+  "level": 4,
+  "content_fr": "Solution de référence : ajoute lpic_daily_boot=phase2 à la valeur GRUB_CMDLINE_LINUX de /etc/default/grub, exécute grub2-mkconfig -o /boot/grub2/grub.cfg, puis lance :reboot. Après le redémarrage, grep lpic_daily_boot=phase2 /proc/cmdline doit réussir.",
+  "evidence_impact": "solution-revealed"
+}
