@@ -3,6 +3,6 @@
   "id": "lpic1.103.1.transfer-shell-handoff.hint-2",
   "lab_id": "lpic1.103.1.transfer-shell-handoff",
   "level": 2,
-  "content_fr": "Le fichier /root/.bash_profile pilote ce scénario. Vérifie l'ordre de PATH, le quoting de REPORT_FILE et les tailles d'historique.",
+  "content_fr": "Travaille dans /root/.bashrc : corrige l’ordre de PATH, exporte les deux variables de relève et vérifie le quoting du chemin contenant un espace ainsi que les trois réglages d’historique.",
   "evidence_impact": "material"
 }
