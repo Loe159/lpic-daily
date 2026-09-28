@@ -225,8 +225,9 @@ func TestIndependentConceptRecommendsUnusedTransferLab(t *testing.T) {
 			ActivityKind: learning.ActivityLab,
 			EvidenceKind: learning.EvidenceIndependentPractice,
 			Result:       learning.ResultPass,
-			Distribution: "fedora",
-			AttemptIndex: 1,
+			Distribution:    "fedora",
+			PracticeContext: "shell-env-repair",
+			AttemptIndex:    1,
 		}},
 	}
 	policy := learning.DefaultSessionPolicy()
@@ -281,5 +282,56 @@ func TestBuildPlanDefaultsIntervalsWithoutOverwritingCustomLimits(t *testing.T) 
 	}
 	if len(plan.Items) != 1 || plan.Items[0].Kind != learning.SessionReview {
 		t.Fatalf("items = %#v, want exactly one review with default intervals", plan.Items)
+	}
+}
+
+
+func TestIndependentConceptSkipsUnusedLabIDInAlreadyUsedPracticeContext(t *testing.T) {
+	curriculumBundle, contentBundle, labs := loadInputs(t)
+	now := time.Date(2026, 9, 28, 16, 0, 0, 0, time.UTC)
+	conceptID := "lpic1.103.1.path-et-resolution-de-commande"
+
+	var superficial lab.Lab
+	for _, authored := range labs {
+		if authored.Definition.ID == "lpic1.103.1.shell-environment-repair" {
+			superficial = authored
+			break
+		}
+	}
+	if superficial.Definition.ID == "" {
+		t.Fatal("shell-environment-repair lab not found")
+	}
+	superficial.Definition.ID = "lpic1.103.1.aaa-superficial-variant"
+	labs = append(labs, superficial)
+
+	evidence := memoryEvidence{
+		conceptID: {{
+			EventID:          "independent-shell",
+			OccurredAt:       now.Add(-8 * 24 * time.Hour),
+			ConceptID:        conceptID,
+			ObjectiveIDs:     []string{"103.1"},
+			SourceItemID:     "lpic1.103.1.shell-environment-repair",
+			ActivityKind:     learning.ActivityLab,
+			EvidenceKind:     learning.EvidenceIndependentPractice,
+			Result:           learning.ResultPass,
+			Distribution:     "fedora",
+			PracticeContext:  "shell-env-repair",
+			AttemptIndex:     1,
+		}},
+	}
+	policy := learning.DefaultSessionPolicy()
+	policy.MaxNewConcepts = 0
+	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
+		Now: now, Curriculum: curriculumBundle, Content: contentBundle, Labs: labs,
+		Evidence: evidence, Policy: policy,
+	})
+	if err != nil {
+		t.Fatalf("BuildPlan() error = %v", err)
+	}
+	if len(plan.Items) != 1 {
+		t.Fatalf("items = %#v, want one due review", plan.Items)
+	}
+	if got := plan.Items[0].RecommendedLabID; got != "lpic1.103.1.transfer-shell-handoff" {
+		t.Fatalf("recommended lab = %q, want materially different practice context", got)
 	}
 }
