@@ -7,7 +7,8 @@
     "/srv/project-transfer est root:project en 3770.",
     "handoff-note hérite du groupe project et est créé en 0660.",
     "Un shell chargeant le rcfile utilise effectivement umask 0007.",
-    "audit-helper est en 0755 sans SUID."
+    "audit-helper est en 0755 sans SUID.",
+    "Le SGID hérite réellement le groupe project et le sticky bit protège les fichiers entre alice et bob."
   ],
   "debrief_fr": "Ce second partage vérifie le transfert des permissions rwx/octales, ownership, umask, SUID, SGID, sticky bit et effets spéciaux de répertoire sur un autre chemin. Le checker recrée un fichier à travers le rcfile pour observer l'umask.",
   "objective_ids": [
@@ -54,28 +55,51 @@
       "type": "file-owner",
       "path": "/srv/project-transfer",
       "user": "root",
-      "group": "project"
+      "group": "project",
+      "concept_ids": [
+        "lpic1.104.5.proprietaire-groupe"
+      ]
     },
     {
       "type": "file-mode",
       "path": "/srv/project-transfer",
-      "mode": "3770"
+      "mode": "3770",
+      "concept_ids": [
+        "lpic1.104.5.permissions-rwx-fichier-dossier",
+        "lpic1.104.5.notation-symbolique-octale",
+        "lpic1.104.5.sgid",
+        "lpic1.104.5.sticky-bit",
+        "lpic1.104.5.effets-speciaux-sur-repertoires"
+      ]
     },
     {
       "type": "file-owner",
       "path": "/srv/project-transfer/handoff-note",
       "user": "root",
-      "group": "project"
+      "group": "project",
+      "concept_ids": [
+        "lpic1.104.5.proprietaire-groupe",
+        "lpic1.104.5.sgid"
+      ]
     },
     {
       "type": "file-mode",
       "path": "/srv/project-transfer/handoff-note",
-      "mode": "0660"
+      "mode": "0660",
+      "concept_ids": [
+        "lpic1.104.5.umask",
+        "lpic1.104.5.permissions-rwx-fichier-dossier",
+        "lpic1.104.5.notation-symbolique-octale"
+      ]
     },
     {
       "type": "file-mode",
       "path": "/srv/project-transfer/audit-helper",
-      "mode": "0755"
+      "mode": "0755",
+      "concept_ids": [
+        "lpic1.104.5.suid",
+        "lpic1.104.5.notation-symbolique-octale"
+      ]
     },
     {
       "type": "command-exit",
@@ -87,7 +111,25 @@
         "-ic",
         "test \"$(umask)\" = 0007 && rm -f /srv/project-transfer/.umask-proof && : > /srv/project-transfer/.umask-proof && test \"$(stat -c %a /srv/project-transfer/.umask-proof)\" = 660"
       ],
-      "expected_exit": 0
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.5.umask"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "rm -f /srv/project-transfer/.alice-proof /srv/project-transfer/.bob-proof; runuser -u alice -- bash -c ': > /srv/project-transfer/.alice-proof'; runuser -u bob -- bash -c ': > /srv/project-transfer/.bob-proof'; test \"$(stat -c %G /srv/project-transfer/.alice-proof)\" = project; if runuser -u alice -- rm /srv/project-transfer/.bob-proof 2>/dev/null; then rm -f /srv/project-transfer/.alice-proof; exit 1; fi; rm -f /srv/project-transfer/.alice-proof /srv/project-transfer/.bob-proof"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.5.sgid",
+        "lpic1.104.5.sticky-bit",
+        "lpic1.104.5.effets-speciaux-sur-repertoires",
+        "lpic1.104.5.proprietaire-groupe"
+      ]
     }
   ],
   "hint_ids": [

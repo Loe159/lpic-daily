@@ -3,6 +3,6 @@
   "id": "lpic1.103.5.transfer-operator-session.hint-2",
   "lab_id": "lpic1.103.5.transfer-operator-session",
   "level": 2,
-  "content_fr": "Les PID initiaux sont dans /run/lpic. SIGTERM est attendu pour le probe. Un simple & suffit pour background-worker, survivor-worker doit être protégé de SIGHUP.",
+  "content_fr": "Utilise ps pour le snapshot et pgrep/ps pour identifier précisément leaky-worker sans toucher à queue-worker. Dans :shell, lance lpic-transfer-job-probe au premier plan, puis Ctrl-Z, jobs et bg avant SIGTERM.",
   "evidence_impact": "material"
 }

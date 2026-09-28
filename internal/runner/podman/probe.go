@@ -39,24 +39,76 @@ func (backend *Backend) Stat(
 		return runner.FileInfo{}, err
 	}
 
-	user := header.Uname
-	if user == "" {
-		user = backend.lookupIdentity(ctx, instance, "/etc/passwd", header.Uid)
-	}
-	group := header.Gname
-	if group == "" {
-		group = backend.lookupIdentity(ctx, instance, "/etc/group", header.Gid)
+	// Podman's archive endpoint is useful for bounded filesystem probing, but
+	// ownership metadata is not stable across rootless storage drivers and
+	// versions: some releases report host-remapped root:root for a guest path
+	// that is root:project inside the container. Ask stat inside the already
+	// isolated guest for the canonical guest-visible ownership.
+	uid, gid, user, group, err := backend.guestOwnership(ctx, instance, guestPath)
+	if err != nil {
+		return runner.FileInfo{}, err
 	}
 
 	return runner.FileInfo{
 		Path:  guestPath,
 		Mode:  uint32(header.Mode),
-		UID:   uint32(header.Uid),
-		GID:   uint32(header.Gid),
+		UID:   uid,
+		GID:   gid,
 		User:  user,
 		Group: group,
 		IsDir: header.FileInfo().IsDir(),
 	}, nil
+}
+
+func (backend *Backend) guestOwnership(
+	ctx context.Context,
+	instance runner.Instance,
+	guestPath string,
+) (uint32, uint32, string, string, error) {
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	result, err := backend.Exec(ctx, instance, runner.ExecRequest{
+		Argv: []string{
+			"/usr/bin/stat",
+			"--printf=%u\\n%g\\n%U\\n%G\\n",
+			"--",
+			guestPath,
+		},
+		Stdout: &stdout,
+		Stderr: &stderr,
+	})
+	if err != nil {
+		return 0, 0, "", "", fmt.Errorf("stat guest ownership for %s: %w", guestPath, err)
+	}
+	if result.ExitCode != 0 {
+		return 0, 0, "", "", fmt.Errorf(
+			"stat guest ownership for %s exited %d: %s",
+			guestPath,
+			result.ExitCode,
+			strings.TrimSpace(stderr.String()),
+		)
+	}
+
+	lines := strings.Split(strings.TrimSuffix(stdout.String(), "\n"), "\n")
+	if len(lines) != 4 {
+		return 0, 0, "", "", fmt.Errorf(
+			"stat guest ownership for %s returned %d fields, want 4",
+			guestPath,
+			len(lines),
+		)
+	}
+	uid64, err := strconv.ParseUint(lines[0], 10, 32)
+	if err != nil {
+		return 0, 0, "", "", fmt.Errorf("parse guest uid %q for %s: %w", lines[0], guestPath, err)
+	}
+	gid64, err := strconv.ParseUint(lines[1], 10, 32)
+	if err != nil {
+		return 0, 0, "", "", fmt.Errorf("parse guest gid %q for %s: %w", lines[1], guestPath, err)
+	}
+	if lines[2] == "" || lines[3] == "" {
+		return 0, 0, "", "", fmt.Errorf("stat guest ownership for %s returned empty names", guestPath)
+	}
+	return uint32(uid64), uint32(gid64), lines[2], lines[3], nil
 }
 
 func (backend *Backend) ReadFile(

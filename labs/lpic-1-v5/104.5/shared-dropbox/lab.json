@@ -7,7 +7,8 @@
     "/srv/shared appartient à root:project, donne rwx au propriétaire et au groupe, aucun droit aux autres, conserve le groupe project sur les nouvelles entrées et protège les fichiers des autres membres contre suppression/renommage.",
     "team-note appartient au groupe project et est créé en mode 0660.",
     "Un shell chargeant /root/.bashrc annonce réellement umask 0007 et crée un fichier en 0660.",
-    "audit-helper n'a plus de SUID et reste en mode 0755."
+    "audit-helper n'a plus de SUID et reste en mode 0755.",
+    "Le SGID hérite réellement le groupe project et le sticky bit empêche alice de supprimer le fichier de bob."
   ],
   "debrief_fr": "3770 combine 770, SGID et sticky bit. SGID conserve le groupe project, sticky limite suppression/renommage entre utilisateurs et umask 0007 transforme le mode de base 0666 d'un fichier en 0660. Le checker ouvre un nouveau shell avec le rcfile configuré et crée lui-même un fichier de preuve, ce qui valide le comportement de l'umask plutôt qu'un chmod final. SUID doit rester limité aux exécutables qui en ont réellement besoin.",
   "objective_ids": [
@@ -52,7 +53,10 @@
   "checks": [
     {
       "type": "file-exists",
-      "path": "/srv/shared"
+      "path": "/srv/shared",
+      "concept_ids": [
+        "lpic1.104.5.permissions-rwx-fichier-dossier"
+      ]
     },
     {
       "type": "command-exit",
@@ -61,34 +65,59 @@
         "-d",
         "/srv/shared"
       ],
-      "expected_exit": 0
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.5.permissions-rwx-fichier-dossier"
+      ]
     },
     {
       "type": "file-owner",
       "path": "/srv/shared",
       "user": "root",
-      "group": "project"
+      "group": "project",
+      "concept_ids": [
+        "lpic1.104.5.proprietaire-groupe"
+      ]
     },
     {
       "type": "file-mode",
       "path": "/srv/shared",
-      "mode": "3770"
+      "mode": "3770",
+      "concept_ids": [
+        "lpic1.104.5.notation-symbolique-octale",
+        "lpic1.104.5.sgid",
+        "lpic1.104.5.sticky-bit",
+        "lpic1.104.5.effets-speciaux-sur-repertoires"
+      ]
     },
     {
       "type": "file-owner",
       "path": "/srv/shared/team-note",
       "user": "root",
-      "group": "project"
+      "group": "project",
+      "concept_ids": [
+        "lpic1.104.5.proprietaire-groupe",
+        "lpic1.104.5.sgid"
+      ]
     },
     {
       "type": "file-mode",
       "path": "/srv/shared/team-note",
-      "mode": "0660"
+      "mode": "0660",
+      "concept_ids": [
+        "lpic1.104.5.umask",
+        "lpic1.104.5.permissions-rwx-fichier-dossier",
+        "lpic1.104.5.notation-symbolique-octale"
+      ]
     },
     {
       "type": "file-mode",
       "path": "/srv/shared/audit-helper",
-      "mode": "0755"
+      "mode": "0755",
+      "concept_ids": [
+        "lpic1.104.5.suid",
+        "lpic1.104.5.notation-symbolique-octale"
+      ]
     },
     {
       "type": "command-exit",
@@ -100,7 +129,25 @@
         "-ic",
         "test \"$(umask)\" = 0007 && rm -f /srv/shared/.umask-proof && : > /srv/shared/.umask-proof && test \"$(stat -c %a /srv/shared/.umask-proof)\" = 660"
       ],
-      "expected_exit": 0
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.5.umask"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "rm -f /srv/shared/.alice-proof /srv/shared/.bob-proof; runuser -u alice -- bash -c ': > /srv/shared/.alice-proof'; runuser -u bob -- bash -c ': > /srv/shared/.bob-proof'; test \"$(stat -c %G /srv/shared/.alice-proof)\" = project; if runuser -u alice -- rm /srv/shared/.bob-proof 2>/dev/null; then rm -f /srv/shared/.alice-proof; exit 1; fi; rm -f /srv/shared/.alice-proof /srv/shared/.bob-proof"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.5.sgid",
+        "lpic1.104.5.sticky-bit",
+        "lpic1.104.5.effets-speciaux-sur-repertoires",
+        "lpic1.104.5.proprietaire-groupe"
+      ]
     }
   ],
   "hint_ids": [

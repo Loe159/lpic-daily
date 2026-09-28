@@ -3,6 +3,6 @@
   "id": "lpic1.103.5.stuck-worker.hint-1",
   "lab_id": "lpic1.103.5.stuck-worker",
   "level": 1,
-  "content_fr": "Sépare les problèmes : sélection du bon worker, job control dans :shell, puis persistance de session avec nohup et tmux.",
+  "content_fr": "Commence par observer les deux workers et garde un snapshot PID/PPID/état/commande dans /run/lpic/process-inspection. Sépare ensuite sélection du bon worker, job control dans :shell, puis persistance avec nohup et tmux.",
   "evidence_impact": "none"
 }

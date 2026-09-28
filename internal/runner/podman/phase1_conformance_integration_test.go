@@ -71,8 +71,12 @@ func TestPhase1BuiltInLabsConformOnRootlessPodman(t *testing.T) {
 
 			solve := func() {
 				t.Helper()
-				if authored.Definition.ID == "lpic1.103.5.stuck-worker" {
+				switch authored.Definition.ID {
+				case "lpic1.103.5.stuck-worker":
 					runStuckWorkerPTY(t, ctx, backend, session.Instance)
+					return
+				case "lpic1.103.5.transfer-operator-session":
+					runTransferOperatorPTY(t, ctx, backend, session.Instance)
 					return
 				}
 				runReferenceSolution(t, ctx, backend, session.Instance, solution)
@@ -129,6 +133,10 @@ func runStuckWorkerPTY(
 			return nil
 		}
 
+		if err := write("ps -o pid=,ppid=,stat=,comm=,args= -p \"$(cat /run/lpic/healthy-worker.pid),$(cat /run/lpic/stuck-worker.pid)\" > /run/lpic/process-inspection\n", 100*time.Millisecond); err != nil {
+			writeDone <- err
+			return
+		}
 		if err := write("kill -TERM \"$(cat /run/lpic/stuck-worker.pid)\"\n", 100*time.Millisecond); err != nil {
 			writeDone <- err
 			return
@@ -208,6 +216,87 @@ func runStuckWorkerPTY(
 		if string(bytes.TrimSpace(content)) != want {
 			t.Fatalf("PTY marker %s = %q, want %q; output=%q", path, content, want, output.String())
 		}
+	}
+}
+
+func runTransferOperatorPTY(
+	t *testing.T,
+	ctx context.Context,
+	backend runner.Runner,
+	instance runner.Instance,
+) {
+	t.Helper()
+
+	input, writer := io.Pipe()
+	writeDone := make(chan error, 1)
+	go func() {
+		write := func(value string, delay time.Duration) error {
+			if _, err := io.WriteString(writer, value); err != nil {
+				return err
+			}
+			time.Sleep(delay)
+			return nil
+		}
+
+		commands := []struct {
+			value string
+			delay time.Duration
+		}{
+			{"ps -o pid=,ppid=,stat=,comm=,args= -p \"$(cat /run/lpic/queue-worker.pid),$(cat /run/lpic/leaky-worker.pid)\" > /run/lpic/transfer-process-inspection\n", 100 * time.Millisecond},
+			{"kill -TERM \"$(pgrep -f '^leaky-worker' | head -n1)\"\n", 100 * time.Millisecond},
+			{"/usr/local/bin/lpic-transfer-job-probe\n", 300 * time.Millisecond},
+		}
+		for _, command := range commands {
+			if err := write(command.value, command.delay); err != nil {
+				writeDone <- err
+				return
+			}
+		}
+		if _, err := writer.Write([]byte{0x1a}); err != nil {
+			writeDone <- err
+			return
+		}
+		time.Sleep(200 * time.Millisecond)
+		for _, command := range []struct {
+			value string
+			delay time.Duration
+		}{
+			{"jobs -s | grep -q lpic-transfer-job-probe\n", 100 * time.Millisecond},
+			{"bg\n", 200 * time.Millisecond},
+			{"jobs -r | grep -q lpic-transfer-job-probe\n", 100 * time.Millisecond},
+			{"kill -TERM %1\n", 200 * time.Millisecond},
+			{"wait %1 2>/dev/null || true\n", 100 * time.Millisecond},
+			{"bash -c 'exec -a background-worker sleep infinity' &\n", 100 * time.Millisecond},
+			{"nohup bash -c 'exec -a survivor-worker sleep infinity' >/run/lpic/survivor.log 2>&1 &\n", 100 * time.Millisecond},
+			{"tmux new-session -d -s transfer-ops 'sleep infinity'\n", 100 * time.Millisecond},
+			{"exit\n", 0},
+		} {
+			if err := write(command.value, command.delay); err != nil {
+				writeDone <- err
+				return
+			}
+		}
+		writeDone <- writer.Close()
+	}()
+
+	var output bytes.Buffer
+	result, err := backend.Exec(ctx, instance, runner.ExecRequest{
+		Argv:        []string{"/usr/bin/bash", "--noprofile", "--norc", "-i"},
+		Stdin:       input,
+		Stdout:      &output,
+		Stderr:      &output,
+		TTY:         true,
+		InitialSize: runner.TerminalSize{Width: 100, Height: 30},
+	})
+	if err != nil {
+		_ = input.Close()
+		t.Fatalf("transfer PTY job-control exec error = %v; output=%q", err, output.String())
+	}
+	if writeErr := <-writeDone; writeErr != nil {
+		t.Fatalf("transfer PTY input error = %v; output=%q", writeErr, output.String())
+	}
+	if result.ExitCode != 0 {
+		t.Fatalf("transfer PTY job-control exit = %d, want 0; output=%q", result.ExitCode, output.String())
 	}
 }
 

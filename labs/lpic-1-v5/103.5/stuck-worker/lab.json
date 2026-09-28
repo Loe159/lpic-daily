@@ -2,14 +2,15 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.5.stuck-worker",
   "title_fr": "Diagnostiquer des jobs et arrêter le bon processus",
-  "brief_fr": "Un worker défectueux tourne à côté d'un worker sain. Dans :shell, identifie et arrête uniquement le worker défectueux. Lance ensuite le signal probe au premier plan, suspends-le avec Ctrl-Z, observe-le avec jobs, reprends-le avec bg puis termine-le avec SIGTERM. Enfin lance un resilient-worker protégé par nohup et garde une session tmux détachée nommée ops.",
+  "brief_fr": "Un worker défectueux tourne à côté d'un worker sain. Dans :shell, inspecte d'abord les deux processus et enregistre un snapshot PID/PPID/état/commande dans /run/lpic/process-inspection, puis arrête uniquement le worker défectueux. Lance ensuite le signal probe au premier plan, suspends-le avec Ctrl-Z, observe-le avec jobs, reprends-le avec bg puis termine-le avec SIGTERM. Enfin lance un resilient-worker protégé par nohup et garde une session tmux détachée nommée ops.",
   "success_criteria_fr": [
     "stuck-worker est absent et healthy-worker reste actif.",
+    "/run/lpic/process-inspection contient un snapshot exploitable de healthy-worker et stuck-worker avec leurs PID/PPID/états.",
     "Le signal probe a réellement été suspendu, repris en arrière-plan puis terminé.",
     "resilient-worker reste actif après son lancement avec nohup.",
     "Une session tmux détachée nommée ops existe."
   ],
-  "debrief_fr": "Le shell suit des jobs et leurs process groups, alors que ps/pgrep observent des processus. Ctrl-Z produit SIGTSTP, jobs expose l'état du job et bg le reprend avec SIGCONT. SIGTERM permet un arrêt propre. nohup protège un processus du SIGHUP de fermeture de session, tandis que tmux conserve une session terminal détachée. La validation combine état final et interaction PTY observée.",
+  "debrief_fr": "Le shell suit des jobs et leurs process groups, alors que ps/pgrep observent des processus. Le snapshot demandé oblige à distinguer PID, PPID, état et ligne de commande avant d'agir. Ctrl-Z produit SIGTSTP, jobs expose l'état du job et bg le reprend avec SIGCONT. SIGTERM permet un arrêt propre. nohup protège un processus du SIGHUP de fermeture de session, tandis que tmux conserve une session terminal détachée. La validation combine état final et interaction PTY observée.",
   "objective_ids": [
     "103.5"
   ],
@@ -51,39 +52,79 @@
   "checks": [
     {
       "type": "process-absent",
-      "match": "stuck-worker"
+      "match": "stuck-worker",
+      "concept_ids": [
+        "lpic1.103.5.selection-par-nom-pid",
+        "lpic1.103.5.signaux"
+      ]
     },
     {
       "type": "process-running",
-      "match": "healthy-worker"
+      "match": "healthy-worker",
+      "concept_ids": [
+        "lpic1.103.5.selection-par-nom-pid"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test -s /run/lpic/process-inspection && grep -Eq \"^[[:space:]]*$(cat /run/lpic/healthy-worker.pid)[[:space:]]+[0-9]+[[:space:]]+[A-Z]\" /run/lpic/process-inspection && grep -q healthy-worker /run/lpic/process-inspection && grep -Eq \"^[[:space:]]*$(cat /run/lpic/stuck-worker.pid)[[:space:]]+[0-9]+[[:space:]]+[A-Z]\" /run/lpic/process-inspection && grep -q stuck-worker /run/lpic/process-inspection"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.5.inspection-arbres-ressources"
+      ]
     },
     {
       "type": "file-content-regex",
       "path": "/run/lpic/probe-background",
-      "pattern": "^background\\n?$"
+      "pattern": "^background\\n?$",
+      "concept_ids": [
+        "lpic1.103.5.processus-avant-arriere-plan",
+        "lpic1.103.5.jobs-du-shell"
+      ]
     },
     {
       "type": "file-content-regex",
       "path": "/run/lpic/probe-stopped",
-      "pattern": "^stopped\\n?$"
+      "pattern": "^stopped\\n?$",
+      "concept_ids": [
+        "lpic1.103.5.jobs-du-shell",
+        "lpic1.103.5.signaux"
+      ]
     },
     {
       "type": "file-content-regex",
       "path": "/run/lpic/probe-continued",
-      "pattern": "^continued\\n?$"
+      "pattern": "^continued\\n?$",
+      "concept_ids": [
+        "lpic1.103.5.processus-avant-arriere-plan",
+        "lpic1.103.5.signaux"
+      ]
     },
     {
       "type": "file-content-regex",
       "path": "/run/lpic/probe-terminated",
-      "pattern": "^terminated\\n?$"
+      "pattern": "^terminated\\n?$",
+      "concept_ids": [
+        "lpic1.103.5.signaux"
+      ]
     },
     {
       "type": "process-absent",
-      "match": "/usr/local/bin/lpic-signal-probe"
+      "match": "/usr/local/bin/lpic-signal-probe",
+      "concept_ids": [
+        "lpic1.103.5.signaux"
+      ]
     },
     {
       "type": "process-running",
-      "match": "resilient-worker"
+      "match": "resilient-worker",
+      "concept_ids": [
+        "lpic1.103.5.processus-survivant-a-la-session"
+      ]
     },
     {
       "type": "command-exit",
@@ -93,7 +134,10 @@
         "-t",
         "ops"
       ],
-      "expected_exit": 0
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.5.multiplexeurs-de-terminal"
+      ]
     }
   ],
   "hint_ids": [

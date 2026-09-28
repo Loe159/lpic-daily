@@ -259,6 +259,34 @@ func validateDefinition(fsys fs.FS, base string, definition Definition) error {
 	if len(definition.Checks) == 0 {
 		return errors.New("at least one check is required")
 	}
+
+	declaredConcepts := make(map[string]struct{}, len(definition.ConceptIDs))
+	for _, conceptID := range definition.ConceptIDs {
+		declaredConcepts[conceptID] = struct{}{}
+	}
+	checkedConcepts := make(map[string]struct{}, len(definition.ConceptIDs))
+	for index, check := range definition.Checks {
+		if len(check.ConceptIDs) == 0 {
+			return fmt.Errorf("check %d must map to at least one concept", index+1)
+		}
+		seen := make(map[string]struct{}, len(check.ConceptIDs))
+		for _, conceptID := range check.ConceptIDs {
+			if _, duplicate := seen[conceptID]; duplicate {
+				return fmt.Errorf("check %d repeats concept %s", index+1, conceptID)
+			}
+			seen[conceptID] = struct{}{}
+			if _, declared := declaredConcepts[conceptID]; !declared {
+				return fmt.Errorf("check %d maps undeclared concept %s", index+1, conceptID)
+			}
+			checkedConcepts[conceptID] = struct{}{}
+		}
+	}
+	for _, conceptID := range definition.ConceptIDs {
+		if _, checked := checkedConcepts[conceptID]; !checked {
+			return fmt.Errorf("concept %s has no state check evidence", conceptID)
+		}
+	}
+
 	if definition.ReferenceSolutionRef != "" {
 		solutionPath, err := resolveLocalRef(base, definition.ReferenceSolutionRef)
 		if err != nil {

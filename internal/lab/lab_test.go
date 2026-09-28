@@ -82,8 +82,8 @@ func TestLoadBuiltinSharedDropbox(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CompileChecks() error = %v", err)
 	}
-	if len(checks) != 8 {
-		t.Fatalf("checks = %d, want 8", len(checks))
+	if len(checks) != 9 {
+		t.Fatalf("checks = %d, want 9", len(checks))
 	}
 }
 
@@ -104,8 +104,8 @@ func TestLoadBuiltinStuckWorker(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CompileChecks() error = %v", err)
 	}
-	if len(checks) != 9 {
-		t.Fatalf("checks = %d, want 9", len(checks))
+	if len(checks) != 10 {
+		t.Fatalf("checks = %d, want 10", len(checks))
 	}
 	if !got.Definition.NeedsPersistentShell {
 		t.Fatal("stuck-worker must require the persistent PTY shell")

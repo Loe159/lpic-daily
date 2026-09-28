@@ -168,7 +168,10 @@ def main():
         checks = lab.get("checks", [])
         if not checks:
             errors.append(f"{lab_id}: at least one state check is required")
-        for check in checks:
+
+        declared_concepts = set(lab.get("concept_ids", []))
+        checked_concepts = set()
+        for index, check in enumerate(checks, start=1):
             check_type = check.get("type")
             if check_type not in {
                 "file-exists",
@@ -181,6 +184,31 @@ def main():
                 "block-device-state",
             }:
                 errors.append(f"{lab_id}: unknown check type {check_type!r}")
+
+            evidence_concepts = check.get("concept_ids")
+            if (
+                not isinstance(evidence_concepts, list)
+                or not evidence_concepts
+                or any(not isinstance(item, str) or not item for item in evidence_concepts)
+            ):
+                errors.append(f"{lab_id}: check {index} must map to non-empty concept_ids")
+                continue
+            if len(evidence_concepts) != len(set(evidence_concepts)):
+                errors.append(f"{lab_id}: check {index} repeats concept IDs")
+
+            undeclared = set(evidence_concepts) - declared_concepts
+            if undeclared:
+                errors.append(
+                    f"{lab_id}: check {index} maps undeclared concepts {sorted(undeclared)}"
+                )
+            checked_concepts.update(evidence_concepts)
+
+        missing_check_evidence = declared_concepts - checked_concepts
+        if missing_check_evidence:
+            errors.append(
+                f"{lab_id}: concepts without state-check evidence "
+                f"{sorted(missing_check_evidence)}"
+            )
 
     if errors:
         print("Lab validation FAILED:")

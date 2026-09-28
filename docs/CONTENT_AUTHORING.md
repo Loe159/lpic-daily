@@ -26,6 +26,8 @@ Never silently replace an examinable legacy term with a modern equivalent.
 ## Lab authoring
 Labs specify desired state, environment and checker semantics. Avoid command-string grading. Reference solutions are private authoring/test fixtures, not hints exposed by default.
 
+Every state check must declare the stable `concept_ids` it provides evidence for. The union of check mappings must cover every concept declared by the lab; a concept merely listed at lab level does not count as practical coverage. Map only concepts that the observable check genuinely demonstrates.
+
 For Phase-1 Podman content:
 - `network` must be `none`;
 - setup/reference paths must stay inside the lab directory;
