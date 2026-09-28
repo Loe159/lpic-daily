@@ -269,10 +269,13 @@ func (backend *Backend) resolveImageID(ctx context.Context, imageRef string) (st
 		return "", fmt.Errorf("inspect local image %q: %w", imageRef, err)
 	}
 	id := strings.TrimSpace(response.ID)
-	if matched, _ := regexp.MatchString("^sha256:[0-9a-f]{64}$", id); !matched {
-		return "", fmt.Errorf("Podman returned invalid immutable image ID %q for %q", id, imageRef)
+	if matched, _ := regexp.MatchString("^sha256:[0-9a-f]{64}$", id); matched {
+		return id, nil
 	}
-	return id, nil
+	if matched, _ := regexp.MatchString("^[0-9a-f]{64}$", id); matched {
+		return "sha256:" + id, nil
+	}
+	return "", fmt.Errorf("Podman returned invalid immutable image ID %q for %q", id, imageRef)
 }
 
 func (backend *Backend) create(ctx context.Context, definition runner.Definition, name string) error {

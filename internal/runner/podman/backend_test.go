@@ -221,7 +221,8 @@ func TestOpenRejectsRootfulAndAcceptsRootlessV2(t *testing.T) {
 }
 
 func TestManagedContainerLifecyclePrepareStartResetDestroy(t *testing.T) {
-	const imageID = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+	const rawImageID = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+	const imageID = "sha256:" + rawImageID
 	var (
 		createCalls int
 		startCalls  int
@@ -235,7 +236,7 @@ func TestManagedContainerLifecyclePrepareStartResetDestroy(t *testing.T) {
 			_, _ = w.Write([]byte(`{"host":{"cgroupVersion":"v2","security":{"rootless":true}}}`))
 		case r.Method == http.MethodGet && strings.HasPrefix(r.URL.Path, apiBase+"/images/") && strings.HasSuffix(r.URL.Path, "/json"):
 			w.Header().Set("Content-Type", "application/json")
-			_, _ = w.Write([]byte("{\"Id\":\"" + imageID + "\"}"))
+			_, _ = w.Write([]byte("{\"Id\":\"" + rawImageID + "\"}"))
 		case r.Method == http.MethodPost && r.URL.Path == apiBase+"/containers/create":
 			createCalls++
 			var request createRequest

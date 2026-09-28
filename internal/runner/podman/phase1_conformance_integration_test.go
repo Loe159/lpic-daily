@@ -162,6 +162,14 @@ func runStuckWorkerPTY(
 			writeDone <- err
 			return
 		}
+		if err := write("nohup bash -c 'exec -a resilient-worker sleep infinity' >/run/lpic/resilient.log 2>&1 &\n", 100*time.Millisecond); err != nil {
+			writeDone <- err
+			return
+		}
+		if err := write("tmux new-session -d -s ops 'sleep infinity'\n", 100*time.Millisecond); err != nil {
+			writeDone <- err
+			return
+		}
 		if err := write("exit\n", 0); err != nil {
 			writeDone <- err
 			return
