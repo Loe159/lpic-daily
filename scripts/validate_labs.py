@@ -67,6 +67,14 @@ def main():
         if not nonempty_text(lab.get("debrief_fr"), 20):
             errors.append(f"{lab_id}: debrief_fr is missing/too short")
 
+        practice_context = lab.get("practice_context")
+        if practice_context is not None and (
+            not isinstance(practice_context, str)
+            or not practice_context
+            or any(character not in "abcdefghijklmnopqrstuvwxyz0123456789.-" for character in practice_context)
+        ):
+            errors.append(f"{lab_id}: practice_context must be a lowercase stable context id")
+
         criteria = lab.get("success_criteria_fr")
         if not isinstance(criteria, list) or not criteria:
             errors.append(f"{lab_id}: success_criteria_fr must be a non-empty list")
