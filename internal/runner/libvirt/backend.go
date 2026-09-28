@@ -3,6 +3,7 @@ package libvirt
 import (
 	"context"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -17,6 +18,7 @@ var domainSlugUnsafe = regexp.MustCompile(`[^a-z0-9.-]+`)
 
 var (
 	_ runner.ConsoleRunner = (*Backend)(nil)
+	_ runner.RebootRunner  = (*Backend)(nil)
 	_ runner.StorageProbe  = (*Backend)(nil)
 )
 
@@ -32,9 +34,11 @@ type Backend struct {
 }
 
 type managedInstance struct {
-	Definition    runner.Definition
-	Paths         OverlayPaths
-	DomainDefined bool
+	Definition     runner.Definition
+	Paths          OverlayPaths
+	DomainDefined  bool
+	NetworkName    string
+	NetworkDefined bool
 }
 
 func NewBackend(
@@ -78,12 +82,6 @@ func (backend *Backend) Prepare(
 	if definition.Machine == nil {
 		return runner.Instance{}, errors.New("libvirt runner requires machine settings")
 	}
-	if definition.Network != runner.NetworkNone {
-		return runner.Instance{}, fmt.Errorf(
-			"%w: libvirt isolated networking is not implemented yet",
-			runner.ErrNotSupported,
-		)
-	}
 	name, err := vmInstanceName(definition.LabID)
 	if err != nil {
 		return runner.Instance{}, err
@@ -112,16 +110,52 @@ func (backend *Backend) prepareNamed(
 		)
 	}
 
+	var networkControl NetworkControlPlane
+	networkName := ""
+	if definition.Network == runner.NetworkIsolated {
+		var ok bool
+		networkControl, ok = backend.control.(NetworkControlPlane)
+		if !ok {
+			return fmt.Errorf(
+				"%w: libvirt control plane has no isolated-network capability",
+				runner.ErrNotSupported,
+			)
+		}
+		networkName = name
+	}
+
 	paths, err := backend.overlays.Create(ctx, name, image, *definition.Machine)
 	if err != nil {
 		return fmt.Errorf("create VM disks for %s: %w", name, err)
 	}
 	cleanup := true
+	networkDefined := false
 	defer func() {
-		if cleanup {
-			_ = backend.overlays.Destroy(name)
+		if !cleanup {
+			return
 		}
+		if networkDefined && networkControl != nil {
+			if active, activeErr := networkControl.NetworkActive(networkName); activeErr == nil && active {
+				_ = networkControl.DestroyNetwork(networkName)
+			}
+			_ = networkControl.UndefineNetwork(networkName)
+		}
+		_ = backend.overlays.Destroy(name)
 	}()
+
+	if networkControl != nil {
+		networkXML, err := BuildIsolatedNetworkXML(networkName, networkSubnetOctet(networkName))
+		if err != nil {
+			return fmt.Errorf("build isolated network XML for %s: %w", networkName, err)
+		}
+		if err := networkControl.DefineNetwork(networkName, networkXML); err != nil {
+			return err
+		}
+		networkDefined = true
+		if err := networkControl.StartNetwork(networkName); err != nil {
+			return err
+		}
+	}
 
 	extraDisks := make([]DiskPath, 0, len(definition.Machine.ExtraDisks))
 	for _, requested := range definition.Machine.ExtraDisks {
@@ -140,6 +174,7 @@ func (backend *Backend) prepareNamed(
 		Firmware:     definition.Machine.Firmware,
 		RootDiskPath: paths.RootDisk,
 		ExtraDisks:   extraDisks,
+		NetworkName:  networkName,
 	}, backend.stateRoot)
 	if err != nil {
 		return fmt.Errorf("build domain XML for %s: %w", name, err)
@@ -155,9 +190,11 @@ func (backend *Backend) prepareNamed(
 		return fmt.Errorf("VM instance %s already tracked", name)
 	}
 	backend.instances[name] = managedInstance{
-		Definition:    definition,
-		Paths:         paths,
-		DomainDefined: true,
+		Definition:     definition,
+		Paths:          paths,
+		DomainDefined:  true,
+		NetworkName:    networkName,
+		NetworkDefined: networkDefined,
 	}
 	backend.mu.Unlock()
 
@@ -173,6 +210,26 @@ func (backend *Backend) Start(ctx context.Context, instance runner.Instance) err
 		return err
 	}
 	if err := backend.control.StartDomain(instance.ID); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (backend *Backend) Reboot(ctx context.Context, instance runner.Instance) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	if _, err := backend.instance(instance); err != nil {
+		return err
+	}
+	state, err := backend.control.DomainState(instance.ID)
+	if err != nil {
+		return err
+	}
+	if !state.Active {
+		return fmt.Errorf("VM instance %s is not active", instance.ID)
+	}
+	if err := backend.control.RebootDomain(instance.ID); err != nil {
 		return err
 	}
 	return nil
@@ -299,6 +356,32 @@ func (backend *Backend) destroyManaged(
 		backend.mu.Unlock()
 	}
 
+	if managed.NetworkDefined {
+		networkControl, ok := backend.control.(NetworkControlPlane)
+		if !ok {
+			return fmt.Errorf(
+				"%w: libvirt control plane lost isolated-network capability",
+				runner.ErrNotSupported,
+			)
+		}
+		active, err := networkControl.NetworkActive(managed.NetworkName)
+		if err != nil {
+			return err
+		}
+		if active {
+			if err := networkControl.DestroyNetwork(managed.NetworkName); err != nil {
+				return err
+			}
+		}
+		if err := networkControl.UndefineNetwork(managed.NetworkName); err != nil {
+			return err
+		}
+		managed.NetworkDefined = false
+		backend.mu.Lock()
+		backend.instances[name] = managed
+		backend.mu.Unlock()
+	}
+
 	if err := backend.overlays.Destroy(name); err != nil {
 		return err
 	}
@@ -353,6 +436,11 @@ func (backend *Backend) instance(instance runner.Instance) (managedInstance, err
 		return managedInstance{}, fmt.Errorf("%w %q", errUnknownVMInstance, instance.ID)
 	}
 	return managed, nil
+}
+
+func networkSubnetOctet(name string) int {
+	digest := sha256.Sum256([]byte(name))
+	return int(digest[0])%250 + 1
 }
 
 func vmInstanceName(labID string) (string, error) {
