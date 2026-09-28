@@ -437,9 +437,9 @@ func TestLabResetDoesNotEraseSolutionRevealEvidence(t *testing.T) {
 }
 
 type scriptedLabRunner struct {
-	failChecks         bool
+	failChecks        bool
 	rejectNonTTYStdin bool
-	execRequests       []runner.ExecRequest
+	execRequests      []runner.ExecRequest
 }
 
 func (*scriptedLabRunner) Prepare(context.Context, runner.Definition) (runner.Instance, error) {
