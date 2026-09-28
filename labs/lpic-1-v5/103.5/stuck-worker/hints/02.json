@@ -3,6 +3,6 @@
   "id": "lpic1.103.5.stuck-worker.hint-2",
   "lab_id": "lpic1.103.5.stuck-worker",
   "level": 2,
-  "content_fr": "ps/pgrep peuvent cibler stuck-worker. Dans :shell, utilise Ctrl-Z, jobs puis bg sur le probe. Pour la suite, cherche comment nohup protège de SIGHUP et comment tmux crée une session détachée.",
+  "content_fr": "ps avec les colonnes pid,ppid,stat,comm,args permet de produire le snapshot demandé. Dans :shell, utilise Ctrl-Z, jobs puis bg sur le probe. Pour la suite, cherche comment nohup protège de SIGHUP et comment tmux crée une session détachée.",
   "evidence_impact": "material"
 }
