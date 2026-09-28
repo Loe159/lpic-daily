@@ -19,6 +19,10 @@ var phase1CapabilityProfiles = map[string]CapabilityProfile{
 		Name:         "identity-files",
 		Capabilities: []string{"CHOWN", "FOWNER", "FSETID"},
 	},
+	"shared-files-users": {
+		Name:         "shared-files-users",
+		Capabilities: []string{"CHOWN", "FOWNER", "FSETID", "SETGID", "SETUID"},
+	},
 	"process-lab": {
 		Name:         "process-lab",
 		Capabilities: []string{"KILL"},

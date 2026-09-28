@@ -14,7 +14,7 @@ lpic1.103.5.stuck-worker
 lpic1.104.5.shared-dropbox
 ```
 
-`shell-environment-repair` validates PATH resolution, exported variables and quoting in fresh login shells. `stuck-worker` exercises process inspection/selection, foreground/background shell jobs and signals through the persistent PTY. `shared-dropbox` practices ownership, rwx/octal permissions, SGID, sticky bit and directory semantics.
+`shell-environment-repair` validates PATH resolution, exported variables and quoting in fresh login shells. `stuck-worker` exercises process inspection/selection, foreground/background shell jobs and signals through the persistent PTY. `shared-dropbox` practices ownership, rwx/octal permissions, umask, SGID, sticky bit and directory semantics.
 
 Phase 2 also contains the authored VM lab `lpic1.104.1.partition-filesystems`. The CLI now dispatches `libvirt` labs only to the system libvirt backend; there is no Podman fallback. VM runs require a trusted local image catalog at `$XDG_DATA_HOME/lpic-daily/vm-images/catalog.json` (or the same path under `LPIC_DAILY_VM_IMAGE_DIR`). The reproducible VM image build/install pipeline is still in progress, so this lab is not yet part of the default runnable slice. `lpic doctor` reports `qemu-img`, trusted VM catalog and `qemu:///system` readiness separately.
 
@@ -64,7 +64,7 @@ The application never pulls lab images implicitly. Missing images or an unusable
 
 ## Daily desktop notification
 
-The Fedora adapter uses `notify-send` and a user-level systemd timer. The notification is sent at most once per local day when work is due; selecting **Ouvrir** launches `lpic tui` through `xdg-terminal-exec`. A custom launcher can be supplied with `LPIC_DAILY_TERMINAL_LAUNCHER`.
+The Fedora adapter uses `notify-send` and a user-level systemd timer. Automatic delivery is reserved before calling `notify-send`, so it is attempted at most once per local day when work is due. An explicit `notify-send` failure releases the reservation for retry; a process crash after reservation intentionally suppresses automatic retries for that day to avoid duplicate notifications. Selecting **Ouvrir** launches `lpic tui` through `xdg-terminal-exec`. A custom launcher can be supplied with `LPIC_DAILY_TERMINAL_LAUNCHER`.
 
 For a local development install:
 

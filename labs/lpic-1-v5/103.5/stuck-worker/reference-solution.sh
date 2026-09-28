@@ -7,7 +7,7 @@ kill -TERM "$(cat /run/lpic/stuck-worker.pid)"
 probe_pid="$!"
 
 sleep 0.1
-kill -STOP "$probe_pid"
+kill -TSTP "$probe_pid"
 kill -CONT "$probe_pid"
 sleep 0.2
 kill -TERM "$probe_pid"

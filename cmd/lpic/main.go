@@ -289,7 +289,7 @@ func runNotifyWithExecutor(
 			if sent {
 				fmt.Fprintln(stdout, "Notification quotidienne déjà envoyée.")
 			} else {
-				fmt.Fprintln(stdout, "Notification quotidienne déjà en cours d'envoi.")
+				fmt.Fprintln(stdout, "Notification quotidienne déjà réservée pour aujourd'hui.")
 			}
 			return nil
 		}

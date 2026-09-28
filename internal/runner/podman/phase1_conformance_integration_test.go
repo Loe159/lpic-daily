@@ -88,6 +88,15 @@ func TestPhase1BuiltInLabsConformOnRootlessPodman(t *testing.T) {
 			assertLabNotSolved(t, ctx, session)
 			solve()
 			assertLabSolved(t, ctx, session)
+
+			if authored.Definition.ID == "lpic1.103.5.stuck-worker" {
+				if err := session.Reset(ctx); err != nil {
+					t.Fatalf("Reset() before reference-solution consistency check error = %v", err)
+				}
+				assertLabNotSolved(t, ctx, session)
+				runReferenceSolution(t, ctx, backend, session.Instance, solution)
+				assertLabSolved(t, ctx, session)
+			}
 		})
 	}
 

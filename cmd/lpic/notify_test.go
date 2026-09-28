@@ -115,3 +115,34 @@ func TestNotifyFailureReleasesDailyClaim(t *testing.T) {
 		t.Fatalf("notify retry runs = %d, want 2", len(executor.runs))
 	}
 }
+
+func TestOrphanedNotificationClaimSuppressesDuplicateDelivery(t *testing.T) {
+	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
+	ctx := context.Background()
+	now := time.Date(2026, 9, 28, 9, 0, 0, 0, time.Local)
+
+	store, err := openProgressStore(ctx)
+	if err != nil {
+		t.Fatalf("open progress store: %v", err)
+	}
+	claimed, err := store.ClaimNotification(ctx, now.Format("2006-01-02"), now)
+	if err != nil || !claimed {
+		_ = store.Close()
+		t.Fatalf("preclaim = %v, %v", claimed, err)
+	}
+	if err := store.Close(); err != nil {
+		t.Fatalf("close progress store: %v", err)
+	}
+
+	executor := &notificationExecutor{}
+	var stdout bytes.Buffer
+	if err := runNotifyWithExecutor(ctx, false, &stdout, executor, now.Add(2*time.Hour)); err != nil {
+		t.Fatalf("notify with orphaned claim error = %v", err)
+	}
+	if len(executor.runs) != 0 {
+		t.Fatalf("orphaned claim allowed duplicate notify-send: %d runs", len(executor.runs))
+	}
+	if !strings.Contains(stdout.String(), "déjà réservée") {
+		t.Fatalf("unexpected orphaned-claim output: %q", stdout.String())
+	}
+}

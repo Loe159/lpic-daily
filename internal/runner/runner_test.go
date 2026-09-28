@@ -52,6 +52,20 @@ func TestPhase1CapabilityProfilesAreAllowlisted(t *testing.T) {
 			t.Fatalf("capabilities = %v, want %v", profile.Capabilities, want)
 		}
 	}
+
+	shared, err := runner.Phase1CapabilityProfile("shared-files-users")
+	if err != nil {
+		t.Fatalf("shared-files-users profile: %v", err)
+	}
+	sharedWant := []string{"CHOWN", "FOWNER", "FSETID", "SETGID", "SETUID"}
+	if len(shared.Capabilities) != len(sharedWant) {
+		t.Fatalf("shared capabilities = %v, want %v", shared.Capabilities, sharedWant)
+	}
+	for index, capability := range sharedWant {
+		if shared.Capabilities[index] != capability {
+			t.Fatalf("shared capabilities = %v, want %v", shared.Capabilities, sharedWant)
+		}
+	}
 }
 
 func TestDefinitionRejectsUnsafeWritableGuestPaths(t *testing.T) {

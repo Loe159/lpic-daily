@@ -60,6 +60,9 @@ func TestLoadBuiltinShellEnvironmentRepair(t *testing.T) {
 func TestLoadBuiltinSharedDropbox(t *testing.T) {
 	got := loadBuiltinLab(t, sharedDropboxID)
 
+	if len(got.Definition.ConceptIDs) != 7 || !strings.Contains(strings.Join(got.Definition.ConceptIDs, "\n"), "lpic1.104.5.umask") {
+		t.Fatalf("shared-dropbox concepts = %v, want 7 including umask", got.Definition.ConceptIDs)
+	}
 	if len(got.Hints) != 4 {
 		t.Fatalf("hints = %d, want 4", len(got.Hints))
 	}
@@ -79,8 +82,8 @@ func TestLoadBuiltinSharedDropbox(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CompileChecks() error = %v", err)
 	}
-	if len(checks) != 4 {
-		t.Fatalf("checks = %d, want 4", len(checks))
+	if len(checks) != 6 {
+		t.Fatalf("checks = %d, want 6", len(checks))
 	}
 }
 

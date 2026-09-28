@@ -10,7 +10,7 @@
   "summary": {
     "concepts": 22,
     "with_any_surface": 22,
-    "with_lab": 14,
+    "with_lab": 15,
     "with_lesson": 22,
     "with_question": 22
   },
@@ -286,7 +286,9 @@
       "concept_id": "lpic1.104.5.umask",
       "objective_id": "104.5",
       "surfaces": {
-        "labs": [],
+        "labs": [
+          "lpic1.104.5.shared-dropbox"
+        ],
         "lessons": [
           "lpic1.104.5.lesson.permissions-special-bits",
           "lpic1.104.5.lesson.umask"

@@ -3,6 +3,6 @@
   "id": "lpic1.104.5.shared-dropbox.hint-4",
   "lab_id": "lpic1.104.5.shared-dropbox",
   "level": 4,
-  "content_fr": "Solution de référence : attribue le groupe project à /srv/shared puis fixe le mode 3770. Le premier 3 active SGID (2) et sticky bit (1), tandis que 770 donne rwx au propriétaire et au groupe et aucun droit aux autres.",
+  "content_fr": "Solution de référence : attribue le groupe project à /srv/shared, fixe le mode 3770, puis configure un umask 0007 pour alice et bob dans leur environnement de login. Le premier 3 active SGID (2) et sticky bit (1), 770 donne rwx au propriétaire et au groupe, et le umask 0007 produit des fichiers 0660 sans droits pour others.",
   "evidence_impact": "solution-revealed"
 }

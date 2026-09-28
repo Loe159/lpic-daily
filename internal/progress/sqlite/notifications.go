@@ -6,8 +6,6 @@ import (
 	"time"
 )
 
-const notificationClaimTTL = 10 * time.Minute
-
 func (store *Store) NotificationSent(ctx context.Context, localDay string) (bool, error) {
 	var count int
 	if err := store.db.QueryRowContext(
@@ -25,20 +23,13 @@ func (store *Store) ClaimNotification(ctx context.Context, localDay string, at t
 		return false, fmt.Errorf("local day and timestamp are required")
 	}
 
-	claimedAt := at.UTC()
-	staleBefore := claimedAt.Add(-notificationClaimTTL)
 	result, err := store.db.ExecContext(
 		ctx,
 		`INSERT INTO notification_delivery (local_day, notified_at, status)
 		 VALUES (?, ?, 'claimed')
-		 ON CONFLICT(local_day) DO UPDATE SET
-		     notified_at = excluded.notified_at,
-		     status = 'claimed'
-		 WHERE notification_delivery.status = 'claimed'
-		   AND julianday(notification_delivery.notified_at) <= julianday(?)`,
+		 ON CONFLICT(local_day) DO NOTHING`,
 		localDay,
-		claimedAt.Format(time.RFC3339Nano),
-		staleBefore.Format(time.RFC3339Nano),
+		at.UTC().Format(time.RFC3339Nano),
 	)
 	if err != nil {
 		return false, fmt.Errorf("claim notification delivery for %s: %w", localDay, err)
