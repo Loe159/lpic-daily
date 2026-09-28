@@ -18,8 +18,12 @@ Voir `docs/CONTENT_MODEL.md`.
 
 ## Versioning
 
-Chaque instance de contenu possède `schema_version`. Les schemas suivent SemVer. Les migrations seront implémentées dans l'application avant toute rupture de format.
+Chaque instance de contenu possède `schema_version`. Les schemas suivent SemVer. Les migrations doivent être implémentées dans l'application avant toute rupture de format.
 
 ## Validation actuelle
 
-Les scripts foundation valident structure du curriculum, graphe, concept inventory et références. La validation JSON Schema complète sera intégrée au loader Go Phase 1 et aux tests CI; aucun contenu invalide ne doit être chargé en mode permissif.
+Les scripts foundation valident la structure du curriculum, le graphe, l'inventaire des concepts, les références et la couverture machine-readable.
+
+Les loaders Go valident le contenu authored contre les schemas Draft 2020-12 embarqués avant la validation sémantique ou toute exécution. Un document invalide ou un type runtime non supporté échoue explicitement; il n'existe pas de chargement permissif.
+
+La CI exécute ces validations sur Ubuntu et valide également le contenu embarqué à travers le loader Go sur Ubuntu et Fedora.
