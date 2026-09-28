@@ -3,6 +3,6 @@
   "id": "lpic1.103.5.transfer-operator-session.hint-1",
   "lab_id": "lpic1.103.5.transfer-operator-session",
   "level": 1,
-  "content_fr": "Commence par inspecter queue-worker et leaky-worker et conserve PID/PPID/état/commande dans /run/lpic/transfer-process-inspection. Puis traite séparément sélection, vrai job control, arrière-plan, survie à la session et multiplexage.",
+  "content_fr": "Le worker existant ne doit pas être tué : trouve son PID par son nom, inspecte-le puis utilise le signal de rechargement demandé. Vérifie ensuite qu’il tourne toujours.",
   "evidence_impact": "none"
 }
