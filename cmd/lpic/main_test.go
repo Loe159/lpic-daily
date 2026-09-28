@@ -12,6 +12,7 @@ import (
 	"github.com/Loe159/lpic-daily/internal/curriculum"
 	"github.com/Loe159/lpic-daily/internal/lab"
 	"github.com/Loe159/lpic-daily/internal/learning"
+	"github.com/Loe159/lpic-daily/internal/runner"
 )
 
 const (
@@ -359,3 +360,77 @@ func TestCorrectRecognitionAfterLessonAdvancesToNextConcept(t *testing.T) {
 		t.Fatalf("today did not advance after consolidation: %q", todayOut.String())
 	}
 }
+
+
+func TestLabResetDoesNotEraseSolutionRevealEvidence(t *testing.T) {
+	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
+
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("LoadAll() error = %v", err)
+	}
+	var authored lab.Lab
+	for _, candidate := range labs {
+		if candidate.Definition.ID == sharedDropboxID {
+			authored = candidate
+			break
+		}
+	}
+	if authored.Definition.ID == "" {
+		t.Fatal("shared-dropbox lab not found")
+	}
+
+	input := strings.NewReader(":hint\n:hint\n:hint\n:hint\n:reset\n:check\n")
+	var stdout, stderr bytes.Buffer
+	if err := runInteractiveLabWithBackend(
+		context.Background(), authored, &scriptedLabRunner{}, false,
+		input, &stdout, &stderr,
+	); err != nil {
+		t.Fatalf("runInteractiveLabWithBackend() error = %v; stderr=%q", err, stderr.String())
+	}
+
+	store, err := openProgressStore(context.Background())
+	if err != nil {
+		t.Fatalf("open progress store: %v", err)
+	}
+	defer store.Close()
+
+	events, err := store.EvidenceForConcept(context.Background(), authored.Definition.ConceptIDs[0])
+	if err != nil {
+		t.Fatalf("EvidenceForConcept() error = %v", err)
+	}
+	if len(events) != 1 {
+		t.Fatalf("events = %d, want 1", len(events))
+	}
+	if events[0].HighestHintLevel != 4 || !events[0].SolutionRevealed {
+		t.Fatalf("reset laundered hint evidence: %#v", events[0])
+	}
+	projection, err := learning.ProjectMastery(events[0].ConceptID, events, learning.DefaultProjectionPolicy())
+	if err != nil {
+		t.Fatalf("ProjectMastery() error = %v", err)
+	}
+	if projection.Stage != learning.StageGuided {
+		t.Fatalf("stage = %s, want guided after solution reveal", projection.Stage)
+	}
+}
+
+type scriptedLabRunner struct{}
+
+func (*scriptedLabRunner) Prepare(context.Context, runner.Definition) (runner.Instance, error) {
+	return runner.Instance{ID: "scripted"}, nil
+}
+func (*scriptedLabRunner) Start(context.Context, runner.Instance) error { return nil }
+func (*scriptedLabRunner) Exec(context.Context, runner.Instance, runner.ExecRequest) (runner.ExecResult, error) {
+	return runner.ExecResult{ExitCode: 0}, nil
+}
+func (*scriptedLabRunner) Stat(_ context.Context, _ runner.Instance, guestPath string) (runner.FileInfo, error) {
+	return runner.FileInfo{Path: guestPath, Mode: 0o3770, UID: 0, GID: 2000, User: "root", Group: "project", IsDir: true}, nil
+}
+func (*scriptedLabRunner) ReadFile(context.Context, runner.Instance, string, int64) ([]byte, error) {
+	return nil, errors.New("unexpected ReadFile")
+}
+func (*scriptedLabRunner) Processes(context.Context, runner.Instance) ([]runner.Process, error) {
+	return nil, nil
+}
+func (*scriptedLabRunner) Reset(context.Context, runner.Instance) error { return nil }
+func (*scriptedLabRunner) Destroy(context.Context, runner.Instance) error { return nil }

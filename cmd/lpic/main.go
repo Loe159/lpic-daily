@@ -1000,7 +1000,9 @@ func runInteractiveLabWithBackend(
 				return fmt.Errorf("reset lab: %w", err)
 			}
 			nextHint = 0
-			highestHintLevel = 0
+			// Reset restores the sandbox state, not the learning attempt. Keep
+			// the strongest hint already seen so a revealed solution cannot be
+			// laundered into independent evidence by resetting the lab.
 			fmt.Fprintln(stdout, "Lab réinitialisé dans son état de départ.")
 			continue
 		case ":check":
