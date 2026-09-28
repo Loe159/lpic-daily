@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	apiBase = "/v6.0.0/libpod"
+	apiBase                            = "/v6.0.0/libpod"
 	phase1WritablePathLimitBytes int64 = 32 << 20
 )
 
@@ -79,29 +79,29 @@ type ociMount struct {
 }
 
 type createRequest struct {
-	Name            string            `json:"name"`
-	Image           string            `json:"image"`
-	RawImageName    string            `json:"raw_image_name"`
-	Command         []string          `json:"command"`
-	EnvHost         *bool             `json:"env_host"`
-	HTTPProxy       *bool             `json:"httpproxy"`
-	Terminal        *bool             `json:"terminal"`
-	Stdin           *bool             `json:"stdin"`
-	Labels          map[string]string `json:"labels"`
-	Timeout         uint              `json:"timeout"`
-	Privileged      *bool             `json:"privileged"`
-	CapAdd          []string          `json:"cap_add,omitempty"`
-	CapDrop         []string          `json:"cap_drop"`
-	NoNewPrivileges *bool             `json:"no_new_privileges"`
-	NetNS           namespace         `json:"netns"`
-	PidNS           namespace         `json:"pidns"`
-	UtsNS           namespace         `json:"utsns"`
-	IpcNS           namespace         `json:"ipcns"`
-	ImageVolumeMode    string          `json:"image_volume_mode"`
-	ReadOnlyFilesystem *bool           `json:"read_only_filesystem"`
-	ReadWriteTmpfs     *bool           `json:"read_write_tmpfs"`
-	Mounts             []ociMount      `json:"mounts,omitempty"`
-	ResourceLimits     *linuxResources `json:"resource_limits"`
+	Name               string            `json:"name"`
+	Image              string            `json:"image"`
+	RawImageName       string            `json:"raw_image_name"`
+	Command            []string          `json:"command"`
+	EnvHost            *bool             `json:"env_host"`
+	HTTPProxy          *bool             `json:"httpproxy"`
+	Terminal           *bool             `json:"terminal"`
+	Stdin              *bool             `json:"stdin"`
+	Labels             map[string]string `json:"labels"`
+	Timeout            uint              `json:"timeout"`
+	Privileged         *bool             `json:"privileged"`
+	CapAdd             []string          `json:"cap_add,omitempty"`
+	CapDrop            []string          `json:"cap_drop"`
+	NoNewPrivileges    *bool             `json:"no_new_privileges"`
+	NetNS              namespace         `json:"netns"`
+	PidNS              namespace         `json:"pidns"`
+	UtsNS              namespace         `json:"utsns"`
+	IpcNS              namespace         `json:"ipcns"`
+	ImageVolumeMode    string            `json:"image_volume_mode"`
+	ReadOnlyFilesystem *bool             `json:"read_only_filesystem"`
+	ReadWriteTmpfs     *bool             `json:"read_write_tmpfs"`
+	Mounts             []ociMount        `json:"mounts,omitempty"`
+	ResourceLimits     *linuxResources   `json:"resource_limits"`
 }
 
 type createResponse struct {
@@ -342,14 +342,14 @@ func buildCreateRequest(definition runner.Definition, name string) (createReques
 			"io.lpic-daily.managed": "true",
 			"io.lpic-daily.lab-id":  definition.LabID,
 		},
-		Timeout:         uint(definition.Timeout.Seconds()),
-		Privileged:      &falseValue,
-		CapAdd:          append([]string(nil), profile.Capabilities...),
-		CapDrop:         []string{"ALL"},
-		NoNewPrivileges: &trueValue,
-		NetNS:           namespace{NSMode: "none"},
-		PidNS:           namespace{NSMode: "private"},
-		UtsNS:           namespace{NSMode: "private"},
+		Timeout:            uint(definition.Timeout.Seconds()),
+		Privileged:         &falseValue,
+		CapAdd:             append([]string(nil), profile.Capabilities...),
+		CapDrop:            []string{"ALL"},
+		NoNewPrivileges:    &trueValue,
+		NetNS:              namespace{NSMode: "none"},
+		PidNS:              namespace{NSMode: "private"},
+		UtsNS:              namespace{NSMode: "private"},
 		IpcNS:              namespace{NSMode: "private"},
 		ImageVolumeMode:    "ignore",
 		ReadOnlyFilesystem: &trueValue,

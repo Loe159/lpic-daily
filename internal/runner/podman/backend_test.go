@@ -18,16 +18,16 @@ import (
 
 func validDefinition() runner.Definition {
 	return runner.Definition{
-		LabID:             "104.5.shared-dropbox",
-		ImageRef:          "localhost/lpic-daily/fedora-phase1:1",
-		Distribution:      "fedora",
-		Network:           runner.NetworkNone,
+		LabID:              "104.5.shared-dropbox",
+		ImageRef:           "localhost/lpic-daily/fedora-phase1:1",
+		Distribution:       "fedora",
+		Network:            runner.NetworkNone,
 		CapabilityProfile:  "identity-files",
 		WritableGuestPaths: []string{"/srv/shared", "/home/alice", "/home/bob"},
 		MemoryMB:           256,
-		CPUPercent:        100,
-		PIDs:              128,
-		Timeout:           20 * time.Minute,
+		CPUPercent:         100,
+		PIDs:               128,
+		Timeout:            20 * time.Minute,
 	}
 }
 

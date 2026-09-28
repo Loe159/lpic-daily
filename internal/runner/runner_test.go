@@ -54,7 +54,6 @@ func TestPhase1CapabilityProfilesAreAllowlisted(t *testing.T) {
 	}
 }
 
-
 func TestDefinitionRejectsUnsafeWritableGuestPaths(t *testing.T) {
 	base := runner.Definition{
 		LabID: "lab", ImageRef: "sha256:deadbeef", Distribution: "fedora",
