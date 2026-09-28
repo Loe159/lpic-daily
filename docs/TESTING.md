@@ -1,17 +1,59 @@
 # Testing strategy
 
-## Foundation
-`python3 scripts/validate_curriculum.py` verifies structural LPIC coverage before application code exists.
+## Validation layers
 
-## Future test layers
-- Unit tests: curriculum parser, scheduler, mastery math, checker primitives.
-- Golden/schema tests: content parsing and stable rendering.
-- TUI tests: deterministic model/update/view tests without real terminals where possible.
-- Podman integration tests: run every capability profile against disposable containers.
-- libvirt integration tests: provision overlay, mutate guest, reboot, verify state, destroy overlay.
-- Lab conformance tests: every lab setup and reference solution must lead from fresh state to pass; deliberate wrong states must fail.
-- Security negative tests: path traversal, hostile packs, mount escape attempts, command injection, excessive capabilities, network-deny assertions, resource limits.
-- End-to-end smoke: install -> first daily session -> lab -> progress persistence -> reset/export.
+### Foundation and authored content
+
+`python3 scripts/validate_foundation.py` validates the complete LPIC objective inventory, prerequisite graph, concept inventory, schemas, authored references and Phase-1 coverage invariants.
+
+The Go curriculum/content loaders independently validate embedded authored JSON against the Draft 2020-12 schemas before semantic validation. Invalid or unsupported content fails closed.
+
+### Go unit and domain tests
+
+`go test ./...` covers the curriculum/content loaders, scheduler and mastery projection, SQLite progress store, TUI behavior, runner contracts, state checkers, lab orchestration and CLI behavior.
+
+`go vet ./...` and `gofmt` are enforced in CI. `go mod tidy` must leave `go.mod` and `go.sum` unchanged.
+
+### Podman integration and security
+
+Phase-1 Podman integration tests compile on every CI run and execute against a real rootless Podman service on both Ubuntu and Fedora.
+
+These tests cover the authored Phase-1 lab lifecycle and security invariants, including fail-closed backend handling, resource/capability restrictions and destructive host-sentinel isolation checks.
+
+### TUI and terminal safety
+
+Non-interactive TUI rendering is tested for deterministic behavior and sanitization of untrusted terminal control characters.
+
+Raw PTY passthrough is reserved for explicit interactive terminal surfaces where terminal control sequences are required.
+
+### Lab conformance
+
+Authored labs are validated against their schemas and runtime contracts. Phase-1 coverage generation requires all 22 selected concepts to remain traceable and to have two distinct machine-checked practical contexts.
+
+State-based grading must accept equivalent valid end states rather than depending on an exact learner command transcript.
 
 ## CI tiers
-Fast PR CI should not require KVM. Hypervisor scenarios run on a dedicated KVM-capable runner or scheduled integration environment. Never weaken VM tests merely to make generic hosted CI pass.
+
+The current GitHub Actions workflow runs:
+
+- foundation/schema/coverage validation on Ubuntu;
+- Go formatting, tests, vet and embedded-content validation on Ubuntu;
+- Go tests and embedded-content validation on Fedora 44;
+- real rootless Podman Phase-1 conformance/security tests on Ubuntu;
+- real rootless Podman Phase-1 conformance/security tests on Fedora 44.
+
+Fast PR CI must not require KVM.
+
+## Phase 2 verification
+
+The libvirt/QEMU/KVM backend has unit and non-KVM CI coverage, but Phase 2 is not accepted until the VM-specific integration layer is complete.
+
+Remaining acceptance-level verification includes:
+
+- real KVM/libvirt lifecycle and host-sentinel testing;
+- base-image immutability verification;
+- isolated-network no-forwarding verification;
+- boot/reboot coverage for the 102.2 reference lab;
+- end-to-end 104.1 and 102.2 execution using the released/reproducible guest-image pipeline.
+
+Hypervisor scenarios belong on a KVM-capable runner or dedicated integration environment. Never weaken VM isolation or verification merely to make generic hosted CI pass.
