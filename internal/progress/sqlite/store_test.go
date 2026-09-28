@@ -118,7 +118,6 @@ func TestEvidenceBatchRollsBackAtomically(t *testing.T) {
 	}
 }
 
-
 func TestLabDisclosureKeepsStrongestLevelUntilCleared(t *testing.T) {
 	ctx := context.Background()
 	store, err := Open(ctx, ":memory:")
