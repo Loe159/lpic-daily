@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/Loe159/lpic-daily/internal/runner"
 )
@@ -229,10 +230,58 @@ func (backend *Backend) Reboot(ctx context.Context, instance runner.Instance) er
 	if !state.Active {
 		return fmt.Errorf("VM instance %s is not active", instance.ID)
 	}
+
+	beforeBootID, err := backend.guestBootID(ctx, instance)
+	if err != nil {
+		return fmt.Errorf("read guest boot ID before reboot: %w", err)
+	}
 	if err := backend.control.RebootDomain(instance.ID); err != nil {
 		return err
 	}
-	return nil
+
+	waitCtx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	defer cancel()
+	ticker := time.NewTicker(250 * time.Millisecond)
+	defer ticker.Stop()
+
+	var lastErr error
+	for {
+		bootID, probeErr := backend.guestBootID(waitCtx, instance)
+		if probeErr == nil && bootID != beforeBootID {
+			return nil
+		}
+		if probeErr != nil {
+			lastErr = probeErr
+		}
+
+		select {
+		case <-waitCtx.Done():
+			if lastErr != nil {
+				return fmt.Errorf("wait for guest reboot: %w (last probe error: %v)", waitCtx.Err(), lastErr)
+			}
+			return fmt.Errorf("wait for guest reboot: %w", waitCtx.Err())
+		case <-ticker.C:
+		}
+	}
+}
+
+func (backend *Backend) guestBootID(ctx context.Context, instance runner.Instance) (string, error) {
+	var output strings.Builder
+	result, err := backend.Exec(ctx, instance, runner.ExecRequest{
+		Argv:   []string{"/usr/bin/cat", "/proc/sys/kernel/random/boot_id"},
+		Stdout: &output,
+	})
+	if err != nil {
+		return "", err
+	}
+	if result.ExitCode != 0 {
+		return "", fmt.Errorf("read guest boot ID: exit %d", result.ExitCode)
+	}
+	bootID := strings.TrimSpace(output.String())
+	if bootID == "" || len(bootID) > 128 {
+		return "", errors.New("guest returned invalid boot ID")
+	}
+	return bootID, nil
 }
 
 func (backend *Backend) OpenConsole(
