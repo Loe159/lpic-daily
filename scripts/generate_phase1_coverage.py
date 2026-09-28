@@ -22,20 +22,50 @@ def load_json(path):
         raise ValueError(f"{path.relative_to(ROOT)}: invalid JSON: {exc}") from exc
 
 
-def artifact_records(pattern):
+def artifact_records(surface, pattern):
     records = []
     for path in sorted(ROOT.glob(pattern)):
         data = load_json(path)
         artifact_id = data.get("id")
-        concepts = data.get("concept_ids")
+        declared_concepts = data.get("concept_ids")
         objectives = data.get("objective_ids")
         if not isinstance(artifact_id, str) or not artifact_id:
             raise ValueError(f"{path.relative_to(ROOT)}: missing id")
-        if not isinstance(concepts, list) or not all(isinstance(item, str) for item in concepts):
+        if not isinstance(declared_concepts, list) or not all(
+            isinstance(item, str) for item in declared_concepts
+        ):
             raise ValueError(f"{path.relative_to(ROOT)}: concept_ids must be a list of strings")
         if not isinstance(objectives, list) or not all(isinstance(item, str) for item in objectives):
             raise ValueError(f"{path.relative_to(ROOT)}: objective_ids must be a list of strings")
-        records.append((artifact_id, set(concepts), set(objectives), path))
+
+        concepts = set(declared_concepts)
+        if surface == "labs":
+            checked_concepts = set()
+            checks = data.get("checks")
+            if not isinstance(checks, list) or not checks:
+                raise ValueError(f"{path.relative_to(ROOT)}: lab requires state checks")
+            for index, check in enumerate(checks, start=1):
+                evidence_concepts = check.get("concept_ids")
+                if not isinstance(evidence_concepts, list) or not evidence_concepts:
+                    raise ValueError(
+                        f"{path.relative_to(ROOT)}: check {index} has no concept evidence mapping"
+                    )
+                unknown = set(evidence_concepts) - concepts
+                if unknown:
+                    raise ValueError(
+                        f"{path.relative_to(ROOT)}: check {index} maps undeclared concepts "
+                        + ", ".join(sorted(unknown))
+                    )
+                checked_concepts.update(evidence_concepts)
+            missing = concepts - checked_concepts
+            if missing:
+                raise ValueError(
+                    f"{path.relative_to(ROOT)}: declared lab concepts lack state-check evidence: "
+                    + ", ".join(sorted(missing))
+                )
+            concepts = checked_concepts
+
+        records.append((artifact_id, concepts, set(objectives), path))
     return records
 
 
@@ -60,7 +90,7 @@ def generate():
 
     seen_artifact_ids = set()
     for surface, pattern in SURFACE_GLOBS.items():
-        for artifact_id, concept_ids, objective_ids, path in artifact_records(pattern):
+        for artifact_id, concept_ids, objective_ids, path in artifact_records(surface, pattern):
             if artifact_id in seen_artifact_ids:
                 raise ValueError(f"duplicate learning artifact id {artifact_id}")
             seen_artifact_ids.add(artifact_id)
