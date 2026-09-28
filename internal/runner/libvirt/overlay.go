@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/Loe159/lpic-daily/internal/runner"
+	"golang.org/x/sys/unix"
 )
 
 type CommandRunner interface {
@@ -86,6 +87,7 @@ type OverlayPaths struct {
 	Directory string
 	RootDisk  string
 	Extra     map[string]string
+	Lease     *os.File
 }
 
 type OverlayManager struct {
@@ -148,9 +150,16 @@ func (manager OverlayManager) Create(
 		return OverlayPaths{}, fmt.Errorf("create instance directory: %w", err)
 	}
 
+	lease, err := acquireInstanceLease(directory)
+	if err != nil {
+		_ = os.RemoveAll(directory)
+		return OverlayPaths{}, err
+	}
+
 	cleanup := true
 	defer func() {
 		if cleanup {
+			_ = releaseInstanceLease(lease)
 			_ = os.RemoveAll(directory)
 		}
 	}()
@@ -159,6 +168,7 @@ func (manager OverlayManager) Create(
 		Directory: directory,
 		RootDisk:  filepath.Join(directory, "root.qcow2"),
 		Extra:     make(map[string]string, len(machine.ExtraDisks)),
+		Lease:     lease,
 	}
 	if err := manager.Commands.Run(
 		ctx,
@@ -216,6 +226,28 @@ func (manager OverlayManager) Destroy(instanceName string) error {
 		return fmt.Errorf("remove VM instance directory: %w", err)
 	}
 	return nil
+}
+
+func acquireInstanceLease(directory string) (*os.File, error) {
+	path := filepath.Join(directory, ".lease")
+	file, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR, 0o600)
+	if err != nil {
+		return nil, fmt.Errorf("open VM instance lease: %w", err)
+	}
+	if err := unix.Flock(int(file.Fd()), unix.LOCK_EX|unix.LOCK_NB); err != nil {
+		_ = file.Close()
+		return nil, fmt.Errorf("lock VM instance lease: %w", err)
+	}
+	return file, nil
+}
+
+func releaseInstanceLease(file *os.File) error {
+	if file == nil {
+		return nil
+	}
+	unlockErr := unix.Flock(int(file.Fd()), unix.LOCK_UN)
+	closeErr := file.Close()
+	return errors.Join(unlockErr, closeErr)
 }
 
 func VerifyImageFile(ctx context.Context, image ImageDescriptor) error {
