@@ -1035,7 +1035,6 @@ func runInteractiveLabWithBackend(
 	scanner.Buffer(make([]byte, 4096), 256<<10)
 	nextHint := nextHintIndex(authored.Hints, highestHintLevel)
 	usedPersistentShell := false
-	ptyEvidence := &ptyInteractionEvidence{}
 
 	for {
 		if err := sessionCtx.Err(); err != nil {
@@ -1091,7 +1090,7 @@ func runInteractiveLabWithBackend(
 				continue
 			}
 			fmt.Fprintln(stdout, "Ouverture d'un shell persistant dans la sandbox. Tape exit ou Ctrl-D pour revenir.")
-			result, err := runPersistentShell(sessionCtx, backend, session.Instance, stdin, stdout, ptyEvidence)
+			result, err := runPersistentShell(sessionCtx, backend, session.Instance, stdin, stdout)
 			if err != nil {
 				return fmt.Errorf("interactive sandbox shell: %w", err)
 			}
@@ -1109,13 +1108,19 @@ func runInteractiveLabWithBackend(
 			// across resets/restarts and remains attached to the learning attempt.
 			nextHint = nextHintIndex(authored.Hints, highestHintLevel)
 			usedPersistentShell = false
-			ptyEvidence.Reset()
 			fmt.Fprintln(stdout, "Lab réinitialisé dans son état de départ.")
 			continue
 		case ":check":
 			passed := true
-			requiresJobControl := labRequiresObservedJobControl(authored.Definition)
-			if (authored.Definition.NeedsPersistentShell || requiresJobControl) && !usedPersistentShell {
+			results, err := session.Evaluate(sessionCtx)
+			if err != nil {
+				return fmt.Errorf("evaluate lab: %w", err)
+			}
+			conceptResults, err := study.LabConceptResults(authored, results)
+			if err != nil {
+				return fmt.Errorf("derive per-concept lab results: %w", err)
+			}
+			if authored.Definition.NeedsPersistentShell && !usedPersistentShell {
 				fmt.Fprintf(
 					stdout,
 					"  %-11s %s.persistent-shell — ce lab exige un passage par :shell pour valider le job control réel\n",
@@ -1123,27 +1128,15 @@ func runInteractiveLabWithBackend(
 					authored.Definition.ID,
 				)
 				passed = false
-			} else if requiresJobControl && !ptyEvidence.JobControlObserved() {
-				fmt.Fprintf(
-					stdout,
-					"  %-11s %s.pty-job-control — Ctrl-Z, jobs et bg doivent être observés dans :shell avant la validation finale\n",
-					"À CORRIGER",
-					authored.Definition.ID,
-				)
-				passed = false
-			} else {
-				results, err := session.Evaluate(sessionCtx)
-				if err != nil {
-					return fmt.Errorf("evaluate lab: %w", err)
+				markPersistentShellConceptFailure(authored.Definition, conceptResults)
+			}
+			for _, result := range results {
+				state := "OK"
+				if !result.Pass {
+					state = "À CORRIGER"
+					passed = false
 				}
-				for _, result := range results {
-					state := "OK"
-					if !result.Pass {
-						state = "À CORRIGER"
-						passed = false
-					}
-					fmt.Fprintf(stdout, "  %-11s %s — %s\n", state, result.CheckID, result.Detail)
-				}
+				fmt.Fprintf(stdout, "  %-11s %s — %s\n", state, result.CheckID, result.Detail)
 			}
 			store, err := openProgressStore(sessionCtx)
 			if err != nil {
@@ -1178,11 +1171,11 @@ func runInteractiveLabWithBackend(
 				return nil
 			}
 
-			recordErr := study.RecordLabAttempt(
+			recordErr := study.RecordLabConceptResults(
 				sessionCtx,
 				store,
 				authored,
-				learning.ResultFail,
+				conceptResults,
 				highestHintLevel,
 				now,
 			)
@@ -1215,88 +1208,20 @@ func runInteractiveLabWithBackend(
 	}
 }
 
-func labRequiresObservedJobControl(definition lab.Definition) bool {
+func markPersistentShellConceptFailure(
+	definition lab.Definition,
+	conceptResults map[string]learning.Result,
+) {
+	const jobControlConcept = "lpic1.103.5.jobs-du-shell"
 	for _, conceptID := range definition.ConceptIDs {
-		if conceptID == "lpic1.103.5.jobs-du-shell" {
-			return true
+		if conceptID == jobControlConcept {
+			conceptResults[conceptID] = learning.ResultFail
+			return
 		}
 	}
-	return false
-}
-
-type ptyInteractionEvidence struct {
-	sawCtrlZ bool
-	sawJobs  bool
-	sawBg    bool
-	line     []byte
-}
-
-func (evidence *ptyInteractionEvidence) Observe(data []byte) {
-	if evidence == nil {
-		return
+	for _, conceptID := range definition.ConceptIDs {
+		conceptResults[conceptID] = learning.ResultFail
 	}
-	for _, value := range data {
-		if value == 0x1a {
-			evidence.sawCtrlZ = true
-			continue
-		}
-		if value == '\r' || value == '\n' {
-			evidence.observeLine()
-			continue
-		}
-		if value >= 0x20 && value < 0x7f {
-			evidence.line = append(evidence.line, value)
-			if len(evidence.line) > 4096 {
-				evidence.line = evidence.line[len(evidence.line)-4096:]
-			}
-		}
-	}
-}
-
-func (evidence *ptyInteractionEvidence) observeLine() {
-	line := strings.TrimSpace(string(evidence.line))
-	evidence.line = evidence.line[:0]
-	if line == "" {
-		return
-	}
-	fields := strings.Fields(line)
-	if len(fields) == 0 {
-		return
-	}
-	switch fields[0] {
-	case "jobs":
-		evidence.sawJobs = true
-	case "bg":
-		evidence.sawBg = true
-	}
-}
-
-func (evidence *ptyInteractionEvidence) JobControlObserved() bool {
-	return evidence != nil && evidence.sawCtrlZ && evidence.sawJobs && evidence.sawBg
-}
-
-func (evidence *ptyInteractionEvidence) Reset() {
-	if evidence == nil {
-		return
-	}
-	*evidence = ptyInteractionEvidence{}
-}
-
-type observingTerminalReader struct {
-	file     *os.File
-	evidence *ptyInteractionEvidence
-}
-
-func (reader *observingTerminalReader) Read(buffer []byte) (int, error) {
-	n, err := reader.file.Read(buffer)
-	if n > 0 {
-		reader.evidence.Observe(buffer[:n])
-	}
-	return n, err
-}
-
-func (reader *observingTerminalReader) Fd() uintptr {
-	return reader.file.Fd()
 }
 
 func runPersistentShell(
@@ -1305,7 +1230,6 @@ func runPersistentShell(
 	instance runner.Instance,
 	stdin io.Reader,
 	stdout io.Writer,
-	evidence *ptyInteractionEvidence,
 ) (result runner.ExecResult, returnErr error) {
 	stdinFile, ok := stdin.(*os.File)
 	if !ok || !terminal.IsTerminal(stdinFile) {
@@ -1362,15 +1286,10 @@ func runPersistentShell(
 		env["TERM"] = value
 	}
 
-	shellInput := io.Reader(stdinFile)
-	if evidence != nil {
-		shellInput = &observingTerminalReader{file: stdinFile, evidence: evidence}
-	}
-
 	result, execErr := backend.Exec(ctx, instance, runner.ExecRequest{
 		Argv:        []string{"/usr/bin/bash", "-l"},
 		Env:         env,
-		Stdin:       shellInput,
+		Stdin:       stdinFile,
 		Stdout:      stdoutFile,
 		Stderr:      stdoutFile,
 		TTY:         true,

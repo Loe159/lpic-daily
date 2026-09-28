@@ -245,3 +245,42 @@ func TestIndependentConceptRecommendsUnusedTransferLab(t *testing.T) {
 		t.Fatalf("recommended lab = %q, want unused transfer context", got)
 	}
 }
+
+
+func TestBuildPlanDefaultsIntervalsWithoutOverwritingCustomLimits(t *testing.T) {
+	curriculumBundle, contentBundle, labs := loadInputs(t)
+	now := time.Date(2026, 9, 28, 18, 0, 0, 0, time.UTC)
+	evidence := memoryEvidence{}
+
+	for _, conceptID := range curriculumBundle.Phase1.ObjectiveConcepts["103.1"][:3] {
+		evidence[conceptID] = []learning.EvidenceEvent{{
+			EventID:          "event-" + conceptID,
+			OccurredAt:       now.Add(-10 * 24 * time.Hour),
+			ConceptID:        conceptID,
+			ObjectiveIDs:     []string{"103.1"},
+			SourceItemID:     "test-question",
+			ActivityKind:     learning.ActivityQuestion,
+			EvidenceKind:     learning.EvidenceRecall,
+			Result:           learning.ResultPass,
+			HighestHintLevel: 0,
+			SolutionRevealed: false,
+			Distribution:     "generic",
+			AttemptIndex:     1,
+		}}
+	}
+
+	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
+		Now: now, Curriculum: curriculumBundle, Content: contentBundle, Labs: labs,
+		Evidence: evidence,
+		Policy: learning.SessionPolicy{
+			MaxReviews:     1,
+			MaxNewConcepts: 0,
+		},
+	})
+	if err != nil {
+		t.Fatalf("BuildPlan() error = %v", err)
+	}
+	if len(plan.Items) != 1 || plan.Items[0].Kind != learning.SessionReview {
+		t.Fatalf("items = %#v, want exactly one review with default intervals", plan.Items)
+	}
+}

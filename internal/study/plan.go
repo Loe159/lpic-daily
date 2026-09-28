@@ -61,7 +61,12 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 		return Plan{}, errors.New("current time is required")
 	}
 	if input.Policy.ReviewIntervals == nil {
-		input.Policy = learning.DefaultSessionPolicy()
+		defaults := learning.DefaultSessionPolicy()
+		if input.Policy.MaxReviews == 0 && input.Policy.MaxNewConcepts == 0 {
+			input.Policy = defaults
+		} else {
+			input.Policy.ReviewIntervals = defaults.ReviewIntervals
+		}
 	}
 
 	phase1Concepts := make(map[string]struct{})
