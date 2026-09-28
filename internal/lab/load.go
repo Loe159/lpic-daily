@@ -222,7 +222,7 @@ func validateDefinition(fsys fs.FS, base string, definition Definition) error {
 	if definition.Environment.Backend != "podman" && definition.Environment.Backend != "libvirt" {
 		return fmt.Errorf("unsupported backend %q", definition.Environment.Backend)
 	}
-	if definition.RequiresPersistentShell && definition.Environment.Backend != "podman" {
+	if definition.NeedsPersistentShell && definition.Environment.Backend != "podman" {
 		return errors.New("persistent shell requirement is only supported by the Podman backend")
 	}
 	if definition.Environment.Network != "none" && definition.Environment.Network != "isolated" {
