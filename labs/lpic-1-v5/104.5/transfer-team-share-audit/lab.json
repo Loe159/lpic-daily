@@ -1,14 +1,14 @@
 {
   "schema_version": "1.0.0",
   "id": "lpic1.104.5.transfer-team-share-audit",
-  "title_fr": "Auditer un partage d'équipe",
-  "brief_fr": "Sur /srv/project-transfer, applique la politique collaborative root:project en 3770, configure un umask 0007 dans /root/.bashrc, crée handoff-note depuis un shell qui charge réellement ce rcfile et retire le SUID inutile de audit-helper en conservant le mode 0755.",
+  "title_fr": "Séparer dépôt protégé et espace collaboratif",
+  "brief_fr": "Une équipe veut séparer deux usages au lieu de cumuler tous les bits spéciaux sur un seul répertoire. Sous /srv/project-transfer, configure incoming en root:project mode 1770 pour que les membres puissent déposer des fichiers sans supprimer ceux des autres, et team en root:project mode 2770 pour que les nouveaux fichiers héritent du groupe project. Configure /root/.bashrc avec umask 0007 puis crée team/handoff-note depuis un shell qui charge réellement ce rcfile. audit-helper porte un SUID inutile : retire uniquement ce bit tout en conservant le mode 0755.",
   "success_criteria_fr": [
-    "/srv/project-transfer est root:project en 3770.",
-    "handoff-note hérite du groupe project et est créé en 0660.",
-    "Un shell chargeant le rcfile utilise effectivement umask 0007.",
-    "audit-helper est en 0755 sans SUID.",
-    "Le SGID hérite réellement le groupe project et le sticky bit protège les fichiers entre alice et bob."
+    "/srv/project-transfer/incoming est root:project en 1770 et le sticky bit empêche un membre de supprimer le fichier d’un autre.",
+    "/srv/project-transfer/team est root:project en 2770 et son SGID transmet réellement le groupe project aux nouvelles entrées.",
+    "handoff-note est créé dans team avec le groupe project et le mode 0660 grâce à umask 0007 chargé depuis /root/.bashrc.",
+    "audit-helper reste exécutable en 0755 sans SUID.",
+    "Les permissions de collaboration sont réparties entre deux répertoires aux rôles distincts plutôt que combinées en 3770."
   ],
   "debrief_fr": "Ce second partage vérifie le transfert des permissions rwx/octales, ownership, umask, SUID, SGID, sticky bit et effets spéciaux de répertoire sur un autre chemin. Le checker recrée un fichier à travers le rcfile pour observer l'umask.",
   "objective_ids": [
@@ -54,7 +54,7 @@
   "checks": [
     {
       "type": "file-owner",
-      "path": "/srv/project-transfer",
+      "path": "/srv/project-transfer/incoming",
       "user": "root",
       "group": "project",
       "concept_ids": [
@@ -63,19 +63,38 @@
     },
     {
       "type": "file-mode",
-      "path": "/srv/project-transfer",
-      "mode": "3770",
+      "path": "/srv/project-transfer/incoming",
+      "mode": "1770",
       "concept_ids": [
         "lpic1.104.5.permissions-rwx-fichier-dossier",
         "lpic1.104.5.notation-symbolique-octale",
-        "lpic1.104.5.sgid",
         "lpic1.104.5.sticky-bit",
         "lpic1.104.5.effets-speciaux-sur-repertoires"
       ]
     },
     {
       "type": "file-owner",
-      "path": "/srv/project-transfer/handoff-note",
+      "path": "/srv/project-transfer/team",
+      "user": "root",
+      "group": "project",
+      "concept_ids": [
+        "lpic1.104.5.proprietaire-groupe"
+      ]
+    },
+    {
+      "type": "file-mode",
+      "path": "/srv/project-transfer/team",
+      "mode": "2770",
+      "concept_ids": [
+        "lpic1.104.5.permissions-rwx-fichier-dossier",
+        "lpic1.104.5.notation-symbolique-octale",
+        "lpic1.104.5.sgid",
+        "lpic1.104.5.effets-speciaux-sur-repertoires"
+      ]
+    },
+    {
+      "type": "file-owner",
+      "path": "/srv/project-transfer/team/handoff-note",
       "user": "root",
       "group": "project",
       "concept_ids": [
@@ -85,7 +104,7 @@
     },
     {
       "type": "file-mode",
-      "path": "/srv/project-transfer/handoff-note",
+      "path": "/srv/project-transfer/team/handoff-note",
       "mode": "0660",
       "concept_ids": [
         "lpic1.104.5.umask",
@@ -110,7 +129,7 @@
         "--rcfile",
         "/root/.bashrc",
         "-ic",
-        "test \"$(umask)\" = 0007 && rm -f /srv/project-transfer/.umask-proof && : > /srv/project-transfer/.umask-proof && test \"$(stat -c %a /srv/project-transfer/.umask-proof)\" = 660"
+        "test \"$(umask)\" = 0007 && rm -f /srv/project-transfer/team/.umask-proof && : > /srv/project-transfer/team/.umask-proof && test \"$(stat -c %a /srv/project-transfer/team/.umask-proof)\" = 660"
       ],
       "expected_exit": 0,
       "concept_ids": [
@@ -122,14 +141,25 @@
       "argv": [
         "/usr/bin/bash",
         "-lc",
-        "rm -f /srv/project-transfer/.alice-proof /srv/project-transfer/.bob-proof; runuser -u alice -- bash -c ': > /srv/project-transfer/.alice-proof'; runuser -u bob -- bash -c ': > /srv/project-transfer/.bob-proof'; test \"$(stat -c %G /srv/project-transfer/.alice-proof)\" = project; if runuser -u alice -- rm /srv/project-transfer/.bob-proof 2>/dev/null; then rm -f /srv/project-transfer/.alice-proof; exit 1; fi; rm -f /srv/project-transfer/.alice-proof /srv/project-transfer/.bob-proof"
+        "rm -f /srv/project-transfer/team/.alice-proof; runuser -u alice -- bash -c ': > /srv/project-transfer/team/.alice-proof'; test \"$(stat -c %G /srv/project-transfer/team/.alice-proof)\" = project; rm -f /srv/project-transfer/team/.alice-proof"
       ],
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.104.5.sgid",
-        "lpic1.104.5.sticky-bit",
-        "lpic1.104.5.effets-speciaux-sur-repertoires",
         "lpic1.104.5.proprietaire-groupe"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "rm -f /srv/project-transfer/incoming/.alice-proof /srv/project-transfer/incoming/.bob-proof; runuser -u alice -- bash -c ': > /srv/project-transfer/incoming/.alice-proof'; runuser -u bob -- bash -c ': > /srv/project-transfer/incoming/.bob-proof'; if runuser -u alice -- rm /srv/project-transfer/incoming/.bob-proof 2>/dev/null; then rm -f /srv/project-transfer/incoming/.alice-proof; exit 1; fi; rm -f /srv/project-transfer/incoming/.alice-proof /srv/project-transfer/incoming/.bob-proof"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.5.sticky-bit",
+        "lpic1.104.5.effets-speciaux-sur-repertoires"
       ]
     }
   ],
