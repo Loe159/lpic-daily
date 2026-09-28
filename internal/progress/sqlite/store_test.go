@@ -41,8 +41,8 @@ func TestMigrationAndEvidenceRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatalf("SchemaVersion() error = %v", err)
 	}
-	if version != 5 {
-		t.Fatalf("schema version = %d, want 5", version)
+	if version != 6 {
+		t.Fatalf("schema version = %d, want 6", version)
 	}
 
 	at := time.Date(2026, 9, 26, 12, 0, 0, 123456789, time.UTC)
@@ -194,5 +194,49 @@ func TestLabDisclosureKeepsStrongestLevelUntilCleared(t *testing.T) {
 	}
 	if disclosure.HighestHintLevel != 0 || disclosure.SolutionRevealed {
 		t.Fatalf("disclosure after clear = %#v, want empty", disclosure)
+	}
+}
+
+
+func TestMigrationSixBackfillsKnownPhase1PracticeContexts(t *testing.T) {
+	ctx := context.Background()
+	path := filepath.Join(t.TempDir(), "legacy-progress.sqlite")
+
+	store, err := Open(ctx, path)
+	if err != nil {
+		t.Fatalf("Open() error = %v", err)
+	}
+	at := time.Date(2026, 9, 27, 12, 0, 0, 0, time.UTC)
+	legacy := testEvent("legacy-transfer", at)
+	legacy.SourceItemID = "lpic1.103.5.stuck-worker"
+	legacy.PracticeContext = "process-incident"
+	if err := store.AppendEvidence(ctx, legacy); err != nil {
+		_ = store.Close()
+		t.Fatalf("AppendEvidence() error = %v", err)
+	}
+	if _, err := store.db.ExecContext(ctx, "UPDATE mastery_evidence SET practice_context = '' WHERE event_id = ?", legacy.EventID); err != nil {
+		_ = store.Close()
+		t.Fatalf("clear legacy practice context: %v", err)
+	}
+	if _, err := store.db.ExecContext(ctx, "PRAGMA user_version = 5"); err != nil {
+		_ = store.Close()
+		t.Fatalf("set legacy schema version: %v", err)
+	}
+	if err := store.Close(); err != nil {
+		t.Fatalf("Close() error = %v", err)
+	}
+
+	store, err = Open(ctx, path)
+	if err != nil {
+		t.Fatalf("reopen with migration 006 error = %v", err)
+	}
+	defer store.Close()
+
+	events, err := store.EvidenceForConcept(ctx, legacy.ConceptID)
+	if err != nil {
+		t.Fatalf("EvidenceForConcept() error = %v", err)
+	}
+	if len(events) != 1 || events[0].PracticeContext != "process-incident" {
+		t.Fatalf("backfilled evidence = %#v, want process-incident context", events)
 	}
 }
