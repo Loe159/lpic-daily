@@ -1114,7 +1114,8 @@ func runInteractiveLabWithBackend(
 			continue
 		case ":check":
 			passed := true
-			if authored.Definition.NeedsPersistentShell && !usedPersistentShell {
+			requiresJobControl := labRequiresObservedJobControl(authored.Definition)
+			if (authored.Definition.NeedsPersistentShell || requiresJobControl) && !usedPersistentShell {
 				fmt.Fprintf(
 					stdout,
 					"  %-11s %s.persistent-shell — ce lab exige un passage par :shell pour valider le job control réel\n",
@@ -1122,7 +1123,7 @@ func runInteractiveLabWithBackend(
 					authored.Definition.ID,
 				)
 				passed = false
-			} else if authored.Definition.ID == "lpic1.103.5.stuck-worker" && !ptyEvidence.JobControlObserved() {
+			} else if requiresJobControl && !ptyEvidence.JobControlObserved() {
 				fmt.Fprintf(
 					stdout,
 					"  %-11s %s.pty-job-control — Ctrl-Z, jobs et bg doivent être observés dans :shell avant la validation finale\n",
@@ -1212,6 +1213,15 @@ func runInteractiveLabWithBackend(
 			fmt.Fprintf(stderr, "[exit %d]\n", result.ExitCode)
 		}
 	}
+}
+
+func labRequiresObservedJobControl(definition lab.Definition) bool {
+	for _, conceptID := range definition.ConceptIDs {
+		if conceptID == "lpic1.103.5.jobs-du-shell" {
+			return true
+		}
+	}
+	return false
 }
 
 type ptyInteractionEvidence struct {
