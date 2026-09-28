@@ -85,16 +85,16 @@ func TestPlanUsesStoredRecallToCreateDueReviewWithoutReplayingLesson(t *testing.
 		conceptID: {{
 			EventID:          "recall-1",
 			OccurredAt:       now.Add(-4 * 24 * time.Hour),
-			ConceptID:        conceptID,
-			ObjectiveIDs:     []string{"103.1"},
+			ConceptID:       conceptID,
+			ObjectiveIDs:    []string{"103.1"},
 			SourceItemID:     "lpic1.103.1.q.sequence-and",
 			ActivityKind:     learning.ActivityQuestion,
 			EvidenceKind:     learning.EvidenceRecall,
-			Result:           learning.ResultPass,
+			Result:          learning.ResultPass,
 			HighestHintLevel: 0,
 			SolutionRevealed: false,
 			Distribution:     "generic",
-			AttemptIndex:     1,
+			AttemptIndex:    1,
 		}},
 	}
 
@@ -135,16 +135,16 @@ func TestQuickPolicyLimitsReviews(t *testing.T) {
 		evidence[conceptID] = []learning.EvidenceEvent{{
 			EventID:          "event-" + conceptID,
 			OccurredAt:       now.Add(-10 * 24 * time.Hour),
-			ConceptID:        conceptID,
-			ObjectiveIDs:     []string{"103.1"},
+			ConceptID:       conceptID,
+			ObjectiveIDs:    []string{"103.1"},
 			SourceItemID:     "test-question",
 			ActivityKind:     learning.ActivityQuestion,
 			EvidenceKind:     learning.EvidenceRecall,
-			Result:           learning.ResultPass,
+			Result:          learning.ResultPass,
 			HighestHintLevel: 0,
 			SolutionRevealed: false,
 			Distribution:     "generic",
-			AttemptIndex:     1,
+			AttemptIndex:    1,
 		}}
 	}
 
@@ -176,16 +176,16 @@ func TestExposedConceptRecommendsQuestionNotLesson(t *testing.T) {
 		conceptID: {{
 			EventID:          "lesson-1",
 			OccurredAt:       now,
-			ConceptID:        conceptID,
-			ObjectiveIDs:     []string{"103.1"},
+			ConceptID:       conceptID,
+			ObjectiveIDs:    []string{"103.1"},
 			SourceItemID:     "lpic1.103.1.lesson.shell-sequences",
 			ActivityKind:     learning.ActivityLesson,
 			EvidenceKind:     learning.EvidenceExposure,
-			Result:           learning.ResultPass,
+			Result:          learning.ResultPass,
 			HighestHintLevel: 0,
 			SolutionRevealed: false,
 			Distribution:     "generic",
-			AttemptIndex:     1,
+			AttemptIndex:    1,
 		}},
 	}
 
@@ -217,17 +217,17 @@ func TestIndependentConceptRecommendsUnusedTransferLab(t *testing.T) {
 	conceptID := "lpic1.103.1.path-et-resolution-de-commande"
 	evidence := memoryEvidence{
 		conceptID: {{
-			EventID:          "independent-shell",
-			OccurredAt:       now.Add(-8 * 24 * time.Hour),
-			ConceptID:        conceptID,
-			ObjectiveIDs:     []string{"103.1"},
-			SourceItemID:     "lpic1.103.1.shell-environment-repair",
-			ActivityKind:     learning.ActivityLab,
-			EvidenceKind:     learning.EvidenceIndependentPractice,
-			Result:           learning.ResultPass,
-			Distribution:     "fedora",
-			PracticeContext:  "shell-env-repair",
-			AttemptIndex:     1,
+			EventID:         "independent-shell",
+			OccurredAt:      now.Add(-8 * 24 * time.Hour),
+			ConceptID:       conceptID,
+			ObjectiveIDs:    []string{"103.1"},
+			SourceItemID:    "lpic1.103.1.shell-environment-repair",
+			ActivityKind:    learning.ActivityLab,
+			EvidenceKind:    learning.EvidenceIndependentPractice,
+			Result:          learning.ResultPass,
+			Distribution:    "fedora",
+			PracticeContext: "shell-env-repair",
+			AttemptIndex:    1,
 		}},
 	}
 	policy := learning.DefaultSessionPolicy()
@@ -256,16 +256,16 @@ func TestBuildPlanDefaultsIntervalsWithoutOverwritingCustomLimits(t *testing.T) 
 		evidence[conceptID] = []learning.EvidenceEvent{{
 			EventID:          "event-" + conceptID,
 			OccurredAt:       now.Add(-10 * 24 * time.Hour),
-			ConceptID:        conceptID,
-			ObjectiveIDs:     []string{"103.1"},
+			ConceptID:       conceptID,
+			ObjectiveIDs:    []string{"103.1"},
 			SourceItemID:     "test-question",
 			ActivityKind:     learning.ActivityQuestion,
 			EvidenceKind:     learning.EvidenceRecall,
-			Result:           learning.ResultPass,
+			Result:          learning.ResultPass,
 			HighestHintLevel: 0,
 			SolutionRevealed: false,
 			Distribution:     "generic",
-			AttemptIndex:     1,
+			AttemptIndex:    1,
 		}}
 	}
 
@@ -305,17 +305,17 @@ func TestIndependentConceptSkipsUnusedLabIDInAlreadyUsedPracticeContext(t *testi
 
 	evidence := memoryEvidence{
 		conceptID: {{
-			EventID:          "independent-shell",
-			OccurredAt:       now.Add(-8 * 24 * time.Hour),
-			ConceptID:        conceptID,
-			ObjectiveIDs:     []string{"103.1"},
-			SourceItemID:     "lpic1.103.1.shell-environment-repair",
-			ActivityKind:     learning.ActivityLab,
-			EvidenceKind:     learning.EvidenceIndependentPractice,
-			Result:           learning.ResultPass,
-			Distribution:     "fedora",
-			PracticeContext:  "shell-env-repair",
-			AttemptIndex:     1,
+			EventID:         "independent-shell",
+			OccurredAt:      now.Add(-8 * 24 * time.Hour),
+			ConceptID:       conceptID,
+			ObjectiveIDs:    []string{"103.1"},
+			SourceItemID:    "lpic1.103.1.shell-environment-repair",
+			ActivityKind:    learning.ActivityLab,
+			EvidenceKind:    learning.EvidenceIndependentPractice,
+			Result:          learning.ResultPass,
+			Distribution:    "fedora",
+			PracticeContext: "shell-env-repair",
+			AttemptIndex:    1,
 		}},
 	}
 	policy := learning.DefaultSessionPolicy()
