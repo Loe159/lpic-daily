@@ -217,17 +217,17 @@ func TestIndependentConceptRecommendsUnusedTransferLab(t *testing.T) {
 	conceptID := "lpic1.103.1.path-et-resolution-de-commande"
 	evidence := memoryEvidence{
 		conceptID: {{
-			EventID:      "independent-shell",
-			OccurredAt:   now.Add(-8 * 24 * time.Hour),
-			ConceptID:    conceptID,
-			ObjectiveIDs: []string{"103.1"},
-			SourceItemID: "lpic1.103.1.shell-environment-repair",
-			ActivityKind: learning.ActivityLab,
-			EvidenceKind: learning.EvidenceIndependentPractice,
-			Result:       learning.ResultPass,
-			Distribution:    "fedora",
-			PracticeContext: "shell-env-repair",
-			AttemptIndex:    1,
+			EventID:          "independent-shell",
+			OccurredAt:       now.Add(-8 * 24 * time.Hour),
+			ConceptID:        conceptID,
+			ObjectiveIDs:     []string{"103.1"},
+			SourceItemID:     "lpic1.103.1.shell-environment-repair",
+			ActivityKind:     learning.ActivityLab,
+			EvidenceKind:     learning.EvidenceIndependentPractice,
+			Result:           learning.ResultPass,
+			Distribution:     "fedora",
+			PracticeContext:  "shell-env-repair",
+			AttemptIndex:     1,
 		}},
 	}
 	policy := learning.DefaultSessionPolicy()
@@ -284,7 +284,6 @@ func TestBuildPlanDefaultsIntervalsWithoutOverwritingCustomLimits(t *testing.T) 
 		t.Fatalf("items = %#v, want exactly one review with default intervals", plan.Items)
 	}
 }
-
 
 func TestIndependentConceptSkipsUnusedLabIDInAlreadyUsedPracticeContext(t *testing.T) {
 	curriculumBundle, contentBundle, labs := loadInputs(t)
