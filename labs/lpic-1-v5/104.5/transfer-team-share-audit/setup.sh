@@ -2,6 +2,8 @@
 set -euo pipefail
 install -d -o root -g root -m 0777 /srv/project-transfer
 rm -rf /srv/project-transfer/*
+install -d -o root -g root -m 0777 /srv/project-transfer/incoming
+install -d -o root -g root -m 0777 /srv/project-transfer/team
 cat > /root/.bashrc <<'EOF'
 umask 0022
 EOF
