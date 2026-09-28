@@ -125,7 +125,14 @@ func RecordLabAttempt(
 			return fmt.Errorf("load existing lab evidence for %s: %w", conceptID, err)
 		}
 		attempt := nextAttemptFromEvents(events, authored.Definition.ID)
-		evidenceKind, err := practicalEvidenceKind(conceptID, events, highestHintLevel, at)
+		evidenceKind, err := practicalEvidenceKind(
+			conceptID,
+			events,
+			authored.Definition.ID,
+			authored.Definition.Environment.Distribution,
+			highestHintLevel,
+			at,
+		)
 		if err != nil {
 			return err
 		}
@@ -152,6 +159,8 @@ func RecordLabAttempt(
 func practicalEvidenceKind(
 	conceptID string,
 	events []learning.EvidenceEvent,
+	sourceItemID string,
+	distribution string,
 	highestHintLevel int,
 	at time.Time,
 ) (learning.EvidenceKind, error) {
@@ -160,14 +169,26 @@ func practicalEvidenceKind(
 	}
 
 	policy := learning.DefaultProjectionPolicy()
-	projection, err := learning.ProjectMastery(conceptID, events, policy)
-	if err != nil {
-		return "", fmt.Errorf("project existing practical evidence for %s: %w", conceptID, err)
-	}
-	if projection.Stage >= learning.StageIndependent &&
-		!projection.LastStageEvidenceAt.IsZero() &&
-		!at.Before(projection.LastStageEvidenceAt.Add(policy.MinTransferGap)) {
-		return learning.EvidenceTransfer, nil
+	currentDistribution := distributionOrGeneric(distribution)
+	for _, event := range events {
+		if err := event.Validate(); err != nil {
+			return "", fmt.Errorf("validate existing practical evidence for %s: %w", conceptID, err)
+		}
+		if event.ConceptID != conceptID || event.Result != learning.ResultPass {
+			continue
+		}
+		effective := learning.EffectiveEvidenceKind(event)
+		if effective != learning.EvidenceIndependentPractice && effective != learning.EvidenceTransfer {
+			continue
+		}
+		if at.Sub(event.OccurredAt) < policy.MinTransferGap {
+			continue
+		}
+		if event.SourceItemID != sourceItemID ||
+			event.ActivityKind != learning.ActivityLab ||
+			event.Distribution != currentDistribution {
+			return learning.EvidenceTransfer, nil
+		}
 	}
 	return learning.EvidenceIndependentPractice, nil
 }

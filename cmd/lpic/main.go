@@ -236,16 +236,6 @@ func runNotifyWithExecutor(
 	defer store.Close()
 
 	localDay := now.In(time.Local).Format("2006-01-02")
-	if !force {
-		sent, err := store.NotificationSent(ctx, localDay)
-		if err != nil {
-			return err
-		}
-		if sent {
-			fmt.Fprintln(stdout, "Notification quotidienne déjà envoyée.")
-			return nil
-		}
-	}
 
 	plan, err := study.BuildPlan(ctx, study.PlanInput{
 		Now:        now,
@@ -283,14 +273,30 @@ func runNotifyWithExecutor(
 		practices,
 		newItems,
 	)
+
+	// Reserve the local day atomically before the external notification side
+	// effect. This prevents concurrent timer/manual invocations, or a crash
+	// after notify-send succeeds, from producing a second automatic delivery.
+	if force {
+		if err := store.MarkNotificationSent(ctx, localDay, now); err != nil {
+			return err
+		}
+	} else {
+		claimed, err := store.ClaimNotification(ctx, localDay, now)
+		if err != nil {
+			return err
+		}
+		if !claimed {
+			fmt.Fprintln(stdout, "Notification quotidienne déjà envoyée.")
+			return nil
+		}
+	}
+
 	open, err := desktop.SendDaily(ctx, executor, desktop.Notification{
 		Title: "LPIC Daily",
 		Body:  body,
 	})
 	if err != nil {
-		return err
-	}
-	if err := store.MarkNotificationSent(ctx, localDay, now); err != nil {
 		return err
 	}
 	fmt.Fprintln(stdout, "Notification quotidienne envoyée.")

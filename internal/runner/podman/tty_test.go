@@ -55,7 +55,7 @@ func TestTTYExecUsesHijackedRawStreamAndResize(t *testing.T) {
 				return
 			}
 			defer conn.Close()
-			_, _ = rw.WriteString("HTTP/1.1 101 UPGRADED\r\nConnection: Upgrade\r\nUpgrade: tcp\r\n\r\n")
+			_, _ = rw.WriteString("HTTP/1.1 101 UPGRADED\r\nConnection: Upgrade\r\nUpgrade: application/vnd.docker.raw-stream\r\n\r\n")
 			_ = rw.Flush()
 
 			input := make([]byte, 5)

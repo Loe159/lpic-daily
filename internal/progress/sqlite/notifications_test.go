@@ -31,8 +31,19 @@ func TestNotificationDeliveryRoundTrip(t *testing.T) {
 		t.Fatal("fresh day unexpectedly sent")
 	}
 
-	if err := store.MarkNotificationSent(ctx, day, time.Now()); err != nil {
-		t.Fatalf("MarkNotificationSent() error = %v", err)
+	claimed, err := store.ClaimNotification(ctx, day, time.Now())
+	if err != nil {
+		t.Fatalf("ClaimNotification() error = %v", err)
+	}
+	if !claimed {
+		t.Fatal("fresh day was not claimed")
+	}
+	claimedAgain, err := store.ClaimNotification(ctx, day, time.Now().Add(time.Minute))
+	if err != nil {
+		t.Fatalf("second ClaimNotification() error = %v", err)
+	}
+	if claimedAgain {
+		t.Fatal("same day was claimed twice")
 	}
 	sent, err = store.NotificationSent(ctx, day)
 	if err != nil || !sent {
