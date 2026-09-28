@@ -166,8 +166,7 @@ func RecordLabConceptResults(
 		evidenceKind, err := practicalEvidenceKind(
 			conceptID,
 			events,
-			authored.Definition.ID,
-			authored.Definition.Environment.Distribution,
+			authored.Definition.PracticeContext,
 			highestHintLevel,
 			at,
 		)
@@ -184,8 +183,9 @@ func RecordLabConceptResults(
 			SourceItemID: authored.Definition.ID, ActivityKind: learning.ActivityLab,
 			EvidenceKind: evidenceKind, Result: conceptResults[conceptID],
 			HighestHintLevel: highestHintLevel, SolutionRevealed: highestHintLevel == 4,
-			Distribution: distributionOrGeneric(authored.Definition.Environment.Distribution),
-			AttemptIndex: attempt,
+			Distribution:    distributionOrGeneric(authored.Definition.Environment.Distribution),
+			PracticeContext: authored.Definition.PracticeContext,
+			AttemptIndex:    attempt,
 		})
 	}
 	if err := store.AppendEvidenceBatch(ctx, batch); err != nil {
@@ -249,8 +249,7 @@ func LabConceptResults(authored lab.Lab, checkResults []checker.Result) (map[str
 func practicalEvidenceKind(
 	conceptID string,
 	events []learning.EvidenceEvent,
-	sourceItemID string,
-	distribution string,
+	practiceContext string,
 	highestHintLevel int,
 	at time.Time,
 ) (learning.EvidenceKind, error) {
@@ -258,8 +257,11 @@ func practicalEvidenceKind(
 		return learning.EvidenceIndependentPractice, nil
 	}
 
+	if practiceContext == "" {
+		return "", fmt.Errorf("practice context is required for practical evidence")
+	}
+
 	policy := learning.DefaultProjectionPolicy()
-	currentDistribution := distributionOrGeneric(distribution)
 	for _, event := range events {
 		if err := event.Validate(); err != nil {
 			return "", fmt.Errorf("validate existing practical evidence for %s: %w", conceptID, err)
@@ -274,9 +276,7 @@ func practicalEvidenceKind(
 		if at.Sub(event.OccurredAt) < policy.MinTransferGap {
 			continue
 		}
-		if event.SourceItemID != sourceItemID ||
-			event.ActivityKind != learning.ActivityLab ||
-			event.Distribution != currentDistribution {
+		if event.PracticeContext != "" && event.PracticeContext != practiceContext {
 			return learning.EvidenceTransfer, nil
 		}
 	}
