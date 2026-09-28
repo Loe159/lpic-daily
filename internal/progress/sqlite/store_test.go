@@ -89,3 +89,26 @@ func TestEvidenceIsAppendOnlyByEventID(t *testing.T) {
 		t.Fatal("second AppendEvidence() unexpectedly succeeded")
 	}
 }
+
+
+func TestEvidenceBatchRollsBackAtomically(t *testing.T) {
+	ctx := context.Background()
+	store, err := Open(ctx, ":memory:")
+	if err != nil { t.Fatalf("Open() error = %v", err) }
+	defer store.Close()
+
+	at := time.Date(2026, 9, 28, 9, 0, 0, 0, time.UTC)
+	first := testEvent("duplicate-event", at)
+	second := testEvent("duplicate-event", at.Add(time.Second))
+	second.ConceptID = "lpic1.104.5.permissions-rwx-fichier-dossier"
+	second.ObjectiveIDs = []string{"104.5"}
+
+	if err := store.AppendEvidenceBatch(ctx, []learning.EvidenceEvent{first, second}); err == nil {
+		t.Fatal("AppendEvidenceBatch() unexpectedly succeeded with duplicate event IDs")
+	}
+	for _, conceptID := range []string{first.ConceptID, second.ConceptID} {
+		events, err := store.EvidenceForConcept(ctx, conceptID)
+		if err != nil { t.Fatalf("EvidenceForConcept(%s) error = %v", conceptID, err) }
+		if len(events) != 0 { t.Fatalf("batch left partial evidence for %s: %#v", conceptID, events) }
+	}
+}

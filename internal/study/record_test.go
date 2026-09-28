@@ -24,8 +24,10 @@ func (store *recordingStore) EvidenceForConcept(_ context.Context, conceptID str
 	return append([]learning.EvidenceEvent(nil), store.events[conceptID]...), nil
 }
 
-func (store *recordingStore) AppendEvidence(_ context.Context, event learning.EvidenceEvent) error {
-	store.events[event.ConceptID] = append(store.events[event.ConceptID], event)
+func (store *recordingStore) AppendEvidenceBatch(_ context.Context, events []learning.EvidenceEvent) error {
+	for _, event := range events {
+		store.events[event.ConceptID] = append(store.events[event.ConceptID], event)
+	}
 	return nil
 }
 
