@@ -161,7 +161,7 @@ def main():
         return 1
 
     print(
-        "Phase-1 coverage OK: 
+        "Phase-1 coverage OK: "
         f"{summary['concepts']} concepts; "
         f"{summary['with_any_surface']} with any surface; "
         f"{summary['with_lab']} with lab; "
