@@ -3,6 +3,6 @@
   "id": "lpic1.103.5.transfer-operator-session.hint-3",
   "lab_id": "lpic1.103.5.transfer-operator-session",
   "level": 3,
-  "content_fr": "Après le snapshot, arrête seulement leaky-worker. Workflow du probe : foreground, Ctrl-Z, jobs, bg, SIGTERM. Lance background-worker avec &, survivor-worker avec nohup et crée tmux transfer-ops.",
+  "content_fr": "Le probe de job control doit être lancé au premier plan dans :shell : Ctrl-Z, jobs, bg puis SIGTERM. Les autres tâches servent ensuite à distinguer simple arrière-plan, nohup et multiplexeur.",
   "evidence_impact": "material"
 }
