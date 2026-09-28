@@ -69,3 +69,29 @@ func TestDefinitionRejectsUnsafeWritableGuestPaths(t *testing.T) {
 		}
 	}
 }
+
+func TestDefinitionRejectsResourceLimitsAboveSchemaMaximums(t *testing.T) {
+	base := runner.Definition{
+		LabID: "lab", ImageRef: "sha256:deadbeef", Distribution: "fedora",
+		Network: runner.NetworkNone, CapabilityProfile: "baseline",
+		MemoryMB: 256, CPUPercent: 100, PIDs: 128, Timeout: time.Minute,
+	}
+
+	tests := []struct {
+		name   string
+		mutate func(*runner.Definition)
+	}{
+		{name: "memory", mutate: func(definition *runner.Definition) { definition.MemoryMB = 16385 }},
+		{name: "pids", mutate: func(definition *runner.Definition) { definition.PIDs = 4097 }},
+		{name: "timeout", mutate: func(definition *runner.Definition) { definition.Timeout = 2*time.Hour + time.Second }},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			definition := base
+			test.mutate(&definition)
+			if err := definition.Validate(); err == nil {
+				t.Fatal("Validate() unexpectedly accepted an above-schema resource limit")
+			}
+		})
+	}
+}
