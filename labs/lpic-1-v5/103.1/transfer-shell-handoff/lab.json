@@ -1,0 +1,108 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.transfer-shell-handoff",
+  "title_fr": "Préparer un shell de relève",
+  "brief_fr": "Prépare un second environnement pour une relève d'administration. Corrige le login shell afin d'utiliser report-status approuvé, REPORT_ENV=production, le REPORT_FILE attendu et un historique durable avec HISTSIZE=3000/HISTFILESIZE=6000. Écris aussi /run/lpic/handoff-summary avec uname -r puis le type Bash de report-status.",
+  "success_criteria_fr": [
+    "Le report-status approuvé est résolu dans un nouveau login shell.",
+    "REPORT_ENV et REPORT_FILE sont correctement exportées.",
+    "HISTSIZE=3000 et HISTFILESIZE=6000 sont persistants.",
+    "handoff-summary reflète le noyau courant et le type réel de report-status.",
+    "report-status réussit avec REPORT_FILE."
+  ],
+  "debrief_fr": "Ce deuxième contexte transfère les sept concepts 103.1 sans réutiliser le même état initial : séquences de shell, variables, PATH, quoting, historique, identification des commandes et informations système.",
+  "objective_ids": [
+    "103.1"
+  ],
+  "concept_ids": [
+    "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes",
+    "lpic1.103.1.variables-shell-environnement",
+    "lpic1.103.1.path-et-resolution-de-commande",
+    "lpic1.103.1.quoting-escaping",
+    "lpic1.103.1.historique",
+    "lpic1.103.1.documentation-et-identification-d-une-commande",
+    "lpic1.103.1.informations-systeme-de-base"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "estimated_minutes": 12,
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "baseline",
+    "writable_guest_paths": [
+      "/root",
+      "/run/lpic",
+      "/var/lib/lpic/reports"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "pids": 96,
+    "timeout_seconds": 1200,
+    "cpu_percent": 100
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test \"$(command -v report-status)\" = /opt/lpic/approved/bin/report-status"
+      ],
+      "expected_exit": 0
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test \"${REPORT_ENV:-}\" = production && test \"${REPORT_FILE:-}\" = \"/var/lib/lpic/reports/daily report.txt\""
+      ],
+      "expected_exit": 0
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test \"${HISTSIZE:-}\" = 3000 && test \"${HISTFILESIZE:-}\" = 6000"
+      ],
+      "expected_exit": 0
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test -f /run/lpic/handoff-summary && test \"$(sed -n '1p' /run/lpic/handoff-summary)\" = \"$(uname -r)\" && test \"$(sed -n '2p' /run/lpic/handoff-summary)\" = \"$(type -t report-status)\""
+      ],
+      "expected_exit": 0
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "report-status \"$REPORT_FILE\""
+      ],
+      "expected_exit": 0
+    }
+  ],
+  "hint_ids": [
+    "lpic1.103.1.transfer-shell-handoff.hint-1",
+    "lpic1.103.1.transfer-shell-handoff.hint-2",
+    "lpic1.103.1.transfer-shell-handoff.hint-3",
+    "lpic1.103.1.transfer-shell-handoff.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

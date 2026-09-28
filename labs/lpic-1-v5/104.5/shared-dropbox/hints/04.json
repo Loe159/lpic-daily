@@ -3,6 +3,6 @@
   "id": "lpic1.104.5.shared-dropbox.hint-4",
   "lab_id": "lpic1.104.5.shared-dropbox",
   "level": 4,
-  "content_fr": "Solution de référence : attribue le groupe project à /srv/shared, fixe le mode 3770, puis exécute `umask 0007` avant de créer /srv/shared/team-note. SGID fait hériter le groupe project au fichier et 0666 filtré par 0007 donne le mode 0660.",
+  "content_fr": "Applique root:project et 3770 à /srv/shared, ramène audit-helper à 0755, écris umask 0007 dans /root/.bashrc puis crée team-note depuis un bash lancé avec --rcfile /root/.bashrc.",
   "evidence_impact": "solution-revealed"
 }

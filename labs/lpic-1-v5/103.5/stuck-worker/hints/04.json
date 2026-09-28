@@ -3,6 +3,6 @@
   "id": "lpic1.103.5.stuck-worker.hint-4",
   "lab_id": "lpic1.103.5.stuck-worker",
   "level": 4,
-  "content_fr": "Une solution possible : repère stuck-worker avec ps/pgrep puis envoie-lui SIGTERM. Dans :shell, lance /usr/local/bin/lpic-signal-probe, tape Ctrl-Z, vérifie jobs, fais bg %+ puis kill -TERM %+. Quitte ensuite le shell avec exit et utilise :check. Ne tue pas healthy-worker.",
+  "content_fr": "SIGTERM sur le PID exact de stuck-worker ; dans :shell lance le probe, Ctrl-Z, jobs, bg puis SIGTERM. Ensuite lance resilient-worker avec nohup et crée la session tmux ops.",
   "evidence_impact": "solution-revealed"
 }

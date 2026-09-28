@@ -8,6 +8,7 @@ RUN dnf -y install \
         findutils \
         procps-ng \
         shadow-utils \
+        tmux \
         util-linux \
     && groupadd --gid 2000 project \
     && useradd --create-home --uid 1101 --groups project alice \

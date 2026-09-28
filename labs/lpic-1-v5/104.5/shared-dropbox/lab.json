@@ -2,15 +2,14 @@
   "schema_version": "1.0.0",
   "id": "lpic1.104.5.shared-dropbox",
   "title_fr": "Sécuriser un répertoire partagé",
-  "brief_fr": "Tu administres /srv/shared pour une équipe. Configure ce répertoire afin que les membres du groupe project puissent y collaborer sans ouvrir l'accès aux autres utilisateurs et sans permettre à un membre de supprimer librement les fichiers d'un autre membre. Crée aussi /srv/shared/team-note avec un umask adapté pour obtenir des droits de collaboration sûrs.",
+  "brief_fr": "Configure /srv/shared pour l'équipe project : root:project, collaboration groupe, aucun droit others, héritage du groupe et protection contre la suppression des fichiers d'un autre membre. Configure /root/.bashrc avec un umask 0007 et crée team-note depuis un shell qui charge réellement ce fichier. audit-helper porte au départ un SUID inutile : retire uniquement ce bit en gardant le fichier exécutable.",
   "success_criteria_fr": [
-    "/srv/shared appartient à root et au groupe project.",
-    "Le propriétaire et les membres du groupe project ont un accès complet au répertoire, les autres utilisateurs n'ont aucun droit.",
-    "Les nouvelles entrées créées dans le répertoire héritent du groupe project.",
-    "Dans ce répertoire partagé, un utilisateur ordinaire ne peut pas supprimer ou renommer le fichier d'un autre utilisateur uniquement parce qu'il a le droit d'écrire dans le répertoire.",
-    "/srv/shared/team-note appartient au groupe project et a le mode 0660, résultat compatible avec un umask 0007 lors de sa création."
+    "/srv/shared appartient à root:project avec le mode 3770.",
+    "team-note appartient au groupe project et est créé en mode 0660.",
+    "Un shell chargeant /root/.bashrc annonce réellement umask 0007 et crée un fichier en 0660.",
+    "audit-helper n'a plus de SUID et reste en mode 0755."
   ],
-  "debrief_fr": "Le mode final du répertoire est 3770 : 770 donne rwx au propriétaire et au groupe, 2 active SGID pour conserver le groupe project sur les nouvelles entrées, et 1 active le sticky bit pour restreindre suppression et renommage. Pour un fichier régulier créé à partir du mode de base 0666, un umask 0007 retire tous les droits à others et produit 0660. Ces mécanismes sont complémentaires : SGID agit sur le groupe hérité, sticky sur la suppression dans le répertoire, et umask sur les droits initiaux des nouvelles entrées.",
+  "debrief_fr": "3770 combine 770, SGID et sticky bit. SGID conserve le groupe project, sticky limite suppression/renommage entre utilisateurs et umask 0007 transforme le mode de base 0666 d'un fichier en 0660. Le checker ouvre un nouveau shell avec le rcfile configuré et crée lui-même un fichier de preuve, ce qui valide le comportement de l'umask plutôt qu'un chmod final. SUID doit rester limité aux exécutables qui en ont réellement besoin.",
   "objective_ids": [
     "104.5"
   ],
@@ -19,6 +18,7 @@
     "lpic1.104.5.notation-symbolique-octale",
     "lpic1.104.5.proprietaire-groupe",
     "lpic1.104.5.umask",
+    "lpic1.104.5.suid",
     "lpic1.104.5.sgid",
     "lpic1.104.5.sticky-bit",
     "lpic1.104.5.effets-speciaux-sur-repertoires"
@@ -27,7 +27,7 @@
     "lpic-required",
     "modern-practice"
   ],
-  "estimated_minutes": 12,
+  "estimated_minutes": 15,
   "environment": {
     "backend": "podman",
     "image_ref": "localhost/lpic-daily/fedora-phase1:1",
@@ -35,6 +35,7 @@
     "network": "none",
     "capability_profile": "identity-files",
     "writable_guest_paths": [
+      "/root",
       "/srv/shared"
     ]
   },
@@ -83,6 +84,23 @@
       "type": "file-mode",
       "path": "/srv/shared/team-note",
       "mode": "0660"
+    },
+    {
+      "type": "file-mode",
+      "path": "/srv/shared/audit-helper",
+      "mode": "0755"
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "--noprofile",
+        "--rcfile",
+        "/root/.bashrc",
+        "-ic",
+        "test \"$(umask)\" = 0007 && rm -f /srv/shared/.umask-proof && : > /srv/shared/.umask-proof && test \"$(stat -c %a /srv/shared/.umask-proof)\" = 660"
+      ],
+      "expected_exit": 0
     }
   ],
   "hint_ids": [

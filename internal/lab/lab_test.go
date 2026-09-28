@@ -38,8 +38,8 @@ func loadBuiltinLab(t *testing.T, id string) lab.Lab {
 func TestLoadBuiltinShellEnvironmentRepair(t *testing.T) {
 	got := loadBuiltinLab(t, shellEnvironmentRepairID)
 
-	if len(got.Definition.ConceptIDs) != 3 {
-		t.Fatalf("concepts = %d, want 3", len(got.Definition.ConceptIDs))
+	if len(got.Definition.ConceptIDs) != 7 {
+		t.Fatalf("concepts = %d, want 7", len(got.Definition.ConceptIDs))
 	}
 	if len(got.Hints) != 4 {
 		t.Fatalf("hints = %d, want 4", len(got.Hints))
@@ -52,16 +52,16 @@ func TestLoadBuiltinShellEnvironmentRepair(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CompileChecks() error = %v", err)
 	}
-	if len(checks) != 5 {
-		t.Fatalf("checks = %d, want 5", len(checks))
+	if len(checks) != 7 {
+		t.Fatalf("checks = %d, want 7", len(checks))
 	}
 }
 
 func TestLoadBuiltinSharedDropbox(t *testing.T) {
 	got := loadBuiltinLab(t, sharedDropboxID)
 
-	if len(got.Definition.ConceptIDs) != 7 || !strings.Contains(strings.Join(got.Definition.ConceptIDs, "\n"), "lpic1.104.5.umask") {
-		t.Fatalf("shared-dropbox concepts = %v, want 7 including umask", got.Definition.ConceptIDs)
+	if len(got.Definition.ConceptIDs) != 8 || !strings.Contains(strings.Join(got.Definition.ConceptIDs, "\n"), "lpic1.104.5.suid") {
+		t.Fatalf("shared-dropbox concepts = %v, want all 8 permission concepts", got.Definition.ConceptIDs)
 	}
 	if len(got.Hints) != 4 {
 		t.Fatalf("hints = %d, want 4", len(got.Hints))
@@ -82,16 +82,16 @@ func TestLoadBuiltinSharedDropbox(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CompileChecks() error = %v", err)
 	}
-	if len(checks) != 6 {
-		t.Fatalf("checks = %d, want 6", len(checks))
+	if len(checks) != 8 {
+		t.Fatalf("checks = %d, want 8", len(checks))
 	}
 }
 
 func TestLoadBuiltinStuckWorker(t *testing.T) {
 	got := loadBuiltinLab(t, stuckWorkerID)
 
-	if len(got.Definition.ConceptIDs) != 5 {
-		t.Fatalf("concepts = %d, want 5", len(got.Definition.ConceptIDs))
+	if len(got.Definition.ConceptIDs) != 7 {
+		t.Fatalf("concepts = %d, want 7", len(got.Definition.ConceptIDs))
 	}
 	if len(got.Hints) != 4 {
 		t.Fatalf("hints = %d, want 4", len(got.Hints))
@@ -104,8 +104,8 @@ func TestLoadBuiltinStuckWorker(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CompileChecks() error = %v", err)
 	}
-	if len(checks) != 7 {
-		t.Fatalf("checks = %d, want 7", len(checks))
+	if len(checks) != 9 {
+		t.Fatalf("checks = %d, want 9", len(checks))
 	}
 	if !got.Definition.NeedsPersistentShell {
 		t.Fatal("stuck-worker must require the persistent PTY shell")
@@ -280,6 +280,11 @@ func (fake *fakeRunner) Stat(_ context.Context, _ runner.Instance, path string) 
 		return runner.FileInfo{
 			Path: path, Mode: 0o0660, UID: 0, GID: 2000,
 			User: "root", Group: "project", IsDir: false,
+		}, nil
+	case "/srv/shared/audit-helper":
+		return runner.FileInfo{
+			Path: path, Mode: 0o0755, UID: 0, GID: 0,
+			User: "root", Group: "root", IsDir: false,
 		}, nil
 	default:
 		return runner.FileInfo{}, errors.New("not found")

@@ -1,0 +1,96 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.5.transfer-operator-session",
+  "title_fr": "Stabiliser une session d'exploitation",
+  "brief_fr": "Une session contient queue-worker sain, leaky-worker défaillant et un probe qui doit recevoir SIGTERM. Arrête seulement leaky-worker, termine proprement le probe, lance background-worker, lance survivor-worker sous nohup et crée une session tmux détachée transfer-ops.",
+  "success_criteria_fr": [
+    "leaky-worker est absent et queue-worker reste actif.",
+    "Le probe a enregistré sa terminaison SIGTERM.",
+    "background-worker et survivor-worker restent actifs.",
+    "La session tmux transfer-ops existe."
+  ],
+  "debrief_fr": "Ce contexte transfère inspection et sélection de processus, signaux, arrière-plan, persistance avec nohup et multiplexage avec tmux. Seul l'état final observable est évalué.",
+  "objective_ids": [
+    "103.5"
+  ],
+  "concept_ids": [
+    "lpic1.103.5.processus-avant-arriere-plan",
+    "lpic1.103.5.jobs-du-shell",
+    "lpic1.103.5.signaux",
+    "lpic1.103.5.inspection-arbres-ressources",
+    "lpic1.103.5.processus-survivant-a-la-session",
+    "lpic1.103.5.selection-par-nom-pid",
+    "lpic1.103.5.multiplexeurs-de-terminal"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "estimated_minutes": 12,
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "process-lab",
+    "writable_guest_paths": [
+      "/run/lpic",
+      "/usr/local/bin"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "pids": 128,
+    "timeout_seconds": 1200,
+    "cpu_percent": 100
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "process-absent",
+      "match": "leaky-worker"
+    },
+    {
+      "type": "process-running",
+      "match": "queue-worker"
+    },
+    {
+      "type": "process-absent",
+      "match": "/usr/local/bin/lpic-term-probe"
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/run/lpic/term-probe-terminated",
+      "pattern": "^terminated\\n?$"
+    },
+    {
+      "type": "process-running",
+      "match": "background-worker"
+    },
+    {
+      "type": "process-running",
+      "match": "survivor-worker"
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/tmux",
+        "has-session",
+        "-t",
+        "transfer-ops"
+      ],
+      "expected_exit": 0
+    }
+  ],
+  "hint_ids": [
+    "lpic1.103.5.transfer-operator-session.hint-1",
+    "lpic1.103.5.transfer-operator-session.hint-2",
+    "lpic1.103.5.transfer-operator-session.hint-3",
+    "lpic1.103.5.transfer-operator-session.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

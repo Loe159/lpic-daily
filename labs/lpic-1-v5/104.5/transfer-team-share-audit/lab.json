@@ -1,0 +1,101 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.5.transfer-team-share-audit",
+  "title_fr": "Auditer un partage d'équipe",
+  "brief_fr": "Sur /srv/project-transfer, applique la politique collaborative root:project en 3770, configure un umask 0007 dans /root/.bashrc, crée handoff-note depuis un shell qui charge réellement ce rcfile et retire le SUID inutile de audit-helper en conservant le mode 0755.",
+  "success_criteria_fr": [
+    "/srv/project-transfer est root:project en 3770.",
+    "handoff-note hérite du groupe project et est créé en 0660.",
+    "Un shell chargeant le rcfile utilise effectivement umask 0007.",
+    "audit-helper est en 0755 sans SUID."
+  ],
+  "debrief_fr": "Ce second partage vérifie le transfert des permissions rwx/octales, ownership, umask, SUID, SGID, sticky bit et effets spéciaux de répertoire sur un autre chemin. Le checker recrée un fichier à travers le rcfile pour observer l'umask.",
+  "objective_ids": [
+    "104.5"
+  ],
+  "concept_ids": [
+    "lpic1.104.5.permissions-rwx-fichier-dossier",
+    "lpic1.104.5.notation-symbolique-octale",
+    "lpic1.104.5.proprietaire-groupe",
+    "lpic1.104.5.umask",
+    "lpic1.104.5.suid",
+    "lpic1.104.5.sgid",
+    "lpic1.104.5.sticky-bit",
+    "lpic1.104.5.effets-speciaux-sur-repertoires"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "estimated_minutes": 12,
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "identity-files",
+    "writable_guest_paths": [
+      "/root",
+      "/srv/project-transfer"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "pids": 128,
+    "timeout_seconds": 1200,
+    "cpu_percent": 100
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "file-owner",
+      "path": "/srv/project-transfer",
+      "user": "root",
+      "group": "project"
+    },
+    {
+      "type": "file-mode",
+      "path": "/srv/project-transfer",
+      "mode": "3770"
+    },
+    {
+      "type": "file-owner",
+      "path": "/srv/project-transfer/handoff-note",
+      "user": "root",
+      "group": "project"
+    },
+    {
+      "type": "file-mode",
+      "path": "/srv/project-transfer/handoff-note",
+      "mode": "0660"
+    },
+    {
+      "type": "file-mode",
+      "path": "/srv/project-transfer/audit-helper",
+      "mode": "0755"
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "--noprofile",
+        "--rcfile",
+        "/root/.bashrc",
+        "-ic",
+        "test \"$(umask)\" = 0007 && rm -f /srv/project-transfer/.umask-proof && : > /srv/project-transfer/.umask-proof && test \"$(stat -c %a /srv/project-transfer/.umask-proof)\" = 660"
+      ],
+      "expected_exit": 0
+    }
+  ],
+  "hint_ids": [
+    "lpic1.104.5.transfer-team-share-audit.hint-1",
+    "lpic1.104.5.transfer-team-share-audit.hint-2",
+    "lpic1.104.5.transfer-team-share-audit.hint-3",
+    "lpic1.104.5.transfer-team-share-audit.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.5.transfer-operator-session.hint-1",
+  "lab_id": "lpic1.103.5.transfer-operator-session",
+  "level": 1,
+  "content_fr": "Traite séparément sélection, signal, arrière-plan, survie à la session et multiplexage. L'état final importe plus que la commande exacte.",
+  "evidence_impact": "none"
+}

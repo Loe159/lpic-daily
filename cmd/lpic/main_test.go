@@ -433,6 +433,12 @@ func (fake *scriptedLabRunner) Stat(_ context.Context, _ runner.Instance, guestP
 			User: "root", Group: "project", IsDir: false,
 		}, nil
 	}
+	if guestPath == "/srv/shared/audit-helper" {
+		return runner.FileInfo{
+			Path: guestPath, Mode: 0o0755, UID: 0, GID: 0,
+			User: "root", Group: "root", IsDir: false,
+		}, nil
+	}
 	mode := uint32(0o3770)
 	if fake.failChecks {
 		mode = 0o0770

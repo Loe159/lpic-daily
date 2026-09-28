@@ -3,6 +3,6 @@
   "id": "lpic1.103.5.stuck-worker.hint-3",
   "lab_id": "lpic1.103.5.stuck-worker",
   "level": 3,
-  "content_fr": "Le workflow attendu pour le probe est : foreground -> Ctrl-Z -> jobs -> reprise avec bg -> terminaison avec SIGTERM. Pour le worker défectueux, cible son PID ou son nom de façon assez précise pour laisser healthy-worker intact.",
+  "content_fr": "Workflow du probe : foreground, Ctrl-Z, jobs, bg, SIGTERM. Démarre ensuite resilient-worker sous nohup et crée une session tmux détachée nommée ops.",
   "evidence_impact": "material"
 }

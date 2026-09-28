@@ -2,14 +2,14 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.5.stuck-worker",
   "title_fr": "Diagnostiquer des jobs et arrêter le bon processus",
-  "brief_fr": "Un worker défectueux tourne à côté d'un worker sain. Dans le shell persistant du lab, identifie le bon processus et arrête uniquement le worker défectueux. Ensuite lance le signal probe au premier plan, suspends-le depuis le terminal, vérifie son état dans les jobs du shell, reprends-le en arrière-plan puis termine-le proprement avec SIGTERM.",
+  "brief_fr": "Un worker défectueux tourne à côté d'un worker sain. Dans :shell, identifie et arrête uniquement le worker défectueux. Lance ensuite le signal probe au premier plan, suspends-le avec Ctrl-Z, observe-le avec jobs, reprends-le avec bg puis termine-le avec SIGTERM. Enfin lance un resilient-worker protégé par nohup et garde une session tmux détachée nommée ops.",
   "success_criteria_fr": [
-    "Le processus identifié comme stuck-worker n'est plus en cours d'exécution.",
-    "Le processus healthy-worker reste en cours d'exécution.",
-    "Le signal probe a réellement été repris après suspension et a observé SIGCONT.",
-    "Le signal probe a ensuite reçu SIGTERM et n'est plus en cours d'exécution."
+    "stuck-worker est absent et healthy-worker reste actif.",
+    "Le signal probe a réellement été suspendu, repris en arrière-plan puis terminé.",
+    "resilient-worker reste actif après son lancement avec nohup.",
+    "Une session tmux détachée nommée ops existe."
   ],
-  "debrief_fr": "Un job du shell et un processus ne sont pas la même abstraction : le shell suit ses jobs et leurs process groups, tandis que ps/pgrep observent les processus du système. Ctrl-Z demande au terminal de suspendre le job foreground avec SIGTSTP ; bg reprend un job suspendu, ce qui implique SIGCONT. Pour arrêter proprement un processus, SIGTERM laisse au programme une possibilité de nettoyer son état, contrairement à SIGKILL qui ne peut pas être intercepté. Dans ce lab, la présence du worker sain empêche une solution grossière qui tuerait tous les processus similaires.",
+  "debrief_fr": "Le shell suit des jobs et leurs process groups, alors que ps/pgrep observent des processus. Ctrl-Z produit SIGTSTP, jobs expose l'état du job et bg le reprend avec SIGCONT. SIGTERM permet un arrêt propre. nohup protège un processus du SIGHUP de fermeture de session, tandis que tmux conserve une session terminal détachée. La validation combine état final et interaction PTY observée.",
   "objective_ids": [
     "103.5"
   ],
@@ -18,13 +18,15 @@
     "lpic1.103.5.jobs-du-shell",
     "lpic1.103.5.signaux",
     "lpic1.103.5.inspection-arbres-ressources",
-    "lpic1.103.5.selection-par-nom-pid"
+    "lpic1.103.5.processus-survivant-a-la-session",
+    "lpic1.103.5.selection-par-nom-pid",
+    "lpic1.103.5.multiplexeurs-de-terminal"
   ],
   "labels": [
     "lpic-required",
     "modern-practice"
   ],
-  "estimated_minutes": 15,
+  "estimated_minutes": 18,
   "environment": {
     "backend": "podman",
     "image_ref": "localhost/lpic-daily/fedora-phase1:1",
@@ -78,6 +80,20 @@
     {
       "type": "process-absent",
       "match": "/usr/local/bin/lpic-signal-probe"
+    },
+    {
+      "type": "process-running",
+      "match": "resilient-worker"
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/tmux",
+        "has-session",
+        "-t",
+        "ops"
+      ],
+      "expected_exit": 0
     }
   ],
   "hint_ids": [

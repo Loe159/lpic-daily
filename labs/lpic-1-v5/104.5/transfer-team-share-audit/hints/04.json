@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.5.transfer-team-share-audit.hint-4",
+  "lab_id": "lpic1.104.5.transfer-team-share-audit",
+  "level": 4,
+  "content_fr": "Applique root:project et 3770, retire SUID avec chmod 0755, écris umask 0007 dans /root/.bashrc puis crée handoff-note via un bash --rcfile.",
+  "evidence_impact": "solution-revealed"
+}

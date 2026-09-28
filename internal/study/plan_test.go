@@ -71,8 +71,8 @@ func TestFreshPlanStartsWithFocused1031Introduction(t *testing.T) {
 	if item.RecommendedQuestionID != "lpic1.103.1.q.sequence-and" {
 		t.Fatalf("recommended question = %q", item.RecommendedQuestionID)
 	}
-	if len(item.LabIDs) != 0 || item.RecommendedLabID != "" {
-		t.Fatalf("first shell syntax concept unexpectedly has lab coverage: %#v", item)
+	if len(item.LabIDs) != 2 || item.RecommendedLabID != "lpic1.103.1.shell-environment-repair" {
+		t.Fatalf("first shell syntax concept lab recommendation = %#v", item)
 	}
 }
 
@@ -208,5 +208,40 @@ func TestExposedConceptRecommendsQuestionNotLesson(t *testing.T) {
 	}
 	if plan.Items[0].RecommendedQuestionID != "lpic1.103.1.q.sequence-and" {
 		t.Fatalf("practice question = %q", plan.Items[0].RecommendedQuestionID)
+	}
+}
+
+func TestIndependentConceptRecommendsUnusedTransferLab(t *testing.T) {
+	curriculumBundle, contentBundle, labs := loadInputs(t)
+	now := time.Date(2026, 9, 28, 16, 0, 0, 0, time.UTC)
+	conceptID := "lpic1.103.1.path-et-resolution-de-commande"
+	evidence := memoryEvidence{
+		conceptID: {{
+			EventID: "independent-shell",
+			OccurredAt: now.Add(-8 * 24 * time.Hour),
+			ConceptID: conceptID,
+			ObjectiveIDs: []string{"103.1"},
+			SourceItemID: "lpic1.103.1.shell-environment-repair",
+			ActivityKind: learning.ActivityLab,
+			EvidenceKind: learning.EvidenceIndependentPractice,
+			Result: learning.ResultPass,
+			Distribution: "fedora",
+			AttemptIndex: 1,
+		}},
+	}
+	policy := learning.DefaultSessionPolicy()
+	policy.MaxNewConcepts = 0
+	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
+		Now: now, Curriculum: curriculumBundle, Content: contentBundle, Labs: labs,
+		Evidence: evidence, Policy: policy,
+	})
+	if err != nil {
+		t.Fatalf("BuildPlan() error = %v", err)
+	}
+	if len(plan.Items) != 1 || plan.Items[0].ConceptID != conceptID {
+		t.Fatalf("items = %#v, want due independent review", plan.Items)
+	}
+	if got := plan.Items[0].RecommendedLabID; got != "lpic1.103.1.transfer-shell-handoff" {
+		t.Fatalf("recommended lab = %q, want unused transfer context", got)
 	}
 }

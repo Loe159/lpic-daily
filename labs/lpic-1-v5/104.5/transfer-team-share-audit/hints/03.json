@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.5.transfer-team-share-audit.hint-3",
+  "lab_id": "lpic1.104.5.transfer-team-share-audit",
+  "level": 3,
+  "content_fr": "Place umask 0007 dans /root/.bashrc, utilise un bash avec --rcfile pour créer handoff-note et ramène audit-helper à 0755.",
+  "evidence_impact": "material"
+}
