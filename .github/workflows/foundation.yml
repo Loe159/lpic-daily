@@ -119,3 +119,60 @@ jobs:
         env:
           LPIC_DAILY_RUN_PODMAN_INTEGRATION: "1"
         run: go test -tags=integration ./internal/runner/podman -count=1 -v
+
+  podman-security-fedora:
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:44
+      options: --privileged
+    steps:
+      - name: Install Fedora rootless Podman prerequisites
+        run: |
+          dnf -y install git-core python3 tar gzip findutils podman shadow-utils
+          useradd --create-home --uid 1000 lpicci
+          printf 'lpicci:100000:65536\n' >> /etc/subuid
+          printf 'lpicci:100000:65536\n' >> /etc/subgid
+          install -d -o lpicci -g lpicci -m 0700 /run/user/1000
+          install -d -o lpicci -g lpicci /home/lpicci/.config/containers
+          cat > /home/lpicci/.config/containers/containers.conf <<'EOF'
+          [engine]
+          cgroup_manager="cgroupfs"
+          events_logger="file"
+          EOF
+          cat > /home/lpicci/.config/containers/storage.conf <<'EOF'
+          [storage]
+          driver="vfs"
+          runroot="/run/user/1000/containers"
+          graphroot="/home/lpicci/.local/share/containers/storage"
+          EOF
+          chown -R lpicci:lpicci /home/lpicci/.config
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Build Phase-1 image with Fedora rootless Podman
+        run: |
+          runuser -u lpicci -- env HOME=/home/lpicci XDG_RUNTIME_DIR=/run/user/1000 podman info
+          runuser -u lpicci -- env HOME=/home/lpicci XDG_RUNTIME_DIR=/run/user/1000 \
+            podman build -t localhost/lpic-daily/fedora-phase1:1 \
+            -f labs/images/fedora-phase1/Containerfile labs/images/fedora-phase1
+      - name: Start Fedora rootless Podman API
+        run: |
+          runuser -u lpicci -- mkdir -p /run/user/1000/podman
+          runuser -u lpicci -- env HOME=/home/lpicci XDG_RUNTIME_DIR=/run/user/1000 \
+            podman system service --time=0 unix:///run/user/1000/podman/podman.sock \
+            >/tmp/lpic-daily-fedora-podman.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            if [ -S /run/user/1000/podman/podman.sock ]; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/lpic-daily-fedora-podman.log
+          exit 1
+      - name: Run Fedora rootless Podman conformance tests
+        env:
+          XDG_RUNTIME_DIR: /run/user/1000
+          LPIC_DAILY_RUN_PODMAN_INTEGRATION: "1"
+        run: go test -tags=integration ./internal/runner/podman -count=1 -v
