@@ -86,7 +86,7 @@ func TestSolutionRevealCannotCountAsIndependent(t *testing.T) {
 	}
 }
 
-func TestLaterIndependentConfirmationCanReachTransfer(t *testing.T) {
+func TestRepeatedSameActivityStaysIndependent(t *testing.T) {
 	start := time.Date(2026, 9, 24, 8, 0, 0, 0, time.UTC)
 	independent := event("lab-a", start, learning.ActivityLab, learning.EvidenceIndependentPractice)
 	confirmation := event("lab-a-confirmation", start.Add(25*time.Hour), learning.ActivityLab, learning.EvidenceTransfer)
@@ -101,8 +101,11 @@ func TestLaterIndependentConfirmationCanReachTransfer(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ProjectMastery() error = %v", err)
 	}
-	if got.Stage != learning.StageTransfer || got.SuccessfulTransfer != 1 {
-		t.Fatalf("projection = %#v, want confirmed transfer", got)
+	if got.Stage != learning.StageIndependent {
+		t.Fatalf("stage = %s, want independent", got.Stage)
+	}
+	if got.SuccessfulTransfer != 0 || got.SuccessfulIndependent != 2 {
+		t.Fatalf("projection = %#v, want two independent confirmations and no transfer", got)
 	}
 }
 
