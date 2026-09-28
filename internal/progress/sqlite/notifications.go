@@ -35,7 +35,7 @@ func (store *Store) ClaimNotification(ctx context.Context, localDay string, at t
 		     notified_at = excluded.notified_at,
 		     status = 'claimed'
 		 WHERE notification_delivery.status = 'claimed'
-		   AND notification_delivery.notified_at <= ?`,
+		   AND julianday(notification_delivery.notified_at) <= julianday(?)`,
 		localDay,
 		claimedAt.Format(time.RFC3339Nano),
 		staleBefore.Format(time.RFC3339Nano),
