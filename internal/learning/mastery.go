@@ -162,10 +162,12 @@ func qualifiesAsTransfer(current EvidenceEvent, previous []EvidenceEvent, minGap
 		if current.OccurredAt.Sub(event.OccurredAt) < minGap {
 			continue
 		}
-		// A different activity is genuine transfer. Repeating the same
-		// practical activity as a later attempt is accepted as independent
-		// confirmation, which is the Phase-1 path to full practical mastery.
-		if event.SourceItemID != current.SourceItemID || current.AttemptIndex > event.AttemptIndex {
+		// Transfer requires a materially different context. A later attempt
+		// of the same activity on the same distribution remains independent
+		// confirmation rather than being promoted to transfer.
+		if event.SourceItemID != current.SourceItemID ||
+			event.ActivityKind != current.ActivityKind ||
+			event.Distribution != current.Distribution {
 			return true
 		}
 	}
