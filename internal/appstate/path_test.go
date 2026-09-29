@@ -57,6 +57,17 @@ func TestVMRootsDefaultToSystemLibvirtImageTree(t *testing.T) {
 	}
 }
 
+func TestVMNetworkAllocationLockIsHostGlobal(t *testing.T) {
+	t.Setenv("LPIC_DAILY_VM_STATE_DIR", filepath.Join(t.TempDir(), "custom-state"))
+	t.Setenv("LPIC_DAILY_VM_IMAGE_DIR", filepath.Join(t.TempDir(), "custom-images"))
+
+	got := appstate.VMNetworkAllocationLockPath()
+	want := filepath.Join("/var/lib/libvirt/images/lpic-daily", ".network-allocation.lock")
+	if got != want {
+		t.Fatalf("VMNetworkAllocationLockPath() = %q, want %q", got, want)
+	}
+}
+
 func TestVMRootsHonorAbsoluteOverrides(t *testing.T) {
 	root := t.TempDir()
 	state := filepath.Join(root, "state")
