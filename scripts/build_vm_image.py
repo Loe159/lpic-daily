@@ -166,19 +166,20 @@ def main():
         run(*command)
         run("qemu-img", "check", str(work))
 
-        # Re-convert to a clean standalone qcow2 before installation.
+        # Re-convert to a clean standalone qcow2, verify the artifact while it
+        # is still temporary, then install it atomically. A failed contract
+        # check must never replace the previously trusted image.
         installed_tmp = Path(tmp) / "installed.qcow2"
         run("qemu-img", "convert", "-f", "qcow2", "-O", "qcow2", "-c", str(work), str(installed_tmp))
+        virtual_size = qemu_virtual_size_mb(installed_tmp)
+        if virtual_size != target_mb:
+            raise SystemExit(
+                f"{image['id']}: built virtual size {virtual_size} MiB does not match "
+                f"declared target {target_mb} MiB"
+            )
+        final_sha = digest(installed_tmp, "sha256").hex()
         os.chmod(installed_tmp, 0o444)
         os.replace(installed_tmp, final_path)
-
-    final_sha = digest(final_path, "sha256").hex()
-    virtual_size = qemu_virtual_size_mb(final_path)
-    if virtual_size != image["virtual_size_mb"]:
-        raise SystemExit(
-            f"{image['id']}: installed virtual size {virtual_size} MiB does not match "
-            f"declared target {image['virtual_size_mb']} MiB"
-        )
     relative_path = str(final_path.relative_to(image_root))
     built_at = dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
     entry = {
