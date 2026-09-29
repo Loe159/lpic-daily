@@ -1504,8 +1504,11 @@ func runVMConsole(
 	consoleCtx, cancelConsole := context.WithCancel(ctx)
 	defer cancelConsole()
 	escapeInput := &vmConsoleEscapeReader{
-		reader:   cancelableInput,
-		onEscape: cancelConsole,
+		reader: cancelableInput,
+		onEscape: func() {
+			cancelableInput.Cancel()
+			cancelConsole()
+		},
 	}
 	err = console.OpenConsole(consoleCtx, instance, runner.ConsoleRequest{
 		Stdin:  escapeInput,
