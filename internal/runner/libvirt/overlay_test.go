@@ -215,7 +215,6 @@ func TestOverlayManagerRequiresProvisionedStateRoot(t *testing.T) {
 	}
 }
 
-
 func TestOverlayDestroyIsIdempotentWhenStateRootAlreadyGone(t *testing.T) {
 	root := t.TempDir()
 	imageRoot := filepath.Join(root, "images")
