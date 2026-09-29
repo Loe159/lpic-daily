@@ -1422,8 +1422,9 @@ func markPersistentShellConceptFailure(
 }
 
 type vmConsoleEscapeReader struct {
-	reader  io.Reader
-	escaped bool
+	reader   io.Reader
+	escaped  bool
+	onEscape func()
 }
 
 func (reader *vmConsoleEscapeReader) Read(buffer []byte) (int, error) {
@@ -1439,6 +1440,9 @@ func (reader *vmConsoleEscapeReader) Read(buffer []byte) (int, error) {
 			continue
 		}
 		reader.escaped = true
+		if reader.onEscape != nil {
+			reader.onEscape()
+		}
 		if index == 0 {
 			return 0, io.EOF
 		}
@@ -1497,8 +1501,14 @@ func runVMConsole(
 		}
 	}()
 
-	err = console.OpenConsole(ctx, instance, runner.ConsoleRequest{
-		Stdin:  &vmConsoleEscapeReader{reader: cancelableInput},
+	consoleCtx, cancelConsole := context.WithCancel(ctx)
+	defer cancelConsole()
+	escapeInput := &vmConsoleEscapeReader{
+		reader:   cancelableInput,
+		onEscape: cancelConsole,
+	}
+	err = console.OpenConsole(consoleCtx, instance, runner.ConsoleRequest{
+		Stdin:  escapeInput,
 		Stdout: stdoutFile,
 	})
 	if restoreErr := terminal.Restore(stdinFile, state); restoreErr != nil {
@@ -1506,7 +1516,11 @@ func runVMConsole(
 	}
 	restored = true
 	if err != nil {
-		if errors.Is(err, cancelreader.ErrCanceled) && ctx.Err() != nil {
+		if escapeInput.escaped && ctx.Err() == nil && errors.Is(err, context.Canceled) {
+			return nil
+		}
+		if ctx.Err() != nil &&
+			(errors.Is(err, context.Canceled) || errors.Is(err, cancelreader.ErrCanceled)) {
 			return ctx.Err()
 		}
 		return err
