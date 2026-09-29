@@ -42,8 +42,8 @@ func TestBuildDomainXMLContainsOnlyManagedVirtualResources(t *testing.T) {
 		"<name>lpic-daily-storage-abc123</name>",
 		`<memory unit="MiB">1024</memory>`,
 		`<vcpu placement="static">2</vcpu>`,
-		"<period>100000</period>",
-		"<quota>150000</quota>",
+		"<global_period>100000</global_period>",
+		"<global_quota>150000</global_quota>",
 		`<os firmware="efi">`,
 		"<source file=\"" + rootDisk + "\"></source>",
 		`<target dev="vda" bus="virtio"></target>`,
@@ -64,6 +64,10 @@ func TestBuildDomainXMLContainsOnlyManagedVirtualResources(t *testing.T) {
 	if err := xml.Unmarshal([]byte(payload), &decoded); err != nil {
 		t.Fatalf("domain XML does not round-trip: %v", err)
 	}
+	if decoded.CPUTune.GlobalPeriod != 100000 || decoded.CPUTune.GlobalQuota != 150000 {
+		t.Fatalf("unexpected global CPU limit: %#v", decoded.CPUTune)
+	}
+
 	if len(decoded.Devices.Channels) != 1 ||
 		decoded.Devices.Channels[0].Type != "unix" ||
 		decoded.Devices.Channels[0].Target.Type != "virtio" ||
