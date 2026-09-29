@@ -149,6 +149,10 @@ func (manager OverlayManager) Create(
 	if err := os.MkdirAll(directory, 0o711); err != nil {
 		return OverlayPaths{}, fmt.Errorf("create instance directory: %w", err)
 	}
+	if err := os.Chmod(directory, 0o711); err != nil {
+		_ = os.RemoveAll(directory)
+		return OverlayPaths{}, fmt.Errorf("set instance directory permissions: %w", err)
+	}
 
 	lease, err := acquireInstanceLease(directory)
 	if err != nil {
