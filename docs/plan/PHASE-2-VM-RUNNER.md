@@ -28,14 +28,15 @@ First end-to-end targets:
 Implemented on `phase-2-vm-runner-complete`:
 - system-libvirt control plane remains restricted to local `qemu:///system`, behind project-owned interfaces;
 - immutable catalogued QCOW2 bases, SHA-256 runtime verification, bounded disposable overlays and scratch disks;
-- explicit serial-console learner surface (`:console`) with local Ctrl-] escape and terminal restoration;
+- explicit serial-console learner surface (`:console`) with local Ctrl-] escape, terminal restoration and context cancellation that interrupts the disposable VM stream;
 - explicit VM reboot (`:reboot`) that waits for a changed guest `boot_id` through QEMU Guest Agent before returning;
 - 104.1 partition/filesystem state-based VM lab;
 - 102.2 GRUB 2 lab that requires a persistent kernel argument and verifies it after a real reboot;
 - LPIC Daily-owned isolated libvirt networks with no forwarding and shared-network multi-VM scenarios;
-- per-run leases plus startup reaping for abandoned LPIC Daily domains, networks and disposable state without reaping a live concurrent run;
+- per-run leases plus startup reaping for abandoned LPIC Daily domains, networks and disposable state without reaping a live concurrent run; ownership is verified through namespaced libvirt metadata rather than a name prefix alone;
 - explicit Fedora, Debian and openSUSE image-supply manifests/build pipeline with pinned source identity and mandatory checksum metadata;
-- opt-in real-KVM integration coverage for host sentinel preservation, base-image immutability, private two-guest communication and crash reaping;
+- default VM storage provisioned below `/var/lib/libvirt/images/lpic-daily/<uid>`, keeping qemu:///system disks out of private home/XDG paths and allowing normal libvirt SELinux/sVirt labeling;
+- opt-in real-KVM integration coverage for host sentinel preservation, base-image immutability, private two-guest communication, failed public egress, crash reaping and both 104.1/102.2 reference solutions (including the 102.2 reboot);
 - generic CI compiles the KVM integration test but does not pretend to execute it without a KVM/libvirt host.
 
 Acceptance is intentionally not declared complete yet. On 2026-09-29 the repository GitHub Actions runs for this branch are failing before any job step starts, so the branch has not obtained fresh `validate_foundation`, `go test`, `go vet` or format results from CI. The real-KVM test also still requires an explicit compatible host run with `LPIC_DAILY_RUN_KVM_INTEGRATION=1`.
@@ -103,7 +104,7 @@ Next action is validation, not additional Phase-2 feature scope: restore/diagnos
 
 10. **Guest image pipeline**
     - Fedora, Debian and openSUSE manifests/build recipes;
-    - reproducible provenance/checksum metadata;
+    - pinned source integrity + recorded build provenance/final checksum metadata;
     - guest probe + serial console baseline.
 
 11. **Real security integration**

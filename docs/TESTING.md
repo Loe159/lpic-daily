@@ -57,3 +57,14 @@ Remaining acceptance-level verification includes:
 - end-to-end 104.1 and 102.2 execution using the released/reproducible guest-image pipeline.
 
 Hypervisor scenarios belong on a KVM-capable runner or dedicated integration environment. Never weaken VM isolation or verification merely to make generic hosted CI pass.
+
+
+### Phase 2 real-host acceptance command
+
+On a provisioned KVM/libvirt host with the trusted Fedora image installed, run:
+
+```bash
+LPIC_DAILY_RUN_KVM_INTEGRATION=1 scripts/run_phase2_acceptance.sh
+```
+
+This entry point runs the normal foundation/Go/vet/format gates, then the opt-in libvirt integration suite. The real-host suite uses the same VM state path as the application, verifies private peer communication and failed public egress, preserves a host sentinel and the immutable base image, exercises crash reaping, and executes the 104.1 and reboot-dependent 102.2 reference solutions end to end.

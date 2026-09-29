@@ -11,14 +11,16 @@ Current blocker: GitHub Actions runs on the Phase-2 branch are terminating befor
 - [ ] only local `qemu:///system` is accepted by the canonical backend;
 - [ ] failed/missing libvirt authorization fails closed;
 - [ ] no VM lab falls back to Podman or host execution;
-- [ ] concrete libvirt dependency is isolated behind project-owned interfaces.
+- [ ] concrete libvirt dependency is isolated behind project-owned interfaces;
+- [ ] abandoned-resource inventory requires LPIC Daily ownership metadata, not only a name prefix.
 
 ## Image supply chain
 - [ ] curriculum references an opaque image ID, never a path/URL;
 - [ ] catalog entry includes SHA-256, provenance, format, architecture and firmware compatibility;
 - [ ] base-image integrity is verified;
 - [ ] base image is opened read-only from the VM design perspective and remains byte-identical after a lab;
-- [ ] floating image identities are rejected.
+- [ ] floating image identities are rejected;
+- [ ] default VM image/state paths are provisioned under the system-libvirt image tree (or an explicitly verified equivalent) so qemu:///system DAC/SELinux access is testable.
 
 ## VM isolation
 - [ ] generated domain names are LPIC Daily-namespaced;
@@ -43,6 +45,7 @@ Current blocker: GitHub Actions runs on the Phase-2 branch are terminating befor
 
 ## Interaction/checking
 - [ ] learner has a serial console path that works before normal userland login;
+- [ ] console cancellation interrupts the disposable VM stream and leaves teardown possible;
 - [ ] structured probes work for booted guest state;
 - [ ] hostile guest output is only passed raw in an explicit terminal surface;
 - [ ] checker success depends on observable state, not exact commands.
@@ -58,15 +61,19 @@ Current blocker: GitHub Actions runs on the Phase-2 branch are terminating befor
 - [ ] Fedora base manifest/recipe;
 - [ ] Debian base manifest/recipe;
 - [ ] openSUSE base manifest/recipe;
-- [ ] every released image has reproducible provenance/checksum metadata.
+- [ ] every released image records pinned upstream source integrity, build recipe/provenance and a final SHA-256;
+- [ ] byte-for-byte reproducibility is not claimed unless package repositories are snapshot-pinned.
 
 ## Verification
 - [ ] unit tests for XML/path/name policies;
 - [ ] fake-client lifecycle tests;
 - [ ] real KVM/libvirt host-sentinel test;
 - [ ] base-image immutability test;
-- [ ] isolated-network no-forwarding test;
+- [ ] isolated-network no-forwarding test includes a real guest public-egress failure probe;
+- [ ] both Phase-2 reference solutions are executed by the real-KVM harness, with 102.2 rebooted before grading;
 - [ ] `python3 scripts/validate_foundation.py`;
 - [ ] `go test ./...`;
 - [ ] `go vet ./...`;
 - [ ] CI green on supported non-KVM jobs.
+
+Canonical one-command acceptance entry point on a compatible host: `LPIC_DAILY_RUN_KVM_INTEGRATION=1 scripts/run_phase2_acceptance.sh`.
