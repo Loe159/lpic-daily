@@ -146,7 +146,7 @@ func (manager OverlayManager) Create(
 	} else if !errors.Is(err, os.ErrNotExist) {
 		return OverlayPaths{}, fmt.Errorf("inspect instance directory: %w", err)
 	}
-	if err := os.MkdirAll(directory, 0o700); err != nil {
+	if err := os.MkdirAll(directory, 0o711); err != nil {
 		return OverlayPaths{}, fmt.Errorf("create instance directory: %w", err)
 	}
 
