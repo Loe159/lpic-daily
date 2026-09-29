@@ -272,7 +272,7 @@ func TestRPCControlPlaneLifecycleUsesManagedDomainOnly(t *testing.T) {
 	name := "lpic-daily-vm-abc123"
 	raw := &fakeRawLibvirt{
 		libVersion:   1002003,
-		capabilities: "<capabilities><host><cpu><arch>x86_64</arch></cpu></host></capabilities>",
+		capabilities: "<capabilities><guest><arch name=\"x86_64\"><domain type=\"kvm\"/></arch></guest></capabilities>",
 		domain:       golibvirt.Domain{Name: name},
 		network:      golibvirt.Network{Name: name},
 		state:        1,
@@ -585,13 +585,20 @@ func TestRPCControlPlanePropagatesRawErrors(t *testing.T) {
 	}
 }
 
-func TestValidateSystemCapabilitiesRequiresX8664(t *testing.T) {
-	for _, capabilities := range []string{"", "<capabilities/>", "<arch>aarch64</arch>"} {
+func TestValidateSystemCapabilitiesRequiresX8664KVM(t *testing.T) {
+	for _, capabilities := range []string{
+		"",
+		"<capabilities/>",
+		"<capabilities><guest><arch name=\"aarch64\"><domain type=\"kvm\"/></arch></guest></capabilities>",
+		"<capabilities><guest><arch name=\"x86_64\"><domain type=\"qemu\"/></arch></guest></capabilities>",
+		"<not-closed>",
+	} {
 		if err := validateSystemCapabilities(capabilities); err == nil {
 			t.Fatalf("capabilities %q unexpectedly accepted", capabilities)
 		}
 	}
-	if err := validateSystemCapabilities("<arch>x86_64</arch>"); err != nil {
-		t.Fatalf("x86_64 capabilities rejected: %v", err)
+	valid := "<capabilities><guest><arch name=\"x86_64\"><domain type=\"qemu\"/><domain type=\"kvm\"/></arch></guest></capabilities>"
+	if err := validateSystemCapabilities(valid); err != nil {
+		t.Fatalf("x86_64 KVM capabilities rejected: %v", err)
 	}
 }
