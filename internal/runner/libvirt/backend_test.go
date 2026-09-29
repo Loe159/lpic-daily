@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"io"
+	"net/netip"
 	"os"
 	"path/filepath"
 	"strings"
@@ -197,6 +198,18 @@ func (fake *fakeControlPlane) ListManagedNetworks() ([]string, error) {
 		}
 	}
 	return names, nil
+}
+
+func (fake *fakeControlPlane) ListNetworkIPv4Prefixes() ([]netip.Prefix, error) {
+	var prefixes []netip.Prefix
+	for _, resourceXML := range fake.networks {
+		found, err := networkPrefixesFromXML(resourceXML)
+		if err != nil {
+			return nil, err
+		}
+		prefixes = append(prefixes, found...)
+	}
+	return prefixes, nil
 }
 func (fake *fakeControlPlane) Close() error {
 	fake.closed = true
