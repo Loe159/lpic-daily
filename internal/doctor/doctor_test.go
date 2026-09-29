@@ -31,7 +31,6 @@ func TestRunAlwaysIncludesDesktopChecksEvenWithoutPodman(t *testing.T) {
 	}
 }
 
-
 func TestVMStorageCheckRejectsSymlinkedRoots(t *testing.T) {
 	root := t.TempDir()
 	imageRoot := filepath.Join(root, "images")
