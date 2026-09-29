@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"net/netip"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -97,16 +99,35 @@ func TestNetworkPrefixesFromXML(t *testing.T) {
 }
 
 
+func TestNetworkAllocationLockRejectsSymlink(t *testing.T) {
+	root := t.TempDir()
+	target := filepath.Join(root, "target")
+	if err := os.WriteFile(target, nil, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	link := filepath.Join(root, "lock")
+	if err := os.Symlink(target, link); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := acquireNetworkAllocationLock(context.Background(), link); err == nil ||
+		!strings.Contains(err.Error(), "not a regular file") {
+		t.Fatalf("symlink lock error = %v", err)
+	}
+}
+
 func TestNetworkAllocationLockSerializesConcurrentAllocators(t *testing.T) {
-	stateRoot := t.TempDir()
-	first, err := acquireNetworkAllocationLock(context.Background(), stateRoot)
+	lockPath := filepath.Join(t.TempDir(), "network-allocation.lock")
+	if err := os.WriteFile(lockPath, nil, 0o600); err != nil {
+		t.Fatalf("WriteFile(lock) error = %v", err)
+	}
+	first, err := acquireNetworkAllocationLock(context.Background(), lockPath)
 	if err != nil {
 		t.Fatalf("first acquireNetworkAllocationLock() error = %v", err)
 	}
 
 	waitCtx, cancel := context.WithTimeout(context.Background(), 75*time.Millisecond)
 	defer cancel()
-	if _, err := acquireNetworkAllocationLock(waitCtx, stateRoot); !errors.Is(err, context.DeadlineExceeded) {
+	if _, err := acquireNetworkAllocationLock(waitCtx, lockPath); !errors.Is(err, context.DeadlineExceeded) {
 		_ = releaseNetworkAllocationLock(first)
 		t.Fatalf("second acquire error = %v, want context deadline", err)
 	}
@@ -114,7 +135,7 @@ func TestNetworkAllocationLockSerializesConcurrentAllocators(t *testing.T) {
 		t.Fatalf("release first allocation lock: %v", err)
 	}
 
-	second, err := acquireNetworkAllocationLock(context.Background(), stateRoot)
+	second, err := acquireNetworkAllocationLock(context.Background(), lockPath)
 	if err != nil {
 		t.Fatalf("acquire after release error = %v", err)
 	}
