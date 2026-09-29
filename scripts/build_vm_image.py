@@ -130,7 +130,9 @@ def main():
     ensure_qemu_traversable_directory(target_dir)
     final_path = target_dir / (image["id"] + ".qcow2")
 
-    with tempfile.TemporaryDirectory(prefix="lpic-daily-vm-build-") as tmp:
+    # Keep the build workspace on the image-root filesystem so the final
+    # os.replace() remains atomic even when /tmp is a separate mount.
+    with tempfile.TemporaryDirectory(prefix=".lpic-daily-vm-build-", dir=image_root) as tmp:
         work = Path(tmp) / "work.qcow2"
         run("qemu-img", "convert", "-f", "qcow2", "-O", "qcow2", str(source_path), str(work))
         current_mb = qemu_virtual_size_mb(work)
