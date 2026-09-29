@@ -69,6 +69,9 @@ func NewBackend(
 	if err := overlays.Validate(); err != nil {
 		return nil, err
 	}
+	if err := overlays.validateProvisionedStateRoot(); err != nil {
+		return nil, err
+	}
 	if networkAllocationLockPath == "" || !filepath.IsAbs(networkAllocationLockPath) {
 		return nil, errors.New("network allocation lock path must be absolute")
 	}
