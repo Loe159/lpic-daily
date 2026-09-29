@@ -32,12 +32,14 @@ Implemented on `phase-2-vm-runner-complete`:
 - explicit VM reboot (`:reboot`) that waits for a changed guest `boot_id` through QEMU Guest Agent before returning;
 - 104.1 partition/filesystem state-based VM lab;
 - 102.2 GRUB 2 lab that requires a persistent kernel argument and verifies it after a real reboot;
-- LPIC Daily-owned isolated libvirt networks with no forwarding and shared-network multi-VM scenarios; subnet allocation excludes host/libvirt routes and is serialized across concurrent processes;
-- per-run leases plus startup reaping for abandoned LPIC Daily domains, networks and disposable state without reaping a live concurrent run; ownership is verified through namespaced libvirt metadata rather than a name prefix alone;
+- LPIC Daily-owned isolated libvirt networks with no forwarding and shared-network multi-VM scenarios; subnet allocation excludes host/libvirt routes and is serialized across users/processes by one root-provisioned host-global lock;
+- per-run leases plus startup reaping for abandoned LPIC Daily domains, networks and disposable state without reaping a live concurrent run; ownership is verified through namespaced libvirt metadata carrying a stable effective-UID + state-root scope, and every lifecycle lookup rejects foreign scopes rather than trusting a name prefix;
 - explicit Fedora, Debian and openSUSE image-supply manifests/build pipeline with source digests pinned directly in-repository (no mutable remote checksum trust at build time);
-- default VM storage provisioned below `/var/lib/libvirt/images/lpic-daily/<uid>`, keeping qemu:///system disks out of private home/XDG paths and allowing normal libvirt SELinux/sVirt labeling;
+- default VM storage provisioned below `/var/lib/libvirt/images/lpic-daily/<uid>`, with a shared root-owned network-allocation lock at the parent level; this keeps qemu:///system disks out of private home/XDG paths while coordinating its host-global network namespace;
 - opt-in real-KVM integration coverage for host sentinel preservation, base-image immutability, private two-guest communication, failed public egress, crash reaping and both 104.1/102.2 reference solutions (including the 102.2 reboot);
 - generic CI compiles the KVM integration test but does not pretend to execute it without a KVM/libvirt host.
+
+VM lab startup now also refuses effective UID 0 at runtime, keeping the non-root invariant fail-closed.
 
 Acceptance is intentionally not declared complete yet. On 2026-09-29 the repository GitHub Actions runs for this branch are failing before any job step starts, so the branch has not obtained fresh `validate_foundation`, `go test`, `go vet` or format results from CI. The real-KVM test also still requires an explicit compatible host run with `LPIC_DAILY_RUN_KVM_INTEGRATION=1`.
 
