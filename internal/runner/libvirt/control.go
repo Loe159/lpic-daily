@@ -2,6 +2,7 @@ package libvirt
 
 import (
 	"context"
+	"encoding/xml"
 	"errors"
 	"fmt"
 	"io"
@@ -545,10 +546,28 @@ func validateSystemCapabilities(capabilities string) error {
 	if capabilities == "" {
 		return errors.New("libvirt returned empty capabilities")
 	}
-	if !strings.Contains(capabilities, "<arch>x86_64</arch>") &&
-		!strings.Contains(capabilities, "<arch name='x86_64'>") &&
-		!strings.Contains(capabilities, `<arch name="x86_64">`) {
-		return errors.New("libvirt host does not advertise x86_64 capabilities")
+	var document struct {
+		Guests []struct {
+			Arch struct {
+				Name    string `xml:"name,attr"`
+				Domains []struct {
+					Type string `xml:"type,attr"`
+				} `xml:"domain"`
+			} `xml:"arch"`
+		} `xml:"guest"`
 	}
-	return nil
+	if err := xml.Unmarshal([]byte(capabilities), &document); err != nil {
+		return fmt.Errorf("parse libvirt capabilities: %w", err)
+	}
+	for _, guest := range document.Guests {
+		if guest.Arch.Name != "x86_64" {
+			continue
+		}
+		for _, domain := range guest.Arch.Domains {
+			if domain.Type == "kvm" {
+				return nil
+			}
+		}
+	}
+	return errors.New("libvirt host does not advertise x86_64 KVM guest capabilities")
 }
