@@ -64,7 +64,7 @@ trusted base image (read-only)
                  +--> destroy/reset => remove overlay
 ```
 
-Base images and overlay/scratch state default below `/var/lib/libvirt/images/lpic-daily/<uid>/`, provisioned once by the narrow admin script and thereafter writable by the ordinary LPIC Daily user. This keeps qemu:///system disks outside private home/XDG trees and within the normal libvirt SELinux/sVirt image hierarchy. Explicit absolute image/state overrides remain possible for operators that provide equivalent DAC/MAC policy. Curriculum cannot choose any host path.
+Base images and overlay/scratch state default below `/var/lib/libvirt/images/lpic-daily/<uid>/`, provisioned once by the narrow admin script and thereafter writable by the ordinary LPIC Daily user. Per-run state directories are explicitly set to `0711` after creation, rather than relying on mkdir mode alone, so the system-libvirt QEMU process can traverse to managed disks even when the learner uses a restrictive umask; directory listing/read access is not granted to other users. This keeps qemu:///system disks outside private home/XDG trees and within the normal libvirt SELinux/sVirt image hierarchy. Explicit absolute image/state overrides remain possible for operators that provide equivalent DAC/MAC policy. Curriculum cannot choose any host path.
 
 ## Failure behavior
 
@@ -97,7 +97,7 @@ device. It always:
 - requires the domain to be active before the backend exposes the stream;
 - never forwards host credentials, files, devices or sockets.
 
-The CLI exposes this stream only through the explicit `:console` surface. Ctrl-] returns to LPIC Daily during normal use; session-context cancellation interrupts the disposable domain console so a blocked stream cannot outlive the lab timeout. Terminal state is restored on every return path.
+The CLI exposes this stream only through the explicit `:console` surface. Each console session uses a dedicated local `qemu:///system` RPC connection. Ctrl-] cancels that dedicated stream and returns to LPIC Daily without destroying the guest; session-context cancellation uses the same mechanism so a blocked stream cannot outlive the lab timeout. The main control connection remains usable for guest-agent commands and teardown, and terminal state is restored on every return path.
 
 
 ## Structured storage probe
