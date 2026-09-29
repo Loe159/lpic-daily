@@ -37,6 +37,7 @@ type fakeRawLibvirt struct {
 	disconnected     bool
 	err              error
 	consoleBlock     chan struct{}
+	consoleStarted   chan struct{}
 	consoleClosed    bool
 }
 
@@ -102,6 +103,9 @@ func (fake *fakeRawLibvirt) DomainOpenConsoleBidirectional(
 	fake.consoleFlags = flags
 	if fake.err != nil {
 		return fake.err
+	}
+	if fake.consoleStarted != nil {
+		close(fake.consoleStarted)
 	}
 	if fake.consoleBlock != nil {
 		<-fake.consoleBlock
@@ -447,8 +451,9 @@ func TestRPCControlPlaneInventoryIgnoresPrefixedForeignResources(t *testing.T) {
 func TestRPCControlPlaneConsoleCancellationInterruptsDisposableDomain(t *testing.T) {
 	name := "lpic-daily-console-abc123"
 	raw := &fakeRawLibvirt{
-		domain:       golibvirt.Domain{Name: name},
-		consoleBlock: make(chan struct{}),
+		domain:         golibvirt.Domain{Name: name},
+		consoleBlock:   make(chan struct{}),
+		consoleStarted: make(chan struct{}),
 	}
 	control, _ := newRPCControlPlane(raw)
 	ctx, cancel := context.WithCancel(context.Background())
@@ -456,6 +461,11 @@ func TestRPCControlPlaneConsoleCancellationInterruptsDisposableDomain(t *testing
 	go func() {
 		done <- control.OpenConsole(ctx, name, strings.NewReader(""), &bytes.Buffer{})
 	}()
+	select {
+	case <-raw.consoleStarted:
+	case <-time.After(time.Second):
+		t.Fatal("console did not start")
+	}
 	cancel()
 
 	select {
