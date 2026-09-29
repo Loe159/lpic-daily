@@ -4,10 +4,10 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"net/netip"
 	"os"
 	"path/filepath"
 	"regexp"
-	"net/netip"
 	"strings"
 
 	"github.com/Loe159/lpic-daily/internal/runner"
