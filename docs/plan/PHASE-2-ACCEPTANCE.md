@@ -10,6 +10,9 @@ Review remediation completed on 2026-09-29:
 - openSUSE source integrity is pinned directly in-repository to Build 18.68 / SHA-256 `f8a2703a4355a30d531021a88748f0c9d71124b7e33d26d4d49b85c2983e20d5`; runtime build no longer trusts a mutable remote checksum file;
 - isolated-network allocation uses collision-aware RFC1918 /28 selection, excluding host routes and all existing libvirt networks, with a cross-process allocation lock around inventory + definition;
 - VM console input is cancellable and Ctrl-] behavior plus CLI console/reboot dispatch have unit coverage; the real-KVM harness now verifies console cancellation followed by successful teardown.
+- libvirt ownership metadata now carries a stable scope derived from effective UID + VM state root; normal lifecycle lookups and the reaper reject same-prefix resources belonging to another scope;
+- isolated-network allocation now uses one root-provisioned host-global flock instead of a per-state-root lock, closing cross-user/custom-state-root allocation races against shared `qemu:///system`;
+- VM lab startup explicitly refuses effective UID 0 instead of relying on `doctor` warnings or acceptance-script discipline alone.
 
 ## Control plane
 - [ ] application process remains non-root;
