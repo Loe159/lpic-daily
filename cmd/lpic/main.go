@@ -1519,7 +1519,8 @@ func runVMConsole(
 	}
 	restored = true
 	if err != nil {
-		if escapeInput.escaped && ctx.Err() == nil && errors.Is(err, context.Canceled) {
+		if escapeInput.escaped && ctx.Err() == nil &&
+			(errors.Is(err, context.Canceled) || errors.Is(err, cancelreader.ErrCanceled)) {
 			return nil
 		}
 		if ctx.Err() != nil &&
