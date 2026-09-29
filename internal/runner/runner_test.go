@@ -96,7 +96,6 @@ func TestDefinitionRejectsResourceLimitsAboveSchemaMaximums(t *testing.T) {
 	}
 }
 
-
 func TestMachineDefinitionRejectsUnsafeDiskIDs(t *testing.T) {
 	for _, id := range []string{"", "../escape", "data/../../escape", "UPPER", "-leading", "a_b"} {
 		machine := runner.MachineDefinition{
@@ -111,7 +110,6 @@ func TestMachineDefinitionRejectsUnsafeDiskIDs(t *testing.T) {
 		}
 	}
 }
-
 
 func TestDefinitionRejectsUndersizedFullMachineMemory(t *testing.T) {
 	definition := runner.Definition{
