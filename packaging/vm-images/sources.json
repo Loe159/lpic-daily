@@ -55,14 +55,14 @@
     {
       "id": "opensuse-leap-16.0-x86_64-v1",
       "distribution": "opensuse",
-      "version": "16.0-build18.7",
+      "version": "16.0-build18.68",
       "architecture": "x86_64",
-      "source_url": "https://download.opensuse.org/distribution/leap/16.0/appliances/Leap-16.0-Minimal-VM.x86_64-Cloud-Build18.7.qcow2",
-      "source_filename": "Leap-16.0-Minimal-VM.x86_64-Cloud-Build18.7.qcow2",
+      "source_url": "https://download.opensuse.org/distribution/leap/16.0/appliances/Leap-16.0-Minimal-VM.x86_64-Cloud-Build18.68.qcow2",
+      "source_filename": "Leap-16.0-Minimal-VM.x86_64-Cloud-Build18.68.qcow2",
       "integrity": {
         "algorithm": "sha256",
         "encoding": "hex",
-        "checksum_url": "https://download.opensuse.org/distribution/leap/16.0/appliances/Leap-16.0-Minimal-VM.x86_64-Cloud-Build18.7.qcow2.sha256"
+        "value": "f8a2703a4355a30d531021a88748f0c9d71124b7e33d26d4d49b85c2983e20d5"
       },
       "virtual_size_mb": 8192,
       "firmware": [
