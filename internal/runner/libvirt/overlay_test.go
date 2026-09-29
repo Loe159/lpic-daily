@@ -81,6 +81,13 @@ func TestOverlayManagerCreatesStructuredQEMUImgCalls(t *testing.T) {
 	if len(commands.Calls) != 3 {
 		t.Fatalf("qemu-img calls = %d, want 3", len(commands.Calls))
 	}
+	directoryInfo, err := os.Stat(paths.Directory)
+	if err != nil {
+		t.Fatalf("Stat(instance directory) error = %v", err)
+	}
+	if got := directoryInfo.Mode().Perm(); got != 0o711 {
+		t.Fatalf("instance directory mode = %04o, want 0711 for qemu:///system traversal", got)
+	}
 	wantRoot := []string{
 		"create", "-f", "qcow2", "-F", "qcow2", "-b", image.Path, paths.RootDisk,
 	}
