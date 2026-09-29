@@ -363,7 +363,6 @@ func shellQuote(value string) string {
 	return "'" + strings.ReplaceAll(value, "'", "'\"'\"'") + "'"
 }
 
-
 func TestRealKVMPhase2ReferenceLabs(t *testing.T) {
 	if os.Getenv("LPIC_DAILY_RUN_KVM_INTEGRATION") != "1" {
 		t.Skip("set LPIC_DAILY_RUN_KVM_INTEGRATION=1 to run the real qemu:///system KVM test")
