@@ -11,7 +11,6 @@ import datetime as dt
 import hashlib
 import json
 import os
-import re
 import shutil
 import subprocess
 import tempfile
@@ -43,29 +42,12 @@ def digest(path, algorithm):
             h.update(block)
     return h.digest()
 
-def expected_digest(image, cache_dir):
+def expected_digest(image):
     integrity = image["integrity"]
+    value = integrity.get("value")
+    if not isinstance(value, str) or not value:
+        raise SystemExit(f"{image['id']}: integrity.value must be pinned in sources.json")
     encoding = integrity["encoding"]
-    if "value" in integrity:
-        value = integrity["value"]
-    else:
-        checksum_path = cache_dir / (image["source_filename"] + ".checksum")
-        download(integrity["checksum_url"], checksum_path)
-        text = checksum_path.read_text(encoding="utf-8", errors="strict")
-        filename = re.escape(image["source_filename"])
-        patterns = [
-            re.compile(r"(?im)^([0-9a-f]+)\s+[* ]?" + filename + r"$"),
-            re.compile(r"(?im)^SHA(?:256|512)\s*\(" + filename + r"\)\s*=\s*([0-9a-f]+)$"),
-        ]
-        match = next((candidate.search(text) for candidate in patterns if candidate.search(text)), None)
-        if match:
-            value = match.group(1).lower()
-        else:
-            tokens = text.strip().split()
-            if len(tokens) < 1 or not re.fullmatch(r"[0-9a-fA-F]+", tokens[0]):
-                raise SystemExit(f"cannot parse checksum from {integrity['checksum_url']}")
-            value = tokens[0].lower()
-        encoding = "hex"
     return bytes.fromhex(value) if encoding == "hex" else base64.b64decode(value, validate=True)
 
 def recipe_commands(distribution):
@@ -134,7 +116,7 @@ def main():
         download(image["source_url"], source_path)
 
     got = digest(source_path, image["integrity"]["algorithm"])
-    want = expected_digest(image, cache_dir)
+    want = expected_digest(image)
     if got != want:
         raise SystemExit(f"source integrity mismatch for {image['id']}")
     print(f"verified source integrity: {image['integrity']['algorithm']}")
