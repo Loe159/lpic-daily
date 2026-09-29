@@ -797,6 +797,40 @@ func TestBackendScenarioSharesOneIsolatedNetwork(t *testing.T) {
 	}
 }
 
+func TestBackendCloseCleansTrackedScenario(t *testing.T) {
+	backend, control, _, definition := backendFixture(t)
+	definition.Network = runner.NetworkIsolated
+	second := definition
+	second.LabID = "lpic1.109.2.peer-network"
+
+	scenario, err := backend.PrepareScenario(context.Background(), []runner.Definition{definition, second})
+	if err != nil {
+		t.Fatalf("PrepareScenario() error = %v", err)
+	}
+	networkDirectory := filepath.Join(backend.stateRoot, scenario.NetworkName)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := backend.Close(ctx); err != nil {
+		t.Fatalf("Close() error = %v", err)
+	}
+	if !control.closed {
+		t.Fatal("control plane was not closed")
+	}
+	if len(control.defined) != 0 || len(control.networks) != 0 {
+		t.Fatalf("Close() leaked scenario resources: domains=%#v networks=%#v", control.defined, control.networks)
+	}
+	if _, err := os.Stat(networkDirectory); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("scenario network state directory survived Close(): %v", err)
+	}
+	backend.mu.RLock()
+	remainingScenarios := len(backend.scenarios)
+	backend.mu.RUnlock()
+	if remainingScenarios != 0 {
+		t.Fatalf("tracked scenarios after Close() = %d, want 0", remainingScenarios)
+	}
+}
+
 func TestBackendReapRemovesAbandonedResources(t *testing.T) {
 	backend, control, _, _ := backendFixture(t)
 	name := "lpic-daily-orphan-abc123"
