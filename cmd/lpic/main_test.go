@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -773,5 +774,131 @@ func TestLabRequiresJobControlOnlyForJobConcept(t *testing.T) {
 	}
 	if labRequiresJobControl(lab.Definition{ConceptIDs: []string{"lpic1.103.5.signaux"}}) {
 		t.Fatal("unrelated signal concept should not require job-control evidence")
+	}
+}
+
+
+func TestVMConsoleEscapeReaderStopsAtControlRightBracket(t *testing.T) {
+	reader := &vmConsoleEscapeReader{reader: strings.NewReader("before\x1dafter")}
+	buffer := make([]byte, 64)
+
+	n, err := reader.Read(buffer)
+	if err != nil {
+		t.Fatalf("first Read() error = %v", err)
+	}
+	if got := string(buffer[:n]); got != "before" {
+		t.Fatalf("first Read() = %q, want %q", got, "before")
+	}
+
+	n, err = reader.Read(buffer)
+	if n != 0 || !errors.Is(err, io.EOF) {
+		t.Fatalf("second Read() = (%d, %v), want (0, EOF)", n, err)
+	}
+}
+
+func TestVMConsoleEscapeReaderHandlesImmediateEscape(t *testing.T) {
+	reader := &vmConsoleEscapeReader{reader: strings.NewReader("\x1dignored")}
+	buffer := make([]byte, 64)
+
+	n, err := reader.Read(buffer)
+	if n != 0 || !errors.Is(err, io.EOF) {
+		t.Fatalf("Read() = (%d, %v), want (0, EOF)", n, err)
+	}
+}
+
+type consoleScriptedLabRunner struct {
+	scriptedLabRunner
+	consoleCalls int
+}
+
+func (fake *consoleScriptedLabRunner) OpenConsole(
+	context.Context,
+	runner.Instance,
+	runner.ConsoleRequest,
+) error {
+	fake.consoleCalls++
+	return nil
+}
+
+type rebootScriptedLabRunner struct {
+	scriptedLabRunner
+	rebootCalls int
+}
+
+func (fake *rebootScriptedLabRunner) Reboot(context.Context, runner.Instance) error {
+	fake.rebootCalls++
+	return nil
+}
+
+func TestRunVMConsoleRejectsNonTerminalBeforeOpeningConsole(t *testing.T) {
+	fake := &consoleScriptedLabRunner{}
+	err := runVMConsole(
+		context.Background(),
+		fake,
+		runner.Instance{ID: "vm"},
+		strings.NewReader(""),
+		&bytes.Buffer{},
+	)
+	if err == nil || !strings.Contains(err.Error(), "interactive terminal on stdin") {
+		t.Fatalf("runVMConsole() error = %v", err)
+	}
+	if fake.consoleCalls != 0 {
+		t.Fatalf("console calls = %d, want 0", fake.consoleCalls)
+	}
+}
+
+func TestInteractiveVMLabDispatchesConsoleCommand(t *testing.T) {
+	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("LoadAll() error = %v", err)
+	}
+	authored, err := findLab(labs, "lpic1.102.2.grub-kernel-parameter")
+	if err != nil {
+		t.Fatalf("findLab() error = %v", err)
+	}
+	fake := &consoleScriptedLabRunner{}
+	err = runInteractiveLabWithBackend(
+		context.Background(),
+		authored,
+		fake,
+		false,
+		strings.NewReader(":console\n"),
+		&bytes.Buffer{},
+		&bytes.Buffer{},
+	)
+	if err == nil || !strings.Contains(err.Error(), "interactive terminal on stdin") {
+		t.Fatalf(":console error = %v", err)
+	}
+}
+
+func TestInteractiveVMLabDispatchesRebootCommand(t *testing.T) {
+	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("LoadAll() error = %v", err)
+	}
+	authored, err := findLab(labs, "lpic1.102.2.grub-kernel-parameter")
+	if err != nil {
+		t.Fatalf("findLab() error = %v", err)
+	}
+	fake := &rebootScriptedLabRunner{}
+	var stdout, stderr bytes.Buffer
+	if err := runInteractiveLabWithBackend(
+		context.Background(),
+		authored,
+		fake,
+		false,
+		strings.NewReader(":reboot\n:quit\n"),
+		&stdout,
+		&stderr,
+	); err != nil {
+		t.Fatalf("runInteractiveLabWithBackend() error = %v; stderr=%q", err, stderr.String())
+	}
+	if fake.rebootCalls != 1 {
+		t.Fatalf("reboot calls = %d, want 1", fake.rebootCalls)
+	}
+	if !strings.Contains(stdout.String(), "Reboot demandé") {
+		t.Fatalf("stdout missing reboot confirmation: %q", stdout.String())
 	}
 }
