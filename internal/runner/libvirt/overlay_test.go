@@ -214,3 +214,18 @@ func TestOverlayManagerRequiresProvisionedStateRoot(t *testing.T) {
 		t.Fatalf("state root was created implicitly: %v", statErr)
 	}
 }
+
+
+func TestOverlayDestroyIsIdempotentWhenStateRootAlreadyGone(t *testing.T) {
+	root := t.TempDir()
+	imageRoot := filepath.Join(root, "images")
+	stateRoot := testStateRoot(t, root)
+	manager := OverlayManager{ImageRoot: imageRoot, StateRoot: stateRoot, Commands: &fakeCommands{}}
+
+	if err := os.RemoveAll(stateRoot); err != nil {
+		t.Fatal(err)
+	}
+	if err := manager.Destroy("lpic-daily-already-gone"); err != nil {
+		t.Fatalf("Destroy() after state-root removal = %v, want nil", err)
+	}
+}
