@@ -2,7 +2,7 @@
 
 This directory defines the trusted, explicit image-supply workflow for the libvirt runner. It is **not** called by LPIC Daily at runtime: missing images fail closed.
 
-`sources.json` pins one x86_64 source for Fedora, Debian and openSUSE. Every source uses HTTPS and mandatory integrity metadata. Fedora and Debian use embedded upstream digests; openSUSE uses its versioned upstream `.sha256` file. Floating `latest`, `current` and `daily` paths are rejected by `scripts/validate_vm_image_sources.py`.
+`sources.json` pins one x86_64 source for Fedora, Debian and openSUSE. Every source uses HTTPS and an upstream digest embedded directly in the repository. Remote checksum files are not trusted at build time: changing an image and its checksum endpoint together must not silently change the trusted source identity. Floating `latest`, `current` and `daily` paths are rejected by `scripts/validate_vm_image_sources.py`.
 
 Provision the default system-libvirt storage once, then build/install an image as the regular user:
 
