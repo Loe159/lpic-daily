@@ -13,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -22,6 +23,23 @@ import (
 	"github.com/Loe159/lpic-daily/internal/runner"
 	"github.com/muesli/cancelreader"
 )
+
+type integrationLockedBuffer struct {
+	mu     sync.Mutex
+	buffer bytes.Buffer
+}
+
+func (buffer *integrationLockedBuffer) Write(payload []byte) (int, error) {
+	buffer.mu.Lock()
+	defer buffer.mu.Unlock()
+	return buffer.buffer.Write(payload)
+}
+
+func (buffer *integrationLockedBuffer) String() string {
+	buffer.mu.Lock()
+	defer buffer.mu.Unlock()
+	return buffer.buffer.String()
+}
 
 func TestRealKVMIsolationScenarioAndCrashReaping(t *testing.T) {
 	if os.Getenv("LPIC_DAILY_RUN_KVM_INTEGRATION") != "1" {
@@ -230,7 +248,7 @@ func TestRealKVMIsolationScenarioAndCrashReaping(t *testing.T) {
 
 	consoleCtx, cancelConsole := context.WithCancel(ctx)
 	consoleDone := make(chan error, 1)
-	var consoleOutput bytes.Buffer
+	var consoleOutput integrationLockedBuffer
 	go func() {
 		consoleDone <- backend.OpenConsole(consoleCtx, consoleInstance, runner.ConsoleRequest{
 			Stdin:  cancelableInput,
@@ -238,11 +256,28 @@ func TestRealKVMIsolationScenarioAndCrashReaping(t *testing.T) {
 		})
 	}()
 
-	select {
-	case err := <-consoleDone:
-		t.Fatalf("serial console closed before cancellation: %v", err)
-	case <-time.After(500 * time.Millisecond):
+	outputDeadline := time.NewTimer(30 * time.Second)
+	outputTicker := time.NewTicker(100 * time.Millisecond)
+	for strings.TrimSpace(consoleOutput.String()) == "" {
+		select {
+		case err := <-consoleDone:
+			outputTicker.Stop()
+			outputDeadline.Stop()
+			t.Fatalf("serial console closed before producing guest output: %v", err)
+		case <-outputTicker.C:
+		case <-outputDeadline.C:
+			outputTicker.Stop()
+			t.Fatal("serial console produced no guest output within 30 seconds of VM start")
+		}
 	}
+	outputTicker.Stop()
+	if !outputDeadline.Stop() {
+		select {
+		case <-outputDeadline.C:
+		default:
+		}
+	}
+
 	cancelConsole()
 	cancelableInput.Cancel()
 	select {
