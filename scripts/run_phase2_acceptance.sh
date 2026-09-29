@@ -19,10 +19,8 @@ if [[ -n "${dirty}" ]]; then
   exit 1
 fi
 
-go mod tidy
-if ! git diff --quiet -- go.mod go.sum; then
-  echo "go mod tidy changed go.mod/go.sum" >&2
-  git diff -- go.mod go.sum >&2
+if ! go mod tidy -diff; then
+  echo "go.mod/go.sum are not tidy" >&2
   exit 1
 fi
 
