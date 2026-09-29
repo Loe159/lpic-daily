@@ -16,67 +16,10 @@ import (
 )
 
 var (
-	managedNamePattern = regexp.MustCompile(`^lpic-daily-[a-z0-9][a-z0-9.-]{0,52}$`)
-	imageIDPattern     = regexp.MustCompile(`^[a-z0-9][a-z0-9._-]{2,63}package libvirt
-
-import (
-	"crypto/sha256"
-	"encoding/hex"
-	"encoding/xml"
-	"errors"
-	"fmt"
-	"net/netip"
-	"os"
-	"path/filepath"
-	"regexp"
-	"strings"
-
-	"github.com/Loe159/lpic-daily/internal/runner"
-)
-
-var (
-	managedNamePattern = regexp.MustCompile(`^lpic-daily-[a-z0-9][a-z0-9.-]{0,52}$`)
-	)
-	diskIDPattern      = regexp.MustCompile(`^[a-z0-9][a-z0-9-]{0,31}package libvirt
-
-import (
-	"crypto/sha256"
-	"encoding/hex"
-	"encoding/xml"
-	"errors"
-	"fmt"
-	"net/netip"
-	"os"
-	"path/filepath"
-	"regexp"
-	"strings"
-
-	"github.com/Loe159/lpic-daily/internal/runner"
-)
-
-var (
-	managedNamePattern = regexp.MustCompile(`^lpic-daily-[a-z0-9][a-z0-9.-]{0,52}$`)
-	)
-	managedScopePattern = regexp.MustCompile(`^[a-f0-9]{32}package libvirt
-
-import (
-	"crypto/sha256"
-	"encoding/hex"
-	"encoding/xml"
-	"errors"
-	"fmt"
-	"net/netip"
-	"os"
-	"path/filepath"
-	"regexp"
-	"strings"
-
-	"github.com/Loe159/lpic-daily/internal/runner"
-)
-
-var (
-	managedNamePattern = regexp.MustCompile(`^lpic-daily-[a-z0-9][a-z0-9.-]{0,52}$`)
-	)
+	managedNamePattern  = regexp.MustCompile(`^lpic-daily-[a-z0-9][a-z0-9.-]{0,52}$`)
+	imageIDPattern      = regexp.MustCompile(`^[a-z0-9][a-z0-9._-]{2,63}$`)
+	diskIDPattern       = regexp.MustCompile(`^[a-z0-9][a-z0-9-]{0,31}$`)
+	managedScopePattern = regexp.MustCompile(`^[a-f0-9]{32}$`)
 )
 
 const (
