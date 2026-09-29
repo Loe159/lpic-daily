@@ -270,7 +270,15 @@ func backendFixture(t *testing.T) (*Backend, *fakeControlPlane, *fakeCommands, r
 	if err := os.WriteFile(networkLockPath, nil, 0o600); err != nil {
 		t.Fatalf("WriteFile(network lock) error = %v", err)
 	}
-	backend, err := NewBackend(control, catalog, imageRoot, stateRoot, networkLockPath, commands)
+	backend, err := newBackendForEffectiveUID(
+		1000,
+		control,
+		catalog,
+		imageRoot,
+		stateRoot,
+		networkLockPath,
+		commands,
+	)
 	if err != nil {
 		t.Fatalf("NewBackend() error = %v", err)
 	}
@@ -293,6 +301,40 @@ func backendFixture(t *testing.T) (*Backend, *fakeControlPlane, *fakeCommands, r
 		},
 	}
 	return backend, control, commands, definition
+}
+
+func TestNewBackendRejectsRootBeforeControlPlaneMutation(t *testing.T) {
+	control := newFakeControlPlane()
+	_, err := newBackendForEffectiveUID(
+		0,
+		control,
+		&ImageCatalog{},
+		"/tmp/lpic-daily-images",
+		"/tmp/lpic-daily-state",
+		"/tmp/lpic-daily-network.lock",
+		&fakeCommands{},
+	)
+	if err == nil || !strings.Contains(err.Error(), "regular user") {
+		t.Fatalf("newBackendForEffectiveUID(root) error = %v", err)
+	}
+	if control.ownerScope != "" {
+		t.Fatalf("root rejection mutated libvirt owner scope: %q", control.ownerScope)
+	}
+}
+
+func TestManagedOwnerScopeSeparatesEffectiveUIDs(t *testing.T) {
+	stateRoot := filepath.Join(t.TempDir(), "state")
+	first, err := managedOwnerScopeForUID(stateRoot, 1000)
+	if err != nil {
+		t.Fatalf("managedOwnerScopeForUID(1000) error = %v", err)
+	}
+	second, err := managedOwnerScopeForUID(stateRoot, 1001)
+	if err != nil {
+		t.Fatalf("managedOwnerScopeForUID(1001) error = %v", err)
+	}
+	if first == second {
+		t.Fatalf("different effective UIDs share owner scope %q", first)
+	}
 }
 
 func TestManagedOwnerScopeSeparatesStateRoots(t *testing.T) {
