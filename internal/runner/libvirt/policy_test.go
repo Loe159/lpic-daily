@@ -2,6 +2,7 @@ package libvirt
 
 import (
 	"encoding/xml"
+	"net/netip"
 	"os"
 	"path/filepath"
 	"strings"
@@ -111,7 +112,7 @@ func TestDomainSpecRejectsHostPathsAndUnmanagedNetwork(t *testing.T) {
 }
 
 func TestIsolatedNetworkXMLHasNoForwarding(t *testing.T) {
-	payload, err := BuildIsolatedNetworkXML("lpic-daily-net-abc", 77)
+	payload, err := BuildIsolatedNetworkXML("lpic-daily-net-abc", netip.MustParsePrefix("10.77.0.0/28"))
 	if err != nil {
 		t.Fatalf("BuildIsolatedNetworkXML() error = %v", err)
 	}
@@ -123,9 +124,9 @@ func TestIsolatedNetworkXMLHasNoForwarding(t *testing.T) {
 	}
 	for _, want := range []string{
 		"<name>lpic-daily-net-abc</name>",
-		`address="192.168.77.1"`,
-		`start="192.168.77.10"`,
-		`end="192.168.77.200"`,
+		`address="10.77.0.1"`,
+		`start="10.77.0.2"`,
+		`end="10.77.0.14"`,
 	} {
 		if !strings.Contains(payload, want) {
 			t.Fatalf("network XML missing %q:\n%s", want, payload)
