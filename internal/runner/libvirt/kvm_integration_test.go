@@ -26,8 +26,15 @@ func TestRealKVMIsolationScenarioAndCrashReaping(t *testing.T) {
 		t.Skip("set LPIC_DAILY_RUN_KVM_INTEGRATION=1 to run the real qemu:///system KVM test")
 	}
 	imageRoot := os.Getenv("LPIC_DAILY_VM_IMAGE_DIR")
-	if imageRoot == "" || !filepath.IsAbs(imageRoot) {
-		t.Fatal("LPIC_DAILY_VM_IMAGE_DIR must be an absolute installed image root")
+	if imageRoot == "" {
+		var err error
+		imageRoot, err = appstate.VMImageRoot()
+		if err != nil {
+			t.Fatalf("VMImageRoot() error = %v", err)
+		}
+	}
+	if !filepath.IsAbs(imageRoot) {
+		t.Fatal("VM image root must be absolute")
 	}
 	catalog, err := LoadImageCatalog(filepath.Join(imageRoot, "catalog.json"), imageRoot)
 	if err != nil {
