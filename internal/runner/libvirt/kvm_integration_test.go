@@ -7,6 +7,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"io"
 	"io/fs"
 	"os"
@@ -19,6 +20,7 @@ import (
 	"github.com/Loe159/lpic-daily/internal/appstate"
 	"github.com/Loe159/lpic-daily/internal/lab"
 	"github.com/Loe159/lpic-daily/internal/runner"
+	"github.com/muesli/cancelreader"
 )
 
 func TestRealKVMIsolationScenarioAndCrashReaping(t *testing.T) {
@@ -193,6 +195,59 @@ func TestRealKVMIsolationScenarioAndCrashReaping(t *testing.T) {
 		if name == orphan.ID {
 			t.Fatalf("orphan domain %s survived Reap()", orphan.ID)
 		}
+	}
+
+	consoleDefinition := definition
+	consoleDefinition.LabID = "integration.kvm.serial-console"
+	consoleDefinition.Network = runner.NetworkNone
+	consoleInstance, err := backend.Prepare(ctx, consoleDefinition)
+	if err != nil {
+		t.Fatalf("Prepare(console) error = %v", err)
+	}
+	if err := backend.Start(ctx, consoleInstance); err != nil {
+		t.Fatalf("Start(console) error = %v", err)
+	}
+
+	consoleInput, consoleInputWriter, err := os.Pipe()
+	if err != nil {
+		t.Fatalf("create console input pipe: %v", err)
+	}
+	defer consoleInputWriter.Close()
+	cancelableInput, err := cancelreader.NewReader(consoleInput)
+	if err != nil {
+		_ = consoleInput.Close()
+		t.Fatalf("create cancellable console input: %v", err)
+	}
+	defer cancelableInput.Close()
+	defer consoleInput.Close()
+
+	consoleCtx, cancelConsole := context.WithCancel(ctx)
+	consoleDone := make(chan error, 1)
+	var consoleOutput bytes.Buffer
+	go func() {
+		consoleDone <- backend.OpenConsole(consoleCtx, consoleInstance, runner.ConsoleRequest{
+			Stdin:  cancelableInput,
+			Stdout: &consoleOutput,
+		})
+	}()
+
+	select {
+	case err := <-consoleDone:
+		t.Fatalf("serial console closed before cancellation: %v", err)
+	case <-time.After(500 * time.Millisecond):
+	}
+	cancelConsole()
+	cancelableInput.Cancel()
+	select {
+	case err := <-consoleDone:
+		if !errors.Is(err, context.Canceled) {
+			t.Fatalf("serial console cancellation error = %v, want context.Canceled", err)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("serial console did not stop after context cancellation")
+	}
+	if err := backend.Destroy(ctx, consoleInstance); err != nil {
+		t.Fatalf("Destroy(console) after cancellation error = %v", err)
 	}
 
 	baseAfter, err := integrationFileSHA256(image.Path)
