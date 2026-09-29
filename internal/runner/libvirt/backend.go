@@ -55,6 +55,32 @@ func NewBackend(
 	networkAllocationLockPath string,
 	commands CommandRunner,
 ) (*Backend, error) {
+	return newBackendForEffectiveUID(
+		os.Geteuid(),
+		control,
+		catalog,
+		imageRoot,
+		stateRoot,
+		networkAllocationLockPath,
+		commands,
+	)
+}
+
+func newBackendForEffectiveUID(
+	effectiveUID int,
+	control ControlPlane,
+	catalog *ImageCatalog,
+	imageRoot string,
+	stateRoot string,
+	networkAllocationLockPath string,
+	commands CommandRunner,
+) (*Backend, error) {
+	if effectiveUID == 0 {
+		return nil, errors.New("libvirt VM backend must run as a regular user, not root")
+	}
+	if effectiveUID < 0 {
+		return nil, errors.New("effective UID must not be negative")
+	}
 	if control == nil {
 		return nil, errors.New("libvirt control plane is required")
 	}
@@ -75,7 +101,7 @@ func NewBackend(
 	if networkAllocationLockPath == "" || !filepath.IsAbs(networkAllocationLockPath) {
 		return nil, errors.New("network allocation lock path must be absolute")
 	}
-	ownerScope, err := managedOwnerScope(stateRoot)
+	ownerScope, err := managedOwnerScopeForUID(stateRoot, effectiveUID)
 	if err != nil {
 		return nil, err
 	}
