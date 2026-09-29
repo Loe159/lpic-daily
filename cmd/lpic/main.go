@@ -992,7 +992,9 @@ func openLibvirtBackend() (*libvirtrunner.Backend, error) {
 	reapCtx, cancelReap := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancelReap()
 	if err := backend.Reap(reapCtx); err != nil {
-		_ = backend.Close(context.Background())
+		closeCtx, cancelClose := context.WithTimeout(context.Background(), 10*time.Second)
+		_ = backend.Close(closeCtx)
+		cancelClose()
 		return nil, fmt.Errorf("reap abandoned VM resources: %w", err)
 	}
 	return backend, nil
