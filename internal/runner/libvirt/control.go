@@ -21,6 +21,7 @@ type DomainState struct {
 }
 
 type ControlPlane interface {
+	SetManagedOwnerScope(string) error
 	LibVersion() (uint64, error)
 	Capabilities() (string, error)
 	DefineDomain(string, string) error
@@ -79,7 +80,8 @@ type rawLibvirt interface {
 }
 
 type RPCControlPlane struct {
-	raw rawLibvirt
+	raw        rawLibvirt
+	ownerScope string
 }
 
 func OpenSystem() (*RPCControlPlane, error) {
@@ -116,6 +118,30 @@ func newRPCControlPlane(raw rawLibvirt) (*RPCControlPlane, error) {
 	return &RPCControlPlane{raw: raw}, nil
 }
 
+func (control *RPCControlPlane) SetManagedOwnerScope(scope string) error {
+	if control == nil || control.raw == nil {
+		return errors.New("libvirt control plane is not initialized")
+	}
+	if err := validateManagedOwnerScope(scope); err != nil {
+		return err
+	}
+	if control.ownerScope != "" && control.ownerScope != scope {
+		return errors.New("libvirt control plane owner scope is already configured")
+	}
+	control.ownerScope = scope
+	return nil
+}
+
+func (control *RPCControlPlane) requireManagedOwnerScope() error {
+	if control == nil || control.raw == nil {
+		return errors.New("libvirt control plane is not initialized")
+	}
+	if err := validateManagedOwnerScope(control.ownerScope); err != nil {
+		return errors.New("libvirt control plane owner scope is not configured")
+	}
+	return nil
+}
+
 func (control *RPCControlPlane) LibVersion() (uint64, error) {
 	if control == nil || control.raw == nil {
 		return 0, errors.New("libvirt control plane is not initialized")
@@ -134,11 +160,14 @@ func (control *RPCControlPlane) DefineDomain(name, domainXML string) error {
 	if err := validateManagedResourceName("domain", name); err != nil {
 		return err
 	}
+	if err := control.requireManagedOwnerScope(); err != nil {
+		return err
+	}
 	if strings.TrimSpace(domainXML) == "" {
 		return errors.New("domain XML is required")
 	}
-	if !hasManagedMetadata(domainXML) {
-		return errors.New("domain XML is missing LPIC Daily ownership metadata")
+	if !hasManagedMetadata(domainXML, control.ownerScope) {
+		return errors.New("domain XML is missing matching LPIC Daily ownership metadata")
 	}
 	domain, err := control.raw.DomainDefineXMLFlags(domainXML, 0)
 	if err != nil {
@@ -298,11 +327,14 @@ func (control *RPCControlPlane) DefineNetwork(name, networkXML string) error {
 	if err := validateManagedResourceName("network", name); err != nil {
 		return err
 	}
+	if err := control.requireManagedOwnerScope(); err != nil {
+		return err
+	}
 	if strings.TrimSpace(networkXML) == "" {
 		return errors.New("network XML is required")
 	}
-	if !hasManagedMetadata(networkXML) {
-		return errors.New("network XML is missing LPIC Daily ownership metadata")
+	if !hasManagedMetadata(networkXML, control.ownerScope) {
+		return errors.New("network XML is missing matching LPIC Daily ownership metadata")
 	}
 	network, err := control.raw.NetworkDefineXML(networkXML)
 	if err != nil {
@@ -360,6 +392,9 @@ func (control *RPCControlPlane) UndefineNetwork(name string) error {
 }
 
 func (control *RPCControlPlane) ListManagedDomains() ([]string, error) {
+	if err := control.requireManagedOwnerScope(); err != nil {
+		return nil, err
+	}
 	domains, _, err := control.raw.ConnectListAllDomains(
 		1,
 		golibvirt.ConnectListDomainsActive|golibvirt.ConnectListDomainsInactive,
@@ -376,7 +411,7 @@ func (control *RPCControlPlane) ListManagedDomains() ([]string, error) {
 		if err != nil {
 			return nil, fmt.Errorf("inspect domain %s ownership metadata: %w", domain.Name, err)
 		}
-		if hasManagedMetadata(resourceXML) {
+		if hasManagedMetadata(resourceXML, control.ownerScope) {
 			names = append(names, domain.Name)
 		}
 	}
@@ -384,6 +419,9 @@ func (control *RPCControlPlane) ListManagedDomains() ([]string, error) {
 }
 
 func (control *RPCControlPlane) ListManagedNetworks() ([]string, error) {
+	if err := control.requireManagedOwnerScope(); err != nil {
+		return nil, err
+	}
 	networks, _, err := control.raw.ConnectListAllNetworks(
 		1,
 		golibvirt.ConnectListNetworksActive|golibvirt.ConnectListNetworksInactive,
@@ -400,7 +438,7 @@ func (control *RPCControlPlane) ListManagedNetworks() ([]string, error) {
 		if err != nil {
 			return nil, fmt.Errorf("inspect network %s ownership metadata: %w", network.Name, err)
 		}
-		if hasManagedMetadata(resourceXML) {
+		if hasManagedMetadata(resourceXML, control.ownerScope) {
 			names = append(names, network.Name)
 		}
 	}
@@ -422,12 +460,22 @@ func (control *RPCControlPlane) lookupManagedDomain(name string) (golibvirt.Doma
 	if err := validateManagedResourceName("domain", name); err != nil {
 		return golibvirt.Domain{}, err
 	}
+	if err := control.requireManagedOwnerScope(); err != nil {
+		return golibvirt.Domain{}, err
+	}
 	domain, err := control.raw.DomainLookupByName(name)
 	if err != nil {
 		return golibvirt.Domain{}, fmt.Errorf("lookup domain %s: %w", name, err)
 	}
 	if domain.Name != name {
 		return golibvirt.Domain{}, fmt.Errorf("libvirt returned unexpected domain %q for %q", domain.Name, name)
+	}
+	resourceXML, err := control.raw.DomainGetXMLDesc(domain, 0)
+	if err != nil {
+		return golibvirt.Domain{}, fmt.Errorf("inspect domain %s ownership metadata: %w", name, err)
+	}
+	if !hasManagedMetadata(resourceXML, control.ownerScope) {
+		return golibvirt.Domain{}, fmt.Errorf("domain %s is not owned by this LPIC Daily instance", name)
 	}
 	return domain, nil
 }
@@ -436,12 +484,22 @@ func (control *RPCControlPlane) lookupManagedNetwork(name string) (golibvirt.Net
 	if err := validateManagedResourceName("network", name); err != nil {
 		return golibvirt.Network{}, err
 	}
+	if err := control.requireManagedOwnerScope(); err != nil {
+		return golibvirt.Network{}, err
+	}
 	network, err := control.raw.NetworkLookupByName(name)
 	if err != nil {
 		return golibvirt.Network{}, fmt.Errorf("lookup network %s: %w", name, err)
 	}
 	if network.Name != name {
 		return golibvirt.Network{}, fmt.Errorf("libvirt returned unexpected network %q for %q", network.Name, name)
+	}
+	resourceXML, err := control.raw.NetworkGetXMLDesc(network, 0)
+	if err != nil {
+		return golibvirt.Network{}, fmt.Errorf("inspect network %s ownership metadata: %w", name, err)
+	}
+	if !hasManagedMetadata(resourceXML, control.ownerScope) {
+		return golibvirt.Network{}, fmt.Errorf("network %s is not owned by this LPIC Daily instance", name)
 	}
 	return network, nil
 }
