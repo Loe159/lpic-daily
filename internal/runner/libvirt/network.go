@@ -94,7 +94,7 @@ func networkPrefixesFromXML(payload string) ([]netip.Prefix, error) {
 			if maskIP == nil {
 				return nil, fmt.Errorf("invalid IPv4 netmask %q", item.Netmask)
 			}
-			var mask net.IPMask = maskIP
+			mask := net.IPMask(maskIP)
 			var total int
 			bits, total = mask.Size()
 			if total != 32 {
