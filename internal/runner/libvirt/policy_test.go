@@ -19,6 +19,7 @@ func TestBuildDomainXMLContainsOnlyManagedVirtualResources(t *testing.T) {
 	payload, err := BuildDomainXML(DomainSpec{
 		Name:         "lpic-daily-storage-abc123",
 		LabID:        "lpic1.104.1.partition-disk",
+		OwnerScope:   testManagedOwnerScope,
 		MemoryMB:     1024,
 		CPUPercent:   150,
 		Firmware:     runner.FirmwareUEFI,
@@ -32,7 +33,7 @@ func TestBuildDomainXMLContainsOnlyManagedVirtualResources(t *testing.T) {
 	if err != nil {
 		t.Fatalf("BuildDomainXML() error = %v", err)
 	}
-	if !hasManagedMetadata(payload) {
+	if !hasManagedMetadata(payload, testManagedOwnerScope) {
 		t.Fatalf("domain XML missing LPIC Daily ownership metadata:\n%s", payload)
 	}
 
@@ -89,6 +90,7 @@ func TestDomainSpecRejectsHostPathsAndUnmanagedNetwork(t *testing.T) {
 	base := DomainSpec{
 		Name:         "lpic-daily-test-abc",
 		LabID:        "lpic1.104.1.test",
+		OwnerScope:   testManagedOwnerScope,
 		MemoryMB:     512,
 		CPUPercent:   100,
 		Firmware:     runner.FirmwareBIOS,
@@ -112,7 +114,7 @@ func TestDomainSpecRejectsHostPathsAndUnmanagedNetwork(t *testing.T) {
 }
 
 func TestIsolatedNetworkXMLHasNoForwarding(t *testing.T) {
-	payload, err := BuildIsolatedNetworkXML("lpic-daily-net-abc", netip.MustParsePrefix("10.77.0.0/28"))
+	payload, err := BuildIsolatedNetworkXML("lpic-daily-net-abc", netip.MustParsePrefix("10.77.0.0/28"), testManagedOwnerScope)
 	if err != nil {
 		t.Fatalf("BuildIsolatedNetworkXML() error = %v", err)
 	}
