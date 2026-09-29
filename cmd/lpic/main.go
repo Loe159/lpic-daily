@@ -948,6 +948,9 @@ func requireUnprivilegedVMProcess(euid int) error {
 }
 
 func openLibvirtBackend() (*libvirtrunner.Backend, error) {
+	if err := requireUnprivilegedVMProcess(os.Geteuid()); err != nil {
+		return nil, err
+	}
 	imageRoot, err := appstate.VMImageRoot()
 	if err != nil {
 		return nil, fmt.Errorf("resolve VM image root: %w", err)
@@ -964,9 +967,6 @@ func openLibvirtBackend() (*libvirtrunner.Backend, error) {
 	stateRoot, err := appstate.VMStateRoot()
 	if err != nil {
 		return nil, fmt.Errorf("resolve VM state root: %w", err)
-	}
-	if err := requireUnprivilegedVMProcess(os.Geteuid()); err != nil {
-		return nil, err
 	}
 	commands, err := libvirtrunner.NewExecCommandRunner()
 	if err != nil {
