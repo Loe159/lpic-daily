@@ -320,6 +320,15 @@ func TestPrepareJobControlShellAvoidsUnsupportedNonTTYStdin(t *testing.T) {
 	}
 }
 
+func TestRequireUnprivilegedVMProcessRejectsRoot(t *testing.T) {
+	if err := requireUnprivilegedVMProcess(0); err == nil || !strings.Contains(err.Error(), "not root") {
+		t.Fatalf("root process error = %v", err)
+	}
+	if err := requireUnprivilegedVMProcess(1000); err != nil {
+		t.Fatalf("regular user rejected: %v", err)
+	}
+}
+
 func TestLibvirtLabRunFailsClosedWithoutTrustedImageCatalog(t *testing.T) {
 	root := t.TempDir()
 	t.Setenv("LPIC_DAILY_VM_IMAGE_DIR", filepath.Join(root, "vm-images"))
