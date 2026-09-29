@@ -940,6 +940,13 @@ func runInteractiveLab(authored lab.Lab, stdin io.Reader, stdout, stderr io.Writ
 	}
 }
 
+func requireUnprivilegedVMProcess(euid int) error {
+	if euid == 0 {
+		return errors.New("libvirt VM labs must run as a regular user, not root")
+	}
+	return nil
+}
+
 func openLibvirtBackend() (*libvirtrunner.Backend, error) {
 	imageRoot, err := appstate.VMImageRoot()
 	if err != nil {
@@ -958,6 +965,9 @@ func openLibvirtBackend() (*libvirtrunner.Backend, error) {
 	if err != nil {
 		return nil, fmt.Errorf("resolve VM state root: %w", err)
 	}
+	if err := requireUnprivilegedVMProcess(os.Geteuid()); err != nil {
+		return nil, err
+	}
 	commands, err := libvirtrunner.NewExecCommandRunner()
 	if err != nil {
 		return nil, err
@@ -972,6 +982,7 @@ func openLibvirtBackend() (*libvirtrunner.Backend, error) {
 		catalog,
 		imageRoot,
 		stateRoot,
+		appstate.VMNetworkAllocationLockPath(),
 		commands,
 	)
 	if err != nil {
