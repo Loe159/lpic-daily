@@ -80,11 +80,12 @@ type rawLibvirt interface {
 }
 
 type RPCControlPlane struct {
-	raw        rawLibvirt
-	ownerScope string
+	raw         rawLibvirt
+	ownerScope  string
+	consoleDial func() (rawLibvirt, error)
 }
 
-func OpenSystem() (*RPCControlPlane, error) {
+func dialSystemLibvirt() (rawLibvirt, error) {
 	uri, err := url.Parse(systemURI)
 	if err != nil {
 		return nil, fmt.Errorf("parse built-in libvirt URI: %w", err)
@@ -93,8 +94,16 @@ func OpenSystem() (*RPCControlPlane, error) {
 	if err != nil {
 		return nil, fmt.Errorf("connect to local system libvirt: %w", err)
 	}
+	return client, nil
+}
 
-	control := &RPCControlPlane{raw: client}
+func OpenSystem() (*RPCControlPlane, error) {
+	client, err := dialSystemLibvirt()
+	if err != nil {
+		return nil, err
+	}
+
+	control := &RPCControlPlane{raw: client, consoleDial: dialSystemLibvirt}
 	if _, err := control.LibVersion(); err != nil {
 		_ = control.Close()
 		return nil, fmt.Errorf("probe libvirt version: %w", err)
@@ -220,14 +229,24 @@ func (control *RPCControlPlane) OpenConsole(
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	domain, err := control.lookupManagedDomain(name)
+	if control.consoleDial == nil {
+		return errors.New("libvirt console connection factory is not configured")
+	}
+
+	consoleRaw, err := control.consoleDial()
+	if err != nil {
+		return fmt.Errorf("open dedicated libvirt console connection: %w", err)
+	}
+	defer consoleRaw.Disconnect()
+
+	domain, err := lookupManagedDomainOn(consoleRaw, name, control.ownerScope)
 	if err != nil {
 		return err
 	}
 
 	done := make(chan error, 1)
 	go func() {
-		done <- control.raw.DomainOpenConsoleBidirectional(
+		done <- consoleRaw.DomainOpenConsoleBidirectional(
 			domain,
 			golibvirt.OptString(nil),
 			input,
@@ -243,18 +262,18 @@ func (control *RPCControlPlane) OpenConsole(
 		}
 		return nil
 	case <-ctx.Done():
-		// The go-libvirt bidirectional helper has no context parameter. Powering
-		// off only this disposable lab domain closes the stream while keeping the
-		// control connection usable for normal teardown.
-		destroyErr := control.raw.DomainDestroyFlags(domain, 0)
+		// go-libvirt does not expose context cancellation for bidirectional
+		// streams. The console therefore uses its own libvirt connection: closing
+		// that connection interrupts only the stream and leaves the VM running.
+		disconnectErr := consoleRaw.Disconnect()
 		timer := time.NewTimer(2 * time.Second)
 		defer timer.Stop()
 		select {
 		case <-done:
 		case <-timer.C:
 		}
-		if destroyErr != nil {
-			return errors.Join(ctx.Err(), fmt.Errorf("interrupt console for domain %s: %w", name, destroyErr))
+		if disconnectErr != nil {
+			return errors.Join(ctx.Err(), fmt.Errorf("interrupt console for domain %s: %w", name, disconnectErr))
 		}
 		return ctx.Err()
 	}
@@ -457,24 +476,34 @@ func (control *RPCControlPlane) Close() error {
 }
 
 func (control *RPCControlPlane) lookupManagedDomain(name string) (golibvirt.Domain, error) {
-	if err := validateManagedResourceName("domain", name); err != nil {
-		return golibvirt.Domain{}, err
-	}
 	if err := control.requireManagedOwnerScope(); err != nil {
 		return golibvirt.Domain{}, err
 	}
-	domain, err := control.raw.DomainLookupByName(name)
+	return lookupManagedDomainOn(control.raw, name, control.ownerScope)
+}
+
+func lookupManagedDomainOn(raw rawLibvirt, name, ownerScope string) (golibvirt.Domain, error) {
+	if raw == nil {
+		return golibvirt.Domain{}, errors.New("libvirt control plane is not initialized")
+	}
+	if err := validateManagedResourceName("domain", name); err != nil {
+		return golibvirt.Domain{}, err
+	}
+	if err := validateManagedOwnerScope(ownerScope); err != nil {
+		return golibvirt.Domain{}, errors.New("libvirt control plane owner scope is not configured")
+	}
+	domain, err := raw.DomainLookupByName(name)
 	if err != nil {
 		return golibvirt.Domain{}, fmt.Errorf("lookup domain %s: %w", name, err)
 	}
 	if domain.Name != name {
 		return golibvirt.Domain{}, fmt.Errorf("libvirt returned unexpected domain %q for %q", domain.Name, name)
 	}
-	resourceXML, err := control.raw.DomainGetXMLDesc(domain, 0)
+	resourceXML, err := raw.DomainGetXMLDesc(domain, 0)
 	if err != nil {
 		return golibvirt.Domain{}, fmt.Errorf("inspect domain %s ownership metadata: %w", name, err)
 	}
-	if !hasManagedMetadata(resourceXML, control.ownerScope) {
+	if !hasManagedMetadata(resourceXML, ownerScope) {
 		return golibvirt.Domain{}, fmt.Errorf("domain %s is not owned by this LPIC Daily instance", name)
 	}
 	return domain, nil
