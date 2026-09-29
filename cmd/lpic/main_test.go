@@ -796,7 +796,13 @@ func TestLabRequiresJobControlOnlyForJobConcept(t *testing.T) {
 
 
 func TestVMConsoleEscapeReaderStopsAtControlRightBracket(t *testing.T) {
-	reader := &vmConsoleEscapeReader{reader: strings.NewReader("before\x1dafter")}
+	escapeCalled := false
+	reader := &vmConsoleEscapeReader{
+		reader: strings.NewReader("before\x1dafter"),
+		onEscape: func() {
+			escapeCalled = true
+		},
+	}
 	buffer := make([]byte, 64)
 
 	n, err := reader.Read(buffer)
@@ -805,6 +811,9 @@ func TestVMConsoleEscapeReaderStopsAtControlRightBracket(t *testing.T) {
 	}
 	if got := string(buffer[:n]); got != "before" {
 		t.Fatalf("first Read() = %q, want %q", got, "before")
+	}
+	if !escapeCalled {
+		t.Fatal("Ctrl-] did not trigger console cancellation")
 	}
 
 	n, err = reader.Read(buffer)
