@@ -121,7 +121,7 @@ func TestIsolatedNetworkXMLHasNoForwarding(t *testing.T) {
 	if strings.Contains(payload, "<forward") {
 		t.Fatalf("isolated network unexpectedly forwards traffic:\n%s", payload)
 	}
-	if !hasManagedMetadata(payload) {
+	if !hasManagedMetadata(payload, testManagedOwnerScope) {
 		t.Fatalf("network XML missing LPIC Daily ownership metadata:\n%s", payload)
 	}
 	for _, want := range []string{
