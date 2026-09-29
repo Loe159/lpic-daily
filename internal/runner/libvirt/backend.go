@@ -365,23 +365,33 @@ func (backend *Backend) PrepareScenario(
 	networkStarted = true
 
 	scenario := Scenario{NetworkName: networkName, lease: networkLease}
+	rollback := func(primary error) error {
+		if rollbackErr := backend.rollbackScenarioInstances(scenario.Instances); rollbackErr != nil {
+			// Preserve the shared network and lease as tracked backend state so
+			// Close() can retry cleanup instead of tearing networking away from
+			// a guest that failed to roll back.
+			backend.mu.Lock()
+			backend.scenarios[networkName] = scenario
+			backend.mu.Unlock()
+			cleanupNetwork = false
+			cleanupLease = false
+			return errors.Join(primary, fmt.Errorf("rollback scenario instances: %w", rollbackErr))
+		}
+		return primary
+	}
 	for _, definition := range definitions {
 		if err := definition.Validate(); err != nil {
-			backend.rollbackScenarioInstances(scenario.Instances)
-			return Scenario{}, fmt.Errorf("validate scenario VM definition: %w", err)
+			return Scenario{}, rollback(fmt.Errorf("validate scenario VM definition: %w", err))
 		}
 		if definition.Network != runner.NetworkIsolated {
-			backend.rollbackScenarioInstances(scenario.Instances)
-			return Scenario{}, errors.New("scenario machines must use network=isolated")
+			return Scenario{}, rollback(errors.New("scenario machines must use network=isolated"))
 		}
 		name, err := vmInstanceName(definition.LabID)
 		if err != nil {
-			backend.rollbackScenarioInstances(scenario.Instances)
-			return Scenario{}, err
+			return Scenario{}, rollback(err)
 		}
 		if err := backend.prepareNamedOnNetwork(ctx, name, definition, networkName, false); err != nil {
-			backend.rollbackScenarioInstances(scenario.Instances)
-			return Scenario{}, err
+			return Scenario{}, rollback(err)
 		}
 		scenario.Instances = append(scenario.Instances, runner.Instance{ID: name})
 	}
@@ -445,10 +455,10 @@ func (backend *Backend) DestroyScenario(ctx context.Context, scenario Scenario) 
 	return nil
 }
 
-func (backend *Backend) rollbackScenarioInstances(instances []runner.Instance) {
+func (backend *Backend) rollbackScenarioInstances(instances []runner.Instance) error {
 	rollbackCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	_ = backend.destroyScenarioInstances(rollbackCtx, instances)
+	return backend.destroyScenarioInstances(rollbackCtx, instances)
 }
 
 func (backend *Backend) destroyScenarioInstances(ctx context.Context, instances []runner.Instance) error {
