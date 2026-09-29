@@ -14,6 +14,11 @@ ALLOWED_DISTRIBUTIONS = {"fedora", "debian", "opensuse"}
 ALLOWED_FIRMWARE = {"bios", "uefi"}
 ALLOWED_ALGORITHMS = {"sha256": 32, "sha512": 64}
 ALLOWED_ENCODINGS = {"hex", "base64"}
+ALLOWED_RECIPES = {
+    "fedora-cloud-v1": "fedora",
+    "debian-cloud-v1": "debian",
+    "opensuse-cloud-v1": "opensuse",
+}
 
 def fail(message):
     print("VM image source validation FAILED:", message)
@@ -90,8 +95,17 @@ def main():
             fail(f"{image_id}: non-empty package list required")
         if "qemu-guest-agent" not in packages:
             fail(f"{image_id}: qemu-guest-agent is required")
-        if not isinstance(image.get("recipe"), str) or not image["recipe"]:
+        recipe = image.get("recipe")
+        if not isinstance(recipe, str) or not recipe:
             fail(f"{image_id}: recipe is required")
+        expected_distribution = ALLOWED_RECIPES.get(recipe)
+        if expected_distribution is None:
+            fail(f"{image_id}: unsupported recipe {recipe!r}")
+        if expected_distribution != distribution:
+            fail(
+                f"{image_id}: recipe {recipe!r} requires distribution "
+                f"{expected_distribution!r}, got {distribution!r}"
+            )
 
     if distributions != ALLOWED_DISTRIBUTIONS:
         fail(f"required distributions are {sorted(ALLOWED_DISTRIBUTIONS)}, got {sorted(distributions)}")
