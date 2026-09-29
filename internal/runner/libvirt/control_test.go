@@ -41,8 +41,22 @@ type fakeRawLibvirt struct {
 	consoleClosed    bool
 }
 
-const managedTestDomainXML = `<domain><metadata><lpic-daily xmlns="urn:lpic-daily:managed:v1" owner="lpic-daily" version="1"></lpic-daily></metadata></domain>`
-const managedTestNetworkXML = `<network><metadata><lpic-daily xmlns="urn:lpic-daily:managed:v1" owner="lpic-daily" version="1"></lpic-daily></metadata></network>`
+const testManagedOwnerScope = "0123456789abcdef0123456789abcdef"
+
+const managedTestDomainXML = `<domain><metadata><lpic-daily xmlns="urn:lpic-daily:managed:v1" owner="lpic-daily" version="1" scope="` + testManagedOwnerScope + `"></lpic-daily></metadata></domain>`
+const managedTestNetworkXML = `<network><metadata><lpic-daily xmlns="urn:lpic-daily:managed:v1" owner="lpic-daily" version="1" scope="` + testManagedOwnerScope + `"></lpic-daily></metadata></network>`
+
+func newScopedRPCControlPlaneForTest(t *testing.T, raw rawLibvirt) (*RPCControlPlane, error) {
+	t.Helper()
+	control, err := newRPCControlPlane(raw)
+	if err != nil {
+		return nil, err
+	}
+	if err := control.SetManagedOwnerScope(testManagedOwnerScope); err != nil {
+		return nil, err
+	}
+	return control, nil
+}
 
 func (fake *fakeRawLibvirt) ConnectGetLibVersion() (uint64, error) {
 	return fake.libVersion, fake.err
@@ -260,7 +274,7 @@ func TestRPCControlPlaneLifecycleUsesManagedDomainOnly(t *testing.T) {
 		state:        1,
 		reason:       2,
 	}
-	control, err := newRPCControlPlane(raw)
+	control, err := newScopedRPCControlPlaneForTest(t, raw)
 	if err != nil {
 		t.Fatalf("newRPCControlPlane() error = %v", err)
 	}
@@ -368,7 +382,7 @@ func TestRPCControlPlaneLifecycleUsesManagedDomainOnly(t *testing.T) {
 
 func TestRPCControlPlaneRejectsUnmanagedNamesBeforeRPC(t *testing.T) {
 	raw := &fakeRawLibvirt{}
-	control, err := newRPCControlPlane(raw)
+	control, err := newScopedRPCControlPlaneForTest(t, raw)
 	if err != nil {
 		t.Fatalf("newRPCControlPlane() error = %v", err)
 	}
@@ -408,7 +422,7 @@ func TestDefineDomainRejectsMismatchedLibvirtIdentity(t *testing.T) {
 	raw := &fakeRawLibvirt{
 		domain: golibvirt.Domain{Name: "lpic-daily-other"},
 	}
-	control, _ := newRPCControlPlane(raw)
+	control, _ := newScopedRPCControlPlaneForTest(t, raw)
 	err := control.DefineDomain("lpic-daily-expected", managedTestDomainXML)
 	if err == nil || !strings.Contains(err.Error(), "unexpected domain") {
 		t.Fatalf("DefineDomain() error = %v", err)
@@ -420,7 +434,7 @@ func TestRPCControlPlaneRejectsMissingOwnershipMetadata(t *testing.T) {
 		domain:  golibvirt.Domain{Name: "lpic-daily-owned-test"},
 		network: golibvirt.Network{Name: "lpic-daily-owned-test"},
 	}
-	control, _ := newRPCControlPlane(raw)
+	control, _ := newScopedRPCControlPlaneForTest(t, raw)
 	if err := control.DefineDomain("lpic-daily-owned-test", "<domain/>"); err == nil ||
 		!strings.Contains(err.Error(), "ownership metadata") {
 		t.Fatalf("DefineDomain() metadata error = %v", err)
@@ -439,7 +453,7 @@ func TestRPCControlPlaneInventoryIgnoresPrefixedForeignResources(t *testing.T) {
 		definedXML: "<domain/>",
 		networkXML: "<network/>",
 	}
-	control, _ := newRPCControlPlane(raw)
+	control, _ := newScopedRPCControlPlaneForTest(t, raw)
 	if domains, err := control.ListManagedDomains(); err != nil || len(domains) != 0 {
 		t.Fatalf("foreign domains = %#v, %v", domains, err)
 	}
@@ -448,14 +462,54 @@ func TestRPCControlPlaneInventoryIgnoresPrefixedForeignResources(t *testing.T) {
 	}
 }
 
+func TestRPCControlPlaneRejectsForeignScopedResources(t *testing.T) {
+	name := "lpic-daily-foreign-scope-abc123"
+	foreignScope := "fedcba9876543210fedcba9876543210"
+	raw := &fakeRawLibvirt{
+		domain:      golibvirt.Domain{Name: name},
+		network:     golibvirt.Network{Name: name},
+		definedXML:  strings.Replace(managedTestDomainXML, testManagedOwnerScope, foreignScope, 1),
+		networkXML:  strings.Replace(managedTestNetworkXML, testManagedOwnerScope, foreignScope, 1),
+	}
+	control, err := newScopedRPCControlPlaneForTest(t, raw)
+	if err != nil {
+		t.Fatalf("new control plane: %v", err)
+	}
+
+	if err := control.StartDomain(name); err == nil || !strings.Contains(err.Error(), "not owned by this LPIC Daily instance") {
+		t.Fatalf("StartDomain(foreign scope) error = %v", err)
+	}
+	if err := control.StartNetwork(name); err == nil || !strings.Contains(err.Error(), "not owned by this LPIC Daily instance") {
+		t.Fatalf("StartNetwork(foreign scope) error = %v", err)
+	}
+	if domains, err := control.ListManagedDomains(); err != nil || len(domains) != 0 {
+		t.Fatalf("foreign scoped domains = %#v, %v", domains, err)
+	}
+	if networks, err := control.ListManagedNetworks(); err != nil || len(networks) != 0 {
+		t.Fatalf("foreign scoped networks = %#v, %v", networks, err)
+	}
+}
+
+func TestRPCControlPlaneRequiresOwnerScopeForManagedOperations(t *testing.T) {
+	raw := &fakeRawLibvirt{domain: golibvirt.Domain{Name: "lpic-daily-test-abc123"}}
+	control, err := newRPCControlPlane(raw)
+	if err != nil {
+		t.Fatalf("newRPCControlPlane() error = %v", err)
+	}
+	if err := control.StartDomain("lpic-daily-test-abc123"); err == nil || !strings.Contains(err.Error(), "owner scope is not configured") {
+		t.Fatalf("StartDomain(unscoped) error = %v", err)
+	}
+}
+
 func TestRPCControlPlaneConsoleCancellationInterruptsDisposableDomain(t *testing.T) {
 	name := "lpic-daily-console-abc123"
 	raw := &fakeRawLibvirt{
 		domain:         golibvirt.Domain{Name: name},
+		definedXML:     managedTestDomainXML,
 		consoleBlock:   make(chan struct{}),
 		consoleStarted: make(chan struct{}),
 	}
-	control, _ := newRPCControlPlane(raw)
+	control, _ := newScopedRPCControlPlaneForTest(t, raw)
 	ctx, cancel := context.WithCancel(context.Background())
 	done := make(chan error, 1)
 	go func() {
@@ -486,7 +540,7 @@ func TestRPCControlPlanePropagatesRawErrors(t *testing.T) {
 		domain: golibvirt.Domain{Name: "lpic-daily-vm-abc"},
 		err:    errors.New("libvirt unavailable"),
 	}
-	control, _ := newRPCControlPlane(raw)
+	control, _ := newScopedRPCControlPlaneForTest(t, raw)
 	if err := control.StartDomain("lpic-daily-vm-abc"); err == nil ||
 		!strings.Contains(err.Error(), "libvirt unavailable") {
 		t.Fatalf("StartDomain() error = %v", err)
