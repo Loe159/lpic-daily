@@ -272,8 +272,8 @@ type vcpuXML struct {
 }
 
 type cpuTuneXML struct {
-	Period int64 `xml:"period"`
-	Quota  int64 `xml:"quota"`
+	GlobalPeriod int64 `xml:"global_period"`
+	GlobalQuota  int64 `xml:"global_quota"`
 }
 
 type osXML struct {
@@ -387,7 +387,7 @@ func BuildDomainXML(spec DomainSpec, stateRoot string) (string, error) {
 		Metadata:    newManagedMetadata(spec.OwnerScope),
 		Memory:      memoryXML{Unit: "MiB", Value: spec.MemoryMB},
 		VCPU:        vcpuXML{Placement: "static", Value: vcpuCount},
-		CPUTune:     cpuTuneXML{Period: period, Quota: quota},
+		CPUTune:     cpuTuneXML{GlobalPeriod: period, GlobalQuota: quota},
 		OS: osXML{
 			Type: osTypeXML{Arch: "x86_64", Machine: "q35", Value: "hvm"},
 		},
