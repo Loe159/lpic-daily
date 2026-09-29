@@ -55,26 +55,38 @@ def expected_digest(image):
     encoding = integrity["encoding"]
     return bytes.fromhex(value) if encoding == "hex" else base64.b64decode(value, validate=True)
 
-def recipe_commands(distribution):
+def recipe_commands(image):
     common = [
         "systemctl enable qemu-guest-agent.service",
         "systemctl enable serial-getty@ttyS0.service",
         "truncate -s 0 /etc/machine-id",
         "rm -f /var/lib/dbus/machine-id /etc/ssh/ssh_host_*",
     ]
-    if distribution == "fedora":
-        return ["grubby --update-kernel=ALL --args='console=tty0 console=ttyS0,115200n8'"] + common
-    if distribution == "debian":
-        return [
+    recipe = image["recipe"]
+    distribution = image["distribution"]
+    if recipe == "fedora-cloud-v1":
+        expected_distribution = "fedora"
+        commands = ["grubby --update-kernel=ALL --args='console=tty0 console=ttyS0,115200n8'"]
+    elif recipe == "debian-cloud-v1":
+        expected_distribution = "debian"
+        commands = [
             "grep -q 'console=ttyS0,115200n8' /etc/default/grub || sed -i 's/^GRUB_CMDLINE_LINUX="/GRUB_CMDLINE_LINUX="console=tty0 console=ttyS0,115200n8 /' /etc/default/grub",
             "update-grub",
-        ] + common
-    if distribution == "opensuse":
-        return [
+        ]
+    elif recipe == "opensuse-cloud-v1":
+        expected_distribution = "opensuse"
+        commands = [
             "grep -q 'console=ttyS0,115200n8' /etc/default/grub || sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT="/GRUB_CMDLINE_LINUX_DEFAULT="console=tty0 console=ttyS0,115200n8 /' /etc/default/grub",
             "grub2-mkconfig -o /boot/grub2/grub.cfg",
-        ] + common
-    raise SystemExit(f"unsupported distribution {distribution}")
+        ]
+    else:
+        raise SystemExit(f"unsupported build recipe {recipe!r}")
+    if distribution != expected_distribution:
+        raise SystemExit(
+            f"{image['id']}: recipe {recipe!r} requires distribution "
+            f"{expected_distribution!r}, got {distribution!r}"
+        )
+    return commands + common
 
 def qemu_virtual_size_mb(path):
     info = json.loads(output("qemu-img", "info", "--output=json", str(path)))
@@ -136,14 +148,20 @@ def main():
         work = Path(tmp) / "work.qcow2"
         run("qemu-img", "convert", "-f", "qcow2", "-O", "qcow2", str(source_path), str(work))
         current_mb = qemu_virtual_size_mb(work)
-        if current_mb < image["virtual_size_mb"]:
-            run("qemu-img", "resize", str(work), f"{image['virtual_size_mb']}M")
+        target_mb = image["virtual_size_mb"]
+        if current_mb > target_mb:
+            raise SystemExit(
+                f"{image['id']}: source virtual size {current_mb} MiB exceeds "
+                f"declared target {target_mb} MiB"
+            )
+        if current_mb < target_mb:
+            run("qemu-img", "resize", str(work), f"{target_mb}M")
 
         command = [
             "virt-customize", "-a", str(work), "--network",
             "--install", ",".join(image["packages"]),
         ]
-        for item in recipe_commands(image["distribution"]):
+        for item in recipe_commands(image):
             command += ["--run-command", item]
         run(*command)
         run("qemu-img", "check", str(work))
@@ -156,6 +174,11 @@ def main():
 
     final_sha = digest(final_path, "sha256").hex()
     virtual_size = qemu_virtual_size_mb(final_path)
+    if virtual_size != image["virtual_size_mb"]:
+        raise SystemExit(
+            f"{image['id']}: installed virtual size {virtual_size} MiB does not match "
+            f"declared target {image['virtual_size_mb']} MiB"
+        )
     relative_path = str(final_path.relative_to(image_root))
     built_at = dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
     entry = {
