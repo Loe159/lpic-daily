@@ -35,12 +35,10 @@ def decoded_integrity(integrity, image_id):
     if encoding not in ALLOWED_ENCODINGS:
         fail(f"{image_id}: unsupported integrity encoding {encoding!r}")
     value = integrity.get("value")
-    checksum_url = integrity.get("checksum_url")
-    if bool(value) == bool(checksum_url):
-        fail(f"{image_id}: integrity must declare exactly one of value or checksum_url")
-    if checksum_url:
-        https_url(checksum_url, f"{image_id}.integrity.checksum_url")
-        return
+    if integrity.get("checksum_url"):
+        fail(f"{image_id}: checksum_url is not accepted; pin the digest value in the repository")
+    if not isinstance(value, str) or not value:
+        fail(f"{image_id}: integrity.value is required")
     try:
         raw = bytes.fromhex(value) if encoding == "hex" else base64.b64decode(value, validate=True)
     except (ValueError, TypeError) as exc:
