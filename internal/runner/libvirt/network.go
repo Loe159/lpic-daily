@@ -272,7 +272,6 @@ func isolatedSubnetAddresses(prefix netip.Prefix) (gateway, netmask, dhcpStart, 
 	return address(1), net.IP(mask).String(), address(2), address(14), nil
 }
 
-
 func acquireNetworkAllocationLock(ctx context.Context, lockPath string) (*os.File, error) {
 	if lockPath == "" || !filepath.IsAbs(lockPath) {
 		return nil, errors.New("network allocation lock path must be absolute")
