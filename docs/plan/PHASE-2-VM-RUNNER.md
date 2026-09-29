@@ -39,7 +39,7 @@ Implemented on `phase-2-vm-runner-complete`:
 - opt-in real-KVM integration coverage for host sentinel preservation, base-image immutability, private two-guest communication, failed public egress, crash reaping and both 104.1/102.2 reference solutions (including the 102.2 reboot);
 - generic CI compiles the KVM integration test but does not pretend to execute it without a KVM/libvirt host.
 
-VM lab startup now also refuses effective UID 0 at runtime, keeping the non-root invariant fail-closed.
+VM lab startup refuses effective UID 0 both at the CLI boundary and inside the libvirt backend constructor, keeping the non-root invariant fail-closed even for direct package use. Custom image/state roots remain supported, but they intentionally share the provisioned host-global network-allocation lock because `qemu:///system` has one host-wide network namespace.
 
 Acceptance is intentionally not declared complete yet. On 2026-09-29 the repository GitHub Actions runs for this branch are failing before any job step starts, so the branch has not obtained fresh `validate_foundation`, `go test`, `go vet` or format results from CI. The real-KVM test also still requires an explicit compatible host run with `LPIC_DAILY_RUN_KVM_INTEGRATION=1`.
 
