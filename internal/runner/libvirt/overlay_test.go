@@ -56,10 +56,19 @@ func testImage(t *testing.T, imageRoot string) ImageDescriptor {
 	}
 }
 
+func testStateRoot(t *testing.T, root string) string {
+	t.Helper()
+	stateRoot := testStateRoot(t, root)
+	if err := os.MkdirAll(stateRoot, 0o755); err != nil {
+		t.Fatalf("MkdirAll(state root) error = %v", err)
+	}
+	return stateRoot
+}
+
 func TestOverlayManagerCreatesStructuredQEMUImgCalls(t *testing.T) {
 	root := t.TempDir()
 	imageRoot := filepath.Join(root, "images")
-	stateRoot := filepath.Join(root, "state")
+	stateRoot := testStateRoot(t, root)
 	image := testImage(t, imageRoot)
 	commands := &fakeCommands{}
 	manager := OverlayManager{ImageRoot: imageRoot, StateRoot: stateRoot, Commands: commands}
@@ -115,7 +124,7 @@ func TestOverlayManagerCreatesStructuredQEMUImgCalls(t *testing.T) {
 func TestOverlayManagerCleansPartialFailure(t *testing.T) {
 	root := t.TempDir()
 	imageRoot := filepath.Join(root, "images")
-	stateRoot := filepath.Join(root, "state")
+	stateRoot := testStateRoot(t, root)
 	image := testImage(t, imageRoot)
 	commands := &fakeCommands{FailAt: 2}
 	manager := OverlayManager{ImageRoot: imageRoot, StateRoot: stateRoot, Commands: commands}
@@ -141,7 +150,7 @@ func TestOverlayManagerCleansPartialFailure(t *testing.T) {
 func TestOverlayManagerRejectsChecksumMismatchBeforeQEMUImg(t *testing.T) {
 	root := t.TempDir()
 	imageRoot := filepath.Join(root, "images")
-	stateRoot := filepath.Join(root, "state")
+	stateRoot := testStateRoot(t, root)
 	image := testImage(t, imageRoot)
 	image.SHA256 = strings.Repeat("0", 64)
 	commands := &fakeCommands{}
@@ -164,7 +173,7 @@ func TestOverlayManagerRejectsChecksumMismatchBeforeQEMUImg(t *testing.T) {
 func TestDestroyRefusesSymlinkedInstanceDirectory(t *testing.T) {
 	root := t.TempDir()
 	imageRoot := filepath.Join(root, "images")
-	stateRoot := filepath.Join(root, "state")
+	stateRoot := testStateRoot(t, root)
 	target := filepath.Join(root, "target")
 	if err := os.MkdirAll(stateRoot, 0o700); err != nil {
 		t.Fatalf("MkdirAll() error = %v", err)
@@ -182,5 +191,26 @@ func TestDestroyRefusesSymlinkedInstanceDirectory(t *testing.T) {
 	}
 	if _, err := os.Stat(target); err != nil {
 		t.Fatalf("target was damaged: %v", err)
+	}
+}
+
+func TestOverlayManagerRequiresProvisionedStateRoot(t *testing.T) {
+	root := t.TempDir()
+	imageRoot := filepath.Join(root, "images")
+	stateRoot := filepath.Join(root, "missing-state")
+	image := testImage(t, imageRoot)
+	manager := OverlayManager{ImageRoot: imageRoot, StateRoot: stateRoot, Commands: &fakeCommands{}}
+
+	_, err := manager.Create(
+		context.Background(),
+		"lpic-daily-unprovisioned-state",
+		image,
+		runner.MachineDefinition{Firmware: runner.FirmwareBIOS},
+	)
+	if err == nil || !strings.Contains(err.Error(), "not provisioned") {
+		t.Fatalf("Create() error = %v, want unprovisioned state-root failure", err)
+	}
+	if _, statErr := os.Stat(stateRoot); !errors.Is(statErr, os.ErrNotExist) {
+		t.Fatalf("state root was created implicitly: %v", statErr)
 	}
 }
