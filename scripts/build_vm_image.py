@@ -30,6 +30,11 @@ def require_tools(*names):
     if missing:
         raise SystemExit("missing required tool(s): " + ", ".join(missing))
 
+def ensure_qemu_traversable_directory(path):
+    path.mkdir(parents=True, exist_ok=True)
+    mode = path.stat().st_mode & 0o777
+    os.chmod(path, mode | 0o011)
+
 def download(url, destination):
     request = Request(url, headers={"User-Agent": "LPIC-Daily-image-builder/1"})
     with urlopen(request, timeout=120) as response, destination.open("wb") as target:
@@ -106,7 +111,7 @@ def main():
         raise SystemExit(f"unknown image id {args.image_id!r}")
 
     image_root = args.image_root.expanduser().resolve()
-    image_root.mkdir(parents=True, exist_ok=True)
+    ensure_qemu_traversable_directory(image_root)
     cache_dir = (args.cache_dir or (image_root / ".source-cache")).expanduser().resolve()
     cache_dir.mkdir(parents=True, exist_ok=True)
 
@@ -122,7 +127,7 @@ def main():
     print(f"verified source integrity: {image['integrity']['algorithm']}")
 
     target_dir = image_root / image["distribution"]
-    target_dir.mkdir(parents=True, exist_ok=True)
+    ensure_qemu_traversable_directory(target_dir)
     final_path = target_dir / (image["id"] + ".qcow2")
 
     with tempfile.TemporaryDirectory(prefix="lpic-daily-vm-build-") as tmp:
