@@ -222,6 +222,7 @@ func managedOwnerScopeForUID(stateRoot string, uid int) (string, error) {
 	digest := sha256.Sum256([]byte(fmt.Sprintf("uid=%d\x00state-root=%s", uid, cleanRoot)))
 	return hex.EncodeToString(digest[:16]), nil
 }
+
 func validateManagedOwnerScope(scope string) error {
 	if !managedScopePattern.MatchString(scope) {
 		return fmt.Errorf("invalid LPIC Daily owner scope %q", scope)
