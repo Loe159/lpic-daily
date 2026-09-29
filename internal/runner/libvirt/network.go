@@ -209,9 +209,10 @@ func chooseIsolatedSubnet(name string, used []netip.Prefix) (netip.Prefix, error
 	}
 	for poolIndex, pool := range isolatedPrivatePools {
 		count := 1 << (isolatedSubnetBits - pool.prefix.Bits())
+		digest := sha256.Sum256([]byte(fmt.Sprintf("%s:%d", name, poolIndex)))
+		start := binary.BigEndian.Uint32(digest[:4]) % uint32(count)
 		for attempt := 0; attempt < count && attempt < 4096; attempt++ {
-			digest := sha256.Sum256([]byte(fmt.Sprintf("%s:%d:%d", name, poolIndex, attempt)))
-			index := binary.BigEndian.Uint32(digest[:4]) % uint32(count)
+			index := (start + uint32(attempt)) % uint32(count)
 			candidate, err := subnetAt(pool.prefix, isolatedSubnetBits, index)
 			if err != nil {
 				return netip.Prefix{}, err
