@@ -6,6 +6,11 @@ The checklist below remains deliberately unchecked until the corresponding accep
 
 Current blocker: GitHub Actions runs on the Phase-2 branch are terminating before any job step starts, so fresh foundation/Go/vet evidence is unavailable. Real-KVM checks additionally require an explicit KVM/libvirt host.
 
+Review remediation completed on 2026-09-29:
+- openSUSE source integrity is pinned directly in-repository to Build 18.68 / SHA-256 `f8a2703a4355a30d531021a88748f0c9d71124b7e33d26d4d49b85c2983e20d5`; runtime build no longer trusts a mutable remote checksum file;
+- isolated-network allocation uses collision-aware RFC1918 /28 selection, excluding host routes and all existing libvirt networks, with a cross-process allocation lock around inventory + definition;
+- VM console input is cancellable and Ctrl-] behavior plus CLI console/reboot dispatch have unit coverage; the real-KVM harness now verifies console cancellation followed by successful teardown.
+
 ## Control plane
 - [ ] application process remains non-root;
 - [ ] only local `qemu:///system` is accepted by the canonical backend;
