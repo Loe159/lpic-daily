@@ -1,6 +1,10 @@
 # Phase 2 acceptance criteria
 
-Status: **Draft — 2026-09-27**
+Status: **Implementation present; execution acceptance pending — 2026-09-29**
+
+The checklist below remains deliberately unchecked until the corresponding acceptance evidence has actually run. The Phase-2 branch now contains implementations/tests for the control plane, image supply, isolated networking, multi-VM scenarios, serial console, reboot-aware 102.2 lab, crash reaper and real-KVM safety checks. This file is an acceptance gate, not an implementation-progress checklist.
+
+Current blocker: GitHub Actions runs on the Phase-2 branch are terminating before any job step starts, so fresh foundation/Go/vet evidence is unavailable. Real-KVM checks additionally require an explicit KVM/libvirt host.
 
 ## Control plane
 - [ ] application process remains non-root;
