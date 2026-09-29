@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/Loe159/lpic-daily/internal/runner"
+	"golang.org/x/sys/unix"
 )
 
 type commandCall struct {
@@ -62,6 +63,9 @@ func TestOverlayManagerCreatesStructuredQEMUImgCalls(t *testing.T) {
 	image := testImage(t, imageRoot)
 	commands := &fakeCommands{}
 	manager := OverlayManager{ImageRoot: imageRoot, StateRoot: stateRoot, Commands: commands}
+
+	previousUmask := unix.Umask(0o077)
+	defer unix.Umask(previousUmask)
 
 	paths, err := manager.Create(
 		context.Background(),
