@@ -129,6 +129,9 @@ func (definition Definition) Validate() error {
 		return errors.New("timeout must be between 30 seconds and 2 hours")
 	}
 	if definition.Machine != nil {
+		if definition.MemoryMB < 256 {
+			return errors.New("full-machine memory limit must be at least 256 MiB")
+		}
 		if err := definition.Machine.Validate(); err != nil {
 			return err
 		}
