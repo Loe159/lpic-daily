@@ -129,9 +129,22 @@ func vmStorageCheck() Check {
 		_ = probe.Close()
 		_ = os.Remove(probePath)
 	}
+	lockPath := appstate.VMNetworkAllocationLockPath()
+	lockInfo, err := os.Lstat(lockPath)
+	if err != nil {
+		return Check{Name: "vm-storage", Status: "warn", Detail: fmt.Sprintf("%s is not provisioned: %v; run sudo scripts/provision_vm_storage.sh", lockPath, err)}
+	}
+	if !lockInfo.Mode().IsRegular() || lockInfo.Mode()&os.ModeSymlink != 0 {
+		return Check{Name: "vm-storage", Status: "warn", Detail: fmt.Sprintf("%s is not a safe regular file", lockPath)}
+	}
+	lockFile, err := os.OpenFile(lockPath, os.O_RDWR, 0)
+	if err != nil {
+		return Check{Name: "vm-storage", Status: "warn", Detail: fmt.Sprintf("%s is not writable: %v", lockPath, err)}
+	}
+	_ = lockFile.Close()
 	return Check{
 		Name: "vm-storage", Status: "ok",
-		Detail: fmt.Sprintf("system-libvirt storage is provisioned: images=%s state=%s", imageRoot, stateRoot),
+		Detail: fmt.Sprintf("system-libvirt storage is provisioned: images=%s state=%s lock=%s", imageRoot, stateRoot, lockPath),
 	}
 }
 
