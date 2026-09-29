@@ -807,9 +807,9 @@ func TestBackendReapRemovesAbandonedResources(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(directory, "root.qcow2"), []byte("orphan"), 0o600); err != nil {
 		t.Fatalf("WriteFile() error = %v", err)
 	}
-	control.defined[name] = managedTestDomainXML
+	control.defined[name] = strings.Replace(managedTestDomainXML, testManagedOwnerScope, backend.ownerScope, 1)
 	control.active[name] = true
-	control.networks[name] = managedTestNetworkXML
+	control.networks[name] = strings.Replace(managedTestNetworkXML, testManagedOwnerScope, backend.ownerScope, 1)
 	control.networkActive[name] = true
 
 	if err := backend.Reap(context.Background()); err != nil {
@@ -857,7 +857,7 @@ func TestBackendReapSkipsLiveLease(t *testing.T) {
 		t.Fatalf("acquireInstanceLease() error = %v", err)
 	}
 	defer releaseInstanceLease(lease)
-	control.defined[name] = managedTestDomainXML
+	control.defined[name] = strings.Replace(managedTestDomainXML, testManagedOwnerScope, backend.ownerScope, 1)
 	control.active[name] = true
 
 	if err := backend.Reap(context.Background()); err != nil {
