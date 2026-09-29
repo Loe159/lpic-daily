@@ -227,6 +227,7 @@ func (backend *Backend) prepareNamedOnNetwork(
 type Scenario struct {
 	NetworkName string
 	Instances   []runner.Instance
+	lease       *os.File
 }
 
 func (backend *Backend) PrepareScenario(
@@ -247,6 +248,23 @@ func (backend *Backend) PrepareScenario(
 	if err != nil {
 		return Scenario{}, err
 	}
+	networkDirectory := filepath.Join(backend.stateRoot, networkName)
+	if err := os.MkdirAll(networkDirectory, 0o700); err != nil {
+		return Scenario{}, fmt.Errorf("create scenario network state: %w", err)
+	}
+	networkLease, err := acquireInstanceLease(networkDirectory)
+	if err != nil {
+		_ = os.RemoveAll(networkDirectory)
+		return Scenario{}, fmt.Errorf("lease scenario network: %w", err)
+	}
+	cleanupLease := true
+	defer func() {
+		if cleanupLease {
+			_ = releaseInstanceLease(networkLease)
+			_ = os.RemoveAll(networkDirectory)
+		}
+	}()
+
 	networkXML, err := BuildIsolatedNetworkXML(networkName, networkSubnetOctet(networkName))
 	if err != nil {
 		return Scenario{}, err
@@ -270,7 +288,7 @@ func (backend *Backend) PrepareScenario(
 	}
 	networkStarted = true
 
-	scenario := Scenario{NetworkName: networkName}
+	scenario := Scenario{NetworkName: networkName, lease: networkLease}
 	for _, definition := range definitions {
 		if err := definition.Validate(); err != nil {
 			_ = backend.destroyScenarioInstances(context.Background(), scenario.Instances)
@@ -292,6 +310,7 @@ func (backend *Backend) PrepareScenario(
 		scenario.Instances = append(scenario.Instances, runner.Instance{ID: name})
 	}
 	cleanupNetwork = false
+	cleanupLease = false
 	return scenario, nil
 }
 
@@ -320,6 +339,12 @@ func (backend *Backend) DestroyScenario(ctx context.Context, scenario Scenario) 
 		}
 	}
 	if err := networkControl.UndefineNetwork(scenario.NetworkName); err != nil {
+		errs = append(errs, err)
+	}
+	if err := backend.overlays.Destroy(scenario.NetworkName); err != nil {
+		errs = append(errs, err)
+	}
+	if err := releaseInstanceLease(scenario.lease); err != nil {
 		errs = append(errs, err)
 	}
 	return errors.Join(errs...)
