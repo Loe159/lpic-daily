@@ -165,16 +165,27 @@ func (backend *Backend) prepareNamedOnNetwork(
 	}()
 
 	if networkControl != nil && manageNetwork {
+		allocationLock, err := acquireNetworkAllocationLock(ctx, backend.stateRoot)
+		if err != nil {
+			return fmt.Errorf("lock isolated network allocation for %s: %w", networkName, err)
+		}
 		subnet, err := backend.allocateIsolatedSubnet(networkName)
 		if err != nil {
+			_ = releaseNetworkAllocationLock(allocationLock)
 			return fmt.Errorf("allocate isolated network for %s: %w", networkName, err)
 		}
 		networkXML, err := BuildIsolatedNetworkXML(networkName, subnet)
 		if err != nil {
+			_ = releaseNetworkAllocationLock(allocationLock)
 			return fmt.Errorf("build isolated network XML for %s: %w", networkName, err)
 		}
 		if err := networkControl.DefineNetwork(networkName, networkXML); err != nil {
+			_ = releaseNetworkAllocationLock(allocationLock)
 			return err
+		}
+		if err := releaseNetworkAllocationLock(allocationLock); err != nil {
+			_ = networkControl.UndefineNetwork(networkName)
+			return fmt.Errorf("unlock isolated network allocation for %s: %w", networkName, err)
 		}
 		networkDefined = true
 		if err := networkControl.StartNetwork(networkName); err != nil {
@@ -268,16 +279,27 @@ func (backend *Backend) PrepareScenario(
 		}
 	}()
 
+	allocationLock, err := acquireNetworkAllocationLock(ctx, backend.stateRoot)
+	if err != nil {
+		return Scenario{}, fmt.Errorf("lock scenario network allocation: %w", err)
+	}
 	subnet, err := backend.allocateIsolatedSubnet(networkName)
 	if err != nil {
+		_ = releaseNetworkAllocationLock(allocationLock)
 		return Scenario{}, fmt.Errorf("allocate scenario network: %w", err)
 	}
 	networkXML, err := BuildIsolatedNetworkXML(networkName, subnet)
 	if err != nil {
+		_ = releaseNetworkAllocationLock(allocationLock)
 		return Scenario{}, err
 	}
 	if err := networkControl.DefineNetwork(networkName, networkXML); err != nil {
+		_ = releaseNetworkAllocationLock(allocationLock)
 		return Scenario{}, err
+	}
+	if err := releaseNetworkAllocationLock(allocationLock); err != nil {
+		_ = networkControl.UndefineNetwork(networkName)
+		return Scenario{}, fmt.Errorf("unlock scenario network allocation: %w", err)
 	}
 	networkStarted := false
 	cleanupNetwork := true
