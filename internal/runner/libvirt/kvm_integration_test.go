@@ -80,7 +80,14 @@ func TestRealKVMIsolationScenarioAndCrashReaping(t *testing.T) {
 		_ = control.Close()
 		t.Fatalf("VMStateRoot() error = %v", err)
 	}
-	backend, err := NewBackend(control, catalog, imageRoot, stateRoot, commands)
+	backend, err := NewBackend(
+		control,
+		catalog,
+		imageRoot,
+		stateRoot,
+		appstate.VMNetworkAllocationLockPath(),
+		commands,
+	)
 	if err != nil {
 		_ = control.Close()
 		t.Fatalf("NewBackend() error = %v", err)
@@ -339,7 +346,14 @@ func TestRealKVMPhase2ReferenceLabs(t *testing.T) {
 		_ = control.Close()
 		t.Fatalf("VMStateRoot() error = %v", err)
 	}
-	backend, err := NewBackend(control, catalog, imageRoot, stateRoot, commands)
+	backend, err := NewBackend(
+		control,
+		catalog,
+		imageRoot,
+		stateRoot,
+		appstate.VMNetworkAllocationLockPath(),
+		commands,
+	)
 	if err != nil {
 		_ = control.Close()
 		t.Fatalf("NewBackend() error = %v", err)
