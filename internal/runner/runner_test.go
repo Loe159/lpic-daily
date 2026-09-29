@@ -111,3 +111,22 @@ func TestMachineDefinitionRejectsUnsafeDiskIDs(t *testing.T) {
 		}
 	}
 }
+
+
+func TestDefinitionRejectsUndersizedFullMachineMemory(t *testing.T) {
+	definition := runner.Definition{
+		LabID:             "vm-lab",
+		ImageRef:          "fedora-44-x86_64-v1",
+		Distribution:      "fedora",
+		Network:           runner.NetworkNone,
+		CapabilityProfile: "full-machine",
+		MemoryMB:          128,
+		CPUPercent:        100,
+		PIDs:              128,
+		Timeout:           time.Minute,
+		Machine:           &runner.MachineDefinition{Firmware: runner.FirmwareUEFI},
+	}
+	if err := definition.Validate(); err == nil {
+		t.Fatal("Validate() unexpectedly accepted a 128 MiB full-machine VM")
+	}
+}
