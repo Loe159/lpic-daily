@@ -1,6 +1,8 @@
 package libvirt
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/xml"
 	"errors"
 	"fmt"
@@ -15,8 +17,66 @@ import (
 
 var (
 	managedNamePattern = regexp.MustCompile(`^lpic-daily-[a-z0-9][a-z0-9.-]{0,52}$`)
-	imageIDPattern     = regexp.MustCompile(`^[a-z0-9][a-z0-9._-]{2,63}$`)
-	diskIDPattern      = regexp.MustCompile(`^[a-z0-9][a-z0-9-]{0,31}$`)
+	imageIDPattern     = regexp.MustCompile(`^[a-z0-9][a-z0-9._-]{2,63}package libvirt
+
+import (
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/xml"
+	"errors"
+	"fmt"
+	"net/netip"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strings"
+
+	"github.com/Loe159/lpic-daily/internal/runner"
+)
+
+var (
+	managedNamePattern = regexp.MustCompile(`^lpic-daily-[a-z0-9][a-z0-9.-]{0,52}$`)
+	)
+	diskIDPattern      = regexp.MustCompile(`^[a-z0-9][a-z0-9-]{0,31}package libvirt
+
+import (
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/xml"
+	"errors"
+	"fmt"
+	"net/netip"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strings"
+
+	"github.com/Loe159/lpic-daily/internal/runner"
+)
+
+var (
+	managedNamePattern = regexp.MustCompile(`^lpic-daily-[a-z0-9][a-z0-9.-]{0,52}$`)
+	)
+	managedScopePattern = regexp.MustCompile(`^[a-f0-9]{32}package libvirt
+
+import (
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/xml"
+	"errors"
+	"fmt"
+	"net/netip"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strings"
+
+	"github.com/Loe159/lpic-daily/internal/runner"
+)
+
+var (
+	managedNamePattern = regexp.MustCompile(`^lpic-daily-[a-z0-9][a-z0-9.-]{0,52}$`)
+	)
 )
 
 const (
@@ -93,6 +153,7 @@ type DiskPath struct {
 type DomainSpec struct {
 	Name         string
 	LabID        string
+	OwnerScope   string
 	MemoryMB     int
 	CPUPercent   int
 	Firmware     runner.FirmwareMode
@@ -102,6 +163,9 @@ type DomainSpec struct {
 }
 
 func (spec DomainSpec) Validate(stateRoot string) error {
+	if err := validateManagedOwnerScope(spec.OwnerScope); err != nil {
+		return err
+	}
 	if !managedNamePattern.MatchString(spec.Name) {
 		return fmt.Errorf("invalid managed domain name %q", spec.Name)
 	}
@@ -193,19 +257,39 @@ type managedMetadataXML struct {
 	XMLName xml.Name `xml:"urn:lpic-daily:managed:v1 lpic-daily"`
 	Owner   string   `xml:"owner,attr"`
 	Version string   `xml:"version,attr"`
+	Scope   string   `xml:"scope,attr"`
 }
 
 type metadataXML struct {
 	Managed managedMetadataXML `xml:"urn:lpic-daily:managed:v1 lpic-daily"`
 }
 
-func newManagedMetadata() metadataXML {
+func managedOwnerScope(stateRoot string) (string, error) {
+	if stateRoot == "" || !filepath.IsAbs(stateRoot) {
+		return "", errors.New("VM state root must be absolute")
+	}
+	cleanRoot := filepath.Clean(stateRoot)
+	digest := sha256.Sum256([]byte(fmt.Sprintf("uid=%d\x00state-root=%s", os.Geteuid(), cleanRoot)))
+	return hex.EncodeToString(digest[:16]), nil
+}
+
+func validateManagedOwnerScope(scope string) error {
+	if !managedScopePattern.MatchString(scope) {
+		return fmt.Errorf("invalid LPIC Daily owner scope %q", scope)
+	}
+	return nil
+}
+
+func newManagedMetadata(scope string) metadataXML {
 	return metadataXML{Managed: managedMetadataXML{
-		Owner: managedMetadataOwner, Version: managedMetadataVersion,
+		Owner: managedMetadataOwner, Version: managedMetadataVersion, Scope: scope,
 	}}
 }
 
-func hasManagedMetadata(payload string) bool {
+func hasManagedMetadata(payload, scope string) bool {
+	if validateManagedOwnerScope(scope) != nil {
+		return false
+	}
 	var document struct {
 		Metadata metadataXML `xml:"metadata"`
 	}
@@ -213,7 +297,8 @@ func hasManagedMetadata(payload string) bool {
 		return false
 	}
 	return document.Metadata.Managed.Owner == managedMetadataOwner &&
-		document.Metadata.Managed.Version == managedMetadataVersion
+		document.Metadata.Managed.Version == managedMetadataVersion &&
+		document.Metadata.Managed.Scope == scope
 }
 
 type domainXML struct {
@@ -356,7 +441,7 @@ func BuildDomainXML(spec DomainSpec, stateRoot string) (string, error) {
 		Type:        "kvm",
 		Name:        spec.Name,
 		Description: "LPIC Daily lab " + spec.LabID,
-		Metadata:    newManagedMetadata(),
+		Metadata:    newManagedMetadata(spec.OwnerScope),
 		Memory:      memoryXML{Unit: "MiB", Value: spec.MemoryMB},
 		VCPU:        vcpuXML{Placement: "static", Value: vcpuCount},
 		CPUTune:     cpuTuneXML{Period: period, Quota: quota},
@@ -433,7 +518,10 @@ type dhcpRangeXML struct {
 	End   string `xml:"end,attr"`
 }
 
-func BuildIsolatedNetworkXML(name string, subnet netip.Prefix) (string, error) {
+func BuildIsolatedNetworkXML(name string, subnet netip.Prefix, ownerScope string) (string, error) {
+	if err := validateManagedOwnerScope(ownerScope); err != nil {
+		return "", err
+	}
 	if !managedNamePattern.MatchString(name) {
 		return "", fmt.Errorf("invalid managed network name %q", name)
 	}
@@ -443,7 +531,7 @@ func BuildIsolatedNetworkXML(name string, subnet netip.Prefix) (string, error) {
 	}
 	doc := networkXML{
 		Name:     name,
-		Metadata: newManagedMetadata(),
+		Metadata: newManagedMetadata(ownerScope),
 		IP: networkIP{
 			Address: gateway,
 			Netmask: netmask,
