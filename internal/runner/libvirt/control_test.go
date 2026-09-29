@@ -282,6 +282,13 @@ func TestRPCControlPlaneLifecycleUsesManagedDomainOnly(t *testing.T) {
 	if err != nil {
 		t.Fatalf("newRPCControlPlane() error = %v", err)
 	}
+	consoleRaw := &fakeRawLibvirt{
+		domain:     golibvirt.Domain{Name: name},
+		definedXML: managedTestDomainXML,
+	}
+	control.consoleDial = func() (rawLibvirt, error) {
+		return consoleRaw, nil
+	}
 
 	if version, err := control.LibVersion(); err != nil || version != raw.libVersion {
 		t.Fatalf("LibVersion() = %d, %v", version, err)
@@ -311,13 +318,19 @@ func TestRPCControlPlaneLifecycleUsesManagedDomainOnly(t *testing.T) {
 	if console.String() != "boot\n" {
 		t.Fatalf("console output = %q", console.String())
 	}
-	if raw.consoleDomain.Name != name || raw.consoleFlags != 0 || len(raw.consoleDevice) != 0 {
+	if consoleRaw.consoleDomain.Name != name || consoleRaw.consoleFlags != 0 || len(consoleRaw.consoleDevice) != 0 {
 		t.Fatalf(
 			"console call domain=%q device=%v flags=%d",
-			raw.consoleDomain.Name,
-			raw.consoleDevice,
-			raw.consoleFlags,
+			consoleRaw.consoleDomain.Name,
+			consoleRaw.consoleDevice,
+			consoleRaw.consoleFlags,
 		)
+	}
+	if !consoleRaw.disconnected {
+		t.Fatal("dedicated console connection was not closed after console completion")
+	}
+	if raw.disconnected {
+		t.Fatal("normal console completion disconnected the main libvirt connection")
 	}
 	agentResult, err := control.AgentCommand(name, `{"execute":"guest-ping"}`, 5)
 	if err != nil {
@@ -389,6 +402,10 @@ func TestRPCControlPlaneRejectsUnmanagedNamesBeforeRPC(t *testing.T) {
 	control, err := newScopedRPCControlPlaneForTest(t, raw)
 	if err != nil {
 		t.Fatalf("newRPCControlPlane() error = %v", err)
+	}
+	consoleRaw := &fakeRawLibvirt{}
+	control.consoleDial = func() (rawLibvirt, error) {
+		return consoleRaw, nil
 	}
 
 	for _, action := range []func() error{
