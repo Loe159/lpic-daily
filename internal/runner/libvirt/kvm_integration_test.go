@@ -7,7 +7,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
-	"errors"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -217,21 +217,8 @@ func integrationFileSHA256(path string) (string, error) {
 	}
 	defer file.Close()
 	hasher := sha256.New()
-	buffer := make([]byte, 1<<20)
-	for {
-		count, readErr := file.Read(buffer)
-		if count > 0 {
-			_, _ = hasher.Write(buffer[:count])
-		}
-		if errors.Is(readErr, os.ErrClosed) {
-			return "", readErr
-		}
-		if readErr != nil {
-			if readErr.Error() == "EOF" {
-				break
-			}
-			return "", readErr
-		}
+	if _, err := io.CopyBuffer(hasher, file, make([]byte, 1<<20)); err != nil {
+		return "", err
 	}
 	return hex.EncodeToString(hasher.Sum(nil)), nil
 }
