@@ -655,10 +655,6 @@ func (backend *Backend) Reap(ctx context.Context) error {
 	if !ok {
 		return fmt.Errorf("%w: libvirt control plane has no resource inventory", runner.ErrNotSupported)
 	}
-	if err := os.MkdirAll(backend.stateRoot, 0o700); err != nil {
-		return fmt.Errorf("create VM state root: %w", err)
-	}
-
 	domains, err := inventory.ListManagedDomains()
 	if err != nil {
 		return err
