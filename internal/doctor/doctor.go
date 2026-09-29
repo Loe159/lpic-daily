@@ -111,15 +111,24 @@ func vmStorageCheck() Check {
 		return Check{Name: "vm-storage", Status: "warn", Detail: stateErr.Error()}
 	}
 	for _, root := range []string{imageRoot, stateRoot} {
-		info, err := os.Stat(root)
+		info, err := os.Lstat(root)
 		if err != nil {
 			return Check{
 				Name: "vm-storage", Status: "warn",
 				Detail: fmt.Sprintf("%s is not provisioned: %v; run sudo scripts/provision_vm_storage.sh", root, err),
 			}
 		}
+		if info.Mode()&os.ModeSymlink != 0 {
+			return Check{Name: "vm-storage", Status: "warn", Detail: fmt.Sprintf("%s must not be a symbolic link", root)}
+		}
 		if !info.IsDir() {
 			return Check{Name: "vm-storage", Status: "warn", Detail: fmt.Sprintf("%s is not a directory", root)}
+		}
+		if info.Mode().Perm()&0o001 == 0 {
+			return Check{
+				Name: "vm-storage", Status: "warn",
+				Detail: fmt.Sprintf("%s is not traversable by the system-libvirt QEMU user; provision it with execute-only traversal for other users or an equivalent ACL", root),
+			}
 		}
 		probe, err := os.CreateTemp(root, ".lpic-daily-write-probe-*")
 		if err != nil {
