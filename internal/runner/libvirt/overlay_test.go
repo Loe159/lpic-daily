@@ -58,7 +58,7 @@ func testImage(t *testing.T, imageRoot string) ImageDescriptor {
 
 func testStateRoot(t *testing.T, root string) string {
 	t.Helper()
-	stateRoot := testStateRoot(t, root)
+	stateRoot := filepath.Join(root, "state")
 	if err := os.MkdirAll(stateRoot, 0o755); err != nil {
 		t.Fatalf("MkdirAll(state root) error = %v", err)
 	}
