@@ -2,6 +2,7 @@ package libvirt
 
 import (
 	"bufio"
+	"context"
 	"crypto/sha256"
 	"encoding/binary"
 	"encoding/xml"
@@ -11,10 +12,13 @@ import (
 	"net"
 	"net/netip"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	golibvirt "github.com/digitalocean/go-libvirt"
+	"golang.org/x/sys/unix"
 )
 
 const isolatedSubnetBits = 28
@@ -265,4 +269,41 @@ func isolatedSubnetAddresses(prefix netip.Prefix) (gateway, netmask, dhcpStart, 
 	}
 	mask := net.CIDRMask(isolatedSubnetBits, 32)
 	return address(1), net.IP(mask).String(), address(2), address(14), nil
+}
+
+
+func acquireNetworkAllocationLock(ctx context.Context, stateRoot string) (*os.File, error) {
+	if err := os.MkdirAll(stateRoot, 0o700); err != nil {
+		return nil, fmt.Errorf("create VM state root: %w", err)
+	}
+	lockPath := filepath.Join(stateRoot, ".network-allocation.lock")
+	file, err := os.OpenFile(lockPath, os.O_CREATE|os.O_RDWR, 0o600)
+	if err != nil {
+		return nil, fmt.Errorf("open network allocation lock: %w", err)
+	}
+	ticker := time.NewTicker(25 * time.Millisecond)
+	defer ticker.Stop()
+	for {
+		if err := unix.Flock(int(file.Fd()), unix.LOCK_EX|unix.LOCK_NB); err == nil {
+			return file, nil
+		} else if !errors.Is(err, unix.EWOULDBLOCK) && !errors.Is(err, unix.EAGAIN) {
+			_ = file.Close()
+			return nil, fmt.Errorf("lock network allocation: %w", err)
+		}
+		select {
+		case <-ctx.Done():
+			_ = file.Close()
+			return nil, ctx.Err()
+		case <-ticker.C:
+		}
+	}
+}
+
+func releaseNetworkAllocationLock(file *os.File) error {
+	if file == nil {
+		return nil
+	}
+	unlockErr := unix.Flock(int(file.Fd()), unix.LOCK_UN)
+	closeErr := file.Close()
+	return errors.Join(unlockErr, closeErr)
 }
