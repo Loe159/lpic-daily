@@ -37,6 +37,7 @@ type Backend struct {
 
 	mu        sync.RWMutex
 	instances map[string]managedInstance
+	scenarios map[string]Scenario
 }
 
 type managedInstance struct {
@@ -117,6 +118,7 @@ func newBackendForEffectiveUID(
 		networkAllocationLockPath: filepath.Clean(networkAllocationLockPath),
 		overlays:                  overlays,
 		instances:                 make(map[string]managedInstance),
+		scenarios:                 make(map[string]Scenario),
 	}, nil
 }
 
@@ -365,24 +367,28 @@ func (backend *Backend) PrepareScenario(
 	scenario := Scenario{NetworkName: networkName, lease: networkLease}
 	for _, definition := range definitions {
 		if err := definition.Validate(); err != nil {
-			_ = backend.destroyScenarioInstances(context.Background(), scenario.Instances)
+			backend.rollbackScenarioInstances(scenario.Instances)
 			return Scenario{}, fmt.Errorf("validate scenario VM definition: %w", err)
 		}
 		if definition.Network != runner.NetworkIsolated {
-			_ = backend.destroyScenarioInstances(context.Background(), scenario.Instances)
+			backend.rollbackScenarioInstances(scenario.Instances)
 			return Scenario{}, errors.New("scenario machines must use network=isolated")
 		}
 		name, err := vmInstanceName(definition.LabID)
 		if err != nil {
-			_ = backend.destroyScenarioInstances(context.Background(), scenario.Instances)
+			backend.rollbackScenarioInstances(scenario.Instances)
 			return Scenario{}, err
 		}
 		if err := backend.prepareNamedOnNetwork(ctx, name, definition, networkName, false); err != nil {
-			_ = backend.destroyScenarioInstances(context.Background(), scenario.Instances)
+			backend.rollbackScenarioInstances(scenario.Instances)
 			return Scenario{}, err
 		}
 		scenario.Instances = append(scenario.Instances, runner.Instance{ID: name})
 	}
+	backend.mu.Lock()
+	backend.scenarios[networkName] = scenario
+	backend.mu.Unlock()
+
 	cleanupNetwork = false
 	cleanupLease = false
 	return scenario, nil
@@ -395,33 +401,54 @@ func (backend *Backend) DestroyScenario(ctx context.Context, scenario Scenario) 
 	if err := validateManagedResourceName("network", scenario.NetworkName); err != nil {
 		return err
 	}
-	var errs []error
-	if err := backend.destroyScenarioInstances(ctx, scenario.Instances); err != nil {
-		errs = append(errs, err)
+
+	backend.mu.RLock()
+	tracked, trackedScenario := backend.scenarios[scenario.NetworkName]
+	backend.mu.RUnlock()
+	if trackedScenario {
+		scenario = tracked
 	}
+
+	// Do not tear down the shared network while one of its guests is still
+	// active or failed to clean up. Keeping the lease/state makes the operation
+	// retryable by Close() or by a later explicit DestroyScenario call.
+	if err := backend.destroyScenarioInstances(ctx, scenario.Instances); err != nil {
+		return err
+	}
+
 	networkControl, ok := backend.control.(NetworkControlPlane)
 	if !ok {
-		errs = append(errs, fmt.Errorf("%w: cannot destroy scenario network", runner.ErrNotSupported))
-		return errors.Join(errs...)
+		return fmt.Errorf("%w: cannot destroy scenario network", runner.ErrNotSupported)
 	}
 	active, err := networkControl.NetworkActive(scenario.NetworkName)
 	if err != nil {
-		errs = append(errs, err)
-	} else if active {
+		return err
+	}
+	if active {
 		if err := networkControl.DestroyNetwork(scenario.NetworkName); err != nil {
-			errs = append(errs, err)
+			return err
 		}
 	}
 	if err := networkControl.UndefineNetwork(scenario.NetworkName); err != nil {
-		errs = append(errs, err)
+		return err
 	}
 	if err := backend.overlays.Destroy(scenario.NetworkName); err != nil {
-		errs = append(errs, err)
+		return err
 	}
 	if err := releaseInstanceLease(scenario.lease); err != nil {
-		errs = append(errs, err)
+		return err
 	}
-	return errors.Join(errs...)
+
+	backend.mu.Lock()
+	delete(backend.scenarios, scenario.NetworkName)
+	backend.mu.Unlock()
+	return nil
+}
+
+func (backend *Backend) rollbackScenarioInstances(instances []runner.Instance) {
+	rollbackCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	_ = backend.destroyScenarioInstances(rollbackCtx, instances)
 }
 
 func (backend *Backend) destroyScenarioInstances(ctx context.Context, instances []runner.Instance) error {
@@ -833,6 +860,9 @@ func (backend *Backend) Close(ctx context.Context) error {
 	var errs []error
 	for _, name := range names {
 		managed, err := backend.instance(runner.Instance{ID: name})
+		if errors.Is(err, errUnknownVMInstance) {
+			continue
+		}
 		if err != nil {
 			errs = append(errs, err)
 			continue
@@ -841,6 +871,21 @@ func (backend *Backend) Close(ctx context.Context) error {
 			errs = append(errs, err)
 		}
 	}
+
+	// Scenario networks and their leases are backend-owned resources too.
+	// Clean them even when the caller forgot an explicit DestroyScenario().
+	backend.mu.RLock()
+	scenarios := make([]Scenario, 0, len(backend.scenarios))
+	for _, scenario := range backend.scenarios {
+		scenarios = append(scenarios, scenario)
+	}
+	backend.mu.RUnlock()
+	for _, scenario := range scenarios {
+		if err := backend.DestroyScenario(ctx, scenario); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
 	if err := backend.control.Close(); err != nil {
 		errs = append(errs, err)
 	}
