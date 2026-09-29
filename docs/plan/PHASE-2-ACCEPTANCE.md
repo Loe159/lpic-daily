@@ -14,6 +14,9 @@ Review remediation completed on 2026-09-29:
 - isolated-network allocation now uses one root-provisioned host-global flock instead of a per-state-root lock, closing cross-user/custom-state-root allocation races against shared `qemu:///system`;
 - VM lab startup explicitly refuses effective UID 0 both at the CLI boundary and in the libvirt backend constructor, so direct package use cannot bypass the non-root invariant;
 - per-run VM state directories are explicitly forced to mode `0711` after creation, independent of the caller's umask, so system-libvirt QEMU can traverse to managed disks without granting directory listing/read access.
+- multi-VM scenario networks and leases are now backend-owned tracked resources: `Backend.Close()` cleans them even if callers omit `DestroyScenario()`, and a failed guest rollback keeps the scenario tracked for a later cleanup retry instead of tearing its shared network down;
+- scenario rollback and backend-close recovery paths now use bounded cleanup contexts instead of unbounded orchestration contexts;
+- VM image recipe IDs are executable contracts rather than provenance-only labels, recipe/distribution mismatches are rejected, and `virtual_size_mb` is enforced as the exact installed virtual-size contract.
 
 ## Control plane
 - [ ] application process remains non-root;
