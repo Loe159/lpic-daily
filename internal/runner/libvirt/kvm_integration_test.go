@@ -253,6 +253,19 @@ func TestRealKVMIsolationScenarioAndCrashReaping(t *testing.T) {
 	case <-time.After(5 * time.Second):
 		t.Fatal("serial console did not stop after context cancellation")
 	}
+
+	var postConsoleOutput bytes.Buffer
+	result, err = backend.Exec(ctx, consoleInstance, runner.ExecRequest{
+		Argv:   []string{"/usr/bin/printf", "console-stream-closed-vm-still-running"},
+		Stdout: &postConsoleOutput,
+	})
+	if err != nil || result.ExitCode != 0 {
+		t.Fatalf("guest unusable after console cancellation: exit=%d err=%v", result.ExitCode, err)
+	}
+	if postConsoleOutput.String() != "console-stream-closed-vm-still-running" {
+		t.Fatalf("unexpected post-console output %q", postConsoleOutput.String())
+	}
+
 	if err := backend.Destroy(ctx, consoleInstance); err != nil {
 		t.Fatalf("Destroy(console) after cancellation error = %v", err)
 	}
