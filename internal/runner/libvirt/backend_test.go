@@ -797,6 +797,40 @@ func TestBackendScenarioSharesOneIsolatedNetwork(t *testing.T) {
 	}
 }
 
+func TestBackendFailedScenarioRollbackStaysTrackedForCloseRetry(t *testing.T) {
+	backend, control, _, definition := backendFixture(t)
+	definition.Network = runner.NetworkIsolated
+	second := definition
+	second.LabID = "lpic1.109.2.invalid-peer"
+	second.Network = runner.NetworkNone
+
+	control.undefineErr = errors.New("temporary undefine failure")
+	_, err := backend.PrepareScenario(context.Background(), []runner.Definition{definition, second})
+	if err == nil || !strings.Contains(err.Error(), "rollback scenario instances") {
+		t.Fatalf("PrepareScenario() error = %v, want rollback failure", err)
+	}
+
+	backend.mu.RLock()
+	trackedScenarios := len(backend.scenarios)
+	backend.mu.RUnlock()
+	if trackedScenarios != 1 {
+		t.Fatalf("tracked scenarios after failed rollback = %d, want 1", trackedScenarios)
+	}
+	if len(control.networks) != 1 {
+		t.Fatalf("scenario network was torn down after failed guest rollback: %#v", control.networks)
+	}
+
+	control.undefineErr = nil
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := backend.Close(ctx); err != nil {
+		t.Fatalf("Close() retry error = %v", err)
+	}
+	if len(control.defined) != 0 || len(control.networks) != 0 {
+		t.Fatalf("Close() retry leaked resources: domains=%#v networks=%#v", control.defined, control.networks)
+	}
+}
+
 func TestBackendCloseCleansTrackedScenario(t *testing.T) {
 	backend, control, _, definition := backendFixture(t)
 	definition.Network = runner.NetworkIsolated
