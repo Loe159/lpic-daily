@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"strconv"
+	"net/netip"
 	"strings"
 
 	"github.com/Loe159/lpic-daily/internal/runner"
@@ -433,22 +433,22 @@ type dhcpRangeXML struct {
 	End   string `xml:"end,attr"`
 }
 
-func BuildIsolatedNetworkXML(name string, subnetOctet int) (string, error) {
+func BuildIsolatedNetworkXML(name string, subnet netip.Prefix) (string, error) {
 	if !managedNamePattern.MatchString(name) {
 		return "", fmt.Errorf("invalid managed network name %q", name)
 	}
-	if subnetOctet < 1 || subnetOctet > 250 {
-		return "", errors.New("subnet octet must be between 1 and 250")
+	gateway, netmask, dhcpStart, dhcpEnd, err := isolatedSubnetAddresses(subnet)
+	if err != nil {
+		return "", err
 	}
-	prefix := "192.168." + strconv.Itoa(subnetOctet)
 	doc := networkXML{
 		Name:     name,
 		Metadata: newManagedMetadata(),
 		IP: networkIP{
-			Address: prefix + ".1",
-			Netmask: "255.255.255.0",
+			Address: gateway,
+			Netmask: netmask,
 			DHCP: dhcpXML{
-				Range: dhcpRangeXML{Start: prefix + ".10", End: prefix + ".200"},
+				Range: dhcpRangeXML{Start: dhcpStart, End: dhcpEnd},
 			},
 		},
 	}
