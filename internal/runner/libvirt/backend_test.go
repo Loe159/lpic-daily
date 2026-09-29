@@ -232,6 +232,9 @@ func backendFixture(t *testing.T) (*Backend, *fakeControlPlane, *fakeCommands, r
 	root := t.TempDir()
 	imageRoot := filepath.Join(root, "images")
 	stateRoot := filepath.Join(root, "state")
+	if err := os.MkdirAll(stateRoot, 0o755); err != nil {
+		t.Fatalf("MkdirAll(state root) error = %v", err)
+	}
 	imagePath := filepath.Join(imageRoot, "fedora", "base.qcow2")
 	if err := os.MkdirAll(filepath.Dir(imagePath), 0o700); err != nil {
 		t.Fatalf("MkdirAll() error = %v", err)
