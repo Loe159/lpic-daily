@@ -1,9 +1,12 @@
 package libvirt
 
 import (
+	"context"
+	"errors"
 	"net/netip"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestChooseIsolatedSubnetAvoidsExistingPrefixes(t *testing.T) {
@@ -90,5 +93,32 @@ func TestNetworkPrefixesFromXML(t *testing.T) {
 			t.Fatalf("unexpected prefix %s", prefix)
 		}
 		want[prefix] = true
+	}
+}
+
+
+func TestNetworkAllocationLockSerializesConcurrentAllocators(t *testing.T) {
+	stateRoot := t.TempDir()
+	first, err := acquireNetworkAllocationLock(context.Background(), stateRoot)
+	if err != nil {
+		t.Fatalf("first acquireNetworkAllocationLock() error = %v", err)
+	}
+
+	waitCtx, cancel := context.WithTimeout(context.Background(), 75*time.Millisecond)
+	defer cancel()
+	if _, err := acquireNetworkAllocationLock(waitCtx, stateRoot); !errors.Is(err, context.DeadlineExceeded) {
+		_ = releaseNetworkAllocationLock(first)
+		t.Fatalf("second acquire error = %v, want context deadline", err)
+	}
+	if err := releaseNetworkAllocationLock(first); err != nil {
+		t.Fatalf("release first allocation lock: %v", err)
+	}
+
+	second, err := acquireNetworkAllocationLock(context.Background(), stateRoot)
+	if err != nil {
+		t.Fatalf("acquire after release error = %v", err)
+	}
+	if err := releaseNetworkAllocationLock(second); err != nil {
+		t.Fatalf("release second allocation lock: %v", err)
 	}
 }
