@@ -12,8 +12,23 @@ import (
 
 var (
 	ErrNotSupported      = errors.New("operation not supported by runner")
-	virtualDiskIDPattern = regexp.MustCompile(`^[a-z0-9][a-z0-9-]{0,31}$`)
+	virtualDiskIDPattern = regexp.MustCompile(`^[a-z0-9][a-z0-9-]{0,31}package runner
+
+import (
+	"context"
+	"errors"
+	"io"
+	"path"
+	"regexp"
+	"strings"
+	"time"
 )
+
+var (
+	ErrNotSupported      = errors.New("operation not supported by runner")
+	)
+)
+
 type NetworkMode string
 
 const (
