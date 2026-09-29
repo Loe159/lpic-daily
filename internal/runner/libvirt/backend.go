@@ -27,11 +27,13 @@ var (
 )
 
 type Backend struct {
-	control   ControlPlane
-	catalog   *ImageCatalog
-	imageRoot string
-	stateRoot string
-	overlays  OverlayManager
+	control                   ControlPlane
+	catalog                   *ImageCatalog
+	imageRoot                 string
+	stateRoot                 string
+	ownerScope                string
+	networkAllocationLockPath string
+	overlays                  OverlayManager
 
 	mu        sync.RWMutex
 	instances map[string]managedInstance
@@ -50,6 +52,7 @@ func NewBackend(
 	catalog *ImageCatalog,
 	imageRoot string,
 	stateRoot string,
+	networkAllocationLockPath string,
 	commands CommandRunner,
 ) (*Backend, error) {
 	if control == nil {
@@ -66,13 +69,25 @@ func NewBackend(
 	if err := overlays.Validate(); err != nil {
 		return nil, err
 	}
+	if networkAllocationLockPath == "" || !filepath.IsAbs(networkAllocationLockPath) {
+		return nil, errors.New("network allocation lock path must be absolute")
+	}
+	ownerScope, err := managedOwnerScope(stateRoot)
+	if err != nil {
+		return nil, err
+	}
+	if err := control.SetManagedOwnerScope(ownerScope); err != nil {
+		return nil, fmt.Errorf("configure libvirt ownership scope: %w", err)
+	}
 	return &Backend{
-		control:   control,
-		catalog:   catalog,
-		imageRoot: imageRoot,
-		stateRoot: stateRoot,
-		overlays:  overlays,
-		instances: make(map[string]managedInstance),
+		control:                   control,
+		catalog:                   catalog,
+		imageRoot:                 imageRoot,
+		stateRoot:                 stateRoot,
+		ownerScope:                ownerScope,
+		networkAllocationLockPath: filepath.Clean(networkAllocationLockPath),
+		overlays:                  overlays,
+		instances:                 make(map[string]managedInstance),
 	}, nil
 }
 
@@ -165,7 +180,7 @@ func (backend *Backend) prepareNamedOnNetwork(
 	}()
 
 	if networkControl != nil && manageNetwork {
-		allocationLock, err := acquireNetworkAllocationLock(ctx, backend.stateRoot)
+		allocationLock, err := acquireNetworkAllocationLock(ctx, backend.networkAllocationLockPath)
 		if err != nil {
 			return fmt.Errorf("lock isolated network allocation for %s: %w", networkName, err)
 		}
@@ -174,7 +189,7 @@ func (backend *Backend) prepareNamedOnNetwork(
 			_ = releaseNetworkAllocationLock(allocationLock)
 			return fmt.Errorf("allocate isolated network for %s: %w", networkName, err)
 		}
-		networkXML, err := BuildIsolatedNetworkXML(networkName, subnet)
+		networkXML, err := BuildIsolatedNetworkXML(networkName, subnet, backend.ownerScope)
 		if err != nil {
 			_ = releaseNetworkAllocationLock(allocationLock)
 			return fmt.Errorf("build isolated network XML for %s: %w", networkName, err)
@@ -205,6 +220,7 @@ func (backend *Backend) prepareNamedOnNetwork(
 	xml, err := BuildDomainXML(DomainSpec{
 		Name:         name,
 		LabID:        definition.LabID,
+		OwnerScope:   backend.ownerScope,
 		MemoryMB:     definition.MemoryMB,
 		CPUPercent:   definition.CPUPercent,
 		Firmware:     definition.Machine.Firmware,
@@ -279,7 +295,7 @@ func (backend *Backend) PrepareScenario(
 		}
 	}()
 
-	allocationLock, err := acquireNetworkAllocationLock(ctx, backend.stateRoot)
+	allocationLock, err := acquireNetworkAllocationLock(ctx, backend.networkAllocationLockPath)
 	if err != nil {
 		return Scenario{}, fmt.Errorf("lock scenario network allocation: %w", err)
 	}
@@ -288,7 +304,7 @@ func (backend *Backend) PrepareScenario(
 		_ = releaseNetworkAllocationLock(allocationLock)
 		return Scenario{}, fmt.Errorf("allocate scenario network: %w", err)
 	}
-	networkXML, err := BuildIsolatedNetworkXML(networkName, subnet)
+	networkXML, err := BuildIsolatedNetworkXML(networkName, subnet, backend.ownerScope)
 	if err != nil {
 		_ = releaseNetworkAllocationLock(allocationLock)
 		return Scenario{}, err
