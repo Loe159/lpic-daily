@@ -208,14 +208,20 @@ type metadataXML struct {
 }
 
 func managedOwnerScope(stateRoot string) (string, error) {
+	return managedOwnerScopeForUID(stateRoot, os.Geteuid())
+}
+
+func managedOwnerScopeForUID(stateRoot string, uid int) (string, error) {
+	if uid < 0 {
+		return "", errors.New("effective UID must not be negative")
+	}
 	if stateRoot == "" || !filepath.IsAbs(stateRoot) {
 		return "", errors.New("VM state root must be absolute")
 	}
 	cleanRoot := filepath.Clean(stateRoot)
-	digest := sha256.Sum256([]byte(fmt.Sprintf("uid=%d\x00state-root=%s", os.Geteuid(), cleanRoot)))
+	digest := sha256.Sum256([]byte(fmt.Sprintf("uid=%d\x00state-root=%s", uid, cleanRoot)))
 	return hex.EncodeToString(digest[:16]), nil
 }
-
 func validateManagedOwnerScope(scope string) error {
 	if !managedScopePattern.MatchString(scope) {
 		return fmt.Errorf("invalid LPIC Daily owner scope %q", scope)
