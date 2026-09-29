@@ -73,7 +73,7 @@ func (fake *fakeControlPlane) RebootDomain(name string) error {
 	fake.reboots++
 	return nil
 }
-func (fake *fakeControlPlane) OpenConsole(name string, input io.Reader, output io.Writer) error {
+func (fake *fakeControlPlane) OpenConsole(_ context.Context, name string, input io.Reader, output io.Writer) error {
 	if !fake.active[name] {
 		return errors.New("domain not active")
 	}
@@ -182,15 +182,19 @@ func (fake *fakeControlPlane) UndefineNetwork(name string) error {
 }
 func (fake *fakeControlPlane) ListManagedDomains() ([]string, error) {
 	names := make([]string, 0, len(fake.defined))
-	for name := range fake.defined {
-		names = append(names, name)
+	for name, resourceXML := range fake.defined {
+		if hasManagedMetadata(resourceXML) {
+			names = append(names, name)
+		}
 	}
 	return names, nil
 }
 func (fake *fakeControlPlane) ListManagedNetworks() ([]string, error) {
 	names := make([]string, 0, len(fake.networks))
-	for name := range fake.networks {
-		names = append(names, name)
+	for name, resourceXML := range fake.networks {
+		if hasManagedMetadata(resourceXML) {
+			names = append(names, name)
+		}
 	}
 	return names, nil
 }
@@ -706,9 +710,9 @@ func TestBackendReapRemovesAbandonedResources(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(directory, "root.qcow2"), []byte("orphan"), 0o600); err != nil {
 		t.Fatalf("WriteFile() error = %v", err)
 	}
-	control.defined[name] = "<domain/>"
+	control.defined[name] = managedTestDomainXML
 	control.active[name] = true
-	control.networks[name] = "<network/>"
+	control.networks[name] = managedTestNetworkXML
 	control.networkActive[name] = true
 
 	if err := backend.Reap(context.Background()); err != nil {
@@ -725,6 +729,25 @@ func TestBackendReapRemovesAbandonedResources(t *testing.T) {
 	}
 }
 
+func TestBackendReapDoesNotTouchPrefixedForeignLibvirtResources(t *testing.T) {
+	backend, control, _, _ := backendFixture(t)
+	name := "lpic-daily-foreign-abc123"
+	control.defined[name] = "<domain/>"
+	control.active[name] = true
+	control.networks[name] = "<network/>"
+	control.networkActive[name] = true
+
+	if err := backend.Reap(context.Background()); err != nil {
+		t.Fatalf("Reap() error = %v", err)
+	}
+	if _, exists := control.defined[name]; !exists {
+		t.Fatal("foreign prefixed domain was reaped")
+	}
+	if _, exists := control.networks[name]; !exists {
+		t.Fatal("foreign prefixed network was reaped")
+	}
+}
+
 func TestBackendReapSkipsLiveLease(t *testing.T) {
 	backend, control, _, _ := backendFixture(t)
 	name := "lpic-daily-live-abc123"
@@ -737,7 +760,7 @@ func TestBackendReapSkipsLiveLease(t *testing.T) {
 		t.Fatalf("acquireInstanceLease() error = %v", err)
 	}
 	defer releaseInstanceLease(lease)
-	control.defined[name] = "<domain/>"
+	control.defined[name] = managedTestDomainXML
 	control.active[name] = true
 
 	if err := backend.Reap(context.Background()); err != nil {

@@ -30,6 +30,9 @@ func TestBuildDomainXMLContainsOnlyManagedVirtualResources(t *testing.T) {
 	if err != nil {
 		t.Fatalf("BuildDomainXML() error = %v", err)
 	}
+	if !hasManagedMetadata(payload) {
+		t.Fatalf("domain XML missing LPIC Daily ownership metadata:\n%s", payload)
+	}
 
 	for _, want := range []string{
 		`<domain type="kvm">`,
@@ -113,6 +116,9 @@ func TestIsolatedNetworkXMLHasNoForwarding(t *testing.T) {
 	}
 	if strings.Contains(payload, "<forward") {
 		t.Fatalf("isolated network unexpectedly forwards traffic:\n%s", payload)
+	}
+	if !hasManagedMetadata(payload) {
+		t.Fatalf("network XML missing LPIC Daily ownership metadata:\n%s", payload)
 	}
 	for _, want := range []string{
 		"<name>lpic-daily-net-abc</name>",

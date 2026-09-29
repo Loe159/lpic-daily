@@ -2,10 +2,12 @@ package libvirt
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"strings"
 	"testing"
+	"time"
 
 	golibvirt "github.com/digitalocean/go-libvirt"
 )
@@ -34,7 +36,12 @@ type fakeRawLibvirt struct {
 	networkUndefined bool
 	disconnected     bool
 	err              error
+	consoleBlock     chan struct{}
+	consoleClosed    bool
 }
+
+const managedTestDomainXML = `<domain><metadata><lpic-daily xmlns="urn:lpic-daily:managed:v1" owner="lpic-daily" version="1"></lpic-daily></metadata></domain>`
+const managedTestNetworkXML = `<network><metadata><lpic-daily xmlns="urn:lpic-daily:managed:v1" owner="lpic-daily" version="1"></lpic-daily></metadata></network>`
 
 func (fake *fakeRawLibvirt) ConnectGetLibVersion() (uint64, error) {
 	return fake.libVersion, fake.err
@@ -96,6 +103,10 @@ func (fake *fakeRawLibvirt) DomainOpenConsoleBidirectional(
 	if fake.err != nil {
 		return fake.err
 	}
+	if fake.consoleBlock != nil {
+		<-fake.consoleBlock
+		return nil
+	}
 	_, err := io.Copy(output, input)
 	return err
 }
@@ -125,11 +136,22 @@ func (fake *fakeRawLibvirt) DomainGetState(
 	return fake.state, fake.reason, fake.err
 }
 
+func (fake *fakeRawLibvirt) DomainGetXMLDesc(
+	_ golibvirt.Domain,
+	_ golibvirt.DomainXMLFlags,
+) (string, error) {
+	return fake.definedXML, fake.err
+}
+
 func (fake *fakeRawLibvirt) DomainDestroyFlags(
 	_ golibvirt.Domain,
 	flags golibvirt.DomainDestroyFlagsValues,
 ) error {
 	fake.destroyFlags = flags
+	if fake.consoleBlock != nil && !fake.consoleClosed {
+		close(fake.consoleBlock)
+		fake.consoleClosed = true
+	}
 	return fake.err
 }
 
@@ -170,6 +192,10 @@ func (fake *fakeRawLibvirt) NetworkCreate(_ golibvirt.Network) error {
 
 func (fake *fakeRawLibvirt) NetworkIsActive(_ golibvirt.Network) (int32, error) {
 	return fake.networkActive, fake.err
+}
+
+func (fake *fakeRawLibvirt) NetworkGetXMLDesc(_ golibvirt.Network, _ uint32) (string, error) {
+	return fake.networkXML, fake.err
 }
 
 func (fake *fakeRawLibvirt) NetworkDestroy(_ golibvirt.Network) error {
@@ -241,10 +267,10 @@ func TestRPCControlPlaneLifecycleUsesManagedDomainOnly(t *testing.T) {
 	if err := validateSystemCapabilities(raw.capabilities); err != nil {
 		t.Fatalf("validateSystemCapabilities() error = %v", err)
 	}
-	if err := control.DefineDomain(name, "<domain/>"); err != nil {
+	if err := control.DefineDomain(name, managedTestDomainXML); err != nil {
 		t.Fatalf("DefineDomain() error = %v", err)
 	}
-	if raw.definedXML != "<domain/>" || raw.defineFlags != 0 {
+	if raw.definedXML != managedTestDomainXML || raw.defineFlags != 0 {
 		t.Fatalf("define call = %q flags=%d", raw.definedXML, raw.defineFlags)
 	}
 	if err := control.StartDomain(name); err != nil {
@@ -257,7 +283,7 @@ func TestRPCControlPlaneLifecycleUsesManagedDomainOnly(t *testing.T) {
 		t.Fatalf("reboot flags = %v, want default", raw.rebootFlags)
 	}
 	var console bytes.Buffer
-	if err := control.OpenConsole(name, strings.NewReader("boot\n"), &console); err != nil {
+	if err := control.OpenConsole(context.Background(), name, strings.NewReader("boot\n"), &console); err != nil {
 		t.Fatalf("OpenConsole() error = %v", err)
 	}
 	if console.String() != "boot\n" {
@@ -289,10 +315,10 @@ func TestRPCControlPlaneLifecycleUsesManagedDomainOnly(t *testing.T) {
 	if err != nil || state.State != 1 || state.Reason != 2 {
 		t.Fatalf("DomainState() = %#v, %v", state, err)
 	}
-	if err := control.DefineNetwork(name, "<network/>"); err != nil {
+	if err := control.DefineNetwork(name, managedTestNetworkXML); err != nil {
 		t.Fatalf("DefineNetwork() error = %v", err)
 	}
-	if raw.networkXML != "<network/>" {
+	if raw.networkXML != managedTestNetworkXML {
 		t.Fatalf("network XML = %q", raw.networkXML)
 	}
 	if err := control.StartNetwork(name); err != nil {
@@ -357,6 +383,7 @@ func TestRPCControlPlaneRejectsUnmanagedNamesBeforeRPC(t *testing.T) {
 		func() error { return control.DefineDomain("foreign", "<domain/>") },
 		func() error {
 			return control.OpenConsole(
+				context.Background(),
 				"foreign-console",
 				strings.NewReader(""),
 				&bytes.Buffer{},
@@ -378,9 +405,69 @@ func TestDefineDomainRejectsMismatchedLibvirtIdentity(t *testing.T) {
 		domain: golibvirt.Domain{Name: "lpic-daily-other"},
 	}
 	control, _ := newRPCControlPlane(raw)
-	err := control.DefineDomain("lpic-daily-expected", "<domain/>")
+	err := control.DefineDomain("lpic-daily-expected", managedTestDomainXML)
 	if err == nil || !strings.Contains(err.Error(), "unexpected domain") {
 		t.Fatalf("DefineDomain() error = %v", err)
+	}
+}
+
+func TestRPCControlPlaneRejectsMissingOwnershipMetadata(t *testing.T) {
+	raw := &fakeRawLibvirt{
+		domain:  golibvirt.Domain{Name: "lpic-daily-owned-test"},
+		network: golibvirt.Network{Name: "lpic-daily-owned-test"},
+	}
+	control, _ := newRPCControlPlane(raw)
+	if err := control.DefineDomain("lpic-daily-owned-test", "<domain/>"); err == nil ||
+		!strings.Contains(err.Error(), "ownership metadata") {
+		t.Fatalf("DefineDomain() metadata error = %v", err)
+	}
+	if err := control.DefineNetwork("lpic-daily-owned-test", "<network/>"); err == nil ||
+		!strings.Contains(err.Error(), "ownership metadata") {
+		t.Fatalf("DefineNetwork() metadata error = %v", err)
+	}
+}
+
+func TestRPCControlPlaneInventoryIgnoresPrefixedForeignResources(t *testing.T) {
+	name := "lpic-daily-foreign-abc123"
+	raw := &fakeRawLibvirt{
+		domain:     golibvirt.Domain{Name: name},
+		network:    golibvirt.Network{Name: name},
+		definedXML: "<domain/>",
+		networkXML: "<network/>",
+	}
+	control, _ := newRPCControlPlane(raw)
+	if domains, err := control.ListManagedDomains(); err != nil || len(domains) != 0 {
+		t.Fatalf("foreign domains = %#v, %v", domains, err)
+	}
+	if networks, err := control.ListManagedNetworks(); err != nil || len(networks) != 0 {
+		t.Fatalf("foreign networks = %#v, %v", networks, err)
+	}
+}
+
+func TestRPCControlPlaneConsoleCancellationInterruptsDisposableDomain(t *testing.T) {
+	name := "lpic-daily-console-abc123"
+	raw := &fakeRawLibvirt{
+		domain:       golibvirt.Domain{Name: name},
+		consoleBlock: make(chan struct{}),
+	}
+	control, _ := newRPCControlPlane(raw)
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan error, 1)
+	go func() {
+		done <- control.OpenConsole(ctx, name, strings.NewReader(""), &bytes.Buffer{})
+	}()
+	cancel()
+
+	select {
+	case err := <-done:
+		if !errors.Is(err, context.Canceled) {
+			t.Fatalf("OpenConsole() cancellation error = %v", err)
+		}
+	case <-time.After(3 * time.Second):
+		t.Fatal("OpenConsole() did not return after cancellation")
+	}
+	if !raw.consoleClosed {
+		t.Fatal("console cancellation did not interrupt the disposable domain")
 	}
 }
 

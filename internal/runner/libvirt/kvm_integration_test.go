@@ -8,12 +8,16 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
+	lpicdaily "github.com/Loe159/lpic-daily"
+	"github.com/Loe159/lpic-daily/internal/appstate"
+	"github.com/Loe159/lpic-daily/internal/lab"
 	"github.com/Loe159/lpic-daily/internal/runner"
 )
 
@@ -62,7 +66,12 @@ func TestRealKVMIsolationScenarioAndCrashReaping(t *testing.T) {
 		_ = control.Close()
 		t.Fatalf("NewExecCommandRunner() error = %v", err)
 	}
-	backend, err := NewBackend(control, catalog, imageRoot, t.TempDir(), commands)
+	stateRoot, err := appstate.VMStateRoot()
+	if err != nil {
+		_ = control.Close()
+		t.Fatalf("VMStateRoot() error = %v", err)
+	}
+	backend, err := NewBackend(control, catalog, imageRoot, stateRoot, commands)
 	if err != nil {
 		_ = control.Close()
 		t.Fatalf("NewBackend() error = %v", err)
@@ -118,6 +127,16 @@ func TestRealKVMIsolationScenarioAndCrashReaping(t *testing.T) {
 	}
 	if result.ExitCode != 0 {
 		t.Fatalf("peer ping exit = %d, want 0", result.ExitCode)
+	}
+
+	result, err = backend.Exec(ctx, scenario.Instances[0], runner.ExecRequest{
+		Argv: []string{"/usr/bin/ping", "-c", "1", "-W", "2", "1.1.1.1"},
+	})
+	if err != nil {
+		t.Fatalf("isolated-network public egress probe error = %v", err)
+	}
+	if result.ExitCode == 0 {
+		t.Fatal("isolated VM unexpectedly reached a public Internet address")
 	}
 
 	// Attempt writes at host/base-looking paths from inside the guest. These must
@@ -225,4 +244,145 @@ func integrationFileSHA256(path string) (string, error) {
 
 func shellQuote(value string) string {
 	return "'" + strings.ReplaceAll(value, "'", "'\"'\"'") + "'"
+}
+
+
+func TestRealKVMPhase2ReferenceLabs(t *testing.T) {
+	if os.Getenv("LPIC_DAILY_RUN_KVM_INTEGRATION") != "1" {
+		t.Skip("set LPIC_DAILY_RUN_KVM_INTEGRATION=1 to run the real qemu:///system KVM test")
+	}
+	imageRoot := os.Getenv("LPIC_DAILY_VM_IMAGE_DIR")
+	if imageRoot == "" {
+		var err error
+		imageRoot, err = appstate.VMImageRoot()
+		if err != nil {
+			t.Fatalf("VMImageRoot() error = %v", err)
+		}
+	}
+	catalog, err := LoadImageCatalog(filepath.Join(imageRoot, "catalog.json"), imageRoot)
+	if err != nil {
+		t.Fatalf("LoadImageCatalog() error = %v", err)
+	}
+	control, err := OpenSystem()
+	if err != nil {
+		t.Fatalf("OpenSystem() error = %v", err)
+	}
+	commands, err := NewExecCommandRunner()
+	if err != nil {
+		_ = control.Close()
+		t.Fatalf("NewExecCommandRunner() error = %v", err)
+	}
+	stateRoot, err := appstate.VMStateRoot()
+	if err != nil {
+		_ = control.Close()
+		t.Fatalf("VMStateRoot() error = %v", err)
+	}
+	backend, err := NewBackend(control, catalog, imageRoot, stateRoot, commands)
+	if err != nil {
+		_ = control.Close()
+		t.Fatalf("NewBackend() error = %v", err)
+	}
+	cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 90*time.Second)
+	defer cleanupCancel()
+	defer func() {
+		if err := backend.Close(cleanupCtx); err != nil {
+			t.Errorf("backend Close() error = %v", err)
+		}
+	}()
+
+	authoredLabs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("LoadAll() error = %v", err)
+	}
+	wanted := map[string]string{
+		"lpic1.104.1.partition-filesystems": "labs/lpic-1-v5/104.1/partition-filesystems/reference-solution.sh",
+		"lpic1.102.2.grub-kernel-parameter":  "labs/lpic-1-v5/102.2/grub-kernel-parameter/reference-solution.sh",
+	}
+	found := map[string]bool{}
+	ctx, cancel := context.WithTimeout(context.Background(), 12*time.Minute)
+	defer cancel()
+
+	for _, authored := range authoredLabs {
+		solutionPath, ok := wanted[authored.Definition.ID]
+		if !ok {
+			continue
+		}
+		found[authored.Definition.ID] = true
+		authored := authored
+		t.Run(authored.Definition.ID, func(t *testing.T) {
+			solution, err := fs.ReadFile(lpicdaily.BuiltinFS, solutionPath)
+			if err != nil {
+				t.Fatalf("read reference solution: %v", err)
+			}
+			session, err := lab.Start(ctx, authored, backend)
+			if err != nil {
+				t.Fatalf("Start() error = %v", err)
+			}
+			defer func() {
+				if err := session.Close(cleanupCtx); err != nil {
+					t.Errorf("Close() error = %v", err)
+				}
+			}()
+
+			assertPhase2LabNotSolved(t, ctx, session)
+			runPhase2ReferenceSolution(t, ctx, backend, session.Instance, solution)
+			if authored.Definition.ID == "lpic1.102.2.grub-kernel-parameter" {
+				if err := backend.Reboot(ctx, session.Instance); err != nil {
+					t.Fatalf("Reboot() error = %v", err)
+				}
+			}
+			assertPhase2LabSolved(t, ctx, session)
+		})
+	}
+	for id := range wanted {
+		if !found[id] {
+			t.Errorf("Phase-2 reference lab %s was not loaded", id)
+		}
+	}
+}
+
+func runPhase2ReferenceSolution(t *testing.T, ctx context.Context, backend runner.Runner, instance runner.Instance, script []byte) {
+	t.Helper()
+	result, err := backend.Exec(ctx, instance, runner.ExecRequest{
+		Argv: []string{"/usr/bin/bash", "-eu", "-c", string(script)},
+	})
+	if err != nil {
+		t.Fatalf("reference solution exec error = %v", err)
+	}
+	if result.ExitCode != 0 {
+		t.Fatalf("reference solution exit = %d, want 0", result.ExitCode)
+	}
+}
+
+func assertPhase2LabSolved(t *testing.T, ctx context.Context, session *lab.Session) {
+	t.Helper()
+	results, err := session.Evaluate(ctx)
+	if err != nil {
+		t.Fatalf("Evaluate() solved state error = %v", err)
+	}
+	if len(results) == 0 {
+		t.Fatal("lab has no checker results")
+	}
+	for _, result := range results {
+		if !result.Pass {
+			t.Fatalf("check %s failed after reference solution: %s (%v)", result.CheckID, result.Detail, result.Err)
+		}
+	}
+}
+
+func assertPhase2LabNotSolved(t *testing.T, ctx context.Context, session *lab.Session) {
+	t.Helper()
+	results, err := session.Evaluate(ctx)
+	if err != nil {
+		return
+	}
+	if len(results) == 0 {
+		t.Fatal("lab has no checker results")
+	}
+	for _, result := range results {
+		if !result.Pass {
+			return
+		}
+	}
+	t.Fatal("fresh Phase-2 lab unexpectedly already satisfies every checker")
 }
