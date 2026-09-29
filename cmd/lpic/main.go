@@ -30,6 +30,7 @@ import (
 	"github.com/Loe159/lpic-daily/internal/study"
 	"github.com/Loe159/lpic-daily/internal/terminal"
 	lpicui "github.com/Loe159/lpic-daily/internal/tui"
+	"github.com/muesli/cancelreader"
 )
 
 const version = "0.0.0-dev"
@@ -1469,8 +1470,24 @@ func runVMConsole(
 		}
 	}()
 
+	cancelableInput, err := cancelreader.NewReader(stdinFile)
+	if err != nil {
+		return fmt.Errorf("prepare cancellable VM console input: %w", err)
+	}
+	defer cancelableInput.Close()
+
+	stopCancellation := make(chan struct{})
+	defer close(stopCancellation)
+	go func() {
+		select {
+		case <-ctx.Done():
+			cancelableInput.Cancel()
+		case <-stopCancellation:
+		}
+	}()
+
 	err = console.OpenConsole(ctx, instance, runner.ConsoleRequest{
-		Stdin:  &vmConsoleEscapeReader{reader: stdinFile},
+		Stdin:  &vmConsoleEscapeReader{reader: cancelableInput},
 		Stdout: stdoutFile,
 	})
 	if restoreErr := terminal.Restore(stdinFile, state); restoreErr != nil {
@@ -1478,6 +1495,9 @@ func runVMConsole(
 	}
 	restored = true
 	if err != nil {
+		if errors.Is(err, cancelreader.ErrCanceled) && ctx.Err() != nil {
+			return ctx.Err()
+		}
 		return err
 	}
 	return nil
