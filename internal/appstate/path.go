@@ -24,6 +24,10 @@ func VMStorageRoot() string {
 	return filepath.Join(defaultVMStorageBase, strconv.Itoa(os.Geteuid()))
 }
 
+func VMNetworkAllocationLockPath() string {
+	return filepath.Join(defaultVMStorageBase, ".network-allocation.lock")
+}
+
 func VMStateRoot() (string, error) {
 	if override := os.Getenv("LPIC_DAILY_VM_STATE_DIR"); override != "" {
 		if !filepath.IsAbs(override) {
