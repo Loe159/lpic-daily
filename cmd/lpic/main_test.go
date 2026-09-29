@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -341,7 +342,14 @@ func TestLibvirtLabRunFailsClosedWithoutTrustedImageCatalog(t *testing.T) {
 		&stdout,
 		&bytes.Buffer{},
 	)
-	if err == nil || !strings.Contains(err.Error(), "load VM image catalog") {
+	if err == nil {
+		t.Fatal("libvirt lab unexpectedly started")
+	}
+	if os.Geteuid() == 0 {
+		if !strings.Contains(err.Error(), "regular user, not root") {
+			t.Fatalf("error = %v, want root refusal", err)
+		}
+	} else if !strings.Contains(err.Error(), "load VM image catalog") {
 		t.Fatalf("error = %v, want trusted VM image catalog failure", err)
 	}
 	if strings.Contains(err.Error(), "Podman") {
