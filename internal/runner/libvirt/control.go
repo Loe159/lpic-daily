@@ -125,7 +125,7 @@ func newRPCControlPlane(raw rawLibvirt) (*RPCControlPlane, error) {
 		return nil, errors.New("raw libvirt client is required")
 	}
 	return &RPCControlPlane{
-		raw: raw,
+		raw:         raw,
 		consoleDial: func() (rawLibvirt, error) {
 			return raw, nil
 		},
