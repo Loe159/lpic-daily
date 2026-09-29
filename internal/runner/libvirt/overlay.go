@@ -109,6 +109,10 @@ func (manager OverlayManager) Validate() error {
 	if filepath.Clean(manager.ImageRoot) == filepath.Clean(manager.StateRoot) {
 		return errors.New("image root and VM state root must be distinct")
 	}
+	return nil
+}
+
+func (manager OverlayManager) validateProvisionedStateRoot() error {
 	info, err := os.Lstat(filepath.Clean(manager.StateRoot))
 	if errors.Is(err, os.ErrNotExist) {
 		return errors.New("VM state root is not provisioned")
@@ -129,6 +133,9 @@ func (manager OverlayManager) Create(
 	machine runner.MachineDefinition,
 ) (OverlayPaths, error) {
 	if err := manager.Validate(); err != nil {
+		return OverlayPaths{}, err
+	}
+	if err := manager.validateProvisionedStateRoot(); err != nil {
 		return OverlayPaths{}, err
 	}
 	if !managedNamePattern.MatchString(instanceName) {
