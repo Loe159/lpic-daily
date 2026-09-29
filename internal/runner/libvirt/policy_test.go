@@ -2,6 +2,7 @@ package libvirt
 
 import (
 	"encoding/xml"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -134,6 +135,32 @@ func TestIsolatedNetworkXMLHasNoForwarding(t *testing.T) {
 	var decoded networkXML
 	if err := xml.Unmarshal([]byte(payload), &decoded); err != nil {
 		t.Fatalf("network XML does not round-trip: %v", err)
+	}
+}
+
+func TestImageDescriptorRejectsSymlinkEscape(t *testing.T) {
+	root := t.TempDir()
+	outside := filepath.Join(t.TempDir(), "outside.qcow2")
+	if err := os.WriteFile(outside, []byte("not-an-image"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	link := filepath.Join(root, "base.qcow2")
+	if err := os.Symlink(outside, link); err != nil {
+		t.Fatal(err)
+	}
+
+	image := ImageDescriptor{
+		ID:            "fedora-44-x86_64-v1",
+		Path:          link,
+		SHA256:        strings.Repeat("a", 64),
+		Format:        "qcow2",
+		Architecture:  "x86_64",
+		Distribution:  "fedora",
+		VirtualSizeMB: 8192,
+		FirmwareModes: []runner.FirmwareMode{runner.FirmwareBIOS},
+	}
+	if err := image.Validate(root); err == nil || !strings.Contains(err.Error(), "symbolic link") {
+		t.Fatalf("symlink escape error = %v", err)
 	}
 }
 
