@@ -273,14 +273,21 @@ func isolatedSubnetAddresses(prefix netip.Prefix) (gateway, netmask, dhcpStart, 
 }
 
 
-func acquireNetworkAllocationLock(ctx context.Context, stateRoot string) (*os.File, error) {
-	if err := os.MkdirAll(stateRoot, 0o700); err != nil {
-		return nil, fmt.Errorf("create VM state root: %w", err)
+func acquireNetworkAllocationLock(ctx context.Context, lockPath string) (*os.File, error) {
+	if lockPath == "" || !filepath.IsAbs(lockPath) {
+		return nil, errors.New("network allocation lock path must be absolute")
 	}
-	lockPath := filepath.Join(stateRoot, ".network-allocation.lock")
-	file, err := os.OpenFile(lockPath, os.O_CREATE|os.O_RDWR, 0o600)
+	lockPath = filepath.Clean(lockPath)
+	info, err := os.Lstat(lockPath)
 	if err != nil {
-		return nil, fmt.Errorf("open network allocation lock: %w", err)
+		return nil, fmt.Errorf("inspect global network allocation lock %s: %w", lockPath, err)
+	}
+	if !info.Mode().IsRegular() || info.Mode()&os.ModeSymlink != 0 {
+		return nil, fmt.Errorf("global network allocation lock is not a regular file: %s", lockPath)
+	}
+	file, err := os.OpenFile(lockPath, os.O_RDWR, 0)
+	if err != nil {
+		return nil, fmt.Errorf("open global network allocation lock %s: %w", lockPath, err)
 	}
 	ticker := time.NewTicker(25 * time.Millisecond)
 	defer ticker.Stop()
