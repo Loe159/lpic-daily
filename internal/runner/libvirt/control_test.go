@@ -261,6 +261,10 @@ func (fake *fakeRawLibvirt) ConnectListAllNetworks(
 
 func (fake *fakeRawLibvirt) Disconnect() error {
 	fake.disconnected = true
+	if fake.consoleBlock != nil && !fake.consoleClosed {
+		close(fake.consoleBlock)
+		fake.consoleClosed = true
+	}
 	return fake.err
 }
 
@@ -501,22 +505,30 @@ func TestRPCControlPlaneRequiresOwnerScopeForManagedOperations(t *testing.T) {
 	}
 }
 
-func TestRPCControlPlaneConsoleCancellationInterruptsDisposableDomain(t *testing.T) {
+func TestRPCControlPlaneConsoleCancellationDisconnectsOnlyConsoleStream(t *testing.T) {
 	name := "lpic-daily-console-abc123"
-	raw := &fakeRawLibvirt{
+	mainRaw := &fakeRawLibvirt{
+		domain:     golibvirt.Domain{Name: name},
+		definedXML: managedTestDomainXML,
+	}
+	consoleRaw := &fakeRawLibvirt{
 		domain:         golibvirt.Domain{Name: name},
 		definedXML:     managedTestDomainXML,
 		consoleBlock:   make(chan struct{}),
 		consoleStarted: make(chan struct{}),
 	}
-	control, _ := newScopedRPCControlPlaneForTest(t, raw)
+	control, _ := newScopedRPCControlPlaneForTest(t, mainRaw)
+	control.consoleDial = func() (rawLibvirt, error) {
+		return consoleRaw, nil
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 	done := make(chan error, 1)
 	go func() {
 		done <- control.OpenConsole(ctx, name, strings.NewReader(""), &bytes.Buffer{})
 	}()
 	select {
-	case <-raw.consoleStarted:
+	case <-consoleRaw.consoleStarted:
 	case <-time.After(time.Second):
 		t.Fatal("console did not start")
 	}
@@ -530,8 +542,17 @@ func TestRPCControlPlaneConsoleCancellationInterruptsDisposableDomain(t *testing
 	case <-time.After(3 * time.Second):
 		t.Fatal("OpenConsole() did not return after cancellation")
 	}
-	if !raw.consoleClosed {
-		t.Fatal("console cancellation did not interrupt the disposable domain")
+	if !consoleRaw.disconnected || !consoleRaw.consoleClosed {
+		t.Fatal("console cancellation did not close the dedicated console connection")
+	}
+	if mainRaw.disconnected {
+		t.Fatal("console cancellation disconnected the main libvirt control connection")
+	}
+	if mainRaw.destroyFlags != 0 {
+		t.Fatalf("console cancellation destroyed the VM: flags=%v", mainRaw.destroyFlags)
+	}
+	if _, err := control.DomainState(name); err != nil {
+		t.Fatalf("main libvirt control connection unusable after console cancellation: %v", err)
 	}
 }
 
