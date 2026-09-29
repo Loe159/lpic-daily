@@ -16,25 +16,25 @@ import (
 )
 
 type fakeControlPlane struct {
-	defined        map[string]string
-	active         map[string]bool
-	networks       map[string]string
-	networkActive  map[string]bool
-	starts         int
-	reboots        int
-	destroys       int
-	undefines      int
-	networkStarts  int
-	networkDestroys int
+	defined          map[string]string
+	active           map[string]bool
+	networks         map[string]string
+	networkActive    map[string]bool
+	starts           int
+	reboots          int
+	destroys         int
+	undefines        int
+	networkStarts    int
+	networkDestroys  int
 	networkUndefines int
-	removeNVRAM    bool
-	consoleOpens   int
-	agentResponses []string
-	agentErrors    []error
-	agentCommands  []string
-	destroyErr     error
-	undefineErr    error
-	closed         bool
+	removeNVRAM      bool
+	consoleOpens     int
+	agentResponses   []string
+	agentErrors      []error
+	agentCommands    []string
+	destroyErr       error
+	undefineErr      error
+	closed           bool
 }
 
 func newFakeControlPlane() *fakeControlPlane {
