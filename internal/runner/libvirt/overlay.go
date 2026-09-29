@@ -109,6 +109,16 @@ func (manager OverlayManager) Validate() error {
 	if filepath.Clean(manager.ImageRoot) == filepath.Clean(manager.StateRoot) {
 		return errors.New("image root and VM state root must be distinct")
 	}
+	info, err := os.Lstat(filepath.Clean(manager.StateRoot))
+	if errors.Is(err, os.ErrNotExist) {
+		return errors.New("VM state root is not provisioned")
+	}
+	if err != nil {
+		return fmt.Errorf("inspect VM state root: %w", err)
+	}
+	if info.Mode()&os.ModeSymlink != 0 || !info.IsDir() {
+		return errors.New("VM state root must be a real directory")
+	}
 	return nil
 }
 
