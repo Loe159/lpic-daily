@@ -124,12 +124,7 @@ func newRPCControlPlane(raw rawLibvirt) (*RPCControlPlane, error) {
 	if raw == nil {
 		return nil, errors.New("raw libvirt client is required")
 	}
-	return &RPCControlPlane{
-		raw:         raw,
-		consoleDial: func() (rawLibvirt, error) {
-			return raw, nil
-		},
-	}, nil
+	return &RPCControlPlane{raw: raw}, nil
 }
 
 func (control *RPCControlPlane) SetManagedOwnerScope(scope string) error {
