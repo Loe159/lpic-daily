@@ -3,7 +3,6 @@ package libvirt
 import (
 	"context"
 	"crypto/rand"
-	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -166,7 +165,11 @@ func (backend *Backend) prepareNamedOnNetwork(
 	}()
 
 	if networkControl != nil && manageNetwork {
-		networkXML, err := BuildIsolatedNetworkXML(networkName, networkSubnetOctet(networkName))
+		subnet, err := backend.allocateIsolatedSubnet(networkName)
+		if err != nil {
+			return fmt.Errorf("allocate isolated network for %s: %w", networkName, err)
+		}
+		networkXML, err := BuildIsolatedNetworkXML(networkName, subnet)
 		if err != nil {
 			return fmt.Errorf("build isolated network XML for %s: %w", networkName, err)
 		}
@@ -265,7 +268,11 @@ func (backend *Backend) PrepareScenario(
 		}
 	}()
 
-	networkXML, err := BuildIsolatedNetworkXML(networkName, networkSubnetOctet(networkName))
+	subnet, err := backend.allocateIsolatedSubnet(networkName)
+	if err != nil {
+		return Scenario{}, fmt.Errorf("allocate scenario network: %w", err)
+	}
+	networkXML, err := BuildIsolatedNetworkXML(networkName, subnet)
 	if err != nil {
 		return Scenario{}, err
 	}
@@ -795,10 +802,6 @@ func (backend *Backend) instance(instance runner.Instance) (managedInstance, err
 	return managed, nil
 }
 
-func networkSubnetOctet(name string) int {
-	digest := sha256.Sum256([]byte(name))
-	return int(digest[0])%250 + 1
-}
 
 func vmInstanceName(labID string) (string, error) {
 	var suffix [6]byte
