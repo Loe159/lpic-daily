@@ -12,7 +12,7 @@ Review remediation completed on 2026-09-29:
 - VM console input is cancellable and Ctrl-] behavior plus CLI console/reboot dispatch have unit coverage; console streaming uses a dedicated libvirt connection so escape/cancellation closes only the stream, and the real-KVM harness verifies the guest remains QGA-responsive before successful teardown.
 - libvirt ownership metadata now carries a stable scope derived from effective UID + VM state root; normal lifecycle lookups and the reaper reject same-prefix resources belonging to another scope;
 - isolated-network allocation now uses one root-provisioned host-global flock instead of a per-state-root lock, closing cross-user/custom-state-root allocation races against shared `qemu:///system`;
-- VM lab startup explicitly refuses effective UID 0 instead of relying on `doctor` warnings or acceptance-script discipline alone;
+- VM lab startup explicitly refuses effective UID 0 both at the CLI boundary and in the libvirt backend constructor, so direct package use cannot bypass the non-root invariant;
 - per-run VM state directories are explicitly forced to mode `0711` after creation, independent of the caller's umask, so system-libvirt QEMU can traverse to managed disks without granting directory listing/read access.
 
 ## Control plane
