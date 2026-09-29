@@ -794,7 +794,6 @@ func TestLabRequiresJobControlOnlyForJobConcept(t *testing.T) {
 	}
 }
 
-
 func TestVMConsoleEscapeReaderStopsAtControlRightBracket(t *testing.T) {
 	escapeCalled := false
 	reader := &vmConsoleEscapeReader{
