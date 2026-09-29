@@ -110,9 +110,9 @@ func TestRealKVMIsolationScenarioAndCrashReaping(t *testing.T) {
 		_ = control.Close()
 		t.Fatalf("NewBackend() error = %v", err)
 	}
-	cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 90*time.Second)
-	defer cleanupCancel()
 	defer func() {
+		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 90*time.Second)
+		defer cleanupCancel()
 		if err := backend.Close(cleanupCtx); err != nil {
 			t.Errorf("backend Close() error = %v", err)
 		}
@@ -142,6 +142,8 @@ func TestRealKVMIsolationScenarioAndCrashReaping(t *testing.T) {
 	scenarioOpen := true
 	defer func() {
 		if scenarioOpen {
+			cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 90*time.Second)
+			defer cleanupCancel()
 			_ = backend.DestroyScenario(cleanupCtx, scenario)
 		}
 	}()
@@ -405,9 +407,9 @@ func TestRealKVMPhase2ReferenceLabs(t *testing.T) {
 		_ = control.Close()
 		t.Fatalf("NewBackend() error = %v", err)
 	}
-	cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 90*time.Second)
-	defer cleanupCancel()
 	defer func() {
+		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 90*time.Second)
+		defer cleanupCancel()
 		if err := backend.Close(cleanupCtx); err != nil {
 			t.Errorf("backend Close() error = %v", err)
 		}
@@ -442,6 +444,8 @@ func TestRealKVMPhase2ReferenceLabs(t *testing.T) {
 				t.Fatalf("Start() error = %v", err)
 			}
 			defer func() {
+				cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 90*time.Second)
+				defer cleanupCancel()
 				if err := session.Close(cleanupCtx); err != nil {
 					t.Errorf("Close() error = %v", err)
 				}
