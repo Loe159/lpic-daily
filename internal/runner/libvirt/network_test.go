@@ -98,7 +98,6 @@ func TestNetworkPrefixesFromXML(t *testing.T) {
 	}
 }
 
-
 func TestNetworkAllocationLockRejectsSymlink(t *testing.T) {
 	root := t.TempDir()
 	target := filepath.Join(root, "target")
