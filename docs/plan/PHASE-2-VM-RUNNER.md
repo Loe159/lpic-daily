@@ -28,14 +28,14 @@ First end-to-end targets:
 Implemented on `phase-2-vm-runner-complete`:
 - system-libvirt control plane remains restricted to local `qemu:///system`, behind project-owned interfaces;
 - immutable catalogued QCOW2 bases, SHA-256 runtime verification, bounded disposable overlays and scratch disks;
-- explicit serial-console learner surface (`:console`) with local Ctrl-] escape, terminal restoration and context cancellation that interrupts the disposable VM stream;
+- explicit serial-console learner surface (`:console`) with local Ctrl-] escape, terminal restoration and a dedicated libvirt stream connection; escape/cancellation closes the console stream without powering off the guest;
 - explicit VM reboot (`:reboot`) that waits for a changed guest `boot_id` through QEMU Guest Agent before returning;
 - 104.1 partition/filesystem state-based VM lab;
 - 102.2 GRUB 2 lab that requires a persistent kernel argument and verifies it after a real reboot;
 - LPIC Daily-owned isolated libvirt networks with no forwarding and shared-network multi-VM scenarios; subnet allocation excludes host/libvirt routes and is serialized across users/processes by one root-provisioned host-global lock;
 - per-run leases plus startup reaping for abandoned LPIC Daily domains, networks and disposable state without reaping a live concurrent run; ownership is verified through namespaced libvirt metadata carrying a stable effective-UID + state-root scope, and every lifecycle lookup rejects foreign scopes rather than trusting a name prefix;
 - explicit Fedora, Debian and openSUSE image-supply manifests/build pipeline with source digests pinned directly in-repository (no mutable remote checksum trust at build time);
-- default VM storage provisioned below `/var/lib/libvirt/images/lpic-daily/<uid>`, with a shared root-owned network-allocation lock at the parent level; this keeps qemu:///system disks out of private home/XDG paths while coordinating its host-global network namespace;
+- default VM storage provisioned below `/var/lib/libvirt/images/lpic-daily/<uid>`, with per-run state directories forced to execute-traversable `0711` even under restrictive umasks and a shared root-owned network-allocation lock at the parent level; this keeps qemu:///system disks out of private home/XDG paths while coordinating its host-global network namespace;
 - opt-in real-KVM integration coverage for host sentinel preservation, base-image immutability, private two-guest communication, failed public egress, crash reaping and both 104.1/102.2 reference solutions (including the 102.2 reboot);
 - generic CI compiles the KVM integration test but does not pretend to execute it without a KVM/libvirt host.
 
