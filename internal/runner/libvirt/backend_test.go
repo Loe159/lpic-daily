@@ -17,6 +17,7 @@ import (
 )
 
 type fakeControlPlane struct {
+	ownerScope       string
 	defined          map[string]string
 	active           map[string]bool
 	networks         map[string]string
@@ -47,6 +48,16 @@ func newFakeControlPlane() *fakeControlPlane {
 	}
 }
 
+func (fake *fakeControlPlane) SetManagedOwnerScope(scope string) error {
+	if err := validateManagedOwnerScope(scope); err != nil {
+		return err
+	}
+	if fake.ownerScope != "" && fake.ownerScope != scope {
+		return errors.New("owner scope already configured")
+	}
+	fake.ownerScope = scope
+	return nil
+}
 func (fake *fakeControlPlane) LibVersion() (uint64, error) { return 1000000, nil }
 func (fake *fakeControlPlane) Capabilities() (string, error) {
 	return "<arch>x86_64</arch>", nil
@@ -184,7 +195,7 @@ func (fake *fakeControlPlane) UndefineNetwork(name string) error {
 func (fake *fakeControlPlane) ListManagedDomains() ([]string, error) {
 	names := make([]string, 0, len(fake.defined))
 	for name, resourceXML := range fake.defined {
-		if hasManagedMetadata(resourceXML) {
+		if hasManagedMetadata(resourceXML, fake.ownerScope) {
 			names = append(names, name)
 		}
 	}
@@ -193,7 +204,7 @@ func (fake *fakeControlPlane) ListManagedDomains() ([]string, error) {
 func (fake *fakeControlPlane) ListManagedNetworks() ([]string, error) {
 	names := make([]string, 0, len(fake.networks))
 	for name, resourceXML := range fake.networks {
-		if hasManagedMetadata(resourceXML) {
+		if hasManagedMetadata(resourceXML, fake.ownerScope) {
 			names = append(names, name)
 		}
 	}
@@ -252,7 +263,11 @@ func backendFixture(t *testing.T) (*Backend, *fakeControlPlane, *fakeCommands, r
 	}
 	control := newFakeControlPlane()
 	commands := &fakeCommands{}
-	backend, err := NewBackend(control, catalog, imageRoot, stateRoot, commands)
+	networkLockPath := filepath.Join(root, "network-allocation.lock")
+	if err := os.WriteFile(networkLockPath, nil, 0o600); err != nil {
+		t.Fatalf("WriteFile(network lock) error = %v", err)
+	}
+	backend, err := NewBackend(control, catalog, imageRoot, stateRoot, networkLockPath, commands)
 	if err != nil {
 		t.Fatalf("NewBackend() error = %v", err)
 	}
@@ -275,6 +290,30 @@ func backendFixture(t *testing.T) (*Backend, *fakeControlPlane, *fakeCommands, r
 		},
 	}
 	return backend, control, commands, definition
+}
+
+func TestManagedOwnerScopeSeparatesStateRoots(t *testing.T) {
+	firstRoot := filepath.Join(t.TempDir(), "state-a")
+	secondRoot := filepath.Join(t.TempDir(), "state-b")
+
+	first, err := managedOwnerScope(firstRoot)
+	if err != nil {
+		t.Fatalf("managedOwnerScope(first) error = %v", err)
+	}
+	again, err := managedOwnerScope(firstRoot)
+	if err != nil {
+		t.Fatalf("managedOwnerScope(first again) error = %v", err)
+	}
+	second, err := managedOwnerScope(secondRoot)
+	if err != nil {
+		t.Fatalf("managedOwnerScope(second) error = %v", err)
+	}
+	if first != again {
+		t.Fatalf("owner scope is not stable: first=%q again=%q", first, again)
+	}
+	if first == second {
+		t.Fatalf("different state roots share owner scope %q", first)
+	}
 }
 
 func TestBackendPrepareStartDestroyLifecycle(t *testing.T) {
