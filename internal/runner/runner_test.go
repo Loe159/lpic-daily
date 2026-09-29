@@ -95,3 +95,19 @@ func TestDefinitionRejectsResourceLimitsAboveSchemaMaximums(t *testing.T) {
 		})
 	}
 }
+
+
+func TestMachineDefinitionRejectsUnsafeDiskIDs(t *testing.T) {
+	for _, id := range []string{"", "../escape", "data/../../escape", "UPPER", "-leading", "a_b"} {
+		machine := runner.MachineDefinition{
+			Firmware: runner.FirmwareUEFI,
+			ExtraDisks: []runner.VirtualDisk{{
+				ID:     id,
+				SizeMB: 128,
+			}},
+		}
+		if err := machine.Validate(); err == nil {
+			t.Fatalf("Validate() unexpectedly accepted disk ID %q", id)
+		}
+	}
+}
