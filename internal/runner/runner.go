@@ -5,11 +5,27 @@ import (
 	"errors"
 	"io"
 	"path"
+	"regexp"
 	"strings"
 	"time"
 )
 
-var ErrNotSupported = errors.New("operation not supported by runner")
+var (
+	ErrNotSupported      = errors.New("operation not supported by runner")
+	virtualDiskIDPattern = regexp.MustCompile(`^[a-z0-9][a-z0-9-]{0,31}package runner
+
+import (
+	"context"
+	"errors"
+	"io"
+	"path"
+	"regexp"
+	"strings"
+	"time"
+)
+
+)
+)
 
 type NetworkMode string
 
@@ -44,8 +60,8 @@ func (machine MachineDefinition) Validate() error {
 	}
 	seen := make(map[string]struct{}, len(machine.ExtraDisks))
 	for _, disk := range machine.ExtraDisks {
-		if disk.ID == "" {
-			return errors.New("extra disk ID is required")
+		if !virtualDiskIDPattern.MatchString(disk.ID) {
+			return errors.New("extra disk ID must match ^[a-z0-9][a-z0-9-]{0,31}$")
 		}
 		if _, exists := seen[disk.ID]; exists {
 			return errors.New("extra disk IDs must be unique")
