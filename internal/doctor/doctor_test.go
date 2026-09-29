@@ -14,6 +14,7 @@ func TestRunAlwaysIncludesDesktopChecksEvenWithoutPodman(t *testing.T) {
 		"unprivileged-process",
 		"rootless-podman-service",
 		"qemu-img",
+		"vm-storage",
 		"vm-image-catalog",
 		"system-libvirt",
 		"desktop-notifications",

@@ -1,11 +1,13 @@
 package libvirt
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
 	"net/url"
 	"strings"
+	"time"
 
 	golibvirt "github.com/digitalocean/go-libvirt"
 )
@@ -44,7 +46,7 @@ type ResourceInventory interface {
 }
 
 type ConsoleControlPlane interface {
-	OpenConsole(string, io.Reader, io.Writer) error
+	OpenConsole(context.Context, string, io.Reader, io.Writer) error
 }
 
 type AgentControlPlane interface {
@@ -61,12 +63,14 @@ type rawLibvirt interface {
 	DomainOpenConsoleBidirectional(golibvirt.Domain, golibvirt.OptString, io.Reader, io.Writer, uint32) error
 	QEMUDomainAgentCommand(golibvirt.Domain, string, int32, uint32) (golibvirt.OptString, error)
 	DomainGetState(golibvirt.Domain, uint32) (int32, int32, error)
+	DomainGetXMLDesc(golibvirt.Domain, golibvirt.DomainXMLFlags) (string, error)
 	DomainDestroyFlags(golibvirt.Domain, golibvirt.DomainDestroyFlagsValues) error
 	DomainUndefineFlags(golibvirt.Domain, golibvirt.DomainUndefineFlagsValues) error
 	NetworkDefineXML(string) (golibvirt.Network, error)
 	NetworkLookupByName(string) (golibvirt.Network, error)
 	NetworkCreate(golibvirt.Network) error
 	NetworkIsActive(golibvirt.Network) (int32, error)
+	NetworkGetXMLDesc(golibvirt.Network, uint32) (string, error)
 	NetworkDestroy(golibvirt.Network) error
 	NetworkUndefine(golibvirt.Network) error
 	ConnectListAllDomains(int32, golibvirt.ConnectListAllDomainsFlags) ([]golibvirt.Domain, uint32, error)
@@ -133,6 +137,9 @@ func (control *RPCControlPlane) DefineDomain(name, domainXML string) error {
 	if strings.TrimSpace(domainXML) == "" {
 		return errors.New("domain XML is required")
 	}
+	if !hasManagedMetadata(domainXML) {
+		return errors.New("domain XML is missing LPIC Daily ownership metadata")
+	}
 	domain, err := control.raw.DomainDefineXMLFlags(domainXML, 0)
 	if err != nil {
 		return fmt.Errorf("define domain %s: %w", name, err)
@@ -169,27 +176,59 @@ func (control *RPCControlPlane) RebootDomain(name string) error {
 	return nil
 }
 
-func (control *RPCControlPlane) OpenConsole(name string, input io.Reader, output io.Writer) error {
+func (control *RPCControlPlane) OpenConsole(
+	ctx context.Context,
+	name string,
+	input io.Reader,
+	output io.Writer,
+) error {
 	if input == nil {
 		return errors.New("console input is required")
 	}
 	if output == nil {
 		return errors.New("console output is required")
 	}
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 	domain, err := control.lookupManagedDomain(name)
 	if err != nil {
 		return err
 	}
-	if err := control.raw.DomainOpenConsoleBidirectional(
-		domain,
-		golibvirt.OptString(nil),
-		input,
-		output,
-		0,
-	); err != nil {
-		return fmt.Errorf("open console for domain %s: %w", name, err)
+
+	done := make(chan error, 1)
+	go func() {
+		done <- control.raw.DomainOpenConsoleBidirectional(
+			domain,
+			golibvirt.OptString(nil),
+			input,
+			output,
+			0,
+		)
+	}()
+
+	select {
+	case err := <-done:
+		if err != nil {
+			return fmt.Errorf("open console for domain %s: %w", name, err)
+		}
+		return nil
+	case <-ctx.Done():
+		// The go-libvirt bidirectional helper has no context parameter. Powering
+		// off only this disposable lab domain closes the stream while keeping the
+		// control connection usable for normal teardown.
+		destroyErr := control.raw.DomainDestroyFlags(domain, 0)
+		timer := time.NewTimer(2 * time.Second)
+		defer timer.Stop()
+		select {
+		case <-done:
+		case <-timer.C:
+		}
+		if destroyErr != nil {
+			return errors.Join(ctx.Err(), fmt.Errorf("interrupt console for domain %s: %w", name, destroyErr))
+		}
+		return ctx.Err()
 	}
-	return nil
 }
 
 func (control *RPCControlPlane) AgentCommand(name, command string, timeoutSeconds int32) (string, error) {
@@ -262,6 +301,9 @@ func (control *RPCControlPlane) DefineNetwork(name, networkXML string) error {
 	if strings.TrimSpace(networkXML) == "" {
 		return errors.New("network XML is required")
 	}
+	if !hasManagedMetadata(networkXML) {
+		return errors.New("network XML is missing LPIC Daily ownership metadata")
+	}
 	network, err := control.raw.NetworkDefineXML(networkXML)
 	if err != nil {
 		return fmt.Errorf("define network %s: %w", name, err)
@@ -327,7 +369,14 @@ func (control *RPCControlPlane) ListManagedDomains() ([]string, error) {
 	}
 	names := make([]string, 0, len(domains))
 	for _, domain := range domains {
-		if managedNamePattern.MatchString(domain.Name) {
+		if !managedNamePattern.MatchString(domain.Name) {
+			continue
+		}
+		resourceXML, err := control.raw.DomainGetXMLDesc(domain, 0)
+		if err != nil {
+			return nil, fmt.Errorf("inspect domain %s ownership metadata: %w", domain.Name, err)
+		}
+		if hasManagedMetadata(resourceXML) {
 			names = append(names, domain.Name)
 		}
 	}
@@ -344,7 +393,14 @@ func (control *RPCControlPlane) ListManagedNetworks() ([]string, error) {
 	}
 	names := make([]string, 0, len(networks))
 	for _, network := range networks {
-		if managedNamePattern.MatchString(network.Name) {
+		if !managedNamePattern.MatchString(network.Name) {
+			continue
+		}
+		resourceXML, err := control.raw.NetworkGetXMLDesc(network, 0)
+		if err != nil {
+			return nil, fmt.Errorf("inspect network %s ownership metadata: %w", network.Name, err)
+		}
+		if hasManagedMetadata(resourceXML) {
 			names = append(names, network.Name)
 		}
 	}

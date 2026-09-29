@@ -18,6 +18,12 @@ var (
 	diskIDPattern      = regexp.MustCompile(`^[a-z0-9][a-z0-9-]{0,31}$`)
 )
 
+const (
+	managedMetadataNamespace = "urn:lpic-daily:managed:v1"
+	managedMetadataOwner     = "lpic-daily"
+	managedMetadataVersion   = "1"
+)
+
 type ImageDescriptor struct {
 	ID            string
 	Path          string
@@ -157,11 +163,39 @@ func pathWithinRoot(root, candidate string) error {
 	return nil
 }
 
+type managedMetadataXML struct {
+	XMLName xml.Name `xml:"urn:lpic-daily:managed:v1 lpic-daily"`
+	Owner   string   `xml:"owner,attr"`
+	Version string   `xml:"version,attr"`
+}
+
+type metadataXML struct {
+	Managed managedMetadataXML `xml:"urn:lpic-daily:managed:v1 lpic-daily"`
+}
+
+func newManagedMetadata() metadataXML {
+	return metadataXML{Managed: managedMetadataXML{
+		Owner: managedMetadataOwner, Version: managedMetadataVersion,
+	}}
+}
+
+func hasManagedMetadata(payload string) bool {
+	var document struct {
+		Metadata metadataXML `xml:"metadata"`
+	}
+	if err := xml.Unmarshal([]byte(payload), &document); err != nil {
+		return false
+	}
+	return document.Metadata.Managed.Owner == managedMetadataOwner &&
+		document.Metadata.Managed.Version == managedMetadataVersion
+}
+
 type domainXML struct {
 	XMLName     xml.Name    `xml:"domain"`
 	Type        string      `xml:"type,attr"`
 	Name        string      `xml:"name"`
 	Description string      `xml:"description"`
+	Metadata    metadataXML `xml:"metadata"`
 	Memory      memoryXML   `xml:"memory"`
 	VCPU        vcpuXML     `xml:"vcpu"`
 	CPUTune     cpuTuneXML  `xml:"cputune"`
@@ -296,6 +330,7 @@ func BuildDomainXML(spec DomainSpec, stateRoot string) (string, error) {
 		Type:        "kvm",
 		Name:        spec.Name,
 		Description: "LPIC Daily lab " + spec.LabID,
+		Metadata:    newManagedMetadata(),
 		Memory:      memoryXML{Unit: "MiB", Value: spec.MemoryMB},
 		VCPU:        vcpuXML{Placement: "static", Value: vcpuCount},
 		CPUTune:     cpuTuneXML{Period: period, Quota: quota},
@@ -351,9 +386,10 @@ func BuildDomainXML(spec DomainSpec, stateRoot string) (string, error) {
 }
 
 type networkXML struct {
-	XMLName xml.Name  `xml:"network"`
-	Name    string    `xml:"name"`
-	IP      networkIP `xml:"ip"`
+	XMLName  xml.Name    `xml:"network"`
+	Name     string      `xml:"name"`
+	Metadata metadataXML `xml:"metadata"`
+	IP       networkIP   `xml:"ip"`
 }
 
 type networkIP struct {
@@ -380,7 +416,8 @@ func BuildIsolatedNetworkXML(name string, subnetOctet int) (string, error) {
 	}
 	prefix := "192.168." + strconv.Itoa(subnetOctet)
 	doc := networkXML{
-		Name: name,
+		Name:     name,
+		Metadata: newManagedMetadata(),
 		IP: networkIP{
 			Address: prefix + ".1",
 			Netmask: "255.255.255.0",

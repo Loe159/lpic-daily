@@ -469,7 +469,7 @@ func (backend *Backend) OpenConsole(
 			runner.ErrNotSupported,
 		)
 	}
-	if err := console.OpenConsole(instance.ID, request.Stdin, request.Stdout); err != nil {
+	if err := console.OpenConsole(ctx, instance.ID, request.Stdin, request.Stdout); err != nil {
 		return err
 	}
 	return nil

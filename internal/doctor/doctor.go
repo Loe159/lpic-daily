@@ -48,6 +48,7 @@ func Run() Report {
 		"qemu-img is available for disposable VM overlays",
 		"qemu-img is missing; full-system labs are unavailable",
 	))
+	report.Checks = append(report.Checks, vmStorageCheck())
 	report.Checks = append(report.Checks, vmImageCatalogCheck())
 	report.Checks = append(report.Checks, systemLibvirtCheck())
 	report.Checks = append(report.Checks, executableCheck(
@@ -97,6 +98,40 @@ func podmanCheck() Check {
 		Name:   "rootless-podman-service",
 		Status: "ok",
 		Detail: fmt.Sprintf("%s responds as rootless Podman with cgroups v2", socket),
+	}
+}
+
+func vmStorageCheck() Check {
+	imageRoot, imageErr := appstate.VMImageRoot()
+	stateRoot, stateErr := appstate.VMStateRoot()
+	if imageErr != nil {
+		return Check{Name: "vm-storage", Status: "warn", Detail: imageErr.Error()}
+	}
+	if stateErr != nil {
+		return Check{Name: "vm-storage", Status: "warn", Detail: stateErr.Error()}
+	}
+	for _, root := range []string{imageRoot, stateRoot} {
+		info, err := os.Stat(root)
+		if err != nil {
+			return Check{
+				Name: "vm-storage", Status: "warn",
+				Detail: fmt.Sprintf("%s is not provisioned: %v; run sudo scripts/provision_vm_storage.sh", root, err),
+			}
+		}
+		if !info.IsDir() {
+			return Check{Name: "vm-storage", Status: "warn", Detail: fmt.Sprintf("%s is not a directory", root)}
+		}
+		probe, err := os.CreateTemp(root, ".lpic-daily-write-probe-*")
+		if err != nil {
+			return Check{Name: "vm-storage", Status: "warn", Detail: fmt.Sprintf("%s is not writable: %v", root, err)}
+		}
+		probePath := probe.Name()
+		_ = probe.Close()
+		_ = os.Remove(probePath)
+	}
+	return Check{
+		Name: "vm-storage", Status: "ok",
+		Detail: fmt.Sprintf("system-libvirt storage is provisioned: images=%s state=%s", imageRoot, stateRoot),
 	}
 }
 
