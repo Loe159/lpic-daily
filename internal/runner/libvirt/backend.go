@@ -46,6 +46,8 @@ type managedInstance struct {
 	DomainDefined  bool
 	NetworkName    string
 	NetworkDefined bool
+	FilterName     string
+	FilterDefined  bool
 }
 
 func NewBackend(
@@ -171,13 +173,22 @@ func (backend *Backend) prepareNamedOnNetwork(
 	}
 
 	var networkControl NetworkControlPlane
+	var filterControl NetworkFilterControlPlane
 	networkName := ""
+	filterName := ""
 	if definition.Network == runner.NetworkIsolated {
 		var ok bool
 		networkControl, ok = backend.control.(NetworkControlPlane)
 		if !ok {
 			return fmt.Errorf(
 				"%w: libvirt control plane has no isolated-network capability",
+				runner.ErrNotSupported,
+			)
+		}
+		filterControl, ok = backend.control.(NetworkFilterControlPlane)
+		if !ok {
+			return fmt.Errorf(
+				"%w: libvirt control plane has no network-filter capability",
 				runner.ErrNotSupported,
 			)
 		}
@@ -188,6 +199,7 @@ func (backend *Backend) prepareNamedOnNetwork(
 			}
 			networkName = sharedNetworkName
 		}
+		filterName = networkName
 	}
 
 	paths, err := backend.overlays.Create(ctx, name, image, *definition.Machine)
@@ -196,6 +208,7 @@ func (backend *Backend) prepareNamedOnNetwork(
 	}
 	cleanup := true
 	networkDefined := false
+	filterDefined := false
 	defer func() {
 		if !cleanup {
 			return
@@ -205,6 +218,9 @@ func (backend *Backend) prepareNamedOnNetwork(
 				_ = networkControl.DestroyNetwork(networkName)
 			}
 			_ = networkControl.UndefineNetwork(networkName)
+		}
+		if filterDefined && filterControl != nil {
+			_ = filterControl.UndefineNetworkFilter(filterName)
 		}
 		_ = backend.overlays.Destroy(name)
 		_ = releaseInstanceLease(paths.Lease)
@@ -225,15 +241,27 @@ func (backend *Backend) prepareNamedOnNetwork(
 			_ = releaseNetworkAllocationLock(allocationLock)
 			return fmt.Errorf("build isolated network XML for %s: %w", networkName, err)
 		}
+		filterXML, err := BuildHostIsolationFilterXML(filterName, subnet, backend.ownerScope)
+		if err != nil {
+			_ = releaseNetworkAllocationLock(allocationLock)
+			return fmt.Errorf("build host-isolation filter XML for %s: %w", filterName, err)
+		}
 		if err := networkControl.DefineNetwork(networkName, networkXML); err != nil {
 			_ = releaseNetworkAllocationLock(allocationLock)
 			return err
 		}
+		networkDefined = true
+		if err := filterControl.DefineNetworkFilter(filterName, filterXML); err != nil {
+			_ = networkControl.UndefineNetwork(networkName)
+			_ = releaseNetworkAllocationLock(allocationLock)
+			return err
+		}
+		filterDefined = true
 		if err := releaseNetworkAllocationLock(allocationLock); err != nil {
+			_ = filterControl.UndefineNetworkFilter(filterName)
 			_ = networkControl.UndefineNetwork(networkName)
 			return fmt.Errorf("unlock isolated network allocation for %s: %w", networkName, err)
 		}
-		networkDefined = true
 		if err := networkControl.StartNetwork(networkName); err != nil {
 			return err
 		}
@@ -257,7 +285,8 @@ func (backend *Backend) prepareNamedOnNetwork(
 		Firmware:     definition.Machine.Firmware,
 		RootDiskPath: paths.RootDisk,
 		ExtraDisks:   extraDisks,
-		NetworkName:  networkName,
+		NetworkName:       networkName,
+		NetworkFilterName: filterName,
 	}, backend.stateRoot)
 	if err != nil {
 		return fmt.Errorf("build domain XML for %s: %w", name, err)
@@ -278,6 +307,8 @@ func (backend *Backend) prepareNamedOnNetwork(
 		DomainDefined:  true,
 		NetworkName:    networkName,
 		NetworkDefined: networkDefined,
+		FilterName:     filterName,
+		FilterDefined:  filterDefined,
 	}
 	backend.mu.Unlock()
 
