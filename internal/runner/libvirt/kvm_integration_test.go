@@ -29,7 +29,7 @@ import (
 )
 
 type integrationLockedBuffer struct {
-	mu	sync.Mutex
+	mu     sync.Mutex
 	buffer bytes.Buffer
 }
 
@@ -128,13 +128,13 @@ func TestRealKVMIsolationScenarioAndCrashReaping(t *testing.T) {
 		LabID:             "integration.kvm.peer-a",
 		ImageRef:          "fedora-44-x86_64-v1",
 		Distribution:      "fedora",
-		Network:	runner.NetworkIsolated,
+		Network:           runner.NetworkIsolated,
 		CapabilityProfile: "full-machine",
-		MemoryMB:	1024,
-		CPUPercent:	100,
-		PIDs:	128,
-		Timeout:	5 * time.Minute,
-		Machine:	&runner.MachineDefinition{Firmware: runner.FirmwareUEFI},
+		MemoryMB:          1024,
+		CPUPercent:        100,
+		PIDs:              128,
+		Timeout:           5 * time.Minute,
+		Machine:           &runner.MachineDefinition{Firmware: runner.FirmwareUEFI},
 	}
 	peer := definition
 	peer.LabID = "integration.kvm.peer-b"
@@ -344,7 +344,7 @@ func TestRealKVMIsolationScenarioAndCrashReaping(t *testing.T) {
 	var consoleOutput integrationLockedBuffer
 	go func() {
 		consoleDone <- backend.OpenConsole(consoleCtx, consoleInstance, runner.ConsoleRequest{
-			Stdin:	cancelableInput,
+			Stdin:  cancelableInput,
 			Stdout: &consoleOutput,
 		})
 	}()
