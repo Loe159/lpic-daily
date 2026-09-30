@@ -1,6 +1,8 @@
 package libvirt
 
 import (
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -30,10 +32,54 @@ type ImageCatalogEntry struct {
 	Provenance    Provenance `json:"provenance"`
 }
 
+type SourceIntegrity struct {
+	Algorithm string `json:"algorithm"`
+	Encoding  string `json:"encoding"`
+	Value     string `json:"value"`
+}
+
 type Provenance struct {
-	SourceURL   string `json:"source_url"`
-	BuildRecipe string `json:"build_recipe"`
-	BuiltAt     string `json:"built_at"`
+	SourceURL       string          `json:"source_url"`
+	SourceIntegrity SourceIntegrity `json:"source_integrity"`
+	BuildRecipe     string          `json:"build_recipe"`
+	BuiltAt         string          `json:"built_at"`
+}
+
+func (integrity SourceIntegrity) Validate() error {
+	var expectedLength int
+	switch integrity.Algorithm {
+	case "sha256":
+		expectedLength = 32
+	case "sha512":
+		expectedLength = 64
+	default:
+		return fmt.Errorf("unsupported source integrity algorithm %q", integrity.Algorithm)
+	}
+
+	var (
+		decoded []byte
+		err     error
+	)
+	switch integrity.Encoding {
+	case "hex":
+		decoded, err = hex.DecodeString(integrity.Value)
+	case "base64":
+		decoded, err = base64.StdEncoding.Strict().DecodeString(integrity.Value)
+	default:
+		return fmt.Errorf("unsupported source integrity encoding %q", integrity.Encoding)
+	}
+	if err != nil {
+		return fmt.Errorf("decode source integrity %s: %w", integrity.Encoding, err)
+	}
+	if len(decoded) != expectedLength {
+		return fmt.Errorf(
+			"source integrity %s digest has %d bytes, want %d",
+			integrity.Algorithm,
+			len(decoded),
+			expectedLength,
+		)
+	}
+	return nil
 }
 
 func LoadImageCatalog(path, imageRoot string) (*ImageCatalog, error) {
@@ -90,6 +136,9 @@ func LoadImageCatalog(path, imageRoot string) (*ImageCatalog, error) {
 		}
 		if strings.TrimSpace(entry.Provenance.SourceURL) == "" {
 			return nil, fmt.Errorf("image %s: provenance source_url is required", entry.ID)
+		}
+		if err := entry.Provenance.SourceIntegrity.Validate(); err != nil {
+			return nil, fmt.Errorf("image %s: provenance source_integrity: %w", entry.ID, err)
 		}
 		if strings.TrimSpace(entry.Provenance.BuildRecipe) == "" {
 			return nil, fmt.Errorf("image %s: provenance build_recipe is required", entry.ID)

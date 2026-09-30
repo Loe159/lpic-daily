@@ -2,12 +2,12 @@
   "schema_version": "1.0.0",
   "id": "lpic1.102.2.grub-kernel-parameter",
   "title_fr": "Rendre un paramètre noyau persistant avec GRUB 2",
-  "brief_fr": "La VM Fedora démarre normalement. Ajoute le paramètre noyau lpic_daily_boot=phase2 à la configuration persistante de GRUB 2, régénère grub.cfg puis redémarre la VM avec :reboot. Le résultat doit être effectif au boot suivant.",
+  "brief_fr": "La VM Fedora démarre avec GRUB 2 visible sur la console série, mais le paramètre noyau lpic_daily_boot=phase2 est volontairement absent de sa configuration persistante. Utilise :console pour observer le chemin de boot si nécessaire, ajoute le paramètre, régénère grub.cfg puis redémarre avec :reboot. Le résultat doit être effectif au boot suivant.",
   "success_criteria_fr": [
     "La configuration GRUB 2 générée contient lpic_daily_boot=phase2.",
     "Après :reboot, /proc/cmdline contient lpic_daily_boot=phase2."
   ],
-  "debrief_fr": "Modifier le fichier source ne suffit pas : GRUB 2 doit disposer d'une configuration régénérée, puis un redémarrage réel doit charger le nouveau paramètre. Le checker observe la configuration générée et l'état du noyau après boot, sans imposer une suite de commandes.",
+  "debrief_fr": "La console série rend le bootloader observable avant userland, mais la réussite dépend de l'état persistant : modifier le fichier source ne suffit pas, GRUB 2 doit disposer d'une configuration régénérée puis un redémarrage réel doit charger le nouveau paramètre. Le checker observe la configuration générée et l'état du noyau après boot, sans imposer une suite de commandes.",
   "objective_ids": [
     "102.2"
   ],

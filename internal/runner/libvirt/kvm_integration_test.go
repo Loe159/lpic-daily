@@ -3,15 +3,19 @@
 package libvirt
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"io"
 	"io/fs"
+	"net"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -135,6 +139,13 @@ func TestRealKVMIsolationScenarioAndCrashReaping(t *testing.T) {
 	peer := definition
 	peer.LabID = "integration.kvm.peer-b"
 
+	hostUplinkIP := integrationHostDefaultUplinkIPv4(t)
+	hostUplinkListener, err := net.Listen("tcp4", net.JoinHostPort(hostUplinkIP, "0"))
+	if err != nil {
+		t.Fatalf("listen on host uplink %s: %v", hostUplinkIP, err)
+	}
+	defer hostUplinkListener.Close()
+
 	scenario, err := backend.PrepareScenario(ctx, []runner.Definition{definition, peer})
 	if err != nil {
 		t.Fatalf("PrepareScenario() error = %v", err)
@@ -172,7 +183,51 @@ func TestRealKVMIsolationScenarioAndCrashReaping(t *testing.T) {
 		t.Fatalf("isolated-network public egress probe error = %v", err)
 	}
 	if result.ExitCode == 0 {
-		t.Fatal("isolated VM unexpectedly reached a public Internet address")
+		t.Fatal("isolated VM unexpectedly reached a public Internet address over ICMP")
+	}
+
+	result, err = backend.Exec(ctx, scenario.Instances[0], runner.ExecRequest{
+		Argv: []string{
+			"/usr/bin/timeout", "3", "/usr/bin/bash", "-c",
+			"printf probe >/dev/tcp/1.1.1.1/443",
+		},
+	})
+	if err != nil {
+		t.Fatalf("isolated-network public TCP egress probe error = %v", err)
+	}
+	if result.ExitCode == 0 {
+		t.Fatal("isolated VM unexpectedly reached a public Internet address over TCP")
+	}
+
+	uplinkPort := hostUplinkListener.Addr().(*net.TCPAddr).Port
+	uplinkAccepted := make(chan error, 1)
+	go func() {
+		connection, acceptErr := hostUplinkListener.Accept()
+		if connection != nil {
+			_ = connection.Close()
+		}
+		uplinkAccepted <- acceptErr
+	}()
+	result, err = backend.Exec(ctx, scenario.Instances[0], runner.ExecRequest{
+		Argv: []string{
+			"/usr/bin/timeout", "3", "/usr/bin/bash", "-c",
+			fmt.Sprintf("printf probe >/dev/tcp/%s/%d", hostUplinkIP, uplinkPort),
+		},
+	})
+	if err != nil {
+		t.Fatalf("isolated-network host-uplink probe error = %v", err)
+	}
+	_ = hostUplinkListener.Close()
+	if result.ExitCode == 0 {
+		t.Fatalf("isolated VM unexpectedly reached host uplink %s:%d", hostUplinkIP, uplinkPort)
+	}
+	select {
+	case acceptErr := <-uplinkAccepted:
+		if acceptErr == nil {
+			t.Fatalf("isolated VM connected to host uplink sentinel %s:%d", hostUplinkIP, uplinkPort)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("host uplink sentinel did not stop after listener close")
 	}
 
 	// Attempt writes at host/base-looking paths from inside the guest. These must
@@ -260,7 +315,7 @@ func TestRealKVMIsolationScenarioAndCrashReaping(t *testing.T) {
 
 	outputDeadline := time.NewTimer(30 * time.Second)
 	outputTicker := time.NewTicker(100 * time.Millisecond)
-	for strings.TrimSpace(consoleOutput.String()) == "" {
+	for !strings.Contains(consoleOutput.String(), "GNU GRUB") {
 		select {
 		case err := <-consoleDone:
 			outputTicker.Stop()
@@ -269,7 +324,7 @@ func TestRealKVMIsolationScenarioAndCrashReaping(t *testing.T) {
 		case <-outputTicker.C:
 		case <-outputDeadline.C:
 			outputTicker.Stop()
-			t.Fatal("serial console produced no guest output within 30 seconds of VM start")
+			t.Fatalf("serial console did not expose GRUB before userland; output=%q", consoleOutput.String())
 		}
 	}
 	outputTicker.Stop()
@@ -363,6 +418,60 @@ func integrationFileSHA256(path string) (string, error) {
 
 func shellQuote(value string) string {
 	return "'" + strings.ReplaceAll(value, "'", "'\"'\"'") + "'"
+}
+
+func integrationHostDefaultUplinkIPv4(t *testing.T) string {
+	t.Helper()
+
+	routeTable, err := os.Open("/proc/net/route")
+	if err != nil {
+		t.Fatalf("open host route table: %v", err)
+	}
+	defer routeTable.Close()
+
+	interfaceName := ""
+	scanner := bufio.NewScanner(routeTable)
+	for scanner.Scan() {
+		fields := strings.Fields(scanner.Text())
+		if len(fields) < 4 || fields[1] != "00000000" {
+			continue
+		}
+		flags, err := strconv.ParseUint(fields[3], 16, 64)
+		if err != nil || flags&0x1 == 0 {
+			continue
+		}
+		interfaceName = fields[0]
+		break
+	}
+	if err := scanner.Err(); err != nil {
+		t.Fatalf("read host route table: %v", err)
+	}
+	if interfaceName == "" {
+		t.Fatal("host has no usable default IPv4 uplink")
+	}
+
+	hostInterface, err := net.InterfaceByName(interfaceName)
+	if err != nil {
+		t.Fatalf("resolve default interface %s: %v", interfaceName, err)
+	}
+	addresses, err := hostInterface.Addrs()
+	if err != nil {
+		t.Fatalf("list addresses for default interface %s: %v", interfaceName, err)
+	}
+	for _, address := range addresses {
+		var ip net.IP
+		switch value := address.(type) {
+		case *net.IPNet:
+			ip = value.IP
+		case *net.IPAddr:
+			ip = value.IP
+		}
+		if ipv4 := ip.To4(); ipv4 != nil && !ipv4.IsLoopback() && !ipv4.IsLinkLocalUnicast() {
+			return ipv4.String()
+		}
+	}
+	t.Fatalf("default interface %s has no usable IPv4 address", interfaceName)
+	return ""
 }
 
 func TestRealKVMPhase2ReferenceLabs(t *testing.T) {

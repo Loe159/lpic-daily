@@ -66,7 +66,12 @@ def recipe_commands(image):
     distribution = image["distribution"]
     if recipe == "fedora-cloud-v1":
         expected_distribution = "fedora"
-        commands = ["grubby --update-kernel=ALL --args='console=tty0 console=ttyS0,115200n8'"]
+        commands = [
+            "grubby --update-kernel=ALL --args='console=tty0 console=ttyS0,115200n8'",
+            "sed -i '/^GRUB_TERMINAL_INPUT=/d; /^GRUB_TERMINAL_OUTPUT=/d; /^GRUB_SERIAL_COMMAND=/d; /^GRUB_TIMEOUT_STYLE=/d; /^GRUB_TIMEOUT=/d' /etc/default/grub",
+            """printf '%s\n' 'GRUB_TERMINAL_INPUT="console serial"' 'GRUB_TERMINAL_OUTPUT="console serial"' 'GRUB_SERIAL_COMMAND="serial --unit=0 --speed=115200 --word=8 --parity=no --stop=1"' 'GRUB_TIMEOUT_STYLE="menu"' 'GRUB_TIMEOUT="5"' >> /etc/default/grub""",
+            "grub2-mkconfig -o /boot/grub2/grub.cfg",
+        ]
     elif recipe == "debian-cloud-v1":
         expected_distribution = "debian"
         commands = [
@@ -194,6 +199,11 @@ def main():
         "firmware": image["firmware"],
         "provenance": {
             "source_url": image["source_url"],
+            "source_integrity": {
+                "algorithm": image["integrity"]["algorithm"],
+                "encoding": image["integrity"]["encoding"],
+                "value": image["integrity"]["value"],
+            },
             "build_recipe": image["recipe"],
             "built_at": built_at,
         },

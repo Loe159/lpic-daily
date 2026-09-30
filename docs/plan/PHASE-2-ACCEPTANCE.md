@@ -16,7 +16,10 @@ Review remediation completed on 2026-09-29:
 - per-run VM state directories are explicitly forced to mode `0711` after creation, independent of the caller's umask, so system-libvirt QEMU can traverse to managed disks without granting directory listing/read access.
 - multi-VM scenario networks and leases are now backend-owned tracked resources: `Backend.Close()` cleans them even if callers omit `DestroyScenario()`, and a failed guest rollback keeps the scenario tracked for a later cleanup retry instead of tearing its shared network down;
 - scenario rollback and backend-close recovery paths now use bounded cleanup contexts instead of unbounded orchestration contexts;
-- VM image recipe IDs are executable contracts rather than provenance-only labels, recipe/distribution mismatches are rejected, and `virtual_size_mb` is enforced as the exact installed virtual-size contract.
+- VM image recipe IDs are executable contracts rather than provenance-only labels, recipe/distribution mismatches are rejected, and `virtual_size_mb` is enforced as the exact installed virtual-size contract;
+- the generated image catalog preserves the pinned upstream source-integrity algorithm/encoding/value alongside the final artifact SHA-256;
+- the Fedora image recipe exposes GRUB itself on the serial console before userland, and real-KVM coverage requires observable GRUB output;
+- isolated-network real-KVM coverage now checks blocked public ICMP, blocked public TCP and a host-uplink TCP sentinel instead of relying on a single ping probe.
 
 ## Control plane
 - [ ] application process remains non-root;
@@ -81,7 +84,7 @@ Review remediation completed on 2026-09-29:
 - [ ] fake-client lifecycle tests;
 - [ ] real KVM/libvirt host-sentinel test;
 - [ ] base-image immutability test;
-- [ ] isolated-network no-forwarding test includes a real guest public-egress failure probe;
+- [ ] isolated-network no-forwarding test includes real guest public ICMP/TCP failure probes and a host-uplink TCP sentinel;
 - [ ] both Phase-2 reference solutions are executed by the real-KVM harness, with 102.2 rebooted before grading;
 - [ ] `python3 scripts/validate_foundation.py`;
 - [ ] `go test ./...`;

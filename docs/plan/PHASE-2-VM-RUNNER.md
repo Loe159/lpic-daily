@@ -102,9 +102,9 @@ Next action is validation, not additional Phase-2 feature scope: restore/diagnos
    - reset restores pristine state.
 
 9. **Reference lab 102.2**
-   - deliberately broken/alternate GRUB scenario;
-   - learner works through serial/boot path;
-   - reboot is part of evaluation;
+   - deliberately incomplete persistent GRUB configuration (the target kernel argument is absent initially);
+   - GRUB itself is exposed on the serial console before userland, while guest commands remain available for persistent configuration edits;
+   - learner can inspect the boot path with `:console`, then `:reboot` is part of evaluation;
    - checker proves requested boot state without accepting a command transcript.
 
 10. **Guest image pipeline**
