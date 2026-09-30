@@ -1000,6 +1000,21 @@ func openLibvirtBackend() (*libvirtrunner.Backend, error) {
 	return backend, nil
 }
 
+type sanitizedTerminalWriter struct {
+	destination io.Writer
+}
+
+func (writer sanitizedTerminalWriter) Write(payload []byte) (int, error) {
+	if writer.destination == nil {
+		return 0, errors.New("sanitized terminal writer destination is required")
+	}
+	sanitized := lpicui.SanitizeText(string(payload))
+	if _, err := io.WriteString(writer.destination, sanitized); err != nil {
+		return 0, err
+	}
+	return len(payload), nil
+}
+
 func runInteractiveLabWithBackend(
 	ctx context.Context,
 	authored lab.Lab,
@@ -1050,6 +1065,13 @@ func runInteractiveLabWithBackend(
 		fmt.Fprintln(stdout, "Commandes LPIC Daily : :console  :reboot  :check  :hint  :reset  :quit")
 	}
 	fmt.Fprintln(stdout)
+
+	commandStdout := stdout
+	commandStderr := stderr
+	if !persistentShell {
+		commandStdout = sanitizedTerminalWriter{destination: stdout}
+		commandStderr = sanitizedTerminalWriter{destination: stderr}
+	}
 
 	scanner := bufio.NewScanner(stdin)
 	scanner.Buffer(make([]byte, 4096), 256<<10)
@@ -1260,8 +1282,8 @@ func runInteractiveLabWithBackend(
 
 		result, err := backend.Exec(sessionCtx, session.Instance, runner.ExecRequest{
 			Argv:   []string{"/usr/bin/bash", "-lc", line},
-			Stdout: stdout,
-			Stderr: stderr,
+			Stdout: commandStdout,
+			Stderr: commandStderr,
 		})
 		if err != nil {
 			return fmt.Errorf("execute lab command: %w", err)
