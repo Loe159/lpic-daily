@@ -29,19 +29,19 @@ type fakeRawLibvirt struct {
 	consoleFlags     uint32
 	agentCommand     string
 	agentTimeout     int32
-	network          golibvirt.Network
-	networkXML       string
-	networkFilter    golibvirt.Nwfilter
-	networkFilterXML string
+	network                golibvirt.Network
+	networkXML             string
+	networkFilter          golibvirt.Nwfilter
+	networkFilterXML       string
 	networkActive          int32
 	networkDestroyed       bool
 	networkUndefined       bool
 	networkFilterUndefined bool
 	disconnected           bool
-	err              error
-	consoleBlock     chan struct{}
-	consoleStarted   chan struct{}
-	consoleClosed    bool
+	err                    error
+	consoleBlock           chan struct{}
+	consoleStarted         chan struct{}
+	consoleClosed          bool
 }
 
 const testManagedOwnerScope = "0123456789abcdef0123456789abcdef"
@@ -319,9 +319,9 @@ func (fake *fakeRawLibvirt) Disconnect() error {
 func TestRPCControlPlaneLifecycleUsesManagedDomainOnly(t *testing.T) {
 	name := "lpic-daily-vm-abc123"
 	raw := &fakeRawLibvirt{
-		libVersion:   1002003,
-		capabilities: "<capabilities><guest><arch name=\"x86_64\"><domain type=\"kvm\"/></arch></guest></capabilities>",
-		domain:       golibvirt.Domain{Name: name},
+		libVersion:    1002003,
+		capabilities:  "<capabilities><guest><arch name=\"x86_64\"><domain type=\"kvm\"/></arch></guest></capabilities>",
+		domain:        golibvirt.Domain{Name: name},
 		network:       golibvirt.Network{Name: name},
 		networkFilter: golibvirt.Nwfilter{Name: name},
 		state:         1,
