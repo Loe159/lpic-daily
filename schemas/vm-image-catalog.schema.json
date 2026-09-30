@@ -79,6 +79,7 @@
             "additionalProperties": false,
             "required": [
               "source_url",
+              "source_integrity",
               "build_recipe",
               "built_at"
             ],
@@ -87,6 +88,29 @@
                 "type": "string",
                 "format": "uri",
                 "minLength": 8
+              },
+              "source_integrity": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "algorithm",
+                  "encoding",
+                  "value"
+                ],
+                "properties": {
+                  "algorithm": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "encoding": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "value": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
               },
               "build_recipe": {
                 "type": "string",
