@@ -34,7 +34,7 @@ Use when objectives require the complete guest system: firmware/bootloader, kern
 
 Base image remains immutable. Each run gets a QCOW2 overlay/backing chain that is destroyed on reset. Prefer KVM acceleration, QEMU emulation where acceleration is unavailable only if explicitly supported.
 
-Network defaults to an isolated libvirt network with no forwarding to the host LAN/Internet. Scenarios needing DNS/HTTP/SSH should normally provide local simulated peer services.
+Network defaults to an isolated libvirt network with no forwarding to the host LAN/Internet. Each VM NIC on an isolated network also references an LPIC Daily-owned libvirt nwfilter: DHCP to the libvirt gateway remains allowed, other IPv4 traffic to the host bridge address is dropped, and guest IPv6 egress is dropped. Scenarios needing DNS/HTTP/SSH should normally provide local simulated peer services.
 
 ## Why not Firecracker as primary VM backend
 Firecracker's normal model supplies a kernel image and root filesystem directly to the microVM. That is excellent for fast workloads but bypasses exactly the firmware/bootloader path needed to teach BIOS/UEFI/GRUB and related LPIC objectives. It could become an optional backend later, not the canonical full-system backend.
@@ -51,7 +51,7 @@ Namespace sandboxes/containers share the host kernel. They can be useful, but th
 - No secrets/API keys inside lab guests unless a dedicated threat model explicitly allows it.
 
 ## Validation model
-Checks should query observable guest/container state through structured probes or narrowly scoped commands. Lab success must not depend on an exact command sequence when equivalent state can prove the skill. For inherently interactive shell-job objectives, LPIC Daily may additionally collect structured shell events (for example a successful `bg` builtin) and terminal control events such as Ctrl-Z; raw command-line text is not parsed for grading.
+Checks should query observable guest/container state through structured probes or narrowly scoped commands. Lab success must not depend on an exact command sequence when equivalent state can prove the skill. For inherently interactive shell-job objectives, LPIC Daily may additionally collect structured shell events (for example a successful `bg` builtin) and terminal control events such as Ctrl-Z; raw command-line text is not parsed for grading. Non-interactive guest command output is sanitized before it reaches the host terminal; raw control sequences are reserved for explicit terminal passthrough surfaces such as `:console`.
 
 Authored JSON is validated against the embedded Draft 2020-12 schemas by the Go loaders before semantic validation and execution. Security-critical runtime limits are enforced again by the runner even if a caller bypasses authoring-time validation.
 
