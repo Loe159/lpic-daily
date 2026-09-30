@@ -624,8 +624,26 @@ func (backend *Backend) Reset(ctx context.Context, instance runner.Instance) err
 	if err != nil {
 		return err
 	}
+
+	// Scenario guests use a shared network owned by the scenario rather than by
+	// the individual VM. Preserve that attachment across reset instead of
+	// accidentally creating a new per-VM isolated network.
+	sharedNetworkName := ""
+	if managed.NetworkName != "" && !managed.NetworkDefined {
+		sharedNetworkName = managed.NetworkName
+	}
+
 	if err := backend.destroyManaged(ctx, instance.ID, managed); err != nil {
 		return err
+	}
+	if sharedNetworkName != "" {
+		return backend.prepareNamedOnNetwork(
+			ctx,
+			instance.ID,
+			managed.Definition,
+			sharedNetworkName,
+			false,
+		)
 	}
 	return backend.prepareNamed(ctx, instance.ID, managed.Definition)
 }
