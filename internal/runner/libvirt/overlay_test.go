@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -21,8 +22,20 @@ type commandCall struct {
 }
 
 type fakeCommands struct {
-	Calls  []commandCall
-	FailAt int
+	Calls         []commandCall
+	FailAt        int
+	VirtualSizeMB int
+}
+
+func (fake *fakeCommands) Output(_ context.Context, name string, args ...string) ([]byte, error) {
+	if name != "qemu-img" || len(args) != 3 || args[0] != "info" || args[1] != "--output=json" {
+		return nil, fmt.Errorf("unexpected output command: %s %v", name, args)
+	}
+	virtualSizeMB := fake.VirtualSizeMB
+	if virtualSizeMB == 0 {
+		virtualSizeMB = 8192
+	}
+	return []byte(fmt.Sprintf("{\"format\":\"qcow2\",\"virtual-size\":%d}", int64(virtualSizeMB)*1024*1024)), nil
 }
 
 func (fake *fakeCommands) Run(_ context.Context, name string, args ...string) error {
@@ -188,6 +201,22 @@ func TestOverlayManagerRejectsChecksumMismatchBeforeQEMUImg(t *testing.T) {
 	}
 }
 
+func TestOverlayManagerRejectsBackingImageVirtualSizeMismatch(t *testing.T) {
+	root := t.TempDir()
+	imageRoot := filepath.Join(root, "images")
+	stateRoot := testStateRoot(t, root)
+	image := testImage(t, imageRoot)
+	commands := &fakeCommands{VirtualSizeMB: 65536}
+	manager := OverlayManager{ImageRoot: imageRoot, StateRoot: stateRoot, Commands: commands}
+	_, err := manager.Create(context.Background(), "lpic-daily-size-mismatch", image, runner.MachineDefinition{Firmware: runner.FirmwareBIOS})
+	if err == nil || !strings.Contains(err.Error(), "virtual size mismatch") {
+		t.Fatalf("Create() error = %v, want virtual size mismatch", err)
+	}
+	if len(commands.Calls) != 0 {
+		t.Fatalf("qemu-img create called despite size mismatch: %#v", commands.Calls)
+	}
+}
+
 func TestDestroyRefusesSymlinkedInstanceDirectory(t *testing.T) {
 	root := t.TempDir()
 	imageRoot := filepath.Join(root, "images")
@@ -204,7 +233,7 @@ func TestDestroyRefusesSymlinkedInstanceDirectory(t *testing.T) {
 		t.Fatalf("Symlink() error = %v", err)
 	}
 	manager := OverlayManager{ImageRoot: imageRoot, StateRoot: stateRoot, Commands: &fakeCommands{}}
-	if err := manager.Destroy(name); err == nil || !strings.Contains(err.Error(), "symlinked") {
+	if err := manager.Destroy(name); err == nil || (!strings.Contains(err.Error(), "symbolic link") && !strings.Contains(err.Error(), "symlinked")) {
 		t.Fatalf("Destroy() error = %v", err)
 	}
 	if _, err := os.Stat(target); err != nil {
