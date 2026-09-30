@@ -46,13 +46,13 @@ Fast PR CI must not require KVM.
 
 ## Phase 2 verification
 
-The libvirt/QEMU/KVM backend has unit and non-KVM CI coverage, but Phase 2 is not accepted until the VM-specific integration layer is complete.
+The libvirt/QEMU/KVM backend has unit and non-KVM CI coverage and the real-KVM integration layer is implemented, but Phase 2 is not accepted until that suite has actually executed successfully on a compatible host.
 
-Remaining acceptance-level verification includes:
+Remaining acceptance-level execution includes:
 
 - real KVM/libvirt lifecycle and host-sentinel testing;
 - base-image immutability verification;
-- isolated-network no-forwarding verification;
+- isolated-network no-forwarding plus host-bridge blocking verification;
 - boot/reboot coverage for the 102.2 reference lab;
 - end-to-end 104.1 and 102.2 execution using the released/reproducible guest-image pipeline.
 
@@ -67,4 +67,4 @@ On a provisioned KVM/libvirt host with the trusted Fedora image installed, run:
 LPIC_DAILY_RUN_KVM_INTEGRATION=1 scripts/run_phase2_acceptance.sh
 ```
 
-This entry point runs the normal foundation/Go/vet/format gates, then the opt-in libvirt integration suite. The real-host suite uses the same VM state path as the application, verifies private peer communication and failed public egress, preserves a host sentinel and the immutable base image, exercises crash reaping, and executes the 104.1 and reboot-dependent 102.2 reference solutions end to end.
+This entry point runs the normal foundation/Go/vet/format gates, then the opt-in libvirt integration suite. The real-host suite uses the same VM state path as the application, verifies private peer communication, failed public egress, failed access to the host uplink and failed access to the host-side bridge gateway, preserves a host sentinel and the immutable base image, exercises crash reaping, and executes the 104.1 and reboot-dependent 102.2 reference solutions end to end.
