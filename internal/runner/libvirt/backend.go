@@ -1063,7 +1063,6 @@ func (backend *Backend) instance(instance runner.Instance) (managedInstance, err
 	return managed, nil
 }
 
-
 func vmInstanceName(labID string) (string, error) {
 	var suffix [6]byte
 	if _, err := rand.Read(suffix[:]); err != nil {
