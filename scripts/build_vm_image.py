@@ -75,13 +75,13 @@ def recipe_commands(image):
     elif recipe == "debian-cloud-v1":
         expected_distribution = "debian"
         commands = [
-            "grep -q 'console=ttyS0,115200n8' /etc/default/grub || sed -i 's/^GRUB_CMDLINE_LINUX="/GRUB_CMDLINE_LINUX="console=tty0 console=ttyS0,115200n8 /' /etc/default/grub",
+            """grep -q 'console=ttyS0,115200n8' /etc/default/grub || sed -i 's/^GRUB_CMDLINE_LINUX="/GRUB_CMDLINE_LINUX="console=tty0 console=ttyS0,115200n8 /' /etc/default/grub""",
             "update-grub",
         ]
     elif recipe == "opensuse-cloud-v1":
         expected_distribution = "opensuse"
         commands = [
-            "grep -q 'console=ttyS0,115200n8' /etc/default/grub || sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT="/GRUB_CMDLINE_LINUX_DEFAULT="console=tty0 console=ttyS0,115200n8 /' /etc/default/grub",
+            """grep -q 'console=ttyS0,115200n8' /etc/default/grub || sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT="/GRUB_CMDLINE_LINUX_DEFAULT="console=tty0 console=ttyS0,115200n8 /' /etc/default/grub""",
             "grub2-mkconfig -o /boot/grub2/grub.cfg",
         ]
     else:
