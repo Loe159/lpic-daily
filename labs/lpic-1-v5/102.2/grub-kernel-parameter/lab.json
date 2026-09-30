@@ -47,6 +47,20 @@
       "argv": [
         "/usr/bin/grep",
         "-q",
+        "^GRUB_CMDLINE_LINUX=.*lpic_daily_boot=phase2",
+        "/etc/default/grub"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.2.emplacement-configuration-du-bootloader",
+        "lpic1.102.2.generation-de-configuration-grub-2"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/grep",
+        "-q",
         "lpic_daily_boot=phase2",
         "/boot/grub2/grub.cfg"
       ],
