@@ -176,6 +176,42 @@ func TestRealKVMIsolationScenarioAndCrashReaping(t *testing.T) {
 		t.Fatalf("peer ping exit = %d, want 0", result.ExitCode)
 	}
 
+	gatewayIP := integrationGuestDefaultGateway(t, ctx, backend, scenario.Instances[0])
+	gatewayListener, err := net.Listen("tcp4", net.JoinHostPort(gatewayIP, "0"))
+	if err != nil {
+		t.Fatalf("listen on isolated host gateway %s: %v", gatewayIP, err)
+	}
+	gatewayPort := gatewayListener.Addr().(*net.TCPAddr).Port
+	gatewayAccepted := make(chan error, 1)
+	go func() {
+		connection, acceptErr := gatewayListener.Accept()
+		if connection != nil {
+			_ = connection.Close()
+		}
+		gatewayAccepted <- acceptErr
+	}()
+	result, err = backend.Exec(ctx, scenario.Instances[0], runner.ExecRequest{
+		Argv: []string{
+			"/usr/bin/timeout", "3", "/usr/bin/bash", "-c",
+			fmt.Sprintf("printf probe >/dev/tcp/%s/%d", gatewayIP, gatewayPort),
+		},
+	})
+	if err != nil {
+		t.Fatalf("isolated-network host-gateway probe error = %v", err)
+	}
+	_ = gatewayListener.Close()
+	if result.ExitCode == 0 {
+		t.Fatalf("isolated VM unexpectedly reached host bridge gateway %s:%d", gatewayIP, gatewayPort)
+	}
+	select {
+	case acceptErr := <-gatewayAccepted:
+		if acceptErr == nil {
+			t.Fatalf("isolated VM connected to host bridge gateway %s:%d", gatewayIP, gatewayPort)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("host bridge gateway sentinel did not stop after listener close")
+	}
+
 	result, err = backend.Exec(ctx, scenario.Instances[0], runner.ExecRequest{
 		Argv: []string{"/usr/bin/ping", "-c", "1", "-W", "2", "1.1.1.1"},
 	})
@@ -399,6 +435,31 @@ func integrationGuestIPv4(
 	value := strings.TrimSpace(stdout.String())
 	if value == "" || strings.ContainsAny(value, " \t\r\n") {
 		t.Fatalf("invalid guest IPv4 %q", value)
+	}
+	return value
+}
+
+func integrationGuestDefaultGateway(
+	t *testing.T,
+	ctx context.Context,
+	backend *Backend,
+	instance runner.Instance,
+) string {
+	t.Helper()
+	var stdout bytes.Buffer
+	result, err := backend.Exec(ctx, instance, runner.ExecRequest{
+		Argv: []string{"/usr/bin/sh", "-c", "ip -4 route show default | awk '{print $3; exit}'"},
+		Stdout: &stdout,
+	})
+	if err != nil {
+		t.Fatalf("read guest default gateway: %v", err)
+	}
+	if result.ExitCode != 0 {
+		t.Fatalf("read guest default gateway exit = %d", result.ExitCode)
+	}
+	value := strings.TrimSpace(stdout.String())
+	if parsed := net.ParseIP(value); parsed == nil || parsed.To4() == nil {
+		t.Fatalf("invalid guest default gateway %q", value)
 	}
 	return value
 }
