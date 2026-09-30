@@ -202,6 +202,9 @@ func (manager OverlayManager) Create(
 	); err != nil {
 		return OverlayPaths{}, fmt.Errorf("create root overlay: %w", err)
 	}
+	if err := hardenManagedDisk(paths.RootDisk); err != nil {
+		return OverlayPaths{}, fmt.Errorf("secure root overlay: %w", err)
+	}
 
 	for _, disk := range machine.ExtraDisks {
 		path := filepath.Join(directory, "disk-"+disk.ID+".qcow2")
@@ -215,11 +218,28 @@ func (manager OverlayManager) Create(
 		); err != nil {
 			return OverlayPaths{}, fmt.Errorf("create scratch disk %s: %w", disk.ID, err)
 		}
+		if err := hardenManagedDisk(path); err != nil {
+			return OverlayPaths{}, fmt.Errorf("secure scratch disk %s: %w", disk.ID, err)
+		}
 		paths.Extra[disk.ID] = path
 	}
 
 	cleanup = false
 	return paths, nil
+}
+
+func hardenManagedDisk(path string) error {
+	info, err := os.Lstat(path)
+	if err != nil {
+		return fmt.Errorf("inspect managed disk: %w", err)
+	}
+	if info.Mode()&os.ModeSymlink != 0 || !info.Mode().IsRegular() {
+		return errors.New("managed disk must be a real regular file")
+	}
+	if err := os.Chmod(path, 0o600); err != nil {
+		return fmt.Errorf("set managed disk permissions: %w", err)
+	}
+	return nil
 }
 
 func (manager OverlayManager) Destroy(instanceName string) error {
