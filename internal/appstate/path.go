@@ -4,7 +4,10 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strconv"
 )
+
+const defaultVMStorageBase = "/var/lib/libvirt/images/lpic-daily"
 
 func ProgressDBPath() (string, error) {
 	base, err := stateBase()
@@ -17,12 +20,22 @@ func ProgressDBPath() (string, error) {
 	return filepath.Join(base, "progress.sqlite"), nil
 }
 
+func VMStorageRoot() string {
+	return filepath.Join(defaultVMStorageBase, strconv.Itoa(os.Geteuid()))
+}
+
+func VMNetworkAllocationLockPath() string {
+	return filepath.Join(defaultVMStorageBase, ".network-allocation.lock")
+}
+
 func VMStateRoot() (string, error) {
-	base, err := stateBase()
-	if err != nil {
-		return "", err
+	if override := os.Getenv("LPIC_DAILY_VM_STATE_DIR"); override != "" {
+		if !filepath.IsAbs(override) {
+			return "", errors.New("LPIC_DAILY_VM_STATE_DIR must be absolute")
+		}
+		return filepath.Clean(override), nil
 	}
-	return filepath.Join(base, "vms"), nil
+	return filepath.Join(VMStorageRoot(), "state"), nil
 }
 
 func VMImageRoot() (string, error) {
@@ -32,22 +45,7 @@ func VMImageRoot() (string, error) {
 		}
 		return filepath.Clean(override), nil
 	}
-
-	base := os.Getenv("XDG_DATA_HOME")
-	if base == "" {
-		home, err := os.UserHomeDir()
-		if err != nil {
-			return "", err
-		}
-		if home == "" {
-			return "", errors.New("home directory is empty")
-		}
-		base = filepath.Join(home, ".local", "share")
-	}
-	if !filepath.IsAbs(base) {
-		return "", errors.New("XDG_DATA_HOME must be absolute")
-	}
-	return filepath.Join(filepath.Clean(base), "lpic-daily", "vm-images"), nil
+	return filepath.Join(VMStorageRoot(), "images"), nil
 }
 
 func VMImageCatalogPath() (string, error) {

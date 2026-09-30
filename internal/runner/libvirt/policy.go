@@ -1,21 +1,31 @@
 package libvirt
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"net/netip"
+	"os"
 	"path/filepath"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/Loe159/lpic-daily/internal/runner"
 )
 
 var (
-	managedNamePattern = regexp.MustCompile(`^lpic-daily-[a-z0-9][a-z0-9.-]{0,52}$`)
-	imageIDPattern     = regexp.MustCompile(`^[a-z0-9][a-z0-9._-]{2,63}$`)
-	diskIDPattern      = regexp.MustCompile(`^[a-z0-9][a-z0-9-]{0,31}$`)
+	managedNamePattern  = regexp.MustCompile(`^lpic-daily-[a-z0-9][a-z0-9.-]{0,52}$`)
+	imageIDPattern      = regexp.MustCompile(`^[a-z0-9][a-z0-9._-]{2,63}$`)
+	diskIDPattern       = regexp.MustCompile(`^[a-z0-9][a-z0-9-]{0,31}$`)
+	managedScopePattern = regexp.MustCompile(`^[a-f0-9]{32}$`)
+)
+
+const (
+	managedMetadataNamespace = "urn:lpic-daily:managed:v1"
+	managedMetadataOwner     = "lpic-daily"
+	managedMetadataVersion   = "1"
 )
 
 type ImageDescriptor struct {
@@ -84,17 +94,22 @@ type DiskPath struct {
 }
 
 type DomainSpec struct {
-	Name         string
-	LabID        string
-	MemoryMB     int
-	CPUPercent   int
-	Firmware     runner.FirmwareMode
-	RootDiskPath string
-	ExtraDisks   []DiskPath
-	NetworkName  string
+	Name              string
+	LabID             string
+	OwnerScope        string
+	MemoryMB          int
+	CPUPercent        int
+	Firmware          runner.FirmwareMode
+	RootDiskPath      string
+	ExtraDisks        []DiskPath
+	NetworkName       string
+	NetworkFilterName string
 }
 
 func (spec DomainSpec) Validate(stateRoot string) error {
+	if err := validateManagedOwnerScope(spec.OwnerScope); err != nil {
+		return err
+	}
 	if !managedNamePattern.MatchString(spec.Name) {
 		return fmt.Errorf("invalid managed domain name %q", spec.Name)
 	}
@@ -132,6 +147,15 @@ func (spec DomainSpec) Validate(stateRoot string) error {
 	if spec.NetworkName != "" && !managedNamePattern.MatchString(spec.NetworkName) {
 		return fmt.Errorf("invalid managed network name %q", spec.NetworkName)
 	}
+	if spec.NetworkName == "" {
+		if spec.NetworkFilterName != "" {
+			return errors.New("network filter requires an isolated network")
+		}
+	} else {
+		if !managedNamePattern.MatchString(spec.NetworkFilterName) {
+			return fmt.Errorf("invalid managed network filter name %q", spec.NetworkFilterName)
+		}
+	}
 	return nil
 }
 
@@ -154,7 +178,87 @@ func pathWithinRoot(root, candidate string) error {
 	if rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
 		return errors.New("path escapes trusted root")
 	}
+
+	current := cleanRoot
+	info, statErr := os.Lstat(current)
+	if errors.Is(statErr, os.ErrNotExist) {
+		return nil
+	}
+	if statErr != nil {
+		return fmt.Errorf("inspect trusted path %s: %w", current, statErr)
+	}
+	if info.Mode()&os.ModeSymlink != 0 {
+		return fmt.Errorf("path contains symbolic link: %s", current)
+	}
+	for _, component := range strings.Split(rel, string(filepath.Separator)) {
+		current = filepath.Join(current, component)
+		info, statErr = os.Lstat(current)
+		if errors.Is(statErr, os.ErrNotExist) {
+			return nil
+		}
+		if statErr != nil {
+			return fmt.Errorf("inspect trusted path %s: %w", current, statErr)
+		}
+		if info.Mode()&os.ModeSymlink != 0 {
+			return fmt.Errorf("path contains symbolic link: %s", current)
+		}
+	}
 	return nil
+}
+
+type managedMetadataXML struct {
+	XMLName xml.Name `xml:"urn:lpic-daily:managed:v1 lpic-daily"`
+	Owner   string   `xml:"owner,attr"`
+	Version string   `xml:"version,attr"`
+	Scope   string   `xml:"scope,attr"`
+}
+
+type metadataXML struct {
+	Managed managedMetadataXML `xml:"urn:lpic-daily:managed:v1 lpic-daily"`
+}
+
+func managedOwnerScope(stateRoot string) (string, error) {
+	return managedOwnerScopeForUID(stateRoot, os.Geteuid())
+}
+
+func managedOwnerScopeForUID(stateRoot string, uid int) (string, error) {
+	if uid < 0 {
+		return "", errors.New("effective UID must not be negative")
+	}
+	if stateRoot == "" || !filepath.IsAbs(stateRoot) {
+		return "", errors.New("VM state root must be absolute")
+	}
+	cleanRoot := filepath.Clean(stateRoot)
+	digest := sha256.Sum256([]byte(fmt.Sprintf("uid=%d\x00state-root=%s", uid, cleanRoot)))
+	return hex.EncodeToString(digest[:16]), nil
+}
+
+func validateManagedOwnerScope(scope string) error {
+	if !managedScopePattern.MatchString(scope) {
+		return fmt.Errorf("invalid LPIC Daily owner scope %q", scope)
+	}
+	return nil
+}
+
+func newManagedMetadata(scope string) metadataXML {
+	return metadataXML{Managed: managedMetadataXML{
+		Owner: managedMetadataOwner, Version: managedMetadataVersion, Scope: scope,
+	}}
+}
+
+func hasManagedMetadata(payload, scope string) bool {
+	if validateManagedOwnerScope(scope) != nil {
+		return false
+	}
+	var document struct {
+		Metadata metadataXML `xml:"metadata"`
+	}
+	if err := xml.Unmarshal([]byte(payload), &document); err != nil {
+		return false
+	}
+	return document.Metadata.Managed.Owner == managedMetadataOwner &&
+		document.Metadata.Managed.Version == managedMetadataVersion &&
+		document.Metadata.Managed.Scope == scope
 }
 
 type domainXML struct {
@@ -162,6 +266,7 @@ type domainXML struct {
 	Type        string      `xml:"type,attr"`
 	Name        string      `xml:"name"`
 	Description string      `xml:"description"`
+	Metadata    metadataXML `xml:"metadata"`
 	Memory      memoryXML   `xml:"memory"`
 	VCPU        vcpuXML     `xml:"vcpu"`
 	CPUTune     cpuTuneXML  `xml:"cputune"`
@@ -184,8 +289,8 @@ type vcpuXML struct {
 }
 
 type cpuTuneXML struct {
-	Period int64 `xml:"period"`
-	Quota  int64 `xml:"quota"`
+	GlobalPeriod int64 `xml:"global_period"`
+	GlobalQuota  int64 `xml:"global_quota"`
 }
 
 type osXML struct {
@@ -234,9 +339,14 @@ type diskTargetXML struct {
 }
 
 type interfaceXML struct {
-	Type   string             `xml:"type,attr"`
-	Source interfaceSourceXML `xml:"source"`
-	Model  interfaceModelXML  `xml:"model"`
+	Type      string             `xml:"type,attr"`
+	Source    interfaceSourceXML `xml:"source"`
+	Model     interfaceModelXML  `xml:"model"`
+	FilterRef filterRefXML       `xml:"filterref"`
+}
+
+type filterRefXML struct {
+	Filter string `xml:"filter,attr"`
 }
 
 type interfaceSourceXML struct {
@@ -296,9 +406,10 @@ func BuildDomainXML(spec DomainSpec, stateRoot string) (string, error) {
 		Type:        "kvm",
 		Name:        spec.Name,
 		Description: "LPIC Daily lab " + spec.LabID,
+		Metadata:    newManagedMetadata(spec.OwnerScope),
 		Memory:      memoryXML{Unit: "MiB", Value: spec.MemoryMB},
 		VCPU:        vcpuXML{Placement: "static", Value: vcpuCount},
-		CPUTune:     cpuTuneXML{Period: period, Quota: quota},
+		CPUTune:     cpuTuneXML{GlobalPeriod: period, GlobalQuota: quota},
 		OS: osXML{
 			Type: osTypeXML{Arch: "x86_64", Machine: "q35", Value: "hvm"},
 		},
@@ -328,9 +439,10 @@ func BuildDomainXML(spec DomainSpec, stateRoot string) (string, error) {
 	}
 	if spec.NetworkName != "" {
 		doc.Devices.Interfaces = []interfaceXML{{
-			Type:   "network",
-			Source: interfaceSourceXML{Network: spec.NetworkName},
-			Model:  interfaceModelXML{Type: "virtio"},
+			Type:      "network",
+			Source:    interfaceSourceXML{Network: spec.NetworkName},
+			Model:     interfaceModelXML{Type: "virtio"},
+			FilterRef: filterRefXML{Filter: spec.NetworkFilterName},
 		}}
 	}
 	doc.Devices.Channels = []channelXML{{
@@ -351,9 +463,10 @@ func BuildDomainXML(spec DomainSpec, stateRoot string) (string, error) {
 }
 
 type networkXML struct {
-	XMLName xml.Name  `xml:"network"`
-	Name    string    `xml:"name"`
-	IP      networkIP `xml:"ip"`
+	XMLName  xml.Name    `xml:"network"`
+	Name     string      `xml:"name"`
+	Metadata metadataXML `xml:"metadata"`
+	IP       networkIP   `xml:"ip"`
 }
 
 type networkIP struct {
@@ -371,21 +484,99 @@ type dhcpRangeXML struct {
 	End   string `xml:"end,attr"`
 }
 
-func BuildIsolatedNetworkXML(name string, subnetOctet int) (string, error) {
+type networkFilterXML struct {
+	XMLName  xml.Name            `xml:"filter"`
+	Name     string              `xml:"name,attr"`
+	Chain    string              `xml:"chain,attr"`
+	Metadata metadataXML         `xml:"metadata"`
+	Rules    []networkFilterRule `xml:"rule"`
+}
+
+type networkFilterRule struct {
+	Action    string             `xml:"action,attr"`
+	Direction string             `xml:"direction,attr"`
+	Priority  int                `xml:"priority,attr"`
+	UDP       *networkFilterUDP  `xml:"udp,omitempty"`
+	IP        *networkFilterIP   `xml:"ip,omitempty"`
+	IPv6      *networkFilterIPv6 `xml:"ipv6,omitempty"`
+}
+
+type networkFilterUDP struct {
+	DestinationIP   string `xml:"dstipaddr,attr"`
+	DestinationPort int    `xml:"dstportstart,attr"`
+}
+
+type networkFilterIP struct {
+	DestinationIP string `xml:"dstipaddr,attr"`
+}
+
+type networkFilterIPv6 struct{}
+
+func BuildHostIsolationFilterXML(name string, subnet netip.Prefix, ownerScope string) (string, error) {
+	if err := validateManagedOwnerScope(ownerScope); err != nil {
+		return "", err
+	}
+	if !managedNamePattern.MatchString(name) {
+		return "", fmt.Errorf("invalid managed network filter name %q", name)
+	}
+	gateway, _, _, _, err := isolatedSubnetAddresses(subnet)
+	if err != nil {
+		return "", err
+	}
+	doc := networkFilterXML{
+		Name:     name,
+		Chain:    "root",
+		Metadata: newManagedMetadata(ownerScope),
+		Rules: []networkFilterRule{
+			{
+				Action:    "accept",
+				Direction: "out",
+				Priority:  100,
+				UDP: &networkFilterUDP{
+					DestinationIP:   gateway,
+					DestinationPort: 67,
+				},
+			},
+			{
+				Action:    "drop",
+				Direction: "out",
+				Priority:  200,
+				IP:        &networkFilterIP{DestinationIP: gateway},
+			},
+			{
+				Action:    "drop",
+				Direction: "out",
+				Priority:  300,
+				IPv6:      &networkFilterIPv6{},
+			},
+		},
+	}
+	payload, err := xml.MarshalIndent(doc, "", "  ")
+	if err != nil {
+		return "", fmt.Errorf("marshal network filter XML: %w", err)
+	}
+	return xml.Header + string(payload) + "\n", nil
+}
+
+func BuildIsolatedNetworkXML(name string, subnet netip.Prefix, ownerScope string) (string, error) {
+	if err := validateManagedOwnerScope(ownerScope); err != nil {
+		return "", err
+	}
 	if !managedNamePattern.MatchString(name) {
 		return "", fmt.Errorf("invalid managed network name %q", name)
 	}
-	if subnetOctet < 1 || subnetOctet > 250 {
-		return "", errors.New("subnet octet must be between 1 and 250")
+	gateway, netmask, dhcpStart, dhcpEnd, err := isolatedSubnetAddresses(subnet)
+	if err != nil {
+		return "", err
 	}
-	prefix := "192.168." + strconv.Itoa(subnetOctet)
 	doc := networkXML{
-		Name: name,
+		Name:     name,
+		Metadata: newManagedMetadata(ownerScope),
 		IP: networkIP{
-			Address: prefix + ".1",
-			Netmask: "255.255.255.0",
+			Address: gateway,
+			Netmask: netmask,
 			DHCP: dhcpXML{
-				Range: dhcpRangeXML{Start: prefix + ".10", End: prefix + ".200"},
+				Range: dhcpRangeXML{Start: dhcpStart, End: dhcpEnd},
 			},
 		},
 	}

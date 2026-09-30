@@ -257,6 +257,9 @@ func validateDefinition(fsys fs.FS, base string, definition Definition) error {
 		if definition.Environment.Machine == nil {
 			return errors.New("libvirt lab requires machine settings")
 		}
+		if definition.Resources.MemoryMB < 256 {
+			return errors.New("libvirt lab requires at least 256 MiB of memory")
+		}
 		if definition.Setup.ExecutionScope != "none" {
 			return errors.New("libvirt Phase-2 lab setup execution scope must be none")
 		}

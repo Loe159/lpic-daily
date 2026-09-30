@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -12,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/Loe159/lpic-daily/internal/runner"
+	"golang.org/x/sys/unix"
 )
 
 type commandCall struct {
@@ -20,14 +22,35 @@ type commandCall struct {
 }
 
 type fakeCommands struct {
-	Calls  []commandCall
-	FailAt int
+	Calls         []commandCall
+	FailAt        int
+	VirtualSizeMB int
+}
+
+func (fake *fakeCommands) Output(_ context.Context, name string, args ...string) ([]byte, error) {
+	if name != "qemu-img" || len(args) != 3 || args[0] != "info" || args[1] != "--output=json" {
+		return nil, fmt.Errorf("unexpected output command: %s %v", name, args)
+	}
+	virtualSizeMB := fake.VirtualSizeMB
+	if virtualSizeMB == 0 {
+		virtualSizeMB = 8192
+	}
+	return []byte(fmt.Sprintf("{\"format\":\"qcow2\",\"virtual-size\":%d}", int64(virtualSizeMB)*1024*1024)), nil
 }
 
 func (fake *fakeCommands) Run(_ context.Context, name string, args ...string) error {
 	fake.Calls = append(fake.Calls, commandCall{Name: name, Args: append([]string(nil), args...)})
 	if fake.FailAt != 0 && len(fake.Calls) == fake.FailAt {
 		return errors.New("simulated qemu-img failure")
+	}
+	if name == "qemu-img" && len(args) >= 2 && args[0] == "create" {
+		output := args[len(args)-1]
+		if strings.HasSuffix(output, "M") && len(args) >= 3 {
+			output = args[len(args)-2]
+		}
+		if err := os.WriteFile(output, nil, 0o666); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -55,13 +78,25 @@ func testImage(t *testing.T, imageRoot string) ImageDescriptor {
 	}
 }
 
+func testStateRoot(t *testing.T, root string) string {
+	t.Helper()
+	stateRoot := filepath.Join(root, "state")
+	if err := os.MkdirAll(stateRoot, 0o755); err != nil {
+		t.Fatalf("MkdirAll(state root) error = %v", err)
+	}
+	return stateRoot
+}
+
 func TestOverlayManagerCreatesStructuredQEMUImgCalls(t *testing.T) {
 	root := t.TempDir()
 	imageRoot := filepath.Join(root, "images")
-	stateRoot := filepath.Join(root, "state")
+	stateRoot := testStateRoot(t, root)
 	image := testImage(t, imageRoot)
 	commands := &fakeCommands{}
 	manager := OverlayManager{ImageRoot: imageRoot, StateRoot: stateRoot, Commands: commands}
+
+	previousUmask := unix.Umask(0o077)
+	defer unix.Umask(previousUmask)
 
 	paths, err := manager.Create(
 		context.Background(),
@@ -80,6 +115,22 @@ func TestOverlayManagerCreatesStructuredQEMUImgCalls(t *testing.T) {
 	}
 	if len(commands.Calls) != 3 {
 		t.Fatalf("qemu-img calls = %d, want 3", len(commands.Calls))
+	}
+	directoryInfo, err := os.Stat(paths.Directory)
+	if err != nil {
+		t.Fatalf("Stat(instance directory) error = %v", err)
+	}
+	if got := directoryInfo.Mode().Perm(); got != 0o711 {
+		t.Fatalf("instance directory mode = %04o, want 0711 for qemu:///system traversal", got)
+	}
+	for _, diskPath := range []string{paths.RootDisk, paths.Extra["data"], paths.Extra["swap"]} {
+		info, err := os.Stat(diskPath)
+		if err != nil {
+			t.Fatalf("Stat(%s) error = %v", diskPath, err)
+		}
+		if got := info.Mode().Perm(); got != 0o600 {
+			t.Fatalf("managed disk %s mode = %04o, want 0600", diskPath, got)
+		}
 	}
 	wantRoot := []string{
 		"create", "-f", "qcow2", "-F", "qcow2", "-b", image.Path, paths.RootDisk,
@@ -104,7 +155,7 @@ func TestOverlayManagerCreatesStructuredQEMUImgCalls(t *testing.T) {
 func TestOverlayManagerCleansPartialFailure(t *testing.T) {
 	root := t.TempDir()
 	imageRoot := filepath.Join(root, "images")
-	stateRoot := filepath.Join(root, "state")
+	stateRoot := testStateRoot(t, root)
 	image := testImage(t, imageRoot)
 	commands := &fakeCommands{FailAt: 2}
 	manager := OverlayManager{ImageRoot: imageRoot, StateRoot: stateRoot, Commands: commands}
@@ -130,7 +181,7 @@ func TestOverlayManagerCleansPartialFailure(t *testing.T) {
 func TestOverlayManagerRejectsChecksumMismatchBeforeQEMUImg(t *testing.T) {
 	root := t.TempDir()
 	imageRoot := filepath.Join(root, "images")
-	stateRoot := filepath.Join(root, "state")
+	stateRoot := testStateRoot(t, root)
 	image := testImage(t, imageRoot)
 	image.SHA256 = strings.Repeat("0", 64)
 	commands := &fakeCommands{}
@@ -150,10 +201,26 @@ func TestOverlayManagerRejectsChecksumMismatchBeforeQEMUImg(t *testing.T) {
 	}
 }
 
+func TestOverlayManagerRejectsBackingImageVirtualSizeMismatch(t *testing.T) {
+	root := t.TempDir()
+	imageRoot := filepath.Join(root, "images")
+	stateRoot := testStateRoot(t, root)
+	image := testImage(t, imageRoot)
+	commands := &fakeCommands{VirtualSizeMB: 65536}
+	manager := OverlayManager{ImageRoot: imageRoot, StateRoot: stateRoot, Commands: commands}
+	_, err := manager.Create(context.Background(), "lpic-daily-size-mismatch", image, runner.MachineDefinition{Firmware: runner.FirmwareBIOS})
+	if err == nil || !strings.Contains(err.Error(), "virtual size mismatch") {
+		t.Fatalf("Create() error = %v, want virtual size mismatch", err)
+	}
+	if len(commands.Calls) != 0 {
+		t.Fatalf("qemu-img create called despite size mismatch: %#v", commands.Calls)
+	}
+}
+
 func TestDestroyRefusesSymlinkedInstanceDirectory(t *testing.T) {
 	root := t.TempDir()
 	imageRoot := filepath.Join(root, "images")
-	stateRoot := filepath.Join(root, "state")
+	stateRoot := testStateRoot(t, root)
 	target := filepath.Join(root, "target")
 	if err := os.MkdirAll(stateRoot, 0o700); err != nil {
 		t.Fatalf("MkdirAll() error = %v", err)
@@ -166,10 +233,45 @@ func TestDestroyRefusesSymlinkedInstanceDirectory(t *testing.T) {
 		t.Fatalf("Symlink() error = %v", err)
 	}
 	manager := OverlayManager{ImageRoot: imageRoot, StateRoot: stateRoot, Commands: &fakeCommands{}}
-	if err := manager.Destroy(name); err == nil || !strings.Contains(err.Error(), "symlinked") {
+	if err := manager.Destroy(name); err == nil || (!strings.Contains(err.Error(), "symbolic link") && !strings.Contains(err.Error(), "symlinked")) {
 		t.Fatalf("Destroy() error = %v", err)
 	}
 	if _, err := os.Stat(target); err != nil {
 		t.Fatalf("target was damaged: %v", err)
+	}
+}
+
+func TestOverlayManagerRequiresProvisionedStateRoot(t *testing.T) {
+	root := t.TempDir()
+	imageRoot := filepath.Join(root, "images")
+	stateRoot := filepath.Join(root, "missing-state")
+	image := testImage(t, imageRoot)
+	manager := OverlayManager{ImageRoot: imageRoot, StateRoot: stateRoot, Commands: &fakeCommands{}}
+
+	_, err := manager.Create(
+		context.Background(),
+		"lpic-daily-unprovisioned-state",
+		image,
+		runner.MachineDefinition{Firmware: runner.FirmwareBIOS},
+	)
+	if err == nil || !strings.Contains(err.Error(), "not provisioned") {
+		t.Fatalf("Create() error = %v, want unprovisioned state-root failure", err)
+	}
+	if _, statErr := os.Stat(stateRoot); !errors.Is(statErr, os.ErrNotExist) {
+		t.Fatalf("state root was created implicitly: %v", statErr)
+	}
+}
+
+func TestOverlayDestroyIsIdempotentWhenStateRootAlreadyGone(t *testing.T) {
+	root := t.TempDir()
+	imageRoot := filepath.Join(root, "images")
+	stateRoot := testStateRoot(t, root)
+	manager := OverlayManager{ImageRoot: imageRoot, StateRoot: stateRoot, Commands: &fakeCommands{}}
+
+	if err := os.RemoveAll(stateRoot); err != nil {
+		t.Fatal(err)
+	}
+	if err := manager.Destroy("lpic-daily-already-gone"); err != nil {
+		t.Fatalf("Destroy() after state-root removal = %v, want nil", err)
 	}
 }

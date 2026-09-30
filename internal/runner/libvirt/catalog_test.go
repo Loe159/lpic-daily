@@ -37,6 +37,11 @@ func TestLoadImageCatalogResolvesOnlyRelativeTrustedPaths(t *testing.T) {
     "firmware": ["bios", "uefi"],
     "provenance": {
       "source_url": "https://example.invalid/fedora-44.qcow2",
+      "source_integrity": {
+        "algorithm": "sha256",
+        "encoding": "hex",
+        "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
       "build_recipe": "images/fedora-44.pkr.hcl",
       "built_at": "2026-09-27T00:00:00Z"
     }
@@ -85,6 +90,11 @@ func TestCatalogRejectsTraversalAndAbsolutePaths(t *testing.T) {
     "firmware": ["bios"],
     "provenance": {
       "source_url": "https://example.invalid/image",
+      "source_integrity": {
+        "algorithm": "sha256",
+        "encoding": "hex",
+        "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
       "build_recipe": "recipe",
       "built_at": "2026-09-27T00:00:00Z"
     }

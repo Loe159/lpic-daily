@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -14,10 +15,12 @@ import (
 	"strings"
 
 	"github.com/Loe159/lpic-daily/internal/runner"
+	"golang.org/x/sys/unix"
 )
 
 type CommandRunner interface {
 	Run(context.Context, string, ...string) error
+	Output(context.Context, string, ...string) ([]byte, error)
 }
 
 type ExecCommandRunner struct {
@@ -60,6 +63,27 @@ func (runner *ExecCommandRunner) Run(ctx context.Context, name string, args ...s
 	return nil
 }
 
+func (runner *ExecCommandRunner) Output(ctx context.Context, name string, args ...string) ([]byte, error) {
+	if runner == nil || runner.QEMUImgPath == "" {
+		return nil, errors.New("qemu-img runner is not configured")
+	}
+	if name != "qemu-img" {
+		return nil, fmt.Errorf("unsupported trusted helper %q", name)
+	}
+	command := exec.CommandContext(ctx, runner.QEMUImgPath, args...)
+	var stdout, stderr strings.Builder
+	command.Stdout = &boundedWriter{destination: &stdout, remaining: 64 << 10}
+	command.Stderr = &boundedWriter{destination: &stderr, remaining: 64 << 10}
+	if err := command.Run(); err != nil {
+		message := strings.TrimSpace(stderr.String())
+		if message == "" {
+			return nil, fmt.Errorf("qemu-img %v: %w", args, err)
+		}
+		return nil, fmt.Errorf("qemu-img %v: %w: %s", args, err, message)
+	}
+	return []byte(stdout.String()), nil
+}
+
 type boundedWriter struct {
 	destination io.Writer
 	remaining   int64
@@ -86,6 +110,7 @@ type OverlayPaths struct {
 	Directory string
 	RootDisk  string
 	Extra     map[string]string
+	Lease     *os.File
 }
 
 type OverlayManager struct {
@@ -110,6 +135,20 @@ func (manager OverlayManager) Validate() error {
 	return nil
 }
 
+func (manager OverlayManager) validateProvisionedStateRoot() error {
+	info, err := os.Lstat(filepath.Clean(manager.StateRoot))
+	if errors.Is(err, os.ErrNotExist) {
+		return errors.New("VM state root is not provisioned")
+	}
+	if err != nil {
+		return fmt.Errorf("inspect VM state root: %w", err)
+	}
+	if info.Mode()&os.ModeSymlink != 0 || !info.IsDir() {
+		return errors.New("VM state root must be a real directory")
+	}
+	return nil
+}
+
 func (manager OverlayManager) Create(
 	ctx context.Context,
 	instanceName string,
@@ -117,6 +156,9 @@ func (manager OverlayManager) Create(
 	machine runner.MachineDefinition,
 ) (OverlayPaths, error) {
 	if err := manager.Validate(); err != nil {
+		return OverlayPaths{}, err
+	}
+	if err := manager.validateProvisionedStateRoot(); err != nil {
 		return OverlayPaths{}, err
 	}
 	if !managedNamePattern.MatchString(instanceName) {
@@ -134,6 +176,9 @@ func (manager OverlayManager) Create(
 	if err := VerifyImageFile(ctx, image); err != nil {
 		return OverlayPaths{}, err
 	}
+	if err := manager.verifyVirtualSize(ctx, image); err != nil {
+		return OverlayPaths{}, err
+	}
 
 	directory := filepath.Join(filepath.Clean(manager.StateRoot), instanceName)
 	if err := pathWithinRoot(manager.StateRoot, directory); err != nil {
@@ -144,13 +189,24 @@ func (manager OverlayManager) Create(
 	} else if !errors.Is(err, os.ErrNotExist) {
 		return OverlayPaths{}, fmt.Errorf("inspect instance directory: %w", err)
 	}
-	if err := os.MkdirAll(directory, 0o700); err != nil {
+	if err := os.MkdirAll(directory, 0o711); err != nil {
 		return OverlayPaths{}, fmt.Errorf("create instance directory: %w", err)
+	}
+	if err := os.Chmod(directory, 0o711); err != nil {
+		_ = os.RemoveAll(directory)
+		return OverlayPaths{}, fmt.Errorf("set instance directory permissions: %w", err)
+	}
+
+	lease, err := acquireInstanceLease(directory)
+	if err != nil {
+		_ = os.RemoveAll(directory)
+		return OverlayPaths{}, err
 	}
 
 	cleanup := true
 	defer func() {
 		if cleanup {
+			_ = releaseInstanceLease(lease)
 			_ = os.RemoveAll(directory)
 		}
 	}()
@@ -159,6 +215,7 @@ func (manager OverlayManager) Create(
 		Directory: directory,
 		RootDisk:  filepath.Join(directory, "root.qcow2"),
 		Extra:     make(map[string]string, len(machine.ExtraDisks)),
+		Lease:     lease,
 	}
 	if err := manager.Commands.Run(
 		ctx,
@@ -170,6 +227,9 @@ func (manager OverlayManager) Create(
 		paths.RootDisk,
 	); err != nil {
 		return OverlayPaths{}, fmt.Errorf("create root overlay: %w", err)
+	}
+	if err := hardenManagedDisk(paths.RootDisk); err != nil {
+		return OverlayPaths{}, fmt.Errorf("secure root overlay: %w", err)
 	}
 
 	for _, disk := range machine.ExtraDisks {
@@ -184,11 +244,50 @@ func (manager OverlayManager) Create(
 		); err != nil {
 			return OverlayPaths{}, fmt.Errorf("create scratch disk %s: %w", disk.ID, err)
 		}
+		if err := hardenManagedDisk(path); err != nil {
+			return OverlayPaths{}, fmt.Errorf("secure scratch disk %s: %w", disk.ID, err)
+		}
 		paths.Extra[disk.ID] = path
 	}
 
 	cleanup = false
 	return paths, nil
+}
+
+func (manager OverlayManager) verifyVirtualSize(ctx context.Context, image ImageDescriptor) error {
+	payload, err := manager.Commands.Output(ctx, "qemu-img", "info", "--output=json", filepath.Clean(image.Path))
+	if err != nil {
+		return fmt.Errorf("inspect backing image virtual size: %w", err)
+	}
+	var info struct {
+		Format      string `json:"format"`
+		VirtualSize int64  `json:"virtual-size"`
+	}
+	if err := json.Unmarshal(payload, &info); err != nil {
+		return fmt.Errorf("decode qemu-img info: %w", err)
+	}
+	if info.Format != "qcow2" {
+		return fmt.Errorf("backing image format mismatch: got %q, want qcow2", info.Format)
+	}
+	wantBytes := int64(image.VirtualSizeMB) * 1024 * 1024
+	if info.VirtualSize != wantBytes {
+		return fmt.Errorf("backing image virtual size mismatch: got %d bytes, want %d bytes", info.VirtualSize, wantBytes)
+	}
+	return nil
+}
+
+func hardenManagedDisk(path string) error {
+	info, err := os.Lstat(path)
+	if err != nil {
+		return fmt.Errorf("inspect managed disk: %w", err)
+	}
+	if info.Mode()&os.ModeSymlink != 0 || !info.Mode().IsRegular() {
+		return errors.New("managed disk must be a real regular file")
+	}
+	if err := os.Chmod(path, 0o600); err != nil {
+		return fmt.Errorf("set managed disk permissions: %w", err)
+	}
+	return nil
 }
 
 func (manager OverlayManager) Destroy(instanceName string) error {
@@ -216,6 +315,28 @@ func (manager OverlayManager) Destroy(instanceName string) error {
 		return fmt.Errorf("remove VM instance directory: %w", err)
 	}
 	return nil
+}
+
+func acquireInstanceLease(directory string) (*os.File, error) {
+	path := filepath.Join(directory, ".lease")
+	file, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR, 0o600)
+	if err != nil {
+		return nil, fmt.Errorf("open VM instance lease: %w", err)
+	}
+	if err := unix.Flock(int(file.Fd()), unix.LOCK_EX|unix.LOCK_NB); err != nil {
+		_ = file.Close()
+		return nil, fmt.Errorf("lock VM instance lease: %w", err)
+	}
+	return file, nil
+}
+
+func releaseInstanceLease(file *os.File) error {
+	if file == nil {
+		return nil
+	}
+	unlockErr := unix.Flock(int(file.Fd()), unix.LOCK_UN)
+	closeErr := file.Close()
+	return errors.Join(unlockErr, closeErr)
 }
 
 func VerifyImageFile(ctx context.Context, image ImageDescriptor) error {

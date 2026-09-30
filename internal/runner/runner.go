@@ -5,11 +5,15 @@ import (
 	"errors"
 	"io"
 	"path"
+	"regexp"
 	"strings"
 	"time"
 )
 
-var ErrNotSupported = errors.New("operation not supported by runner")
+var (
+	ErrNotSupported      = errors.New("operation not supported by runner")
+	virtualDiskIDPattern = regexp.MustCompile(`^[a-z0-9][a-z0-9-]{0,31}$`)
+)
 
 type NetworkMode string
 
@@ -44,8 +48,8 @@ func (machine MachineDefinition) Validate() error {
 	}
 	seen := make(map[string]struct{}, len(machine.ExtraDisks))
 	for _, disk := range machine.ExtraDisks {
-		if disk.ID == "" {
-			return errors.New("extra disk ID is required")
+		if !virtualDiskIDPattern.MatchString(disk.ID) {
+			return errors.New("extra disk ID must match ^[a-z0-9][a-z0-9-]{0,31}$")
 		}
 		if _, exists := seen[disk.ID]; exists {
 			return errors.New("extra disk IDs must be unique")
@@ -113,6 +117,9 @@ func (definition Definition) Validate() error {
 		return errors.New("timeout must be between 30 seconds and 2 hours")
 	}
 	if definition.Machine != nil {
+		if definition.MemoryMB < 256 {
+			return errors.New("full-machine memory limit must be at least 256 MiB")
+		}
 		if err := definition.Machine.Validate(); err != nil {
 			return err
 		}
@@ -229,6 +236,12 @@ func (request ConsoleRequest) Validate() error {
 // require a firmware/boot serial console.
 type ConsoleRunner interface {
 	OpenConsole(context.Context, Instance, ConsoleRequest) error
+}
+
+// RebootRunner is an optional capability for full-machine backends.
+// It requests a guest-visible reboot without recreating the disposable disks.
+type RebootRunner interface {
+	Reboot(context.Context, Instance) error
 }
 
 type Runner interface {

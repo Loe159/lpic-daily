@@ -1,6 +1,6 @@
 # Phase 2 — VM runner
 
-Status: **In progress — 2026-09-27**
+Status: **Implementation ready for acceptance validation — 2026-09-29**
 
 ## Goal
 
@@ -25,20 +25,28 @@ First end-to-end targets:
 
 ## Current checkpoint
 
-Implemented and unit/CI-validated:
-- system-libvirt control plane, strict trusted image catalog, SHA-256 verification and disposable QCOW2 lifecycle;
-- generated bounded VM domain XML, serial-console capability, QEMU Guest Agent execution and structured storage probes;
-- authored 104.1 partition/filesystem lab with state-based grading;
-- `lpic lab run` dispatches `libvirt` labs to `qemu:///system` only and fails closed instead of falling back to Podman;
-- `lpic doctor` reports `qemu-img`, VM image catalog and system-libvirt readiness; the live libvirt probe is bounded to two seconds;
-- interactive lab operations now inherit the authored wall-clock timeout and OS cancellation, QEMU Guest Agent execution waits for bounded readiness, and partial libvirt teardown failures remain tracked so cleanup can be retried without deleting disks under a live/defined domain.
+Implemented on `phase-2-vm-runner-complete`:
+- system-libvirt control plane remains restricted to local `qemu:///system`, behind project-owned interfaces;
+- immutable catalogued QCOW2 bases, SHA-256 runtime verification, bounded disposable overlays and scratch disks;
+- explicit serial-console learner surface (`:console`) with local Ctrl-] escape, terminal restoration and a dedicated libvirt stream connection; escape/cancellation closes the console stream without powering off the guest;
+- explicit VM reboot (`:reboot`) that waits for a changed guest `boot_id` through QEMU Guest Agent before returning;
+- 104.1 partition/filesystem state-based VM lab;
+- 102.2 GRUB 2 lab that requires a persistent kernel argument and verifies it after a real reboot;
+- LPIC Daily-owned isolated libvirt networks with no forwarding and shared-network multi-VM scenarios; each guest NIC references a scoped libvirt nwfilter that keeps DHCP working while blocking host-bridge IPv4 services and guest IPv6 egress; subnet allocation excludes host/libvirt routes and is serialized across users/processes by one root-provisioned host-global lock;
+- per-run leases plus startup reaping for abandoned LPIC Daily domains, networks and disposable state without reaping a live concurrent run; ownership is verified through namespaced libvirt metadata carrying a stable effective-UID + state-root scope, and every lifecycle lookup rejects foreign scopes rather than trusting a name prefix;
+- multi-VM scenario networks/leases are tracked by the backend itself, so `Close()` cleans them when explicit scenario teardown is omitted; failed scenario rollbacks remain tracked and retryable instead of dropping the shared network state;
+- rollback paths use bounded cleanup contexts at the orchestration layer rather than unbounded `context.Background()` cleanup;
+- explicit Fedora, Debian and openSUSE image-supply manifests/build pipeline with source digests pinned directly in-repository (no mutable remote checksum trust at build time);
+- VM image recipe IDs drive the actual builder behavior and are validated against their distribution; `virtual_size_mb` is enforced as the exact installed image size so provenance/catalog metadata cannot silently diverge from the build;
+- default VM storage provisioned below `/var/lib/libvirt/images/lpic-daily/<uid>`, with per-run state directories forced to execute-traversable `0711`, generated overlay/scratch files forced to `0600`, and a shared root-owned network-allocation lock at the parent level; this keeps qemu:///system disks out of private home/XDG paths while coordinating its host-global network namespace;
+- opt-in real-KVM integration coverage for host sentinel preservation, blocked host-bridge access, base-image immutability, private two-guest communication, failed public egress, crash reaping and both 104.1/102.2 reference solutions (including the 102.2 reboot);
+- generic CI compiles the KVM integration test but does not pretend to execute it without a KVM/libvirt host.
 
-Not yet end-to-end:
-- no released/reproducible VM base-image build/install pipeline exists, so 104.1 is not runnable on a fresh installation yet;
-- serial console is intentionally not exposed by the CLI until cancellation/escape handling is robust;
-- 102.2 bootloader lab, isolated libvirt networking and real KVM security/immutability tests remain outstanding.
+VM lab startup refuses effective UID 0 both at the CLI boundary and inside the libvirt backend constructor, keeping the non-root invariant fail-closed even for direct package use. Custom image/state roots remain supported, but they intentionally share the provisioned host-global network-allocation lock because `qemu:///system` has one host-wide network namespace.
 
-Next implementation tranche: make serial-console interaction cancellable and safe, then add the first 102.2 boot/reboot scenario. The guest image pipeline must be completed before either VM reference lab can count as end-to-end acceptance.
+Acceptance is intentionally not declared complete yet. On 2026-09-29 the repository GitHub Actions runs for this branch are failing before any job step starts, so the branch has not obtained fresh `validate_foundation`, `go test`, `go vet` or format results from CI. The real-KVM test also still requires an explicit compatible host run with `LPIC_DAILY_RUN_KVM_INTEGRATION=1`.
+
+Next action is validation, not additional Phase-2 feature scope: restore/diagnose CI execution, run the standard validation suite, build/install the trusted Fedora image, then execute both VM reference labs and the opt-in KVM conformance test on a real host.
 
 ## Work order
 
@@ -94,14 +102,14 @@ Next implementation tranche: make serial-console interaction cancellable and saf
    - reset restores pristine state.
 
 9. **Reference lab 102.2**
-   - deliberately broken/alternate GRUB scenario;
-   - learner works through serial/boot path;
-   - reboot is part of evaluation;
-   - checker proves requested boot state without accepting a command transcript.
+   - deliberately incomplete persistent GRUB configuration (the target kernel argument is absent initially);
+   - GRUB itself is exposed on the serial console before userland, while guest commands remain available for persistent configuration edits;
+   - learner can inspect the boot path with `:console`, then `:reboot` is part of evaluation;
+   - checker proves the persistent source configuration, generated GRUB configuration and post-reboot kernel state without accepting a command transcript.
 
 10. **Guest image pipeline**
     - Fedora, Debian and openSUSE manifests/build recipes;
-    - reproducible provenance/checksum metadata;
+    - pinned source integrity + recorded build provenance/final checksum metadata;
     - guest probe + serial console baseline.
 
 11. **Real security integration**

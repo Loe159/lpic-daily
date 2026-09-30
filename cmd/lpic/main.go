@@ -30,6 +30,7 @@ import (
 	"github.com/Loe159/lpic-daily/internal/study"
 	"github.com/Loe159/lpic-daily/internal/terminal"
 	lpicui "github.com/Loe159/lpic-daily/internal/tui"
+	"github.com/muesli/cancelreader"
 )
 
 const version = "0.0.0-dev"
@@ -939,7 +940,17 @@ func runInteractiveLab(authored lab.Lab, stdin io.Reader, stdout, stderr io.Writ
 	}
 }
 
+func requireUnprivilegedVMProcess(euid int) error {
+	if euid == 0 {
+		return errors.New("libvirt VM labs must run as a regular user, not root")
+	}
+	return nil
+}
+
 func openLibvirtBackend() (*libvirtrunner.Backend, error) {
+	if err := requireUnprivilegedVMProcess(os.Geteuid()); err != nil {
+		return nil, err
+	}
 	imageRoot, err := appstate.VMImageRoot()
 	if err != nil {
 		return nil, fmt.Errorf("resolve VM image root: %w", err)
@@ -971,13 +982,37 @@ func openLibvirtBackend() (*libvirtrunner.Backend, error) {
 		catalog,
 		imageRoot,
 		stateRoot,
+		appstate.VMNetworkAllocationLockPath(),
 		commands,
 	)
 	if err != nil {
 		_ = control.Close()
 		return nil, fmt.Errorf("initialize libvirt backend: %w", err)
 	}
+	reapCtx, cancelReap := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancelReap()
+	if err := backend.Reap(reapCtx); err != nil {
+		closeCtx, cancelClose := context.WithTimeout(context.Background(), 10*time.Second)
+		_ = backend.Close(closeCtx)
+		cancelClose()
+		return nil, fmt.Errorf("reap abandoned VM resources: %w", err)
+	}
 	return backend, nil
+}
+
+type sanitizedTerminalWriter struct {
+	destination io.Writer
+}
+
+func (writer sanitizedTerminalWriter) Write(payload []byte) (int, error) {
+	if writer.destination == nil {
+		return 0, errors.New("sanitized terminal writer destination is required")
+	}
+	sanitized := lpicui.SanitizeText(string(payload))
+	if _, err := io.WriteString(writer.destination, sanitized); err != nil {
+		return 0, err
+	}
+	return len(payload), nil
 }
 
 func runInteractiveLabWithBackend(
@@ -1027,9 +1062,16 @@ func runInteractiveLabWithBackend(
 		fmt.Fprintln(stdout, "Commandes LPIC Daily : :shell  :check  :hint  :reset  :quit")
 	} else {
 		fmt.Fprintln(stdout, "Mode commandes VM. Chaque ligne est exécutée dans la VM via QEMU Guest Agent.")
-		fmt.Fprintln(stdout, "Commandes LPIC Daily : :check  :hint  :reset  :quit")
+		fmt.Fprintln(stdout, "Commandes LPIC Daily : :console  :reboot  :check  :hint  :reset  :quit")
 	}
 	fmt.Fprintln(stdout)
+
+	commandStdout := stdout
+	commandStderr := stderr
+	if !persistentShell {
+		commandStdout = sanitizedTerminalWriter{destination: stdout}
+		commandStderr = sanitizedTerminalWriter{destination: stderr}
+	}
 
 	scanner := bufio.NewScanner(stdin)
 	scanner.Buffer(make([]byte, 4096), 256<<10)
@@ -1107,6 +1149,31 @@ func runInteractiveLabWithBackend(
 			if result.ExitCode != 0 {
 				fmt.Fprintf(stderr, "[shell exit %d]\n", result.ExitCode)
 			}
+			continue
+		case ":console":
+			if persistentShell {
+				fmt.Fprintln(stdout, "La console série est réservée aux labs VM.")
+				continue
+			}
+			fmt.Fprintln(stdout, "Console série brute ouverte. Ctrl-] revient à LPIC Daily.")
+			if err := runVMConsole(sessionCtx, backend, session.Instance, stdin, stdout); err != nil {
+				return fmt.Errorf("VM serial console: %w", err)
+			}
+			fmt.Fprintln(stdout, "\n[retour LPIC Daily]")
+			continue
+		case ":reboot":
+			if persistentShell {
+				fmt.Fprintln(stdout, "Le reboot VM n'est pas disponible pour ce backend.")
+				continue
+			}
+			rebooter, ok := backend.(runner.RebootRunner)
+			if !ok {
+				return fmt.Errorf("%w: backend has no reboot capability", runner.ErrNotSupported)
+			}
+			if err := rebooter.Reboot(sessionCtx, session.Instance); err != nil {
+				return fmt.Errorf("reboot VM: %w", err)
+			}
+			fmt.Fprintln(stdout, "Reboot demandé. La console série permet de suivre le prochain boot.")
 			continue
 		case ":reset":
 			if err := session.Reset(sessionCtx); err != nil {
@@ -1215,8 +1282,8 @@ func runInteractiveLabWithBackend(
 
 		result, err := backend.Exec(sessionCtx, session.Instance, runner.ExecRequest{
 			Argv:   []string{"/usr/bin/bash", "-lc", line},
-			Stdout: stdout,
-			Stderr: stderr,
+			Stdout: commandStdout,
+			Stderr: commandStderr,
 		})
 		if err != nil {
 			return fmt.Errorf("execute lab command: %w", err)
@@ -1376,6 +1443,117 @@ func markPersistentShellConceptFailure(
 	for _, conceptID := range definition.ConceptIDs {
 		conceptResults[conceptID] = learning.ResultFail
 	}
+}
+
+type vmConsoleEscapeReader struct {
+	reader   io.Reader
+	escaped  bool
+	onEscape func()
+}
+
+func (reader *vmConsoleEscapeReader) Read(buffer []byte) (int, error) {
+	if reader == nil || reader.reader == nil {
+		return 0, io.EOF
+	}
+	if reader.escaped {
+		return 0, io.EOF
+	}
+	n, err := reader.reader.Read(buffer)
+	for index, value := range buffer[:n] {
+		if value != 0x1d {
+			continue
+		}
+		reader.escaped = true
+		if reader.onEscape != nil {
+			reader.onEscape()
+		}
+		if index == 0 {
+			return 0, io.EOF
+		}
+		return index, nil
+	}
+	return n, err
+}
+
+func runVMConsole(
+	ctx context.Context,
+	backend runner.Runner,
+	instance runner.Instance,
+	stdin io.Reader,
+	stdout io.Writer,
+) (returnErr error) {
+	console, ok := backend.(runner.ConsoleRunner)
+	if !ok {
+		return fmt.Errorf("%w: backend has no serial console capability", runner.ErrNotSupported)
+	}
+	stdinFile, ok := stdin.(*os.File)
+	if !ok || !terminal.IsTerminal(stdinFile) {
+		return errors.New(":console requires an interactive terminal on stdin")
+	}
+	stdoutFile, ok := stdout.(*os.File)
+	if !ok || !terminal.IsTerminal(stdoutFile) {
+		return errors.New(":console requires an interactive terminal on stdout")
+	}
+
+	state, err := terminal.MakeRaw(stdinFile)
+	if err != nil {
+		return err
+	}
+	restored := false
+	defer func() {
+		if restored {
+			return
+		}
+		if err := terminal.Restore(stdinFile, state); returnErr == nil && err != nil {
+			returnErr = err
+		}
+	}()
+
+	cancelableInput, err := cancelreader.NewReader(stdinFile)
+	if err != nil {
+		return fmt.Errorf("prepare cancellable VM console input: %w", err)
+	}
+	defer cancelableInput.Close()
+
+	stopCancellation := make(chan struct{})
+	defer close(stopCancellation)
+	go func() {
+		select {
+		case <-ctx.Done():
+			cancelableInput.Cancel()
+		case <-stopCancellation:
+		}
+	}()
+
+	consoleCtx, cancelConsole := context.WithCancel(ctx)
+	defer cancelConsole()
+	escapeInput := &vmConsoleEscapeReader{
+		reader: cancelableInput,
+		onEscape: func() {
+			cancelableInput.Cancel()
+			cancelConsole()
+		},
+	}
+	err = console.OpenConsole(consoleCtx, instance, runner.ConsoleRequest{
+		Stdin:  escapeInput,
+		Stdout: stdoutFile,
+	})
+	if restoreErr := terminal.Restore(stdinFile, state); restoreErr != nil {
+		return restoreErr
+	}
+	restored = true
+	if err != nil {
+		if escapeInput.escaped && ctx.Err() == nil &&
+			(errors.Is(err, context.Canceled) || errors.Is(err, cancelreader.ErrCanceled)) {
+			return nil
+		}
+		if ctx.Err() != nil &&
+			(errors.Is(err, context.Canceled) || errors.Is(err, cancelreader.ErrCanceled)) {
+			return ctx.Err()
+		}
+		return err
+	}
+	return nil
 }
 
 func runPersistentShell(

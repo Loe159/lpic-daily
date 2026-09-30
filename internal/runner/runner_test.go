@@ -95,3 +95,36 @@ func TestDefinitionRejectsResourceLimitsAboveSchemaMaximums(t *testing.T) {
 		})
 	}
 }
+
+func TestMachineDefinitionRejectsUnsafeDiskIDs(t *testing.T) {
+	for _, id := range []string{"", "../escape", "data/../../escape", "UPPER", "-leading", "a_b"} {
+		machine := runner.MachineDefinition{
+			Firmware: runner.FirmwareUEFI,
+			ExtraDisks: []runner.VirtualDisk{{
+				ID:     id,
+				SizeMB: 128,
+			}},
+		}
+		if err := machine.Validate(); err == nil {
+			t.Fatalf("Validate() unexpectedly accepted disk ID %q", id)
+		}
+	}
+}
+
+func TestDefinitionRejectsUndersizedFullMachineMemory(t *testing.T) {
+	definition := runner.Definition{
+		LabID:             "vm-lab",
+		ImageRef:          "fedora-44-x86_64-v1",
+		Distribution:      "fedora",
+		Network:           runner.NetworkNone,
+		CapabilityProfile: "full-machine",
+		MemoryMB:          128,
+		CPUPercent:        100,
+		PIDs:              128,
+		Timeout:           time.Minute,
+		Machine:           &runner.MachineDefinition{Firmware: runner.FirmwareUEFI},
+	}
+	if err := definition.Validate(); err == nil {
+		t.Fatal("Validate() unexpectedly accepted a 128 MiB full-machine VM")
+	}
+}

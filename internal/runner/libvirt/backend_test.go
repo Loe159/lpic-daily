@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"io"
+	"net/netip"
 	"os"
 	"path/filepath"
 	"strings"
@@ -16,28 +17,50 @@ import (
 )
 
 type fakeControlPlane struct {
-	defined        map[string]string
-	active         map[string]bool
-	starts         int
-	destroys       int
-	undefines      int
-	removeNVRAM    bool
-	consoleOpens   int
-	agentResponses []string
-	agentErrors    []error
-	agentCommands  []string
-	destroyErr     error
-	undefineErr    error
-	closed         bool
+	ownerScope        string
+	defined           map[string]string
+	active            map[string]bool
+	networks          map[string]string
+	networkActive     map[string]bool
+	networkFilters    map[string]string
+	starts            int
+	reboots           int
+	destroys          int
+	undefines         int
+	networkStarts     int
+	networkDestroys   int
+	networkUndefines  int
+	removeNVRAM       bool
+	consoleOpens      int
+	agentResponses    []string
+	agentErrors       []error
+	agentCommands     []string
+	destroyErr        error
+	undefineErr       error
+	filterUndefineErr error
+	closed            bool
 }
 
 func newFakeControlPlane() *fakeControlPlane {
 	return &fakeControlPlane{
-		defined: make(map[string]string),
-		active:  make(map[string]bool),
+		defined:        make(map[string]string),
+		active:         make(map[string]bool),
+		networks:       make(map[string]string),
+		networkActive:  make(map[string]bool),
+		networkFilters: make(map[string]string),
 	}
 }
 
+func (fake *fakeControlPlane) SetManagedOwnerScope(scope string) error {
+	if err := validateManagedOwnerScope(scope); err != nil {
+		return err
+	}
+	if fake.ownerScope != "" && fake.ownerScope != scope {
+		return errors.New("owner scope already configured")
+	}
+	fake.ownerScope = scope
+	return nil
+}
 func (fake *fakeControlPlane) LibVersion() (uint64, error) { return 1000000, nil }
 func (fake *fakeControlPlane) Capabilities() (string, error) {
 	return "<arch>x86_64</arch>", nil
@@ -58,7 +81,14 @@ func (fake *fakeControlPlane) StartDomain(name string) error {
 	fake.active[name] = true
 	return nil
 }
-func (fake *fakeControlPlane) OpenConsole(name string, input io.Reader, output io.Writer) error {
+func (fake *fakeControlPlane) RebootDomain(name string) error {
+	if !fake.active[name] {
+		return errors.New("domain not active")
+	}
+	fake.reboots++
+	return nil
+}
+func (fake *fakeControlPlane) OpenConsole(_ context.Context, name string, input io.Reader, output io.Writer) error {
 	if !fake.active[name] {
 		return errors.New("domain not active")
 	}
@@ -123,6 +153,107 @@ func (fake *fakeControlPlane) UndefineDomain(name string, removeNVRAM bool) erro
 	delete(fake.active, name)
 	return nil
 }
+func (fake *fakeControlPlane) DefineNetwork(name, xml string) error {
+	if _, exists := fake.networks[name]; exists {
+		return errors.New("network already defined")
+	}
+	fake.networks[name] = xml
+	fake.networkActive[name] = false
+	return nil
+}
+func (fake *fakeControlPlane) StartNetwork(name string) error {
+	if _, exists := fake.networks[name]; !exists {
+		return errors.New("network missing")
+	}
+	fake.networkStarts++
+	fake.networkActive[name] = true
+	return nil
+}
+func (fake *fakeControlPlane) NetworkActive(name string) (bool, error) {
+	if _, exists := fake.networks[name]; !exists {
+		return false, errors.New("network missing")
+	}
+	return fake.networkActive[name], nil
+}
+func (fake *fakeControlPlane) DestroyNetwork(name string) error {
+	if !fake.networkActive[name] {
+		return errors.New("network not active")
+	}
+	fake.networkDestroys++
+	fake.networkActive[name] = false
+	return nil
+}
+func (fake *fakeControlPlane) UndefineNetwork(name string) error {
+	if _, exists := fake.networks[name]; !exists {
+		return errors.New("network missing")
+	}
+	if fake.networkActive[name] {
+		return errors.New("network active")
+	}
+	fake.networkUndefines++
+	delete(fake.networks, name)
+	delete(fake.networkActive, name)
+	return nil
+}
+func (fake *fakeControlPlane) DefineNetworkFilter(name, xml string) error {
+	if _, exists := fake.networkFilters[name]; exists {
+		return errors.New("network filter already defined")
+	}
+	fake.networkFilters[name] = xml
+	return nil
+}
+
+func (fake *fakeControlPlane) UndefineNetworkFilter(name string) error {
+	if _, exists := fake.networkFilters[name]; !exists {
+		return errors.New("network filter missing")
+	}
+	if fake.filterUndefineErr != nil {
+		return fake.filterUndefineErr
+	}
+	delete(fake.networkFilters, name)
+	return nil
+}
+
+func (fake *fakeControlPlane) ListManagedDomains() ([]string, error) {
+	names := make([]string, 0, len(fake.defined))
+	for name, resourceXML := range fake.defined {
+		if hasManagedMetadata(resourceXML, fake.ownerScope) {
+			names = append(names, name)
+		}
+	}
+	return names, nil
+}
+func (fake *fakeControlPlane) ListManagedNetworks() ([]string, error) {
+	names := make([]string, 0, len(fake.networks))
+	for name, resourceXML := range fake.networks {
+		if hasManagedMetadata(resourceXML, fake.ownerScope) {
+			names = append(names, name)
+		}
+	}
+	return names, nil
+}
+
+func (fake *fakeControlPlane) ListManagedNetworkFilters() ([]string, error) {
+	names := make([]string, 0, len(fake.networkFilters))
+	for name, resourceXML := range fake.networkFilters {
+		if hasManagedMetadata(resourceXML, fake.ownerScope) {
+			names = append(names, name)
+		}
+	}
+	return names, nil
+}
+
+func (fake *fakeControlPlane) ListNetworkIPv4Prefixes() ([]netip.Prefix, error) {
+	var prefixes []netip.Prefix
+	for _, resourceXML := range fake.networks {
+		found, err := networkPrefixesFromXML(resourceXML)
+		if err != nil {
+			return nil, err
+		}
+		prefixes = append(prefixes, found...)
+	}
+	return prefixes, nil
+}
 func (fake *fakeControlPlane) Close() error {
 	fake.closed = true
 	return nil
@@ -133,6 +264,9 @@ func backendFixture(t *testing.T) (*Backend, *fakeControlPlane, *fakeCommands, r
 	root := t.TempDir()
 	imageRoot := filepath.Join(root, "images")
 	stateRoot := filepath.Join(root, "state")
+	if err := os.MkdirAll(stateRoot, 0o755); err != nil {
+		t.Fatalf("MkdirAll(state root) error = %v", err)
+	}
 	imagePath := filepath.Join(imageRoot, "fedora", "base.qcow2")
 	if err := os.MkdirAll(filepath.Dir(imagePath), 0o700); err != nil {
 		t.Fatalf("MkdirAll() error = %v", err)
@@ -164,7 +298,19 @@ func backendFixture(t *testing.T) (*Backend, *fakeControlPlane, *fakeCommands, r
 	}
 	control := newFakeControlPlane()
 	commands := &fakeCommands{}
-	backend, err := NewBackend(control, catalog, imageRoot, stateRoot, commands)
+	networkLockPath := filepath.Join(root, "network-allocation.lock")
+	if err := os.WriteFile(networkLockPath, nil, 0o600); err != nil {
+		t.Fatalf("WriteFile(network lock) error = %v", err)
+	}
+	backend, err := newBackendForEffectiveUID(
+		1000,
+		control,
+		catalog,
+		imageRoot,
+		stateRoot,
+		networkLockPath,
+		commands,
+	)
 	if err != nil {
 		t.Fatalf("NewBackend() error = %v", err)
 	}
@@ -187,6 +333,64 @@ func backendFixture(t *testing.T) (*Backend, *fakeControlPlane, *fakeCommands, r
 		},
 	}
 	return backend, control, commands, definition
+}
+
+func TestNewBackendRejectsRootBeforeControlPlaneMutation(t *testing.T) {
+	control := newFakeControlPlane()
+	_, err := newBackendForEffectiveUID(
+		0,
+		control,
+		&ImageCatalog{},
+		"/tmp/lpic-daily-images",
+		"/tmp/lpic-daily-state",
+		"/tmp/lpic-daily-network.lock",
+		&fakeCommands{},
+	)
+	if err == nil || !strings.Contains(err.Error(), "regular user") {
+		t.Fatalf("newBackendForEffectiveUID(root) error = %v", err)
+	}
+	if control.ownerScope != "" {
+		t.Fatalf("root rejection mutated libvirt owner scope: %q", control.ownerScope)
+	}
+}
+
+func TestManagedOwnerScopeSeparatesEffectiveUIDs(t *testing.T) {
+	stateRoot := filepath.Join(t.TempDir(), "state")
+	first, err := managedOwnerScopeForUID(stateRoot, 1000)
+	if err != nil {
+		t.Fatalf("managedOwnerScopeForUID(1000) error = %v", err)
+	}
+	second, err := managedOwnerScopeForUID(stateRoot, 1001)
+	if err != nil {
+		t.Fatalf("managedOwnerScopeForUID(1001) error = %v", err)
+	}
+	if first == second {
+		t.Fatalf("different effective UIDs share owner scope %q", first)
+	}
+}
+
+func TestManagedOwnerScopeSeparatesStateRoots(t *testing.T) {
+	firstRoot := filepath.Join(t.TempDir(), "state-a")
+	secondRoot := filepath.Join(t.TempDir(), "state-b")
+
+	first, err := managedOwnerScope(firstRoot)
+	if err != nil {
+		t.Fatalf("managedOwnerScope(first) error = %v", err)
+	}
+	again, err := managedOwnerScope(firstRoot)
+	if err != nil {
+		t.Fatalf("managedOwnerScope(first again) error = %v", err)
+	}
+	second, err := managedOwnerScope(secondRoot)
+	if err != nil {
+		t.Fatalf("managedOwnerScope(second) error = %v", err)
+	}
+	if first != again {
+		t.Fatalf("owner scope is not stable: first=%q again=%q", first, again)
+	}
+	if first == second {
+		t.Fatalf("different state roots share owner scope %q", first)
+	}
 }
 
 func TestBackendPrepareStartDestroyLifecycle(t *testing.T) {
@@ -502,17 +706,72 @@ func TestBackendResetRecreatesSameManagedIdentity(t *testing.T) {
 	}
 }
 
-func TestBackendFailsClosedForNetworkingAndGuestOperations(t *testing.T) {
-	backend, control, commands, definition := backendFixture(t)
+func TestBackendIsolatedNetworkLifecycle(t *testing.T) {
+	backend, control, _, definition := backendFixture(t)
 	definition.Network = runner.NetworkIsolated
+	ctx := context.Background()
 
-	if _, err := backend.Prepare(context.Background(), definition); !errors.Is(err, runner.ErrNotSupported) {
+	instance, err := backend.Prepare(ctx, definition)
+	if err != nil {
 		t.Fatalf("Prepare(network=isolated) error = %v", err)
 	}
-	if len(control.defined) != 0 || len(commands.Calls) != 0 {
-		t.Fatalf("unsupported network mutated VM state: control=%#v commands=%#v", control, commands.Calls)
+	if len(control.networks) != 1 || !control.networkActive[instance.ID] {
+		t.Fatalf("isolated network state = %#v", control)
 	}
+	if len(control.networkFilters) != 1 {
+		t.Fatalf("isolated network filters = %#v, want one host-isolation filter", control.networkFilters)
+	}
+	networkXML := control.networks[instance.ID]
+	if strings.Contains(networkXML, "<forward") {
+		t.Fatalf("isolated network forwards traffic:\n%s", networkXML)
+	}
+	domainXML := control.defined[instance.ID]
+	if !strings.Contains(domainXML, `<source network="`+instance.ID+`"></source>`) {
+		t.Fatalf("domain XML does not attach isolated network:\n%s", domainXML)
+	}
+	if err := backend.Start(ctx, instance); err != nil {
+		t.Fatalf("Start() error = %v", err)
+	}
+	if err := backend.Destroy(ctx, instance); err != nil {
+		t.Fatalf("Destroy() error = %v", err)
+	}
+	if len(control.networks) != 0 || len(control.networkFilters) != 0 ||
+		control.networkDestroys != 1 || control.networkUndefines != 1 {
+		t.Fatalf("network cleanup state = %#v", control)
+	}
+}
 
+func TestBackendRebootRequiresActiveManagedVM(t *testing.T) {
+	backend, control, _, definition := backendFixture(t)
+	ctx := context.Background()
+	instance, err := backend.Prepare(ctx, definition)
+	if err != nil {
+		t.Fatalf("Prepare() error = %v", err)
+	}
+	if err := backend.Reboot(ctx, instance); err == nil || !strings.Contains(err.Error(), "not active") {
+		t.Fatalf("Reboot(inactive) error = %v", err)
+	}
+	if err := backend.Start(ctx, instance); err != nil {
+		t.Fatalf("Start() error = %v", err)
+	}
+	control.agentResponses = []string{
+		`{"return":{}}`,
+		`{"return":{"pid":10}}`,
+		`{"return":{"exited":true,"exitcode":0,"out-data":"Ym9vdC1hCg=="}}`,
+		`{"return":{}}`,
+		`{"return":{"pid":11}}`,
+		`{"return":{"exited":true,"exitcode":0,"out-data":"Ym9vdC1iCg=="}}`,
+	}
+	if err := backend.Reboot(ctx, instance); err != nil {
+		t.Fatalf("Reboot() error = %v", err)
+	}
+	if control.reboots != 1 {
+		t.Fatalf("reboots = %d, want 1", control.reboots)
+	}
+}
+
+func TestBackendFailsClosedForUnsupportedGuestOperations(t *testing.T) {
+	backend, _, _, _ := backendFixture(t)
 	instance := runner.Instance{ID: "lpic-daily-not-real"}
 	if _, err := backend.Exec(
 		context.Background(),
@@ -536,6 +795,298 @@ func TestBackendRejectsImageDistributionMismatchBeforeOverlayCreation(t *testing
 	}
 	if len(control.defined) != 0 || len(commands.Calls) != 0 {
 		t.Fatalf("distribution mismatch mutated VM state")
+	}
+}
+
+func TestBackendScenarioSharesOneIsolatedNetwork(t *testing.T) {
+	backend, control, _, definition := backendFixture(t)
+	definition.Network = runner.NetworkIsolated
+	second := definition
+	second.LabID = "lpic1.109.2.peer-network"
+	ctx := context.Background()
+
+	scenario, err := backend.PrepareScenario(ctx, []runner.Definition{definition, second})
+	if err != nil {
+		t.Fatalf("PrepareScenario() error = %v", err)
+	}
+	if len(scenario.Instances) != 2 {
+		t.Fatalf("scenario instances = %d, want 2", len(scenario.Instances))
+	}
+	if len(control.networks) != 1 || !control.networkActive[scenario.NetworkName] {
+		t.Fatalf("scenario network state = %#v", control)
+	}
+	if len(control.networkFilters) != 1 {
+		t.Fatalf("scenario network filters = %#v, want one shared filter", control.networkFilters)
+	}
+	for _, instance := range scenario.Instances {
+		xml := control.defined[instance.ID]
+		if !strings.Contains(xml, `<source network="`+scenario.NetworkName+`"></source>`) {
+			t.Fatalf("domain %s does not use shared network:\n%s", instance.ID, xml)
+		}
+	}
+	if err := backend.DestroyScenario(ctx, scenario); err != nil {
+		t.Fatalf("DestroyScenario() error = %v", err)
+	}
+	if len(control.defined) != 0 || len(control.networks) != 0 || len(control.networkFilters) != 0 {
+		t.Fatalf(
+			"scenario cleanup leaked resources: domains=%#v networks=%#v filters=%#v",
+			control.defined,
+			control.networks,
+			control.networkFilters,
+		)
+	}
+	if control.networkStarts != 1 || control.networkDestroys != 1 || control.networkUndefines != 1 {
+		t.Fatalf("scenario network lifecycle = starts:%d destroys:%d undefines:%d",
+			control.networkStarts, control.networkDestroys, control.networkUndefines)
+	}
+	if err := backend.DestroyScenario(ctx, scenario); err != nil {
+		t.Fatalf("second DestroyScenario() error = %v, want idempotent success", err)
+	}
+}
+
+func TestBackendScenarioResetPreservesSharedNetwork(t *testing.T) {
+	backend, control, _, definition := backendFixture(t)
+	definition.Network = runner.NetworkIsolated
+	second := definition
+	second.LabID = "lpic1.109.2.peer-network"
+	ctx := context.Background()
+
+	scenario, err := backend.PrepareScenario(ctx, []runner.Definition{definition, second})
+	if err != nil {
+		t.Fatalf("PrepareScenario() error = %v", err)
+	}
+	if len(control.networks) != 1 || len(control.networkFilters) != 1 {
+		t.Fatalf(
+			"scenario isolation resources before reset: networks=%d filters=%d, want 1/1",
+			len(control.networks),
+			len(control.networkFilters),
+		)
+	}
+
+	target := scenario.Instances[0]
+	if err := backend.Start(ctx, target); err != nil {
+		t.Fatalf("Start() error = %v", err)
+	}
+	if err := backend.Reset(ctx, target); err != nil {
+		t.Fatalf("Reset() error = %v", err)
+	}
+	if len(control.networks) != 1 || len(control.networkFilters) != 1 {
+		t.Fatalf(
+			"scenario reset changed shared isolation resources: networks=%#v filters=%#v",
+			control.networks,
+			control.networkFilters,
+		)
+	}
+	if !control.networkActive[scenario.NetworkName] {
+		t.Fatalf("shared scenario network %s is not active after reset", scenario.NetworkName)
+	}
+	domainXML := control.defined[target.ID]
+	if !strings.Contains(domainXML, `<source network="`+scenario.NetworkName+`"></source>`) {
+		t.Fatalf("reset domain left shared network:\n%s", domainXML)
+	}
+
+	if err := backend.DestroyScenario(ctx, scenario); err != nil {
+		t.Fatalf("DestroyScenario() error = %v", err)
+	}
+}
+
+func TestBackendFailedScenarioRollbackStaysTrackedForCloseRetry(t *testing.T) {
+	backend, control, _, definition := backendFixture(t)
+	definition.Network = runner.NetworkIsolated
+	second := definition
+	second.LabID = "lpic1.109.2.invalid-peer"
+	second.Network = runner.NetworkNone
+
+	control.undefineErr = errors.New("temporary undefine failure")
+	_, err := backend.PrepareScenario(context.Background(), []runner.Definition{definition, second})
+	if err == nil || !strings.Contains(err.Error(), "rollback scenario instances") {
+		t.Fatalf("PrepareScenario() error = %v, want rollback failure", err)
+	}
+
+	backend.mu.RLock()
+	trackedScenarios := len(backend.scenarios)
+	backend.mu.RUnlock()
+	if trackedScenarios != 1 {
+		t.Fatalf("tracked scenarios after failed rollback = %d, want 1", trackedScenarios)
+	}
+	if len(control.networks) != 1 {
+		t.Fatalf("scenario network was torn down after failed guest rollback: %#v", control.networks)
+	}
+
+	control.undefineErr = nil
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := backend.Close(ctx); err != nil {
+		t.Fatalf("Close() retry error = %v", err)
+	}
+	if len(control.defined) != 0 || len(control.networks) != 0 {
+		t.Fatalf("Close() retry leaked resources: domains=%#v networks=%#v", control.defined, control.networks)
+	}
+}
+
+func TestBackendScenarioCleanupRetriesAfterLateFilterFailure(t *testing.T) {
+	backend, control, _, definition := backendFixture(t)
+	definition.Network = runner.NetworkIsolated
+	second := definition
+	second.LabID = "lpic1.109.2.peer-network"
+	ctx := context.Background()
+
+	scenario, err := backend.PrepareScenario(ctx, []runner.Definition{definition, second})
+	if err != nil {
+		t.Fatalf("PrepareScenario() error = %v", err)
+	}
+
+	control.filterUndefineErr = errors.New("temporary filter undefine failure")
+	if err := backend.DestroyScenario(ctx, scenario); err == nil ||
+		!strings.Contains(err.Error(), "temporary filter undefine failure") {
+		t.Fatalf("DestroyScenario() error = %v, want filter failure", err)
+	}
+	if len(control.networks) != 0 {
+		t.Fatalf("scenario network survived successful undefine: %#v", control.networks)
+	}
+	if len(control.networkFilters) != 1 {
+		t.Fatalf("scenario filter unexpectedly removed after failed undefine: %#v", control.networkFilters)
+	}
+	backend.mu.RLock()
+	tracked, ok := backend.scenarios[scenario.NetworkName]
+	backend.mu.RUnlock()
+	if !ok {
+		t.Fatal("partially cleaned scenario was not kept for retry")
+	}
+	if tracked.networkDefined {
+		t.Fatal("successful network cleanup was not persisted")
+	}
+	if !tracked.filterDefined {
+		t.Fatal("failed filter cleanup was incorrectly marked complete")
+	}
+
+	control.filterUndefineErr = nil
+	if err := backend.DestroyScenario(ctx, scenario); err != nil {
+		t.Fatalf("DestroyScenario() retry error = %v", err)
+	}
+	if len(control.networks) != 0 || len(control.networkFilters) != 0 {
+		t.Fatalf(
+			"retry leaked scenario resources: networks=%#v filters=%#v",
+			control.networks,
+			control.networkFilters,
+		)
+	}
+}
+
+func TestBackendCloseCleansTrackedScenario(t *testing.T) {
+	backend, control, _, definition := backendFixture(t)
+	definition.Network = runner.NetworkIsolated
+	second := definition
+	second.LabID = "lpic1.109.2.peer-network"
+
+	scenario, err := backend.PrepareScenario(context.Background(), []runner.Definition{definition, second})
+	if err != nil {
+		t.Fatalf("PrepareScenario() error = %v", err)
+	}
+	networkDirectory := filepath.Join(backend.stateRoot, scenario.NetworkName)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := backend.Close(ctx); err != nil {
+		t.Fatalf("Close() error = %v", err)
+	}
+	if !control.closed {
+		t.Fatal("control plane was not closed")
+	}
+	if len(control.defined) != 0 || len(control.networks) != 0 {
+		t.Fatalf("Close() leaked scenario resources: domains=%#v networks=%#v", control.defined, control.networks)
+	}
+	if _, err := os.Stat(networkDirectory); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("scenario network state directory survived Close(): %v", err)
+	}
+	backend.mu.RLock()
+	remainingScenarios := len(backend.scenarios)
+	backend.mu.RUnlock()
+	if remainingScenarios != 0 {
+		t.Fatalf("tracked scenarios after Close() = %d, want 0", remainingScenarios)
+	}
+}
+
+func TestBackendReapRemovesAbandonedResources(t *testing.T) {
+	backend, control, _, _ := backendFixture(t)
+	name := "lpic-daily-orphan-abc123"
+	directory := filepath.Join(backend.stateRoot, name)
+	if err := os.MkdirAll(directory, 0o700); err != nil {
+		t.Fatalf("MkdirAll() error = %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(directory, "root.qcow2"), []byte("orphan"), 0o600); err != nil {
+		t.Fatalf("WriteFile() error = %v", err)
+	}
+	control.defined[name] = strings.Replace(managedTestDomainXML, testManagedOwnerScope, backend.ownerScope, 1)
+	control.active[name] = true
+	control.networks[name] = strings.Replace(managedTestNetworkXML, testManagedOwnerScope, backend.ownerScope, 1)
+	control.networkActive[name] = true
+	control.networkFilters[name] = strings.Replace(
+		managedTestNetworkFilterXML,
+		testManagedOwnerScope,
+		backend.ownerScope,
+		1,
+	)
+
+	if err := backend.Reap(context.Background()); err != nil {
+		t.Fatalf("Reap() error = %v", err)
+	}
+	if _, exists := control.defined[name]; exists {
+		t.Fatal("orphan domain still defined")
+	}
+	if _, exists := control.networks[name]; exists {
+		t.Fatal("orphan network still defined")
+	}
+	if _, exists := control.networkFilters[name]; exists {
+		t.Fatal("orphan network filter still defined")
+	}
+	if _, err := os.Stat(directory); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("orphan state directory still exists: %v", err)
+	}
+}
+
+func TestBackendReapDoesNotTouchPrefixedForeignLibvirtResources(t *testing.T) {
+	backend, control, _, _ := backendFixture(t)
+	name := "lpic-daily-foreign-abc123"
+	control.defined[name] = "<domain/>"
+	control.active[name] = true
+	control.networks[name] = "<network/>"
+	control.networkActive[name] = true
+
+	if err := backend.Reap(context.Background()); err != nil {
+		t.Fatalf("Reap() error = %v", err)
+	}
+	if _, exists := control.defined[name]; !exists {
+		t.Fatal("foreign prefixed domain was reaped")
+	}
+	if _, exists := control.networks[name]; !exists {
+		t.Fatal("foreign prefixed network was reaped")
+	}
+}
+
+func TestBackendReapSkipsLiveLease(t *testing.T) {
+	backend, control, _, _ := backendFixture(t)
+	name := "lpic-daily-live-abc123"
+	directory := filepath.Join(backend.stateRoot, name)
+	if err := os.MkdirAll(directory, 0o700); err != nil {
+		t.Fatalf("MkdirAll() error = %v", err)
+	}
+	lease, err := acquireInstanceLease(directory)
+	if err != nil {
+		t.Fatalf("acquireInstanceLease() error = %v", err)
+	}
+	defer releaseInstanceLease(lease)
+	control.defined[name] = strings.Replace(managedTestDomainXML, testManagedOwnerScope, backend.ownerScope, 1)
+	control.active[name] = true
+
+	if err := backend.Reap(context.Background()); err != nil {
+		t.Fatalf("Reap() error = %v", err)
+	}
+	if _, exists := control.defined[name]; !exists {
+		t.Fatal("live leased domain was reaped")
+	}
+	if _, err := os.Stat(directory); err != nil {
+		t.Fatalf("live state directory removed: %v", err)
 	}
 }
 

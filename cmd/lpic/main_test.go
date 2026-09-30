@@ -5,6 +5,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -319,6 +321,38 @@ func TestPrepareJobControlShellAvoidsUnsupportedNonTTYStdin(t *testing.T) {
 	}
 }
 
+func TestSanitizedTerminalWriterRemovesTerminalControls(t *testing.T) {
+	var output bytes.Buffer
+	writer := sanitizedTerminalWriter{destination: &output}
+
+	payload := []byte("safe\x1b[31mred\x1b[0m\rrewrite\x07\u009b31m\n")
+	n, err := writer.Write(payload)
+	if err != nil {
+		t.Fatalf("Write() error = %v", err)
+	}
+	if n != len(payload) {
+		t.Fatalf("Write() count = %d, want %d", n, len(payload))
+	}
+	got := output.String()
+	for _, forbidden := range []rune{'\x1b', '\r', '\x07', '\u009b'} {
+		if strings.ContainsRune(got, forbidden) {
+			t.Fatalf("sanitized output still contains control %U: %q", forbidden, got)
+		}
+	}
+	if !strings.Contains(got, "safe") || !strings.Contains(got, "red") {
+		t.Fatalf("sanitized output lost printable content: %q", got)
+	}
+}
+
+func TestRequireUnprivilegedVMProcessRejectsRoot(t *testing.T) {
+	if err := requireUnprivilegedVMProcess(0); err == nil || !strings.Contains(err.Error(), "not root") {
+		t.Fatalf("root process error = %v", err)
+	}
+	if err := requireUnprivilegedVMProcess(1000); err != nil {
+		t.Fatalf("regular user rejected: %v", err)
+	}
+}
+
 func TestLibvirtLabRunFailsClosedWithoutTrustedImageCatalog(t *testing.T) {
 	root := t.TempDir()
 	t.Setenv("LPIC_DAILY_VM_IMAGE_DIR", filepath.Join(root, "vm-images"))
@@ -331,7 +365,14 @@ func TestLibvirtLabRunFailsClosedWithoutTrustedImageCatalog(t *testing.T) {
 		&stdout,
 		&bytes.Buffer{},
 	)
-	if err == nil || !strings.Contains(err.Error(), "load VM image catalog") {
+	if err == nil {
+		t.Fatal("libvirt lab unexpectedly started")
+	}
+	if os.Geteuid() == 0 {
+		if !strings.Contains(err.Error(), "regular user, not root") {
+			t.Fatalf("error = %v, want root refusal", err)
+		}
+	} else if !strings.Contains(err.Error(), "load VM image catalog") {
 		t.Fatalf("error = %v, want trusted VM image catalog failure", err)
 	}
 	if strings.Contains(err.Error(), "Podman") {
@@ -773,5 +814,139 @@ func TestLabRequiresJobControlOnlyForJobConcept(t *testing.T) {
 	}
 	if labRequiresJobControl(lab.Definition{ConceptIDs: []string{"lpic1.103.5.signaux"}}) {
 		t.Fatal("unrelated signal concept should not require job-control evidence")
+	}
+}
+
+func TestVMConsoleEscapeReaderStopsAtControlRightBracket(t *testing.T) {
+	escapeCalled := false
+	reader := &vmConsoleEscapeReader{
+		reader: strings.NewReader("before\x1dafter"),
+		onEscape: func() {
+			escapeCalled = true
+		},
+	}
+	buffer := make([]byte, 64)
+
+	n, err := reader.Read(buffer)
+	if err != nil {
+		t.Fatalf("first Read() error = %v", err)
+	}
+	if got := string(buffer[:n]); got != "before" {
+		t.Fatalf("first Read() = %q, want %q", got, "before")
+	}
+	if !escapeCalled {
+		t.Fatal("Ctrl-] did not trigger console cancellation")
+	}
+
+	n, err = reader.Read(buffer)
+	if n != 0 || !errors.Is(err, io.EOF) {
+		t.Fatalf("second Read() = (%d, %v), want (0, EOF)", n, err)
+	}
+}
+
+func TestVMConsoleEscapeReaderHandlesImmediateEscape(t *testing.T) {
+	reader := &vmConsoleEscapeReader{reader: strings.NewReader("\x1dignored")}
+	buffer := make([]byte, 64)
+
+	n, err := reader.Read(buffer)
+	if n != 0 || !errors.Is(err, io.EOF) {
+		t.Fatalf("Read() = (%d, %v), want (0, EOF)", n, err)
+	}
+}
+
+type consoleScriptedLabRunner struct {
+	scriptedLabRunner
+	consoleCalls int
+}
+
+func (fake *consoleScriptedLabRunner) OpenConsole(
+	context.Context,
+	runner.Instance,
+	runner.ConsoleRequest,
+) error {
+	fake.consoleCalls++
+	return nil
+}
+
+type rebootScriptedLabRunner struct {
+	scriptedLabRunner
+	rebootCalls int
+}
+
+func (fake *rebootScriptedLabRunner) Reboot(context.Context, runner.Instance) error {
+	fake.rebootCalls++
+	return nil
+}
+
+func TestRunVMConsoleRejectsNonTerminalBeforeOpeningConsole(t *testing.T) {
+	fake := &consoleScriptedLabRunner{}
+	err := runVMConsole(
+		context.Background(),
+		fake,
+		runner.Instance{ID: "vm"},
+		strings.NewReader(""),
+		&bytes.Buffer{},
+	)
+	if err == nil || !strings.Contains(err.Error(), "interactive terminal on stdin") {
+		t.Fatalf("runVMConsole() error = %v", err)
+	}
+	if fake.consoleCalls != 0 {
+		t.Fatalf("console calls = %d, want 0", fake.consoleCalls)
+	}
+}
+
+func TestInteractiveVMLabDispatchesConsoleCommand(t *testing.T) {
+	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("LoadAll() error = %v", err)
+	}
+	authored, err := findLab(labs, "lpic1.102.2.grub-kernel-parameter")
+	if err != nil {
+		t.Fatalf("findLab() error = %v", err)
+	}
+	fake := &consoleScriptedLabRunner{}
+	err = runInteractiveLabWithBackend(
+		context.Background(),
+		authored,
+		fake,
+		false,
+		strings.NewReader(":console\n"),
+		&bytes.Buffer{},
+		&bytes.Buffer{},
+	)
+	if err == nil || !strings.Contains(err.Error(), "interactive terminal on stdin") {
+		t.Fatalf(":console error = %v", err)
+	}
+}
+
+func TestInteractiveVMLabDispatchesRebootCommand(t *testing.T) {
+	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("LoadAll() error = %v", err)
+	}
+	authored, err := findLab(labs, "lpic1.102.2.grub-kernel-parameter")
+	if err != nil {
+		t.Fatalf("findLab() error = %v", err)
+	}
+	fake := &rebootScriptedLabRunner{}
+	var stdout, stderr bytes.Buffer
+	if err := runInteractiveLabWithBackend(
+		context.Background(),
+		authored,
+		fake,
+		false,
+		strings.NewReader(":reboot\n:quit\n"),
+		&stdout,
+		&stderr,
+	); err != nil {
+		t.Fatalf("runInteractiveLabWithBackend() error = %v; stderr=%q", err, stderr.String())
+	}
+	if fake.rebootCalls != 1 {
+		t.Fatalf("reboot calls = %d, want 1", fake.rebootCalls)
+	}
+	if !strings.Contains(stdout.String(), "Reboot demandé") {
+		t.Fatalf("stdout missing reboot confirmation: %q", stdout.String())
 	}
 }
