@@ -797,6 +797,44 @@ func TestBackendScenarioSharesOneIsolatedNetwork(t *testing.T) {
 	}
 }
 
+func TestBackendScenarioResetPreservesSharedNetwork(t *testing.T) {
+	backend, control, _, definition := backendFixture(t)
+	definition.Network = runner.NetworkIsolated
+	second := definition
+	second.LabID = "lpic1.109.2.peer-network"
+	ctx := context.Background()
+
+	scenario, err := backend.PrepareScenario(ctx, []runner.Definition{definition, second})
+	if err != nil {
+		t.Fatalf("PrepareScenario() error = %v", err)
+	}
+	if len(control.networks) != 1 {
+		t.Fatalf("scenario networks before reset = %d, want 1", len(control.networks))
+	}
+
+	target := scenario.Instances[0]
+	if err := backend.Start(ctx, target); err != nil {
+		t.Fatalf("Start() error = %v", err)
+	}
+	if err := backend.Reset(ctx, target); err != nil {
+		t.Fatalf("Reset() error = %v", err)
+	}
+	if len(control.networks) != 1 {
+		t.Fatalf("scenario reset created extra network: %#v", control.networks)
+	}
+	if !control.networkActive[scenario.NetworkName] {
+		t.Fatalf("shared scenario network %s is not active after reset", scenario.NetworkName)
+	}
+	domainXML := control.defined[target.ID]
+	if !strings.Contains(domainXML, `<source network="`+scenario.NetworkName+`"></source>`) {
+		t.Fatalf("reset domain left shared network:\n%s", domainXML)
+	}
+
+	if err := backend.DestroyScenario(ctx, scenario); err != nil {
+		t.Fatalf("DestroyScenario() error = %v", err)
+	}
+}
+
 func TestBackendFailedScenarioRollbackStaysTrackedForCloseRetry(t *testing.T) {
 	backend, control, _, definition := backendFixture(t)
 	definition.Network = runner.NetworkIsolated
