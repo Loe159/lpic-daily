@@ -42,9 +42,9 @@ type fakeControlPlane struct {
 
 func newFakeControlPlane() *fakeControlPlane {
 	return &fakeControlPlane{
-		defined:       make(map[string]string),
-		active:        make(map[string]bool),
-		networks:      make(map[string]string),
+		defined:        make(map[string]string),
+		active:         make(map[string]bool),
+		networks:       make(map[string]string),
 		networkActive:  make(map[string]bool),
 		networkFilters: make(map[string]string),
 	}
