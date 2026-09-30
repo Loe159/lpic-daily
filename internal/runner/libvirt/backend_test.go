@@ -22,6 +22,7 @@ type fakeControlPlane struct {
 	active           map[string]bool
 	networks         map[string]string
 	networkActive    map[string]bool
+	networkFilters   map[string]string
 	starts           int
 	reboots          int
 	destroys         int
@@ -44,7 +45,8 @@ func newFakeControlPlane() *fakeControlPlane {
 		defined:       make(map[string]string),
 		active:        make(map[string]bool),
 		networks:      make(map[string]string),
-		networkActive: make(map[string]bool),
+		networkActive:  make(map[string]bool),
+		networkFilters: make(map[string]string),
 	}
 }
 
@@ -192,6 +194,22 @@ func (fake *fakeControlPlane) UndefineNetwork(name string) error {
 	delete(fake.networkActive, name)
 	return nil
 }
+func (fake *fakeControlPlane) DefineNetworkFilter(name, xml string) error {
+	if _, exists := fake.networkFilters[name]; exists {
+		return errors.New("network filter already defined")
+	}
+	fake.networkFilters[name] = xml
+	return nil
+}
+
+func (fake *fakeControlPlane) UndefineNetworkFilter(name string) error {
+	if _, exists := fake.networkFilters[name]; !exists {
+		return errors.New("network filter missing")
+	}
+	delete(fake.networkFilters, name)
+	return nil
+}
+
 func (fake *fakeControlPlane) ListManagedDomains() ([]string, error) {
 	names := make([]string, 0, len(fake.defined))
 	for name, resourceXML := range fake.defined {
@@ -204,6 +222,16 @@ func (fake *fakeControlPlane) ListManagedDomains() ([]string, error) {
 func (fake *fakeControlPlane) ListManagedNetworks() ([]string, error) {
 	names := make([]string, 0, len(fake.networks))
 	for name, resourceXML := range fake.networks {
+		if hasManagedMetadata(resourceXML, fake.ownerScope) {
+			names = append(names, name)
+		}
+	}
+	return names, nil
+}
+
+func (fake *fakeControlPlane) ListManagedNetworkFilters() ([]string, error) {
+	names := make([]string, 0, len(fake.networkFilters))
+	for name, resourceXML := range fake.networkFilters {
 		if hasManagedMetadata(resourceXML, fake.ownerScope) {
 			names = append(names, name)
 		}
