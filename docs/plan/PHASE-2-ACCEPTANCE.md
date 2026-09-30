@@ -25,6 +25,7 @@ Review remediation completed through 2026-09-30:
 - resetting one VM in a multi-machine scenario preserves the scenario's shared isolated network/filter instead of creating a private replacement network;
 - the 102.2 checker now requires the persistent source configuration in `/etc/default/grub`, the generated `grub.cfg`, and the post-reboot kernel command line;
 - every generated root overlay and scratch QCOW2 file is forced to mode `0600`, independent of the caller's umask.
+- multi-VM scenario teardown now persists partial cleanup progress and repeated `DestroyScenario()` calls are idempotent; a late network-filter teardown failure can be retried without re-querying an already undefined network.
 
 ## Control plane
 - [ ] application process remains non-root;

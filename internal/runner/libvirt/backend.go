@@ -317,9 +317,11 @@ func (backend *Backend) prepareNamedOnNetwork(
 }
 
 type Scenario struct {
-	NetworkName string
-	Instances   []runner.Instance
-	lease       *os.File
+	NetworkName    string
+	Instances      []runner.Instance
+	lease          *os.File
+	networkDefined bool
+	filterDefined  bool
 }
 
 func (backend *Backend) PrepareScenario(
@@ -414,7 +416,12 @@ func (backend *Backend) PrepareScenario(
 	}
 	networkStarted = true
 
-	scenario := Scenario{NetworkName: networkName, lease: networkLease}
+	scenario := Scenario{
+		NetworkName:    networkName,
+		lease:          networkLease,
+		networkDefined: true,
+		filterDefined:  true,
+	}
 	rollback := func(primary error) error {
 		if rollbackErr := backend.rollbackScenarioInstances(scenario.Instances); rollbackErr != nil {
 			// Preserve the shared network and lease as tracked backend state so
@@ -465,9 +472,12 @@ func (backend *Backend) DestroyScenario(ctx context.Context, scenario Scenario) 
 	backend.mu.RLock()
 	tracked, trackedScenario := backend.scenarios[scenario.NetworkName]
 	backend.mu.RUnlock()
-	if trackedScenario {
-		scenario = tracked
+	if !trackedScenario {
+		// A successfully destroyed scenario is no longer tracked. Treat repeated
+		// teardown as success so cleanup remains idempotent.
+		return nil
 	}
+	scenario = tracked
 
 	// Do not tear down the shared network while one of its guests is still
 	// active or failed to clean up. Keeping the lease/state makes the operation
@@ -476,40 +486,59 @@ func (backend *Backend) DestroyScenario(ctx context.Context, scenario Scenario) 
 		return err
 	}
 
-	networkControl, ok := backend.control.(NetworkControlPlane)
-	if !ok {
-		return fmt.Errorf("%w: cannot destroy scenario network", runner.ErrNotSupported)
-	}
-	active, err := networkControl.NetworkActive(scenario.NetworkName)
-	if err != nil {
-		return err
-	}
-	if active {
-		if err := networkControl.DestroyNetwork(scenario.NetworkName); err != nil {
+	if scenario.networkDefined {
+		networkControl, ok := backend.control.(NetworkControlPlane)
+		if !ok {
+			return fmt.Errorf("%w: cannot destroy scenario network", runner.ErrNotSupported)
+		}
+		active, err := networkControl.NetworkActive(scenario.NetworkName)
+		if err != nil {
 			return err
 		}
+		if active {
+			if err := networkControl.DestroyNetwork(scenario.NetworkName); err != nil {
+				return err
+			}
+		}
+		if err := networkControl.UndefineNetwork(scenario.NetworkName); err != nil {
+			return err
+		}
+		scenario.networkDefined = false
+		backend.updateTrackedScenario(scenario)
 	}
-	if err := networkControl.UndefineNetwork(scenario.NetworkName); err != nil {
-		return err
+
+	if scenario.filterDefined {
+		filterControl, ok := backend.control.(NetworkFilterControlPlane)
+		if !ok {
+			return fmt.Errorf("%w: cannot destroy scenario network filter", runner.ErrNotSupported)
+		}
+		if err := filterControl.UndefineNetworkFilter(scenario.NetworkName); err != nil {
+			return err
+		}
+		scenario.filterDefined = false
+		backend.updateTrackedScenario(scenario)
 	}
-	filterControl, ok := backend.control.(NetworkFilterControlPlane)
-	if !ok {
-		return fmt.Errorf("%w: cannot destroy scenario network filter", runner.ErrNotSupported)
-	}
-	if err := filterControl.UndefineNetworkFilter(scenario.NetworkName); err != nil {
-		return err
-	}
+
 	if err := backend.overlays.Destroy(scenario.NetworkName); err != nil {
 		return err
 	}
 	if err := releaseInstanceLease(scenario.lease); err != nil {
 		return err
 	}
+	scenario.lease = nil
 
 	backend.mu.Lock()
 	delete(backend.scenarios, scenario.NetworkName)
 	backend.mu.Unlock()
 	return nil
+}
+
+func (backend *Backend) updateTrackedScenario(scenario Scenario) {
+	backend.mu.Lock()
+	if _, exists := backend.scenarios[scenario.NetworkName]; exists {
+		backend.scenarios[scenario.NetworkName] = scenario
+	}
+	backend.mu.Unlock()
 }
 
 func (backend *Backend) rollbackScenarioInstances(instances []runner.Instance) error {

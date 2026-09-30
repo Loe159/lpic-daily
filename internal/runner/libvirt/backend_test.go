@@ -35,9 +35,10 @@ type fakeControlPlane struct {
 	agentResponses   []string
 	agentErrors      []error
 	agentCommands    []string
-	destroyErr       error
-	undefineErr      error
-	closed           bool
+	destroyErr          error
+	undefineErr         error
+	filterUndefineErr   error
+	closed              bool
 }
 
 func newFakeControlPlane() *fakeControlPlane {
@@ -205,6 +206,9 @@ func (fake *fakeControlPlane) DefineNetworkFilter(name, xml string) error {
 func (fake *fakeControlPlane) UndefineNetworkFilter(name string) error {
 	if _, exists := fake.networkFilters[name]; !exists {
 		return errors.New("network filter missing")
+	}
+	if fake.filterUndefineErr != nil {
+		return fake.filterUndefineErr
 	}
 	delete(fake.networkFilters, name)
 	return nil
@@ -835,6 +839,9 @@ func TestBackendScenarioSharesOneIsolatedNetwork(t *testing.T) {
 		t.Fatalf("scenario network lifecycle = starts:%d destroys:%d undefines:%d",
 			control.networkStarts, control.networkDestroys, control.networkUndefines)
 	}
+	if err := backend.DestroyScenario(ctx, scenario); err != nil {
+		t.Fatalf("second DestroyScenario() error = %v, want idempotent success", err)
+	}
 }
 
 func TestBackendScenarioResetPreservesSharedNetwork(t *testing.T) {
@@ -914,6 +921,55 @@ func TestBackendFailedScenarioRollbackStaysTrackedForCloseRetry(t *testing.T) {
 	}
 	if len(control.defined) != 0 || len(control.networks) != 0 {
 		t.Fatalf("Close() retry leaked resources: domains=%#v networks=%#v", control.defined, control.networks)
+	}
+}
+
+func TestBackendScenarioCleanupRetriesAfterLateFilterFailure(t *testing.T) {
+	backend, control, _, definition := backendFixture(t)
+	definition.Network = runner.NetworkIsolated
+	second := definition
+	second.LabID = "lpic1.109.2.peer-network"
+	ctx := context.Background()
+
+	scenario, err := backend.PrepareScenario(ctx, []runner.Definition{definition, second})
+	if err != nil {
+		t.Fatalf("PrepareScenario() error = %v", err)
+	}
+
+	control.filterUndefineErr = errors.New("temporary filter undefine failure")
+	if err := backend.DestroyScenario(ctx, scenario); err == nil ||
+		!strings.Contains(err.Error(), "temporary filter undefine failure") {
+		t.Fatalf("DestroyScenario() error = %v, want filter failure", err)
+	}
+	if len(control.networks) != 0 {
+		t.Fatalf("scenario network survived successful undefine: %#v", control.networks)
+	}
+	if len(control.networkFilters) != 1 {
+		t.Fatalf("scenario filter unexpectedly removed after failed undefine: %#v", control.networkFilters)
+	}
+	backend.mu.RLock()
+	tracked, ok := backend.scenarios[scenario.NetworkName]
+	backend.mu.RUnlock()
+	if !ok {
+		t.Fatal("partially cleaned scenario was not kept for retry")
+	}
+	if tracked.networkDefined {
+		t.Fatal("successful network cleanup was not persisted")
+	}
+	if !tracked.filterDefined {
+		t.Fatal("failed filter cleanup was incorrectly marked complete")
+	}
+
+	control.filterUndefineErr = nil
+	if err := backend.DestroyScenario(ctx, scenario); err != nil {
+		t.Fatalf("DestroyScenario() retry error = %v", err)
+	}
+	if len(control.networks) != 0 || len(control.networkFilters) != 0 {
+		t.Fatalf(
+			"retry leaked scenario resources: networks=%#v filters=%#v",
+			control.networks,
+			control.networkFilters,
+		)
 	}
 }
 
