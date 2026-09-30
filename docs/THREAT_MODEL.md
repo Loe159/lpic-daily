@@ -1,6 +1,6 @@
 # Threat model
 
-Status: **Phase-1 baseline**
+Status: **Phase-2 baseline**
 
 ## Assets to protect
 - learner host OS, home directory and credentials;
@@ -45,10 +45,11 @@ Mitigations:
 - explicit scratch directories owned by LPIC Daily only;
 - path canonicalization and traversal checks.
 
-### T-004 Lab attacks LAN/Internet
+### T-004 Lab attacks host/LAN/Internet
 Mitigations:
 - network disabled or isolated by default;
 - VM networks use no forwarding by default;
+- isolated VM interfaces use a host-enforced libvirt nwfilter that permits DHCP to the bridge gateway but drops other IPv4 traffic to the host bridge address and drops guest IPv6 egress;
 - scenario-local DNS/HTTP/SSH peers;
 - explicit reviewed capability required for external networking.
 
@@ -61,9 +62,9 @@ Mitigations:
 
 ### T-006 Malicious terminal escape sequences
 Mitigations:
-- sanitize/encode untrusted guest output before rendering in TUI surfaces that interpret control sequences;
+- sanitize/encode untrusted guest output before rendering in non-interactive CLI/TUI surfaces;
 - bound output size;
-- provide raw-log access through a safe explicit path when needed.
+- permit raw control sequences only in explicit terminal passthrough surfaces such as the VM serial console.
 
 ### T-007 Malicious archive/content pack path traversal
 Mitigations:
@@ -101,3 +102,13 @@ Mitigations:
 - no lab requires host root;
 - lab success is determined by state checks in the sandbox;
 - destructive test fixture proves the host working directory remains unaffected.
+
+
+## Security acceptance invariants for Phase 2
+- VM labs remain non-root and use local `qemu:///system` only;
+- curriculum cannot request host mounts, devices, arbitrary QEMU arguments or host execution;
+- isolated VM networking has no LAN/Internet forwarding and cannot reach host bridge services except the DHCP endpoint required to acquire an address;
+- VM disk overlays/scratch disks are forced to mode `0600`;
+- non-interactive VM output is sanitized; only explicit console passthrough is raw;
+- reset recreates disposable VM state without detaching a scenario guest from its shared isolated network;
+- libvirt domains, networks and nwfilters require matching LPIC Daily ownership metadata before lifecycle/reaping operations.
