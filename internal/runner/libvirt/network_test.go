@@ -56,7 +56,7 @@ func TestParseProcIPv4Routes(t *testing.T) {
 	}
 	want := map[netip.Prefix]bool{
 		netip.MustParsePrefix("172.17.0.0/16"): false,
-		netip.MustParsePrefix("10.0.0.0/8"):     false,
+		netip.MustParsePrefix("10.0.0.0/8"):    false,
 	}
 	if len(routes) != len(want) {
 		t.Fatalf("routes = %#v, want %d entries", routes, len(want))
