@@ -714,6 +714,9 @@ func TestBackendIsolatedNetworkLifecycle(t *testing.T) {
 	if len(control.networks) != 1 || !control.networkActive[instance.ID] {
 		t.Fatalf("isolated network state = %#v", control)
 	}
+	if len(control.networkFilters) != 1 {
+		t.Fatalf("isolated network filters = %#v, want one host-isolation filter", control.networkFilters)
+	}
 	networkXML := control.networks[instance.ID]
 	if strings.Contains(networkXML, "<forward") {
 		t.Fatalf("isolated network forwards traffic:\n%s", networkXML)
@@ -728,7 +731,8 @@ func TestBackendIsolatedNetworkLifecycle(t *testing.T) {
 	if err := backend.Destroy(ctx, instance); err != nil {
 		t.Fatalf("Destroy() error = %v", err)
 	}
-	if len(control.networks) != 0 || control.networkDestroys != 1 || control.networkUndefines != 1 {
+	if len(control.networks) != 0 || len(control.networkFilters) != 0 ||
+		control.networkDestroys != 1 || control.networkUndefines != 1 {
 		t.Fatalf("network cleanup state = %#v", control)
 	}
 }
@@ -807,6 +811,9 @@ func TestBackendScenarioSharesOneIsolatedNetwork(t *testing.T) {
 	if len(control.networks) != 1 || !control.networkActive[scenario.NetworkName] {
 		t.Fatalf("scenario network state = %#v", control)
 	}
+	if len(control.networkFilters) != 1 {
+		t.Fatalf("scenario network filters = %#v, want one shared filter", control.networkFilters)
+	}
 	for _, instance := range scenario.Instances {
 		xml := control.defined[instance.ID]
 		if !strings.Contains(xml, `<source network="`+scenario.NetworkName+`"></source>`) {
@@ -816,8 +823,13 @@ func TestBackendScenarioSharesOneIsolatedNetwork(t *testing.T) {
 	if err := backend.DestroyScenario(ctx, scenario); err != nil {
 		t.Fatalf("DestroyScenario() error = %v", err)
 	}
-	if len(control.defined) != 0 || len(control.networks) != 0 {
-		t.Fatalf("scenario cleanup leaked resources: domains=%#v networks=%#v", control.defined, control.networks)
+	if len(control.defined) != 0 || len(control.networks) != 0 || len(control.networkFilters) != 0 {
+		t.Fatalf(
+			"scenario cleanup leaked resources: domains=%#v networks=%#v filters=%#v",
+			control.defined,
+			control.networks,
+			control.networkFilters,
+		)
 	}
 	if control.networkStarts != 1 || control.networkDestroys != 1 || control.networkUndefines != 1 {
 		t.Fatalf("scenario network lifecycle = starts:%d destroys:%d undefines:%d",
@@ -836,8 +848,12 @@ func TestBackendScenarioResetPreservesSharedNetwork(t *testing.T) {
 	if err != nil {
 		t.Fatalf("PrepareScenario() error = %v", err)
 	}
-	if len(control.networks) != 1 {
-		t.Fatalf("scenario networks before reset = %d, want 1", len(control.networks))
+	if len(control.networks) != 1 || len(control.networkFilters) != 1 {
+		t.Fatalf(
+			"scenario isolation resources before reset: networks=%d filters=%d, want 1/1",
+			len(control.networks),
+			len(control.networkFilters),
+		)
 	}
 
 	target := scenario.Instances[0]
@@ -847,8 +863,12 @@ func TestBackendScenarioResetPreservesSharedNetwork(t *testing.T) {
 	if err := backend.Reset(ctx, target); err != nil {
 		t.Fatalf("Reset() error = %v", err)
 	}
-	if len(control.networks) != 1 {
-		t.Fatalf("scenario reset created extra network: %#v", control.networks)
+	if len(control.networks) != 1 || len(control.networkFilters) != 1 {
+		t.Fatalf(
+			"scenario reset changed shared isolation resources: networks=%#v filters=%#v",
+			control.networks,
+			control.networkFilters,
+		)
 	}
 	if !control.networkActive[scenario.NetworkName] {
 		t.Fatalf("shared scenario network %s is not active after reset", scenario.NetworkName)
@@ -945,6 +965,12 @@ func TestBackendReapRemovesAbandonedResources(t *testing.T) {
 	control.active[name] = true
 	control.networks[name] = strings.Replace(managedTestNetworkXML, testManagedOwnerScope, backend.ownerScope, 1)
 	control.networkActive[name] = true
+	control.networkFilters[name] = strings.Replace(
+		managedTestNetworkFilterXML,
+		testManagedOwnerScope,
+		backend.ownerScope,
+		1,
+	)
 
 	if err := backend.Reap(context.Background()); err != nil {
 		t.Fatalf("Reap() error = %v", err)
@@ -954,6 +980,9 @@ func TestBackendReapRemovesAbandonedResources(t *testing.T) {
 	}
 	if _, exists := control.networks[name]; exists {
 		t.Fatal("orphan network still defined")
+	}
+	if _, exists := control.networkFilters[name]; exists {
+		t.Fatal("orphan network filter still defined")
 	}
 	if _, err := os.Stat(directory); !errors.Is(err, os.ErrNotExist) {
 		t.Fatalf("orphan state directory still exists: %v", err)
