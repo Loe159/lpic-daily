@@ -277,14 +277,14 @@ func (backend *Backend) prepareNamedOnNetwork(
 	}
 
 	xml, err := BuildDomainXML(DomainSpec{
-		Name:         name,
-		LabID:        definition.LabID,
-		OwnerScope:   backend.ownerScope,
-		MemoryMB:     definition.MemoryMB,
-		CPUPercent:   definition.CPUPercent,
-		Firmware:     definition.Machine.Firmware,
-		RootDiskPath: paths.RootDisk,
-		ExtraDisks:   extraDisks,
+		Name:              name,
+		LabID:             definition.LabID,
+		OwnerScope:        backend.ownerScope,
+		MemoryMB:          definition.MemoryMB,
+		CPUPercent:        definition.CPUPercent,
+		Firmware:          definition.Machine.Firmware,
+		RootDiskPath:      paths.RootDisk,
+		ExtraDisks:        extraDisks,
 		NetworkName:       networkName,
 		NetworkFilterName: filterName,
 	}, backend.stateRoot)
