@@ -17,36 +17,36 @@ import (
 )
 
 type fakeControlPlane struct {
-	ownerScope       string
-	defined          map[string]string
-	active           map[string]bool
-	networks         map[string]string
-	networkActive    map[string]bool
-	networkFilters   map[string]string
-	starts           int
-	reboots          int
-	destroys         int
-	undefines        int
-	networkStarts    int
-	networkDestroys  int
+	ownerScope	string
+	defined	map[string]string
+	active	map[string]bool
+	networks	map[string]string
+	networkActive	map[string]bool
+	networkFilters	map[string]string
+	starts	int
+	reboots	int
+	destroys	int
+	undefines	int
+	networkStarts	int
+	networkDestroys	int
 	networkUndefines int
-	removeNVRAM      bool
-	consoleOpens     int
-	agentResponses   []string
-	agentErrors      []error
-	agentCommands     []string
-	destroyErr        error
-	undefineErr       error
+	removeNVRAM	bool
+	consoleOpens	int
+	agentResponses	[]string
+	agentErrors	[]error
+	agentCommands	[]string
+	destroyErr	error
+	undefineErr	error
 	filterUndefineErr error
-	closed            bool
+	closed	bool
 }
 
 func newFakeControlPlane() *fakeControlPlane {
 	return &fakeControlPlane{
-		defined:        make(map[string]string),
-		active:         make(map[string]bool),
-		networks:       make(map[string]string),
-		networkActive:  make(map[string]bool),
+		defined:	make(map[string]string),
+		active:	make(map[string]bool),
+		networks:	make(map[string]string),
+		networkActive:	make(map[string]bool),
 		networkFilters: make(map[string]string),
 	}
 }
@@ -282,7 +282,7 @@ func backendFixture(t *testing.T) (*Backend, *fakeControlPlane, *fakeCommands, r
 		Images: []ImageCatalogEntry{{
 			ID:            "fedora-44-x86_64-v1",
 			RelativePath:  "fedora/base.qcow2",
-			SHA256:        hex.EncodeToString(digest[:]),
+			SHA256:	hex.EncodeToString(digest[:]),
 			Format:        "qcow2",
 			Architecture:  "x86_64",
 			Distribution:  "fedora",
@@ -318,12 +318,12 @@ func backendFixture(t *testing.T) (*Backend, *fakeControlPlane, *fakeCommands, r
 		LabID:             "lpic1.104.1.partition-disk",
 		ImageRef:          "fedora-44-x86_64-v1",
 		Distribution:      "fedora",
-		Network:           runner.NetworkNone,
+		Network:	runner.NetworkNone,
 		CapabilityProfile: "full-machine",
-		MemoryMB:          1024,
-		CPUPercent:        100,
-		PIDs:              128,
-		Timeout:           20 * time.Minute,
+		MemoryMB:	1024,
+		CPUPercent:	100,
+		PIDs:	128,
+		Timeout:	20 * time.Minute,
 		Machine: &runner.MachineDefinition{
 			Firmware: runner.FirmwareUEFI,
 			ExtraDisks: []runner.VirtualDisk{{
