@@ -336,6 +336,13 @@ func (backend *Backend) PrepareScenario(
 			runner.ErrNotSupported,
 		)
 	}
+	filterControl, ok := backend.control.(NetworkFilterControlPlane)
+	if !ok {
+		return Scenario{}, fmt.Errorf(
+			"%w: libvirt control plane has no network-filter capability",
+			runner.ErrNotSupported,
+		)
+	}
 	networkName, err := vmInstanceName("scenario-network")
 	if err != nil {
 		return Scenario{}, err
@@ -371,11 +378,22 @@ func (backend *Backend) PrepareScenario(
 		_ = releaseNetworkAllocationLock(allocationLock)
 		return Scenario{}, err
 	}
+	filterXML, err := BuildHostIsolationFilterXML(networkName, subnet, backend.ownerScope)
+	if err != nil {
+		_ = releaseNetworkAllocationLock(allocationLock)
+		return Scenario{}, err
+	}
 	if err := networkControl.DefineNetwork(networkName, networkXML); err != nil {
 		_ = releaseNetworkAllocationLock(allocationLock)
 		return Scenario{}, err
 	}
+	if err := filterControl.DefineNetworkFilter(networkName, filterXML); err != nil {
+		_ = networkControl.UndefineNetwork(networkName)
+		_ = releaseNetworkAllocationLock(allocationLock)
+		return Scenario{}, err
+	}
 	if err := releaseNetworkAllocationLock(allocationLock); err != nil {
+		_ = filterControl.UndefineNetworkFilter(networkName)
 		_ = networkControl.UndefineNetwork(networkName)
 		return Scenario{}, fmt.Errorf("unlock scenario network allocation: %w", err)
 	}
@@ -389,6 +407,7 @@ func (backend *Backend) PrepareScenario(
 			_ = networkControl.DestroyNetwork(networkName)
 		}
 		_ = networkControl.UndefineNetwork(networkName)
+		_ = filterControl.UndefineNetworkFilter(networkName)
 	}()
 	if err := networkControl.StartNetwork(networkName); err != nil {
 		return Scenario{}, err
@@ -471,6 +490,13 @@ func (backend *Backend) DestroyScenario(ctx context.Context, scenario Scenario) 
 		}
 	}
 	if err := networkControl.UndefineNetwork(scenario.NetworkName); err != nil {
+		return err
+	}
+	filterControl, ok := backend.control.(NetworkFilterControlPlane)
+	if !ok {
+		return fmt.Errorf("%w: cannot destroy scenario network filter", runner.ErrNotSupported)
+	}
+	if err := filterControl.UndefineNetworkFilter(scenario.NetworkName); err != nil {
 		return err
 	}
 	if err := backend.overlays.Destroy(scenario.NetworkName); err != nil {
@@ -748,6 +774,23 @@ func (backend *Backend) destroyManaged(
 		backend.mu.Unlock()
 	}
 
+	if managed.FilterDefined {
+		filterControl, ok := backend.control.(NetworkFilterControlPlane)
+		if !ok {
+			return fmt.Errorf(
+				"%w: libvirt control plane lost network-filter capability",
+				runner.ErrNotSupported,
+			)
+		}
+		if err := filterControl.UndefineNetworkFilter(managed.FilterName); err != nil {
+			return err
+		}
+		managed.FilterDefined = false
+		backend.mu.Lock()
+		backend.instances[name] = managed
+		backend.mu.Unlock()
+	}
+
 	if err := backend.overlays.Destroy(name); err != nil {
 		return err
 	}
@@ -778,15 +821,24 @@ func (backend *Backend) Reap(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	filters, err := inventory.ListManagedNetworkFilters()
+	if err != nil {
+		return err
+	}
 	domainSet := make(map[string]struct{}, len(domains))
 	networkSet := make(map[string]struct{}, len(networks))
-	candidates := make(map[string]struct{}, len(domains)+len(networks))
+	filterSet := make(map[string]struct{}, len(filters))
+	candidates := make(map[string]struct{}, len(domains)+len(networks)+len(filters))
 	for _, name := range domains {
 		domainSet[name] = struct{}{}
 		candidates[name] = struct{}{}
 	}
 	for _, name := range networks {
 		networkSet[name] = struct{}{}
+		candidates[name] = struct{}{}
+	}
+	for _, name := range filters {
+		filterSet[name] = struct{}{}
 		candidates[name] = struct{}{}
 	}
 
@@ -886,6 +938,19 @@ func (backend *Backend) Reap(ctx context.Context) error {
 				}
 			}
 			if undefineErr := networkControl.UndefineNetwork(name); undefineErr != nil {
+				errs = append(errs, undefineErr)
+				_ = releaseInstanceLease(lease)
+				continue
+			}
+		}
+		if _, exists := filterSet[name]; exists {
+			filterControl, supported := backend.control.(NetworkFilterControlPlane)
+			if !supported {
+				errs = append(errs, fmt.Errorf("%w: cannot reap network filter %s", runner.ErrNotSupported, name))
+				_ = releaseInstanceLease(lease)
+				continue
+			}
+			if undefineErr := filterControl.UndefineNetworkFilter(name); undefineErr != nil {
 				errs = append(errs, undefineErr)
 				_ = releaseInstanceLease(lease)
 				continue
