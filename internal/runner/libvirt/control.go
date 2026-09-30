@@ -42,9 +42,15 @@ type NetworkControlPlane interface {
 	UndefineNetwork(string) error
 }
 
+type NetworkFilterControlPlane interface {
+	DefineNetworkFilter(string, string) error
+	UndefineNetworkFilter(string) error
+}
+
 type ResourceInventory interface {
 	ListManagedDomains() ([]string, error)
 	ListManagedNetworks() ([]string, error)
+	ListManagedNetworkFilters() ([]string, error)
 }
 
 type ConsoleControlPlane interface {
@@ -75,8 +81,13 @@ type rawLibvirt interface {
 	NetworkGetXMLDesc(golibvirt.Network, uint32) (string, error)
 	NetworkDestroy(golibvirt.Network) error
 	NetworkUndefine(golibvirt.Network) error
+	NwfilterDefineXML(string) (golibvirt.Nwfilter, error)
+	NwfilterLookupByName(string) (golibvirt.Nwfilter, error)
+	NwfilterGetXMLDesc(golibvirt.Nwfilter, uint32) (string, error)
+	NwfilterUndefine(golibvirt.Nwfilter) error
 	ConnectListAllDomains(int32, golibvirt.ConnectListAllDomainsFlags) ([]golibvirt.Domain, uint32, error)
 	ConnectListAllNetworks(int32, golibvirt.ConnectListAllNetworksFlags) ([]golibvirt.Network, uint32, error)
+	ConnectListAllNwfilters(int32, uint32) ([]golibvirt.Nwfilter, uint32, error)
 	Disconnect() error
 }
 
@@ -411,6 +422,40 @@ func (control *RPCControlPlane) UndefineNetwork(name string) error {
 	return nil
 }
 
+func (control *RPCControlPlane) DefineNetworkFilter(name, filterXML string) error {
+	if err := validateManagedResourceName("network filter", name); err != nil {
+		return err
+	}
+	if err := control.requireManagedOwnerScope(); err != nil {
+		return err
+	}
+	if strings.TrimSpace(filterXML) == "" {
+		return errors.New("network filter XML is required")
+	}
+	if !hasManagedMetadata(filterXML, control.ownerScope) {
+		return errors.New("network filter XML is missing matching LPIC Daily ownership metadata")
+	}
+	filter, err := control.raw.NwfilterDefineXML(filterXML)
+	if err != nil {
+		return fmt.Errorf("define network filter %s: %w", name, err)
+	}
+	if filter.Name != name {
+		return fmt.Errorf("libvirt defined unexpected network filter %q, expected %q", filter.Name, name)
+	}
+	return nil
+}
+
+func (control *RPCControlPlane) UndefineNetworkFilter(name string) error {
+	filter, err := control.lookupManagedNetworkFilter(name)
+	if err != nil {
+		return err
+	}
+	if err := control.raw.NwfilterUndefine(filter); err != nil {
+		return fmt.Errorf("undefine network filter %s: %w", name, err)
+	}
+	return nil
+}
+
 func (control *RPCControlPlane) ListManagedDomains() ([]string, error) {
 	if err := control.requireManagedOwnerScope(); err != nil {
 		return nil, err
@@ -460,6 +505,30 @@ func (control *RPCControlPlane) ListManagedNetworks() ([]string, error) {
 		}
 		if hasManagedMetadata(resourceXML, control.ownerScope) {
 			names = append(names, network.Name)
+		}
+	}
+	return names, nil
+}
+
+func (control *RPCControlPlane) ListManagedNetworkFilters() ([]string, error) {
+	if err := control.requireManagedOwnerScope(); err != nil {
+		return nil, err
+	}
+	filters, _, err := control.raw.ConnectListAllNwfilters(1, 0)
+	if err != nil {
+		return nil, fmt.Errorf("list libvirt network filters: %w", err)
+	}
+	names := make([]string, 0, len(filters))
+	for _, filter := range filters {
+		if !managedNamePattern.MatchString(filter.Name) {
+			continue
+		}
+		resourceXML, err := control.raw.NwfilterGetXMLDesc(filter, 0)
+		if err != nil {
+			return nil, fmt.Errorf("inspect network filter %s ownership metadata: %w", filter.Name, err)
+		}
+		if hasManagedMetadata(resourceXML, control.ownerScope) {
+			names = append(names, filter.Name)
 		}
 	}
 	return names, nil
@@ -532,6 +601,30 @@ func (control *RPCControlPlane) lookupManagedNetwork(name string) (golibvirt.Net
 		return golibvirt.Network{}, fmt.Errorf("network %s is not owned by this LPIC Daily instance", name)
 	}
 	return network, nil
+}
+
+func (control *RPCControlPlane) lookupManagedNetworkFilter(name string) (golibvirt.Nwfilter, error) {
+	if err := validateManagedResourceName("network filter", name); err != nil {
+		return golibvirt.Nwfilter{}, err
+	}
+	if err := control.requireManagedOwnerScope(); err != nil {
+		return golibvirt.Nwfilter{}, err
+	}
+	filter, err := control.raw.NwfilterLookupByName(name)
+	if err != nil {
+		return golibvirt.Nwfilter{}, fmt.Errorf("lookup network filter %s: %w", name, err)
+	}
+	if filter.Name != name {
+		return golibvirt.Nwfilter{}, fmt.Errorf("libvirt returned unexpected network filter %q for %q", filter.Name, name)
+	}
+	resourceXML, err := control.raw.NwfilterGetXMLDesc(filter, 0)
+	if err != nil {
+		return golibvirt.Nwfilter{}, fmt.Errorf("inspect network filter %s ownership metadata: %w", name, err)
+	}
+	if !hasManagedMetadata(resourceXML, control.ownerScope) {
+		return golibvirt.Nwfilter{}, fmt.Errorf("network filter %s is not owned by this LPIC Daily instance", name)
+	}
+	return filter, nil
 }
 
 func validateManagedResourceName(kind, name string) error {
