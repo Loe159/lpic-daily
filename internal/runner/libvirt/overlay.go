@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -19,6 +20,7 @@ import (
 
 type CommandRunner interface {
 	Run(context.Context, string, ...string) error
+	Output(context.Context, string, ...string) ([]byte, error)
 }
 
 type ExecCommandRunner struct {
@@ -59,6 +61,27 @@ func (runner *ExecCommandRunner) Run(ctx context.Context, name string, args ...s
 		return fmt.Errorf("qemu-img %v: %w: %s", args, err, message)
 	}
 	return nil
+}
+
+func (runner *ExecCommandRunner) Output(ctx context.Context, name string, args ...string) ([]byte, error) {
+	if runner == nil || runner.QEMUImgPath == "" {
+		return nil, errors.New("qemu-img runner is not configured")
+	}
+	if name != "qemu-img" {
+		return nil, fmt.Errorf("unsupported trusted helper %q", name)
+	}
+	command := exec.CommandContext(ctx, runner.QEMUImgPath, args...)
+	var stdout, stderr strings.Builder
+	command.Stdout = &boundedWriter{destination: &stdout, remaining: 64 << 10}
+	command.Stderr = &boundedWriter{destination: &stderr, remaining: 64 << 10}
+	if err := command.Run(); err != nil {
+		message := strings.TrimSpace(stderr.String())
+		if message == "" {
+			return nil, fmt.Errorf("qemu-img %v: %w", args, err)
+		}
+		return nil, fmt.Errorf("qemu-img %v: %w: %s", args, err, message)
+	}
+	return []byte(stdout.String()), nil
 }
 
 type boundedWriter struct {
@@ -153,6 +176,9 @@ func (manager OverlayManager) Create(
 	if err := VerifyImageFile(ctx, image); err != nil {
 		return OverlayPaths{}, err
 	}
+	if err := manager.verifyVirtualSize(ctx, image); err != nil {
+		return OverlayPaths{}, err
+	}
 
 	directory := filepath.Join(filepath.Clean(manager.StateRoot), instanceName)
 	if err := pathWithinRoot(manager.StateRoot, directory); err != nil {
@@ -226,6 +252,28 @@ func (manager OverlayManager) Create(
 
 	cleanup = false
 	return paths, nil
+}
+
+func (manager OverlayManager) verifyVirtualSize(ctx context.Context, image ImageDescriptor) error {
+	payload, err := manager.Commands.Output(ctx, "qemu-img", "info", "--output=json", filepath.Clean(image.Path))
+	if err != nil {
+		return fmt.Errorf("inspect backing image virtual size: %w", err)
+	}
+	var info struct {
+		Format      string `json:"format"`
+		VirtualSize int64  `json:"virtual-size"`
+	}
+	if err := json.Unmarshal(payload, &info); err != nil {
+		return fmt.Errorf("decode qemu-img info: %w", err)
+	}
+	if info.Format != "qcow2" {
+		return fmt.Errorf("backing image format mismatch: got %q, want qcow2", info.Format)
+	}
+	wantBytes := int64(image.VirtualSizeMB) * 1024 * 1024
+	if info.VirtualSize != wantBytes {
+		return fmt.Errorf("backing image virtual size mismatch: got %d bytes, want %d bytes", info.VirtualSize, wantBytes)
+	}
+	return nil
 }
 
 func hardenManagedDisk(path string) error {
