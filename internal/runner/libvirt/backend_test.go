@@ -34,11 +34,11 @@ type fakeControlPlane struct {
 	consoleOpens     int
 	agentResponses   []string
 	agentErrors      []error
-	agentCommands    []string
-	destroyErr          error
-	undefineErr         error
-	filterUndefineErr   error
-	closed              bool
+	agentCommands     []string
+	destroyErr        error
+	undefineErr       error
+	filterUndefineErr error
+	closed            bool
 }
 
 func newFakeControlPlane() *fakeControlPlane {
