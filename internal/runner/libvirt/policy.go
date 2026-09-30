@@ -101,8 +101,9 @@ type DomainSpec struct {
 	CPUPercent   int
 	Firmware     runner.FirmwareMode
 	RootDiskPath string
-	ExtraDisks   []DiskPath
-	NetworkName  string
+	ExtraDisks        []DiskPath
+	NetworkName       string
+	NetworkFilterName string
 }
 
 func (spec DomainSpec) Validate(stateRoot string) error {
@@ -145,6 +146,15 @@ func (spec DomainSpec) Validate(stateRoot string) error {
 	}
 	if spec.NetworkName != "" && !managedNamePattern.MatchString(spec.NetworkName) {
 		return fmt.Errorf("invalid managed network name %q", spec.NetworkName)
+	}
+	if spec.NetworkName == "" {
+		if spec.NetworkFilterName != "" {
+			return errors.New("network filter requires an isolated network")
+		}
+	} else {
+		if !managedNamePattern.MatchString(spec.NetworkFilterName) {
+			return fmt.Errorf("invalid managed network filter name %q", spec.NetworkFilterName)
+		}
 	}
 	return nil
 }
@@ -329,9 +339,14 @@ type diskTargetXML struct {
 }
 
 type interfaceXML struct {
-	Type   string             `xml:"type,attr"`
-	Source interfaceSourceXML `xml:"source"`
-	Model  interfaceModelXML  `xml:"model"`
+	Type      string             `xml:"type,attr"`
+	Source    interfaceSourceXML `xml:"source"`
+	Model     interfaceModelXML  `xml:"model"`
+	FilterRef filterRefXML       `xml:"filterref"`
+}
+
+type filterRefXML struct {
+	Filter string `xml:"filter,attr"`
 }
 
 type interfaceSourceXML struct {
@@ -424,9 +439,10 @@ func BuildDomainXML(spec DomainSpec, stateRoot string) (string, error) {
 	}
 	if spec.NetworkName != "" {
 		doc.Devices.Interfaces = []interfaceXML{{
-			Type:   "network",
-			Source: interfaceSourceXML{Network: spec.NetworkName},
-			Model:  interfaceModelXML{Type: "virtio"},
+			Type:      "network",
+			Source:    interfaceSourceXML{Network: spec.NetworkName},
+			Model:     interfaceModelXML{Type: "virtio"},
+			FilterRef: filterRefXML{Filter: spec.NetworkFilterName},
 		}}
 	}
 	doc.Devices.Channels = []channelXML{{
@@ -466,6 +482,80 @@ type dhcpXML struct {
 type dhcpRangeXML struct {
 	Start string `xml:"start,attr"`
 	End   string `xml:"end,attr"`
+}
+
+type networkFilterXML struct {
+	XMLName  xml.Name            `xml:"filter"`
+	Name     string              `xml:"name,attr"`
+	Chain    string              `xml:"chain,attr"`
+	Metadata metadataXML         `xml:"metadata"`
+	Rules    []networkFilterRule `xml:"rule"`
+}
+
+type networkFilterRule struct {
+	Action    string             `xml:"action,attr"`
+	Direction string             `xml:"direction,attr"`
+	Priority  int                `xml:"priority,attr"`
+	UDP       *networkFilterUDP  `xml:"udp,omitempty"`
+	IP        *networkFilterIP   `xml:"ip,omitempty"`
+	IPv6      *networkFilterIPv6 `xml:"ipv6,omitempty"`
+}
+
+type networkFilterUDP struct {
+	DestinationIP   string `xml:"dstipaddr,attr"`
+	DestinationPort int    `xml:"dstportstart,attr"`
+}
+
+type networkFilterIP struct {
+	DestinationIP string `xml:"dstipaddr,attr"`
+}
+
+type networkFilterIPv6 struct{}
+
+func BuildHostIsolationFilterXML(name string, subnet netip.Prefix, ownerScope string) (string, error) {
+	if err := validateManagedOwnerScope(ownerScope); err != nil {
+		return "", err
+	}
+	if !managedNamePattern.MatchString(name) {
+		return "", fmt.Errorf("invalid managed network filter name %q", name)
+	}
+	gateway, _, _, _, err := isolatedSubnetAddresses(subnet)
+	if err != nil {
+		return "", err
+	}
+	doc := networkFilterXML{
+		Name:     name,
+		Chain:    "root",
+		Metadata: newManagedMetadata(ownerScope),
+		Rules: []networkFilterRule{
+			{
+				Action:    "accept",
+				Direction: "out",
+				Priority:  100,
+				UDP: &networkFilterUDP{
+					DestinationIP:   gateway,
+					DestinationPort: 67,
+				},
+			},
+			{
+				Action:        "drop",
+				Direction:     "out",
+				Priority:      200,
+				IP:            &networkFilterIP{DestinationIP: gateway},
+			},
+			{
+				Action:    "drop",
+				Direction: "out",
+				Priority:  300,
+				IPv6:      &networkFilterIPv6{},
+			},
+		},
+	}
+	payload, err := xml.MarshalIndent(doc, "", "  ")
+	if err != nil {
+		return "", fmt.Errorf("marshal network filter XML: %w", err)
+	}
+	return xml.Header + string(payload) + "\n", nil
 }
 
 func BuildIsolatedNetworkXML(name string, subnet netip.Prefix, ownerScope string) (string, error) {
