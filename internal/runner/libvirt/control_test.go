@@ -33,11 +33,11 @@ type fakeRawLibvirt struct {
 	networkXML       string
 	networkFilter    golibvirt.Nwfilter
 	networkFilterXML string
-	networkActive    int32
-	networkDestroyed bool
-	networkUndefined    bool
+	networkActive          int32
+	networkDestroyed       bool
+	networkUndefined       bool
 	networkFilterUndefined bool
-	disconnected     bool
+	disconnected           bool
 	err              error
 	consoleBlock     chan struct{}
 	consoleStarted   chan struct{}
@@ -324,8 +324,8 @@ func TestRPCControlPlaneLifecycleUsesManagedDomainOnly(t *testing.T) {
 		domain:       golibvirt.Domain{Name: name},
 		network:       golibvirt.Network{Name: name},
 		networkFilter: golibvirt.Nwfilter{Name: name},
-		state:        1,
-		reason:       2,
+		state:         1,
+		reason:        2,
 	}
 	control, err := newScopedRPCControlPlaneForTest(t, raw)
 	if err != nil {
