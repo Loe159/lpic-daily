@@ -7,9 +7,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/Loe159/lpic-daily/internal/runner"
 )
@@ -134,8 +136,13 @@ func LoadImageCatalog(path, imageRoot string) (*ImageCatalog, error) {
 		if strings.TrimSpace(entry.Version) == "" {
 			return nil, fmt.Errorf("image %s: version is required", entry.ID)
 		}
-		if strings.TrimSpace(entry.Provenance.SourceURL) == "" {
+		sourceURL := strings.TrimSpace(entry.Provenance.SourceURL)
+		if sourceURL == "" {
 			return nil, fmt.Errorf("image %s: provenance source_url is required", entry.ID)
+		}
+		parsedSourceURL, err := url.ParseRequestURI(sourceURL)
+		if err != nil || !parsedSourceURL.IsAbs() {
+			return nil, fmt.Errorf("image %s: provenance source_url must be an absolute URI", entry.ID)
 		}
 		if err := entry.Provenance.SourceIntegrity.Validate(); err != nil {
 			return nil, fmt.Errorf("image %s: provenance source_integrity: %w", entry.ID, err)
@@ -143,8 +150,12 @@ func LoadImageCatalog(path, imageRoot string) (*ImageCatalog, error) {
 		if strings.TrimSpace(entry.Provenance.BuildRecipe) == "" {
 			return nil, fmt.Errorf("image %s: provenance build_recipe is required", entry.ID)
 		}
-		if strings.TrimSpace(entry.Provenance.BuiltAt) == "" {
+		builtAt := strings.TrimSpace(entry.Provenance.BuiltAt)
+		if builtAt == "" {
 			return nil, fmt.Errorf("image %s: provenance built_at is required", entry.ID)
+		}
+		if _, err := time.Parse(time.RFC3339, builtAt); err != nil {
+			return nil, fmt.Errorf("image %s: provenance built_at must be RFC3339 date-time: %w", entry.ID, err)
 		}
 	}
 	return &catalog, nil
