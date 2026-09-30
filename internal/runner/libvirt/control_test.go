@@ -13,35 +13,35 @@ import (
 )
 
 type fakeRawLibvirt struct {
-	libVersion       uint64
-	capabilities     string
-	domain           golibvirt.Domain
-	definedXML       string
-	defineFlags      golibvirt.DomainDefineFlags
-	createFlags      uint32
-	rebootFlags      golibvirt.DomainRebootFlagValues
-	destroyFlags     golibvirt.DomainDestroyFlagsValues
-	undefineFlags    golibvirt.DomainUndefineFlagsValues
-	state            int32
-	reason           int32
-	consoleDomain    golibvirt.Domain
-	consoleDevice    golibvirt.OptString
-	consoleFlags     uint32
-	agentCommand     string
-	agentTimeout     int32
-	network                golibvirt.Network
-	networkXML             string
-	networkFilter          golibvirt.Nwfilter
-	networkFilterXML       string
-	networkActive          int32
-	networkDestroyed       bool
-	networkUndefined       bool
+	libVersion	uint64
+	capabilities	string
+	domain	golibvirt.Domain
+	definedXML	string
+	defineFlags	golibvirt.DomainDefineFlags
+	createFlags	uint32
+	rebootFlags	golibvirt.DomainRebootFlagValues
+	destroyFlags	golibvirt.DomainDestroyFlagsValues
+	undefineFlags	golibvirt.DomainUndefineFlagsValues
+	state	int32
+	reason	int32
+	consoleDomain	golibvirt.Domain
+	consoleDevice	golibvirt.OptString
+	consoleFlags	uint32
+	agentCommand	string
+	agentTimeout	int32
+	network	golibvirt.Network
+	networkXML	string
+	networkFilter	golibvirt.Nwfilter
+	networkFilterXML	string
+	networkActive	int32
+	networkDestroyed	bool
+	networkUndefined	bool
 	networkFilterUndefined bool
-	disconnected           bool
-	err                    error
-	consoleBlock           chan struct{}
-	consoleStarted         chan struct{}
-	consoleClosed          bool
+	disconnected	bool
+	err	error
+	consoleBlock	chan struct{}
+	consoleStarted	chan struct{}
+	consoleClosed	bool
 }
 
 const testManagedOwnerScope = "0123456789abcdef0123456789abcdef"
@@ -319,20 +319,20 @@ func (fake *fakeRawLibvirt) Disconnect() error {
 func TestRPCControlPlaneLifecycleUsesManagedDomainOnly(t *testing.T) {
 	name := "lpic-daily-vm-abc123"
 	raw := &fakeRawLibvirt{
-		libVersion:    1002003,
+		libVersion:	1002003,
 		capabilities:  "<capabilities><guest><arch name=\"x86_64\"><domain type=\"kvm\"/></arch></guest></capabilities>",
-		domain:        golibvirt.Domain{Name: name},
-		network:       golibvirt.Network{Name: name},
+		domain:	golibvirt.Domain{Name: name},
+		network:	golibvirt.Network{Name: name},
 		networkFilter: golibvirt.Nwfilter{Name: name},
-		state:         1,
-		reason:        2,
+		state:	1,
+		reason:	2,
 	}
 	control, err := newScopedRPCControlPlaneForTest(t, raw)
 	if err != nil {
 		t.Fatalf("newRPCControlPlane() error = %v", err)
 	}
 	consoleRaw := &fakeRawLibvirt{
-		domain:     golibvirt.Domain{Name: name},
+		domain:	golibvirt.Domain{Name: name},
 		definedXML: managedTestDomainXML,
 	}
 	control.consoleDial = func() (rawLibvirt, error) {
@@ -528,8 +528,8 @@ func TestRPCControlPlaneRejectsMissingOwnershipMetadata(t *testing.T) {
 func TestRPCControlPlaneInventoryIgnoresPrefixedForeignResources(t *testing.T) {
 	name := "lpic-daily-foreign-abc123"
 	raw := &fakeRawLibvirt{
-		domain:     golibvirt.Domain{Name: name},
-		network:    golibvirt.Network{Name: name},
+		domain:	golibvirt.Domain{Name: name},
+		network:	golibvirt.Network{Name: name},
 		definedXML: "<domain/>",
 		networkXML: "<network/>",
 	}
@@ -546,10 +546,10 @@ func TestRPCControlPlaneRejectsForeignScopedResources(t *testing.T) {
 	name := "lpic-daily-foreign-scope-abc123"
 	foreignScope := "fedcba9876543210fedcba9876543210"
 	raw := &fakeRawLibvirt{
-		domain:      golibvirt.Domain{Name: name},
-		network:     golibvirt.Network{Name: name},
-		definedXML:  strings.Replace(managedTestDomainXML, testManagedOwnerScope, foreignScope, 1),
-		networkXML:  strings.Replace(managedTestNetworkXML, testManagedOwnerScope, foreignScope, 1),
+		domain:	golibvirt.Domain{Name: name},
+		network:	golibvirt.Network{Name: name},
+		definedXML:	strings.Replace(managedTestDomainXML, testManagedOwnerScope, foreignScope, 1),
+		networkXML:	strings.Replace(managedTestNetworkXML, testManagedOwnerScope, foreignScope, 1),
 	}
 	control, err := newScopedRPCControlPlaneForTest(t, raw)
 	if err != nil {
@@ -584,13 +584,13 @@ func TestRPCControlPlaneRequiresOwnerScopeForManagedOperations(t *testing.T) {
 func TestRPCControlPlaneConsoleCancellationDisconnectsOnlyConsoleStream(t *testing.T) {
 	name := "lpic-daily-console-abc123"
 	mainRaw := &fakeRawLibvirt{
-		domain:     golibvirt.Domain{Name: name},
+		domain:	golibvirt.Domain{Name: name},
 		definedXML: managedTestDomainXML,
 	}
 	consoleRaw := &fakeRawLibvirt{
-		domain:         golibvirt.Domain{Name: name},
-		definedXML:     managedTestDomainXML,
-		consoleBlock:   make(chan struct{}),
+		domain:	golibvirt.Domain{Name: name},
+		definedXML:	managedTestDomainXML,
+		consoleBlock:	make(chan struct{}),
 		consoleStarted: make(chan struct{}),
 	}
 	control, _ := newScopedRPCControlPlaneForTest(t, mainRaw)
