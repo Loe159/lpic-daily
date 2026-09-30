@@ -32,14 +32,14 @@ Implemented on `phase-2-vm-runner-complete`:
 - explicit VM reboot (`:reboot`) that waits for a changed guest `boot_id` through QEMU Guest Agent before returning;
 - 104.1 partition/filesystem state-based VM lab;
 - 102.2 GRUB 2 lab that requires a persistent kernel argument and verifies it after a real reboot;
-- LPIC Daily-owned isolated libvirt networks with no forwarding and shared-network multi-VM scenarios; subnet allocation excludes host/libvirt routes and is serialized across users/processes by one root-provisioned host-global lock;
+- LPIC Daily-owned isolated libvirt networks with no forwarding and shared-network multi-VM scenarios; each guest NIC references a scoped libvirt nwfilter that keeps DHCP working while blocking host-bridge IPv4 services and guest IPv6 egress; subnet allocation excludes host/libvirt routes and is serialized across users/processes by one root-provisioned host-global lock;
 - per-run leases plus startup reaping for abandoned LPIC Daily domains, networks and disposable state without reaping a live concurrent run; ownership is verified through namespaced libvirt metadata carrying a stable effective-UID + state-root scope, and every lifecycle lookup rejects foreign scopes rather than trusting a name prefix;
 - multi-VM scenario networks/leases are tracked by the backend itself, so `Close()` cleans them when explicit scenario teardown is omitted; failed scenario rollbacks remain tracked and retryable instead of dropping the shared network state;
 - rollback paths use bounded cleanup contexts at the orchestration layer rather than unbounded `context.Background()` cleanup;
 - explicit Fedora, Debian and openSUSE image-supply manifests/build pipeline with source digests pinned directly in-repository (no mutable remote checksum trust at build time);
 - VM image recipe IDs drive the actual builder behavior and are validated against their distribution; `virtual_size_mb` is enforced as the exact installed image size so provenance/catalog metadata cannot silently diverge from the build;
-- default VM storage provisioned below `/var/lib/libvirt/images/lpic-daily/<uid>`, with per-run state directories forced to execute-traversable `0711` even under restrictive umasks and a shared root-owned network-allocation lock at the parent level; this keeps qemu:///system disks out of private home/XDG paths while coordinating its host-global network namespace;
-- opt-in real-KVM integration coverage for host sentinel preservation, base-image immutability, private two-guest communication, failed public egress, crash reaping and both 104.1/102.2 reference solutions (including the 102.2 reboot);
+- default VM storage provisioned below `/var/lib/libvirt/images/lpic-daily/<uid>`, with per-run state directories forced to execute-traversable `0711`, generated overlay/scratch files forced to `0600`, and a shared root-owned network-allocation lock at the parent level; this keeps qemu:///system disks out of private home/XDG paths while coordinating its host-global network namespace;
+- opt-in real-KVM integration coverage for host sentinel preservation, blocked host-bridge access, base-image immutability, private two-guest communication, failed public egress, crash reaping and both 104.1/102.2 reference solutions (including the 102.2 reboot);
 - generic CI compiles the KVM integration test but does not pretend to execute it without a KVM/libvirt host.
 
 VM lab startup refuses effective UID 0 both at the CLI boundary and inside the libvirt backend constructor, keeping the non-root invariant fail-closed even for direct package use. Custom image/state roots remain supported, but they intentionally share the provisioned host-global network-allocation lock because `qemu:///system` has one host-wide network namespace.
@@ -105,7 +105,7 @@ Next action is validation, not additional Phase-2 feature scope: restore/diagnos
    - deliberately incomplete persistent GRUB configuration (the target kernel argument is absent initially);
    - GRUB itself is exposed on the serial console before userland, while guest commands remain available for persistent configuration edits;
    - learner can inspect the boot path with `:console`, then `:reboot` is part of evaluation;
-   - checker proves requested boot state without accepting a command transcript.
+   - checker proves the persistent source configuration, generated GRUB configuration and post-reboot kernel state without accepting a command transcript.
 
 10. **Guest image pipeline**
     - Fedora, Debian and openSUSE manifests/build recipes;
