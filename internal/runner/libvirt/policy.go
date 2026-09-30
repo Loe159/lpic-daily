@@ -94,13 +94,13 @@ type DiskPath struct {
 }
 
 type DomainSpec struct {
-	Name         string
-	LabID        string
-	OwnerScope   string
-	MemoryMB     int
-	CPUPercent   int
-	Firmware     runner.FirmwareMode
-	RootDiskPath string
+	Name              string
+	LabID             string
+	OwnerScope        string
+	MemoryMB          int
+	CPUPercent        int
+	Firmware          runner.FirmwareMode
+	RootDiskPath      string
 	ExtraDisks        []DiskPath
 	NetworkName       string
 	NetworkFilterName string
@@ -538,10 +538,10 @@ func BuildHostIsolationFilterXML(name string, subnet netip.Prefix, ownerScope st
 				},
 			},
 			{
-				Action:        "drop",
-				Direction:     "out",
-				Priority:      200,
-				IP:            &networkFilterIP{DestinationIP: gateway},
+				Action:    "drop",
+				Direction: "out",
+				Priority:  200,
+				IP:        &networkFilterIP{DestinationIP: gateway},
 			},
 			{
 				Action:    "drop",
