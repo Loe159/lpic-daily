@@ -31,9 +31,12 @@ type fakeRawLibvirt struct {
 	agentTimeout     int32
 	network          golibvirt.Network
 	networkXML       string
+	networkFilter    golibvirt.Nwfilter
+	networkFilterXML string
 	networkActive    int32
 	networkDestroyed bool
-	networkUndefined bool
+	networkUndefined    bool
+	networkFilterUndefined bool
 	disconnected     bool
 	err              error
 	consoleBlock     chan struct{}
@@ -45,6 +48,7 @@ const testManagedOwnerScope = "0123456789abcdef0123456789abcdef"
 
 const managedTestDomainXML = `<domain><metadata><lpic-daily xmlns="urn:lpic-daily:managed:v1" owner="lpic-daily" version="1" scope="` + testManagedOwnerScope + `"></lpic-daily></metadata></domain>`
 const managedTestNetworkXML = `<network><metadata><lpic-daily xmlns="urn:lpic-daily:managed:v1" owner="lpic-daily" version="1" scope="` + testManagedOwnerScope + `"></lpic-daily></metadata></network>`
+const managedTestNetworkFilterXML = `<filter name="lpic-daily-vm-abc123"><metadata><lpic-daily xmlns="urn:lpic-daily:managed:v1" owner="lpic-daily" version="1" scope="` + testManagedOwnerScope + `"></lpic-daily></metadata></filter>`
 
 func newScopedRPCControlPlaneForTest(t *testing.T, raw rawLibvirt) (*RPCControlPlane, error) {
 	t.Helper()
@@ -233,6 +237,37 @@ func (fake *fakeRawLibvirt) NetworkUndefine(_ golibvirt.Network) error {
 	return nil
 }
 
+func (fake *fakeRawLibvirt) NwfilterDefineXML(xml string) (golibvirt.Nwfilter, error) {
+	fake.networkFilterXML = xml
+	if fake.err != nil {
+		return golibvirt.Nwfilter{}, fake.err
+	}
+	return fake.networkFilter, nil
+}
+
+func (fake *fakeRawLibvirt) NwfilterLookupByName(name string) (golibvirt.Nwfilter, error) {
+	if fake.err != nil {
+		return golibvirt.Nwfilter{}, fake.err
+	}
+	filter := fake.networkFilter
+	if filter.Name == "" {
+		filter.Name = name
+	}
+	return filter, nil
+}
+
+func (fake *fakeRawLibvirt) NwfilterGetXMLDesc(_ golibvirt.Nwfilter, _ uint32) (string, error) {
+	return fake.networkFilterXML, fake.err
+}
+
+func (fake *fakeRawLibvirt) NwfilterUndefine(_ golibvirt.Nwfilter) error {
+	if fake.err != nil {
+		return fake.err
+	}
+	fake.networkFilterUndefined = true
+	return nil
+}
+
 func (fake *fakeRawLibvirt) ConnectListAllDomains(
 	_ int32,
 	_ golibvirt.ConnectListAllDomainsFlags,
@@ -259,6 +294,19 @@ func (fake *fakeRawLibvirt) ConnectListAllNetworks(
 	return []golibvirt.Network{fake.network}, 1, nil
 }
 
+func (fake *fakeRawLibvirt) ConnectListAllNwfilters(
+	_ int32,
+	_ uint32,
+) ([]golibvirt.Nwfilter, uint32, error) {
+	if fake.err != nil {
+		return nil, 0, fake.err
+	}
+	if fake.networkFilter.Name == "" {
+		return nil, 0, nil
+	}
+	return []golibvirt.Nwfilter{fake.networkFilter}, 1, nil
+}
+
 func (fake *fakeRawLibvirt) Disconnect() error {
 	fake.disconnected = true
 	if fake.consoleBlock != nil && !fake.consoleClosed {
@@ -274,7 +322,8 @@ func TestRPCControlPlaneLifecycleUsesManagedDomainOnly(t *testing.T) {
 		libVersion:   1002003,
 		capabilities: "<capabilities><guest><arch name=\"x86_64\"><domain type=\"kvm\"/></arch></guest></capabilities>",
 		domain:       golibvirt.Domain{Name: name},
-		network:      golibvirt.Network{Name: name},
+		network:       golibvirt.Network{Name: name},
+		networkFilter: golibvirt.Nwfilter{Name: name},
 		state:        1,
 		reason:       2,
 	}
@@ -353,6 +402,9 @@ func TestRPCControlPlaneLifecycleUsesManagedDomainOnly(t *testing.T) {
 	if err := control.DefineNetwork(name, managedTestNetworkXML); err != nil {
 		t.Fatalf("DefineNetwork() error = %v", err)
 	}
+	if err := control.DefineNetworkFilter(name, managedTestNetworkFilterXML); err != nil {
+		t.Fatalf("DefineNetworkFilter() error = %v", err)
+	}
 	if raw.networkXML != managedTestNetworkXML {
 		t.Fatalf("network XML = %q", raw.networkXML)
 	}
@@ -375,6 +427,13 @@ func TestRPCControlPlaneLifecycleUsesManagedDomainOnly(t *testing.T) {
 	networks, err := control.ListManagedNetworks()
 	if err != nil || len(networks) != 1 || networks[0] != name {
 		t.Fatalf("ListManagedNetworks() = %#v, %v", networks, err)
+	}
+	filters, err := control.ListManagedNetworkFilters()
+	if err != nil || len(filters) != 1 || filters[0] != name {
+		t.Fatalf("ListManagedNetworkFilters() = %#v, %v", filters, err)
+	}
+	if err := control.UndefineNetworkFilter(name); err != nil {
+		t.Fatalf("UndefineNetworkFilter() error = %v", err)
 	}
 	if !raw.networkDestroyed || !raw.networkUndefined {
 		t.Fatalf("network cleanup flags destroyed=%v undefined=%v", raw.networkDestroyed, raw.networkUndefined)
