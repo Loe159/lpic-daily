@@ -6,7 +6,7 @@ The checklist below remains deliberately unchecked until the corresponding accep
 
 Current blocker: GitHub Actions runs on the Phase-2 branch are terminating before any job step starts, so fresh foundation/Go/vet evidence is unavailable. Real-KVM checks additionally require an explicit KVM/libvirt host.
 
-Review remediation completed on 2026-09-29:
+Review remediation completed through 2026-09-30:
 - openSUSE source integrity is pinned directly in-repository to Build 18.68 / SHA-256 `f8a2703a4355a30d531021a88748f0c9d71124b7e33d26d4d49b85c2983e20d5`; runtime build no longer trusts a mutable remote checksum file;
 - isolated-network allocation uses collision-aware RFC1918 /28 selection, excluding host routes and all existing libvirt networks, with a cross-process allocation lock around inventory + definition;
 - VM console input is cancellable and Ctrl-] behavior plus CLI console/reboot dispatch have unit coverage; console streaming uses a dedicated libvirt connection so escape/cancellation closes only the stream, and the real-KVM harness verifies the guest remains QGA-responsive before successful teardown.
@@ -19,7 +19,12 @@ Review remediation completed on 2026-09-29:
 - VM image recipe IDs are executable contracts rather than provenance-only labels, recipe/distribution mismatches are rejected, and `virtual_size_mb` is enforced as the exact installed virtual-size contract;
 - the generated image catalog preserves the pinned upstream source-integrity algorithm/encoding/value alongside the final artifact SHA-256;
 - the Fedora image recipe exposes GRUB itself on the serial console before userland, and real-KVM coverage requires observable GRUB output;
-- isolated-network real-KVM coverage now checks blocked public ICMP, blocked public TCP and a host-uplink TCP sentinel instead of relying on a single ping probe.
+- isolated-network real-KVM coverage now checks blocked public ICMP, blocked public TCP, a host-uplink TCP sentinel and a host-bridge-gateway TCP sentinel instead of relying on a single ping probe;
+- isolated VM NICs now reference LPIC Daily-owned libvirt nwfilters; DHCP to the bridge gateway is allowed while other IPv4 host-gateway traffic and guest IPv6 egress are blocked;
+- VM non-interactive command output is sanitized before rendering on the host terminal; raw control sequences remain restricted to the explicit `:console` passthrough;
+- resetting one VM in a multi-machine scenario preserves the scenario's shared isolated network/filter instead of creating a private replacement network;
+- the 102.2 checker now requires the persistent source configuration in `/etc/default/grub`, the generated `grub.cfg`, and the post-reboot kernel command line;
+- every generated root overlay and scratch QCOW2 file is forced to mode `0600`, independent of the caller's umask.
 
 ## Control plane
 - [ ] application process remains non-root;
@@ -56,7 +61,8 @@ Review remediation completed on 2026-09-29:
 - [ ] `network=none` creates no guest NIC;
 - [ ] `network=isolated` uses an LPIC Daily-owned network with no forwarding;
 - [ ] two guests in the same scenario can communicate when required;
-- [ ] guests cannot reach the public Internet/LAN in the default isolated mode.
+- [ ] guests cannot reach the public Internet/LAN in the default isolated mode;
+- [ ] guests cannot reach host bridge services in isolated mode except DHCP required for address assignment.
 
 ## Interaction/checking
 - [ ] learner has a serial console path that works before normal userland login;
@@ -84,7 +90,7 @@ Review remediation completed on 2026-09-29:
 - [ ] fake-client lifecycle tests;
 - [ ] real KVM/libvirt host-sentinel test;
 - [ ] base-image immutability test;
-- [ ] isolated-network no-forwarding test includes real guest public ICMP/TCP failure probes and a host-uplink TCP sentinel;
+- [ ] isolated-network no-forwarding test includes real guest public ICMP/TCP failure probes, a host-uplink TCP sentinel and a host-bridge-gateway TCP sentinel;
 - [ ] both Phase-2 reference solutions are executed by the real-KVM harness, with 102.2 rebooted before grading;
 - [ ] `python3 scripts/validate_foundation.py`;
 - [ ] `go test ./...`;
