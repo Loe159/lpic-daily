@@ -321,6 +321,29 @@ func TestPrepareJobControlShellAvoidsUnsupportedNonTTYStdin(t *testing.T) {
 	}
 }
 
+func TestSanitizedTerminalWriterRemovesTerminalControls(t *testing.T) {
+	var output bytes.Buffer
+	writer := sanitizedTerminalWriter{destination: &output}
+
+	payload := []byte("safe\x1b[31mred\x1b[0m\rrewrite\x07\u009b31m\n")
+	n, err := writer.Write(payload)
+	if err != nil {
+		t.Fatalf("Write() error = %v", err)
+	}
+	if n != len(payload) {
+		t.Fatalf("Write() count = %d, want %d", n, len(payload))
+	}
+	got := output.String()
+	for _, forbidden := range []rune{'\x1b', '\r', '\x07', '\u009b'} {
+		if strings.ContainsRune(got, forbidden) {
+			t.Fatalf("sanitized output still contains control %U: %q", forbidden, got)
+		}
+	}
+	if !strings.Contains(got, "safe") || !strings.Contains(got, "red") {
+		t.Fatalf("sanitized output lost printable content: %q", got)
+	}
+}
+
 func TestRequireUnprivilegedVMProcessRejectsRoot(t *testing.T) {
 	if err := requireUnprivilegedVMProcess(0); err == nil || !strings.Contains(err.Error(), "not root") {
 		t.Fatalf("root process error = %v", err)
