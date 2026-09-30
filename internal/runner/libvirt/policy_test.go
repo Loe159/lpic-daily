@@ -28,7 +28,8 @@ func TestBuildDomainXMLContainsOnlyManagedVirtualResources(t *testing.T) {
 			ID:   "data",
 			Path: dataDisk,
 		}},
-		NetworkName: "lpic-daily-net-abc123",
+		NetworkName:       "lpic-daily-net-abc123",
+		NetworkFilterName: "lpic-daily-net-abc123",
 	}, stateRoot)
 	if err != nil {
 		t.Fatalf("BuildDomainXML() error = %v", err)
@@ -51,6 +52,7 @@ func TestBuildDomainXMLContainsOnlyManagedVirtualResources(t *testing.T) {
 		`<target dev="vdb" bus="virtio"></target>`,
 		`<source network="lpic-daily-net-abc123"></source>`,
 		`<model type="virtio"></model>`,
+		`<filterref filter="lpic-daily-net-abc123"></filterref>`,
 		`<serial type="pty">`,
 		`<console type="pty">`,
 		`<channel type="unix">`,
@@ -142,6 +144,30 @@ func TestIsolatedNetworkXMLHasNoForwarding(t *testing.T) {
 	var decoded networkXML
 	if err := xml.Unmarshal([]byte(payload), &decoded); err != nil {
 		t.Fatalf("network XML does not round-trip: %v", err)
+	}
+}
+
+func TestHostIsolationFilterBlocksHostGatewayAndIPv6(t *testing.T) {
+	payload, err := BuildHostIsolationFilterXML(
+		"lpic-daily-net-abc",
+		netip.MustParsePrefix("10.77.0.0/28"),
+		testManagedOwnerScope,
+	)
+	if err != nil {
+		t.Fatalf("BuildHostIsolationFilterXML() error = %v", err)
+	}
+	if !hasManagedMetadata(payload, testManagedOwnerScope) {
+		t.Fatalf("network filter XML missing LPIC Daily ownership metadata:\n%s", payload)
+	}
+	for _, want := range []string{
+		`<filter name="lpic-daily-net-abc" chain="root">`,
+		`<udp dstipaddr="10.77.0.1" dstportstart="67"></udp>`,
+		`<ip dstipaddr="10.77.0.1"></ip>`,
+		`<ipv6></ipv6>`,
+	} {
+		if !strings.Contains(payload, want) {
+			t.Fatalf("network filter XML missing %q:\n%s", want, payload)
+		}
 	}
 }
 
