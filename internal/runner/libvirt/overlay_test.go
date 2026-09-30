@@ -30,6 +30,15 @@ func (fake *fakeCommands) Run(_ context.Context, name string, args ...string) er
 	if fake.FailAt != 0 && len(fake.Calls) == fake.FailAt {
 		return errors.New("simulated qemu-img failure")
 	}
+	if name == "qemu-img" && len(args) >= 2 && args[0] == "create" {
+		output := args[len(args)-1]
+		if strings.HasSuffix(output, "M") && len(args) >= 3 {
+			output = args[len(args)-2]
+		}
+		if err := os.WriteFile(output, nil, 0o666); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -100,6 +109,15 @@ func TestOverlayManagerCreatesStructuredQEMUImgCalls(t *testing.T) {
 	}
 	if got := directoryInfo.Mode().Perm(); got != 0o711 {
 		t.Fatalf("instance directory mode = %04o, want 0711 for qemu:///system traversal", got)
+	}
+	for _, diskPath := range []string{paths.RootDisk, paths.Extra["data"], paths.Extra["swap"]} {
+		info, err := os.Stat(diskPath)
+		if err != nil {
+			t.Fatalf("Stat(%s) error = %v", diskPath, err)
+		}
+		if got := info.Mode().Perm(); got != 0o600 {
+			t.Fatalf("managed disk %s mode = %04o, want 0600", diskPath, got)
+		}
 	}
 	wantRoot := []string{
 		"create", "-f", "qcow2", "-F", "qcow2", "-b", image.Path, paths.RootDisk,
