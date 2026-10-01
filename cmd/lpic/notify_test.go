@@ -116,7 +116,7 @@ func TestNotifyFailureReleasesDailyClaim(t *testing.T) {
 	}
 }
 
-func TestOrphanedNotificationClaimSuppressesDuplicateDelivery(t *testing.T) {
+func TestOrphanedNotificationClaimIsRecoveredAfterLeaseExpiry(t *testing.T) {
 	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
 	ctx := context.Background()
 	now := time.Date(2026, 9, 28, 9, 0, 0, 0, time.Local)
@@ -139,10 +139,10 @@ func TestOrphanedNotificationClaimSuppressesDuplicateDelivery(t *testing.T) {
 	if err := runNotifyWithExecutor(ctx, false, &stdout, executor, now.Add(2*time.Hour)); err != nil {
 		t.Fatalf("notify with orphaned claim error = %v", err)
 	}
-	if len(executor.runs) != 0 {
-		t.Fatalf("orphaned claim allowed duplicate notify-send: %d runs", len(executor.runs))
+	if len(executor.runs) != 1 {
+		t.Fatalf("stale orphaned claim did not recover notification delivery: %d runs", len(executor.runs))
 	}
-	if !strings.Contains(stdout.String(), "déjà réservée") {
-		t.Fatalf("unexpected orphaned-claim output: %q", stdout.String())
+	if !strings.Contains(stdout.String(), "Notification quotidienne envoyée.") {
+		t.Fatalf("unexpected recovered-claim output: %q", stdout.String())
 	}
 }

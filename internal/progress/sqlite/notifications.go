@@ -2,9 +2,13 @@ package sqlite
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 )
+
+const notificationClaimTTL = 10 * time.Minute
 
 func (store *Store) NotificationSent(ctx context.Context, localDay string) (bool, error) {
 	var count int
@@ -37,6 +41,49 @@ func (store *Store) ClaimNotification(ctx context.Context, localDay string, at t
 	rows, err := result.RowsAffected()
 	if err != nil {
 		return false, fmt.Errorf("inspect notification claim for %s: %w", localDay, err)
+	}
+	if rows == 1 {
+		return true, nil
+	}
+
+	var status, claimedAtText string
+	err = store.db.QueryRowContext(
+		ctx,
+		"SELECT status, notified_at FROM notification_delivery WHERE local_day = ?",
+		localDay,
+	).Scan(&status, &claimedAtText)
+	if errors.Is(err, sql.ErrNoRows) {
+		return false, nil
+	}
+	if err != nil {
+		return false, fmt.Errorf("inspect existing notification claim for %s: %w", localDay, err)
+	}
+	if status != "claimed" {
+		return false, nil
+	}
+	claimedAt, err := time.Parse(time.RFC3339Nano, claimedAtText)
+	if err != nil {
+		return false, fmt.Errorf("parse notification claim timestamp for %s: %w", localDay, err)
+	}
+	if at.Before(claimedAt) || at.Sub(claimedAt) < notificationClaimTTL {
+		return false, nil
+	}
+
+	result, err = store.db.ExecContext(
+		ctx,
+		`UPDATE notification_delivery
+		 SET notified_at = ?
+		 WHERE local_day = ? AND status = 'claimed' AND notified_at = ?`,
+		at.UTC().Format(time.RFC3339Nano),
+		localDay,
+		claimedAtText,
+	)
+	if err != nil {
+		return false, fmt.Errorf("reclaim stale notification delivery for %s: %w", localDay, err)
+	}
+	rows, err = result.RowsAffected()
+	if err != nil {
+		return false, fmt.Errorf("inspect reclaimed notification claim for %s: %w", localDay, err)
 	}
 	return rows == 1, nil
 }

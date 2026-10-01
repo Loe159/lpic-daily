@@ -83,7 +83,7 @@ func TestNotificationDeliveryRoundTrip(t *testing.T) {
 	}
 }
 
-func TestNotificationClaimDoesNotExpire(t *testing.T) {
+func TestNotificationClaimExpiresAndCanBeReclaimed(t *testing.T) {
 	ctx := context.Background()
 	store, err := Open(ctx, ":memory:")
 	if err != nil {
@@ -98,11 +98,19 @@ func TestNotificationClaimDoesNotExpire(t *testing.T) {
 		t.Fatalf("first claim = %v, %v", claimed, err)
 	}
 
-	reclaimed, err := store.ClaimNotification(ctx, day, start.Add(12*time.Hour))
+	freshClaim, err := store.ClaimNotification(ctx, day, start.Add(notificationClaimTTL-time.Minute))
 	if err != nil {
-		t.Fatalf("second claim error = %v", err)
+		t.Fatalf("fresh claim retry error = %v", err)
 	}
-	if reclaimed {
-		t.Fatal("automatic notification claim expired and allowed a duplicate delivery")
+	if freshClaim {
+		t.Fatal("live notification claim was reclaimed before its lease expired")
+	}
+
+	reclaimed, err := store.ClaimNotification(ctx, day, start.Add(notificationClaimTTL))
+	if err != nil {
+		t.Fatalf("stale claim retry error = %v", err)
+	}
+	if !reclaimed {
+		t.Fatal("stale notification claim was not reclaimed")
 	}
 }
