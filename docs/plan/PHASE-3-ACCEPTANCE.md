@@ -10,6 +10,7 @@ Phase 3 covers all 23 active Exam-101 objectives across topics 101–104 and all
 - [ ] Every selected concept has at least one original French-first lesson.
 - [ ] Every selected concept has at least one deterministic retrieval question.
 - [ ] `python3 scripts/audit_phase3_coverage.py --require-complete` passes.
+- [ ] The Go curriculum loader and Python graph validator both reject drift in `phase3-exam101.json`.
 - [ ] Every learning artifact maps to the correct official objective ID and stable concept ID.
 - [ ] Examinable legacy material remains present and explicitly distinguished from modern practice where relevant.
 - [ ] Objective weights and scope still match the current LPIC-1 v5.0 Exam 101 objectives.
@@ -23,6 +24,8 @@ Phase 3 covers all 23 active Exam-101 objectives across topics 101–104 and all
 
 ## Progressive learning
 - [ ] New concepts are introduced incrementally rather than as one large lecture.
+- [ ] An objective with complete lesson + daily-question coverage becomes selectable by the daily scheduler once its hard prerequisites are ready.
+- [ ] Incomplete Phase-3 objectives are not scheduled merely because they are listed in the complete Exam-101 scope.
 - [ ] Higher-weight objectives receive proportionally deeper review/practice coverage without reducing lower-weight objectives to zero coverage.
 - [ ] At least one cross-topic challenge exists for each topic 101, 102, 103 and 104.
 - [ ] Cross-topic challenges do not invent undocumented hard prerequisites.

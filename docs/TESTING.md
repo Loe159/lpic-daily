@@ -8,6 +8,12 @@
 
 The Go curriculum/content loaders independently validate embedded authored JSON against the Draft 2020-12 schemas before semantic validation. Invalid or unsupported content fails closed.
 
+### Phase 3 curriculum coverage
+
+`python3 scripts/audit_phase3_coverage.py --check` validates Phase-3 artifact mappings without requiring unfinished Exam-101 content to be complete. `--require-complete` is the theory/retrieval exit gate. The audit reads the canonical `phase3-exam101.json` manifest and uses the same non-recursive lesson/question paths as the Go runtime.
+
+The study planner only schedules Phase-3 objectives whose mapped concepts all have at least one lesson and one daily question; tests verify 103.4 becomes reachable after 103.1 readiness while unfinished objectives remain unavailable.
+
 ### Go unit and domain tests
 
 `go test ./...` covers the curriculum/content loaders, scheduler and mastery projection, SQLite progress store, TUI behavior, runner contracts, state checkers, lab orchestration and CLI behavior.

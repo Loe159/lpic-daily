@@ -365,7 +365,7 @@ func runToday(args []string, stdout io.Writer) error {
 
 	fmt.Fprintln(stdout, "LPIC Daily — Aujourd'hui")
 	if len(plan.Items) == 0 {
-		fmt.Fprintln(stdout, "Aucune activité due dans le périmètre Phase 1.")
+		fmt.Fprintln(stdout, "Aucune activité due dans le périmètre de contenu actuellement disponible.")
 		return nil
 	}
 

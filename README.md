@@ -2,9 +2,11 @@
 
 LPIC Daily is a terminal-first, local-first learning environment designed to build durable Linux administration skills while covering the complete LPIC-1 v5.0 syllabus (101-500 and 102-500).
 
-**Phase 1 is complete.** The adaptive scheduler, append-only mastery evidence, separate XP/streak/achievement projection, Bubble Tea daily dashboard, SQLite progress store, six rootless Podman labs with two explicit practical contexts per Phase-1 concept, Fedora desktop-notification adapter, Fedora 44 CI and real rootless Podman host-isolation test are implemented and validated. The current roadmap phase is **Phase 2: libvirt/QEMU/KVM VM runner**, before scaling content to the full LPIC-1 curriculum.
+**Phase 1 is complete.** The adaptive scheduler, append-only mastery evidence, separate XP/streak/achievement projection, Bubble Tea daily dashboard, SQLite progress store, six rootless Podman labs with two explicit practical contexts per Phase-1 concept, Fedora desktop-notification adapter, Fedora 44 CI and real rootless Podman host-isolation test are implemented and validated. **Phase 2 VM-runner implementation is present, with real-host KVM acceptance still pending. Phase 3 Exam-101 curriculum is now in progress in parallel.**
 
 ## Current runnable slice
+
+Phase 3 currently adds complete lesson/retrieval coverage for objective **103.4 — streams, pipes and redirections**. Once 103.1 readiness is satisfied, the daily scheduler may select 103.4; unfinished Phase-3 objectives remain excluded until all of their mapped concepts have both a lesson and a daily question.
 
 The current runnable labs are:
 

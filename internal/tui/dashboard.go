@@ -160,7 +160,7 @@ func (model Dashboard) render() string {
 	output.WriteString("\n")
 
 	if len(model.plan.Items) == 0 {
-		output.WriteString("\nAucune activité due dans le périmètre Phase 1.\n")
+		output.WriteString("\nAucune activité due dans le périmètre de contenu actuellement disponible.\n")
 		output.WriteString("\nq quitter\n")
 		return output.String()
 	}

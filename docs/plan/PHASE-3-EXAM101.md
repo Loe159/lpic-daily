@@ -45,13 +45,15 @@ For every selected concept:
 
 `python3 scripts/audit_phase3_coverage.py --require-complete` is an exit gate for theory/retrieval coverage. Practical-objective and cross-topic gates remain explicit in `PHASE-3-ACCEPTANCE.md`.
 
-The normal foundation validation runs the non-blocking `--check` mode so incomplete Phase-3 content does not make every intermediate commit red while invalid mappings still fail closed.
+The normal foundation validation runs the non-blocking `--check` mode so incomplete Phase-3 content does not make every intermediate commit red while invalid mappings still fail closed. The Go curriculum loader also loads and validates this manifest, so it cannot silently drift from `objectives.json`, `concepts.json` or the prerequisite graph.
 
 ## First tranche
 
 The first authored tranche is objective **103.4**:
 - 7 stable concepts;
 - 7 progressive micro-lessons;
-- 7 deterministic retrieval questions.
+- 8 deterministic retrieval questions, including explicit `stdin` redirection with `<`.
 
 Hands-on 103.4 reps/challenges follow after this initial content tranche; no artificial practical evidence is claimed before a checker can observe a meaningful result.
+
+The daily scheduler derives its currently runnable objective scope from this Phase-3 manifest plus authored content. An objective becomes schedulable only when every mapped concept has at least one lesson and one non-assessment question. This makes 103.4 reachable after 103.1 readiness without exposing unfinished Exam-101 objectives.
