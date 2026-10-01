@@ -40,6 +40,7 @@ type Item struct {
 	RecommendedLessonID   string
 	RecommendedQuestionID string
 	RecommendedLabID      string
+	PreferLab             bool
 }
 
 type Plan struct {
@@ -193,6 +194,12 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 			evidenceByConcept[scheduled.ConceptID],
 			input.Now,
 		)
+		projection := projections[scheduled.ConceptID]
+		item.PreferLab = scheduled.Kind != learning.SessionNew &&
+			projection.Stage == learning.StageExposed &&
+			projection.SuccessfulRecognition > 0 &&
+			projection.SuccessfulRecall == 0 &&
+			item.RecommendedLabID != ""
 
 		plan.Items = append(plan.Items, item)
 	}

@@ -282,6 +282,63 @@ func TestPlanUsesStoredRecallToCreateDueReviewWithoutReplayingLesson(t *testing.
 	}
 }
 
+
+func TestRecognitionOnlyConceptPrefersLabOnDueReview(t *testing.T) {
+	curriculumBundle, contentBundle, labs := loadInputs(t)
+	now := time.Date(2026, 10, 2, 12, 0, 0, 0, time.UTC)
+	conceptID := "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes"
+	evidence := memoryEvidence{
+		conceptID: {
+			{
+				EventID:      "lesson",
+				OccurredAt:   now.Add(-48 * time.Hour),
+				ConceptID:    conceptID,
+				ObjectiveIDs: []string{"103.1"},
+				SourceItemID: "lpic1.103.1.lesson.shell-sequences",
+				ActivityKind: learning.ActivityLesson,
+				EvidenceKind: learning.EvidenceExposure,
+				Result:       learning.ResultPass,
+				Distribution: "generic",
+				AttemptIndex: 1,
+			},
+			{
+				EventID:      "recognition",
+				OccurredAt:   now.Add(-47 * time.Hour),
+				ConceptID:    conceptID,
+				ObjectiveIDs: []string{"103.1"},
+				SourceItemID: "lpic1.103.1.q.sequence-and",
+				ActivityKind: learning.ActivityQuestion,
+				EvidenceKind: learning.EvidenceRecognition,
+				Result:       learning.ResultPass,
+				Distribution: "generic",
+				AttemptIndex: 1,
+			},
+		},
+	}
+
+	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
+		Now:        now,
+		Curriculum: curriculumBundle,
+		Content:    contentBundle,
+		Labs:       labs,
+		Evidence:   evidence,
+		Policy:     learning.DefaultSessionPolicy(),
+	})
+	if err != nil {
+		t.Fatalf("BuildPlan() error = %v", err)
+	}
+	for _, item := range plan.Items {
+		if item.ConceptID != conceptID {
+			continue
+		}
+		if item.Kind != learning.SessionReview || !item.PreferLab || item.RecommendedLabID == "" {
+			t.Fatalf("recognized exposed review = %#v, want lab-preferred review", item)
+		}
+		return
+	}
+	t.Fatalf("plan = %#v, want due review for %s", plan.Items, conceptID)
+}
+
 func TestQuickPolicyLimitsReviews(t *testing.T) {
 	curriculumBundle, contentBundle, labs := loadInputs(t)
 	now := time.Date(2026, 9, 26, 20, 0, 0, 0, time.UTC)
