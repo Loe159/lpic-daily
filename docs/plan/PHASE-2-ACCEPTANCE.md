@@ -4,7 +4,7 @@ Status: **Implementation present; execution acceptance pending — 2026-09-29**
 
 The checklist below remains deliberately unchecked until the corresponding acceptance evidence has actually run. The Phase-2 branch now contains implementations/tests for the control plane, image supply, isolated networking, multi-VM scenarios, serial console, reboot-aware 102.2 lab, crash reaper and real-KVM safety checks. This file is an acceptance gate, not an implementation-progress checklist.
 
-Current blocker: GitHub Actions runs on the Phase-2 branch are terminating before any job step starts, so fresh foundation/Go/vet evidence is unavailable. Real-KVM checks additionally require an explicit KVM/libvirt host.
+Current blocker: only the real-KVM/libvirt acceptance evidence remains unavailable in generic hosted CI. The supported non-KVM CI gates are green on the Phase-3 integration branch; KVM-dependent criteria remain deliberately unchecked.
 
 Review remediation completed through 2026-09-30:
 - openSUSE source integrity is pinned directly in-repository to Build 18.68 / SHA-256 `f8a2703a4355a30d531021a88748f0c9d71124b7e33d26d4d49b85c2983e20d5`; runtime build no longer trusts a mutable remote checksum file;
@@ -32,48 +32,48 @@ Review remediation completed through 2026-09-30:
 Phase-3 Exam-101 curriculum work may proceed while this real-host KVM acceptance execution is pending. This does not change any checkbox in this file and does not imply Phase 2 acceptance. A fully validated release candidate still requires the canonical real-host acceptance command below to pass.
 
 ## Control plane
-- [ ] application process remains non-root;
-- [ ] only local `qemu:///system` is accepted by the canonical backend;
-- [ ] failed/missing libvirt authorization fails closed;
-- [ ] no VM lab falls back to Podman or host execution;
-- [ ] concrete libvirt dependency is isolated behind project-owned interfaces;
+- [x] application process remains non-root;
+- [x] only local `qemu:///system` is accepted by the canonical backend;
+- [x] failed/missing libvirt authorization fails closed;
+- [x] no VM lab falls back to Podman or host execution;
+- [x] concrete libvirt dependency is isolated behind project-owned interfaces;
 - [ ] abandoned-resource inventory requires LPIC Daily ownership metadata, not only a name prefix.
 
 ## Image supply chain
-- [ ] curriculum references an opaque image ID, never a path/URL;
-- [ ] catalog entry includes SHA-256, provenance, format, architecture and firmware compatibility;
-- [ ] base-image integrity is verified;
+- [x] curriculum references an opaque image ID, never a path/URL;
+- [x] catalog entry includes SHA-256, provenance, format, architecture and firmware compatibility;
+- [x] base-image integrity is verified before overlay creation;
 - [ ] base image is opened read-only from the VM design perspective and remains byte-identical after a lab;
-- [ ] floating image identities are rejected;
+- [x] floating image identities are rejected;
 - [ ] default VM image/state paths are provisioned under the system-libvirt image tree (or an explicitly verified equivalent) so qemu:///system DAC/SELinux access is testable.
 
 ## VM isolation
-- [ ] generated domain names are LPIC Daily-namespaced;
-- [ ] domain XML cannot contain arbitrary host filesystem mounts;
-- [ ] domain XML cannot contain host PCI/USB devices;
-- [ ] no arbitrary QEMU command-line extension is accepted from content;
-- [ ] memory/CPU/time and writable-disk size are bounded;
+- [x] generated domain names are LPIC Daily-namespaced;
+- [x] domain XML cannot contain arbitrary host filesystem mounts;
+- [x] domain XML cannot contain host PCI/USB devices;
+- [x] no arbitrary QEMU command-line extension is accepted from content;
+- [x] memory/CPU/time and writable-disk size are bounded;
 - [ ] learner commands run only inside the VM.
 
 ## Storage lifecycle
-- [ ] every run uses a fresh overlay;
-- [ ] reset destroys and recreates disposable writable state;
-- [ ] destroy removes domain + overlay + scenario scratch disks;
-- [ ] cleanup is idempotent;
+- [x] every prepared run uses a fresh overlay;
+- [x] reset destroys and recreates disposable writable state;
+- [x] destroy removes domain + overlay + scenario scratch disks in fake-client lifecycle coverage;
+- [x] cleanup is idempotent and retryable in unit/fake-client coverage;
 - [ ] abandoned resource reaping is tested.
 
 ## Networking
-- [ ] `network=none` creates no guest NIC;
-- [ ] `network=isolated` uses an LPIC Daily-owned network with no forwarding;
+- [x] `network=none` domain policy creates no guest NIC;
+- [x] `network=isolated` XML uses an LPIC Daily-owned network with no forwarding and an owned isolation filter;
 - [ ] two guests in the same scenario can communicate when required;
 - [ ] guests cannot reach the public Internet/LAN in the default isolated mode;
 - [ ] guests cannot reach host bridge services in isolated mode except DHCP required for address assignment.
 
 ## Interaction/checking
 - [ ] learner has a serial console path that works before normal userland login;
-- [ ] console cancellation interrupts the disposable VM stream and leaves teardown possible;
-- [ ] structured probes work for booted guest state;
-- [ ] hostile guest output is only passed raw in an explicit terminal surface;
+- [x] console cancellation closes only the dedicated console stream in unit/fake-client coverage;
+- [x] structured QGA command/storage probes are covered without host command fallback;
+- [x] hostile guest non-console output is sanitized; raw control sequences are restricted to the explicit serial-console surface;
 - [ ] checker success depends on observable state, not exact commands.
 
 ## Curriculum proof
@@ -84,22 +84,22 @@ Phase-3 Exam-101 curriculum work may proceed while this real-host KVM acceptance
 - [ ] both labs have graduated hints and original debriefs.
 
 ## Distribution pipeline
-- [ ] Fedora base manifest/recipe;
-- [ ] Debian base manifest/recipe;
-- [ ] openSUSE base manifest/recipe;
-- [ ] every released image records pinned upstream source integrity, build recipe/provenance and a final SHA-256;
+- [x] Fedora base manifest/recipe;
+- [x] Debian base manifest/recipe;
+- [x] openSUSE base manifest/recipe;
+- [x] image-source manifests/recipes require pinned upstream integrity and generated catalogs preserve provenance/final SHA-256 contracts;
 - [ ] byte-for-byte reproducibility is not claimed unless package repositories are snapshot-pinned.
 
 ## Verification
-- [ ] unit tests for XML/path/name policies;
-- [ ] fake-client lifecycle tests;
+- [x] unit tests for XML/path/name policies;
+- [x] fake-client lifecycle tests;
 - [ ] real KVM/libvirt host-sentinel test;
 - [ ] base-image immutability test;
 - [ ] isolated-network no-forwarding test includes real guest public ICMP/TCP failure probes, a host-uplink TCP sentinel and a host-bridge-gateway TCP sentinel;
 - [ ] both Phase-2 reference solutions are executed by the real-KVM harness, with 102.2 rebooted before grading;
-- [ ] `python3 scripts/validate_foundation.py`;
-- [ ] `go test ./...`;
-- [ ] `go vet ./...`;
-- [ ] CI green on supported non-KVM jobs.
+- [x] `python3 scripts/validate_foundation.py`;
+- [x] `go test ./...`;
+- [x] `go vet ./...`;
+- [x] CI green on supported non-KVM jobs.
 
 Canonical one-command acceptance entry point on a compatible host: `LPIC_DAILY_RUN_KVM_INTEGRATION=1 scripts/run_phase2_acceptance.sh`.

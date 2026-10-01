@@ -15,11 +15,14 @@ Objective weights sum to 60 for each exam. Objective 104.4 is not an active v5 o
 
 The concepts and assessment descriptions are original project decomposition, not copied lesson content. Future agents must verify the official objectives if LPI publishes a new exam version rather than silently updating these files.
 
-Coverage refresh:
+Coverage and audit:
 
 ```bash
-python3 scripts/generate_phase1_coverage.py --write
+python3 scripts/generate_phase1_coverage.py --write   # when Phase-1 surfaces change
+python3 scripts/audit_phase3_coverage.py --check      # all current Exam-101 surfaces
 ```
+
+Both coverage tools intentionally use the same non-recursive lesson/question paths as the Go content loader, so a nested JSON file cannot count as covered content that the application would ignore.
 
 Validation:
 

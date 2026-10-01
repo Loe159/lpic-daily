@@ -23,8 +23,8 @@ Phase 3 may proceed in parallel because most Exam-101 curriculum work is indepen
 Complete Exam 101 with original, French-first, deterministic learning content while preserving objective/concept traceability and the existing isolation model.
 
 For every selected concept:
-- provide at least one progressive lesson surface;
-- provide at least one deterministic retrieval question;
+- provide at least one focused `introduce` lesson suitable for first exposure;
+- provide at least one deterministic daily retrieval question (initial-assessment-only questions do not satisfy scheduling coverage);
 - add practical evidence when the skill is observable safely in Podman or libvirt;
 - retain examinable legacy knowledge and label modern practice separately;
 - avoid exam dumps and copied/adapted LPI learning prose.
