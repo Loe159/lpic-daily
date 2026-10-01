@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.4.q.redirection-order-recall",
+  "objective_ids": [
+    "103.4"
+  ],
+  "concept_ids": [
+    "lpic1.103.4.ordre-des-redirections"
+  ],
+  "type": "free-recall",
+  "prompt_fr": "Dans `commande > tout.log 2>&1`, quel flux est dupliqué vers la destination actuelle de `stdout` par `2>&1` ?",
+  "grading": {
+    "strategy": "exact-text",
+    "accepted_answers": [
+      "stderr",
+      "2"
+    ],
+    "case_sensitive": false
+  },
+  "evidence_kind_on_success": "recall",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic",
+  "explanation_fr": "Le descripteur 2 (`stderr`) est dupliqué vers la destination courante du descripteur 1 (`stdout`), qui pointe déjà vers `tout.log`."
+}
