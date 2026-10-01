@@ -303,11 +303,14 @@ func runNotifyWithExecutor(
 		Title: "LPIC Daily",
 		Body:  body,
 	}
-	var open bool
+	var (
+		open        bool
+		claimTime   = now
+	)
 	if force {
 		open, err = desktop.SendDaily(ctx, executor, notification)
 	} else {
-		open, err = sendDailyWithClaimRefresh(
+		open, claimTime, err = sendDailyWithClaimRefresh(
 			ctx,
 			store,
 			localDay,
@@ -319,14 +322,19 @@ func runNotifyWithExecutor(
 	}
 	if err != nil {
 		if claimed {
-			if releaseErr := store.ReleaseNotificationClaim(ctx, localDay); releaseErr != nil {
+			_, releaseErr := store.ReleaseNotificationClaim(ctx, localDay, claimTime)
+			if releaseErr != nil {
 				return errors.Join(err, releaseErr)
 			}
 		}
 		return err
 	}
 	if !force {
-		if err := store.MarkNotificationSent(ctx, localDay, now); err != nil {
+		sentAt := now
+		if sentAt.Before(claimTime) {
+			sentAt = claimTime
+		}
+		if err := store.MarkNotificationSent(ctx, localDay, claimTime, sentAt); err != nil {
 			return err
 		}
 		fmt.Fprintln(stdout, "Notification quotidienne envoyée.")
@@ -355,12 +363,12 @@ func sendDailyWithClaimRefresh(
 	executor desktop.Executor,
 	notification desktop.Notification,
 	refreshInterval time.Duration,
-) (bool, error) {
+) (bool, time.Time, error) {
 	if store == nil {
-		return false, errors.New("progress store is required")
+		return false, claimedAt, errors.New("progress store is required")
 	}
 	if refreshInterval <= 0 {
-		return false, errors.New("notification claim refresh interval must be positive")
+		return false, claimedAt, errors.New("notification claim refresh interval must be positive")
 	}
 
 	sendCtx, cancelSend := context.WithCancel(ctx)
@@ -377,7 +385,7 @@ func sendDailyWithClaimRefresh(
 	for {
 		select {
 		case sent := <-result:
-			return sent.open, sent.err
+			return sent.open, currentClaimTime, sent.err
 		case refreshedAt := <-ticker.C:
 			refreshed, err := store.RefreshNotificationClaim(
 				ctx,
@@ -387,16 +395,16 @@ func sendDailyWithClaimRefresh(
 			)
 			if err != nil {
 				cancelSend()
-				return false, err
+				return false, currentClaimTime, err
 			}
 			if !refreshed {
 				cancelSend()
-				return false, errors.New("notification claim was lost while delivery was pending")
+				return false, currentClaimTime, errors.New("notification claim was lost while delivery was pending")
 			}
 			currentClaimTime = refreshedAt
 		case <-ctx.Done():
 			cancelSend()
-			return false, ctx.Err()
+			return false, currentClaimTime, ctx.Err()
 		}
 	}
 }

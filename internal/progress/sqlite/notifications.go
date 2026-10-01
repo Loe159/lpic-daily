@@ -120,36 +120,58 @@ func (store *Store) RefreshNotificationClaim(
 	return rows == 1, nil
 }
 
-func (store *Store) ReleaseNotificationClaim(ctx context.Context, localDay string) error {
-	if localDay == "" {
-		return fmt.Errorf("local day is required")
+func (store *Store) ReleaseNotificationClaim(
+	ctx context.Context,
+	localDay string,
+	claimedAt time.Time,
+) (bool, error) {
+	if localDay == "" || claimedAt.IsZero() {
+		return false, fmt.Errorf("local day and claim timestamp are required")
 	}
-	if _, err := store.db.ExecContext(
+	result, err := store.db.ExecContext(
 		ctx,
-		"DELETE FROM notification_delivery WHERE local_day = ? AND status = 'claimed'",
+		`DELETE FROM notification_delivery
+		 WHERE local_day = ? AND status = 'claimed' AND notified_at = ?`,
 		localDay,
-	); err != nil {
-		return fmt.Errorf("release notification claim for %s: %w", localDay, err)
+		claimedAt.UTC().Format(time.RFC3339Nano),
+	)
+	if err != nil {
+		return false, fmt.Errorf("release notification claim for %s: %w", localDay, err)
 	}
-	return nil
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return false, fmt.Errorf("inspect released notification claim for %s: %w", localDay, err)
+	}
+	return rows == 1, nil
 }
 
-func (store *Store) MarkNotificationSent(ctx context.Context, localDay string, at time.Time) error {
-	if localDay == "" || at.IsZero() {
-		return fmt.Errorf("local day and timestamp are required")
+func (store *Store) MarkNotificationSent(
+	ctx context.Context,
+	localDay string,
+	claimedAt time.Time,
+	at time.Time,
+) error {
+	if localDay == "" || claimedAt.IsZero() || at.IsZero() {
+		return fmt.Errorf("local day and claim timestamps are required")
 	}
-	_, err := store.db.ExecContext(
+	result, err := store.db.ExecContext(
 		ctx,
-		`INSERT INTO notification_delivery (local_day, notified_at, status)
-		 VALUES (?, ?, 'sent')
-		 ON CONFLICT(local_day) DO UPDATE SET
-		     notified_at = excluded.notified_at,
-		     status = 'sent'`,
-		localDay,
+		`UPDATE notification_delivery
+		 SET notified_at = ?, status = 'sent'
+		 WHERE local_day = ? AND status = 'claimed' AND notified_at = ?`,
 		at.UTC().Format(time.RFC3339Nano),
+		localDay,
+		claimedAt.UTC().Format(time.RFC3339Nano),
 	)
 	if err != nil {
 		return fmt.Errorf("mark notification delivery for %s: %w", localDay, err)
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("inspect marked notification delivery for %s: %w", localDay, err)
+	}
+	if rows != 1 {
+		return fmt.Errorf("notification claim for %s was lost before delivery could be recorded", localDay)
 	}
 	return nil
 }
