@@ -243,6 +243,9 @@ func openFakeBackend(t *testing.T, handler http.HandlerFunc) (*Backend, func()) 
 		stop()
 		t.Fatalf("Open() error = %v", err)
 	}
+	backend.mu.Lock()
+	backend.definitions["ctr"] = validDefinition()
+	backend.mu.Unlock()
 	return backend, stop
 }
 
