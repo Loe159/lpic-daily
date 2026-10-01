@@ -1228,6 +1228,14 @@ func runInteractiveLabWithBackend(
 				}
 				fmt.Fprintf(stdout, "  %-11s %s — %s\n", state, result.CheckID, result.Detail)
 			}
+			persistedHintLevel, err := pendingLabHintLevel(sessionCtx, authored.Definition.ID)
+			if err != nil {
+				return fmt.Errorf("refresh lab disclosure before recording attempt: %w", err)
+			}
+			if persistedHintLevel > highestHintLevel {
+				highestHintLevel = persistedHintLevel
+				nextHint = nextHintIndex(authored.Hints, highestHintLevel)
+			}
 			store, err := openProgressStore(sessionCtx)
 			if err != nil {
 				return fmt.Errorf("lab attempt progress could not be opened: %w", err)
