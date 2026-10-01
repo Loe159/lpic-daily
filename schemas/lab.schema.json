@@ -167,7 +167,6 @@
           },
           "then": {
             "required": [
-              "machine",
               "machine"
             ],
             "properties": {
