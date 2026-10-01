@@ -57,7 +57,7 @@ Les success criteria expliquent le résultat attendu mais ne doivent pas imposer
 
 ### Hint
 
-Chaque hint possède un niveau 1–4 et un impact sur la force de l'évidence. Le niveau 4 révèle la solution et doit être marqué `solution-revealed`.
+Chaque lab possède exactement quatre hints, un par niveau 1–4. Le niveau 1 reste léger (`none` ou `minor`), les niveaux 2 et 3 sont `material` et réduisent une preuve pratique à `guided-practice`, et le niveau 4 révèle la solution (`solution-revealed`). Le contrat d'authoring et la projection de mastery utilisent ainsi la même frontière de preuve.
 
 ### Mastery evidence
 

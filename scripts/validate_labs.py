@@ -161,8 +161,21 @@ def main():
             level = hint.get("level")
             if level not in {1, 2, 3, 4}:
                 errors.append(f"{hint_id}: invalid level {level}")
-            if level == 4 and hint.get("evidence_impact") != "solution-revealed":
-                errors.append(f"{hint_id}: level 4 must reveal the solution")
+
+        levels = [hint.get("level") for hint in hints.values()]
+        if sorted(levels) != [1, 2, 3, 4]:
+            errors.append(
+                f"{lab_id}: hint ladder must contain each level 1..4 exactly once; got {sorted(levels)}"
+            )
+        for hint_id, hint in hints.items():
+            level = hint.get("level")
+            impact = hint.get("evidence_impact")
+            if level == 1 and impact not in {"none", "minor"}:
+                errors.append(f"{hint_id}: level 1 must have evidence_impact none/minor")
+            elif level in {2, 3} and impact != "material":
+                errors.append(f"{hint_id}: level {level} must have evidence_impact material")
+            elif level == 4 and impact != "solution-revealed":
+                errors.append(f"{hint_id}: level 4 must have evidence_impact solution-revealed")
 
         requested = lab.get("hint_ids", [])
         if len(requested) != len(set(requested)):

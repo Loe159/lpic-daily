@@ -4,21 +4,105 @@
   "title": "LPIC Daily graduated hint",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "id", "lab_id", "level", "content_fr", "evidence_impact"],
+  "required": [
+    "schema_version",
+    "id",
+    "lab_id",
+    "level",
+    "content_fr",
+    "evidence_impact"
+  ],
   "properties": {
-    "schema_version": { "$ref": "common.schema.json#/$defs/schemaVersion" },
-    "id": { "$ref": "common.schema.json#/$defs/contentId" },
-    "lab_id": { "$ref": "common.schema.json#/$defs/contentId" },
-    "level": { "type": "integer", "minimum": 1, "maximum": 4 },
-    "content_fr": { "type": "string", "minLength": 5 },
+    "schema_version": {
+      "$ref": "common.schema.json#/$defs/schemaVersion"
+    },
+    "id": {
+      "$ref": "common.schema.json#/$defs/contentId"
+    },
+    "lab_id": {
+      "$ref": "common.schema.json#/$defs/contentId"
+    },
+    "level": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 4
+    },
+    "content_fr": {
+      "type": "string",
+      "minLength": 5
+    },
     "evidence_impact": {
-      "enum": ["none", "minor", "material", "solution-revealed"]
+      "enum": [
+        "none",
+        "minor",
+        "material",
+        "solution-revealed"
+      ]
     }
   },
   "allOf": [
     {
-      "if": { "properties": { "level": { "const": 4 } }, "required": ["level"] },
-      "then": { "properties": { "evidence_impact": { "const": "solution-revealed" } } }
+      "if": {
+        "properties": {
+          "level": {
+            "const": 1
+          }
+        },
+        "required": [
+          "level"
+        ]
+      },
+      "then": {
+        "properties": {
+          "evidence_impact": {
+            "enum": [
+              "none",
+              "minor"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "level": {
+            "enum": [
+              2,
+              3
+            ]
+          }
+        },
+        "required": [
+          "level"
+        ]
+      },
+      "then": {
+        "properties": {
+          "evidence_impact": {
+            "const": "material"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "level": {
+            "const": 4
+          }
+        },
+        "required": [
+          "level"
+        ]
+      },
+      "then": {
+        "properties": {
+          "evidence_impact": {
+            "const": "solution-revealed"
+          }
+        }
+      }
     }
   ]
 }

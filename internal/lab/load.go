@@ -114,6 +114,20 @@ func loadOne(fsys fs.FS, labPath string, schemaValidator *schemavalidation.Valid
 	slices.SortFunc(hints, func(a, b Hint) int {
 		return a.Level - b.Level
 	})
+	if len(hints) != 4 {
+		return Lab{}, fmt.Errorf("%s: expected exactly four graduated hints, got %d", definition.ID, len(hints))
+	}
+	for index, hint := range hints {
+		expectedLevel := index + 1
+		if hint.Level != expectedLevel {
+			return Lab{}, fmt.Errorf(
+				"%s: hint ladder must contain each level 1..4 exactly once; position %d has level %d",
+				definition.ID,
+				expectedLevel,
+				hint.Level,
+			)
+		}
+	}
 
 	return Lab{
 		Definition:           definition,
@@ -326,8 +340,19 @@ func validateHint(labID string, hint Hint) error {
 	if hint.Level < 1 || hint.Level > 4 {
 		return fmt.Errorf("hint %s level %d outside 1..4", hint.ID, hint.Level)
 	}
-	if hint.Level == 4 && hint.EvidenceImpact != "solution-revealed" {
-		return fmt.Errorf("hint %s level 4 must reveal solution", hint.ID)
+	switch hint.Level {
+	case 1:
+		if hint.EvidenceImpact != "none" && hint.EvidenceImpact != "minor" {
+			return fmt.Errorf("hint %s level 1 must have none/minor evidence impact", hint.ID)
+		}
+	case 2, 3:
+		if hint.EvidenceImpact != "material" {
+			return fmt.Errorf("hint %s level %d must have material evidence impact", hint.ID, hint.Level)
+		}
+	case 4:
+		if hint.EvidenceImpact != "solution-revealed" {
+			return fmt.Errorf("hint %s level 4 must reveal solution", hint.ID)
+		}
 	}
 	if strings.TrimSpace(hint.ContentFR) == "" {
 		return fmt.Errorf("hint %s has empty content", hint.ID)
