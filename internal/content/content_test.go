@@ -68,6 +68,55 @@ func TestBuiltinPhase1ContentCoversEveryConcept(t *testing.T) {
 	}
 }
 
+
+func TestQuestionTypeCannotOverstateMasteryEvidence(t *testing.T) {
+	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("curriculum.Load() error = %v", err)
+	}
+	contentBundle, err := Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+
+	knownObjectives := make(map[string]struct{})
+	for _, objective := range curriculumBundle.Objectives.Objectives {
+		if objective.Active {
+			knownObjectives[objective.ID] = struct{}{}
+		}
+	}
+	knownConcepts := make(map[string]curriculum.Concept)
+	for _, concept := range curriculumBundle.Concepts.Concepts {
+		if concept.Active {
+			knownConcepts[concept.ID] = concept
+		}
+	}
+
+	var multipleChoice Question
+	var textQuestion Question
+	for _, question := range contentBundle.Questions {
+		if multipleChoice.ID == "" && question.Type == "multiple-choice" {
+			multipleChoice = question
+		}
+		if textQuestion.ID == "" && (question.Type == "free-recall" || question.Type == "fill-in") {
+			textQuestion = question
+		}
+	}
+	if multipleChoice.ID == "" || textQuestion.ID == "" {
+		t.Fatal("builtin content must contain both choice and text questions")
+	}
+
+	multipleChoice.EvidenceKindOnSuccess = "recall"
+	if err := validateQuestion(multipleChoice, knownObjectives, knownConcepts); err == nil {
+		t.Fatal("multiple-choice question incorrectly accepted recall evidence")
+	}
+
+	textQuestion.EvidenceKindOnSuccess = "recognition"
+	if err := validateQuestion(textQuestion, knownObjectives, knownConcepts); err == nil {
+		t.Fatal("text question incorrectly accepted recognition evidence")
+	}
+}
+
 func TestGradeDeterministicStrategies(t *testing.T) {
 	exact := Question{Grading: Grading{
 		Strategy:        "exact-text",
