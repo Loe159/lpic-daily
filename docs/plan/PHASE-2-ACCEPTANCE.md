@@ -37,7 +37,7 @@ Phase-3 Exam-101 curriculum work may proceed while this real-host KVM acceptance
 - [x] failed/missing libvirt authorization fails closed;
 - [x] no VM lab falls back to Podman or host execution;
 - [x] concrete libvirt dependency is isolated behind project-owned interfaces;
-- [ ] abandoned-resource inventory requires LPIC Daily ownership metadata, not only a name prefix.
+- [x] abandoned-resource inventory requires LPIC Daily ownership metadata, not only a name prefix; unit/fake control-plane tests reject prefixed foreign and foreign-scope resources.
 
 ## Image supply chain
 - [x] curriculum references an opaque image ID, never a path/URL;
@@ -60,7 +60,7 @@ Phase-3 Exam-101 curriculum work may proceed while this real-host KVM acceptance
 - [x] reset destroys and recreates disposable writable state;
 - [x] destroy removes domain + overlay + scenario scratch disks in fake-client lifecycle coverage;
 - [x] cleanup is idempotent and retryable in unit/fake-client coverage;
-- [ ] abandoned resource reaping is tested.
+- [x] abandoned resource reaping is covered by fake-control-plane lifecycle tests, including live-lease preservation and prefixed foreign-resource rejection.
 
 ## Networking
 - [x] `network=none` domain policy creates no guest NIC;
@@ -74,21 +74,21 @@ Phase-3 Exam-101 curriculum work may proceed while this real-host KVM acceptance
 - [x] console cancellation closes only the dedicated console stream in unit/fake-client coverage;
 - [x] structured QGA command/storage probes are covered without host command fallback;
 - [x] hostile guest non-console output is sanitized; raw control sequences are restricted to the explicit serial-console surface;
-- [ ] checker success depends on observable state, not exact commands.
+- [x] checker success depends on observable state, not exact commands; checker tests accept different command histories that produce the same final state.
 
 ## Curriculum proof
 - [ ] one 104.1 storage lab succeeds end-to-end;
 - [ ] one 102.2 bootloader lab succeeds end-to-end including reboot;
 - [ ] failed reference state is rejected;
 - [ ] test-only reference solution passes;
-- [ ] both labs have graduated hints and original debriefs.
+- [x] both VM labs have four-level graduated hint ladders and non-empty authored debriefs enforced by schema/loader validation.
 
 ## Distribution pipeline
 - [x] Fedora base manifest/recipe;
 - [x] Debian base manifest/recipe;
 - [x] openSUSE base manifest/recipe;
 - [x] image-source manifests/recipes require pinned upstream integrity and generated catalogs preserve provenance/final SHA-256 contracts;
-- [ ] byte-for-byte reproducibility is not claimed unless package repositories are snapshot-pinned.
+- [x] byte-for-byte reproducibility is explicitly not claimed while package repositories are not snapshot-pinned.
 
 ## Verification
 - [x] unit tests for XML/path/name policies;
