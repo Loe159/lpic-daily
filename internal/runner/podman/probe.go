@@ -27,8 +27,8 @@ func (backend *Backend) Stat(
 	instance runner.Instance,
 	guestPath string,
 ) (runner.FileInfo, error) {
-	if instance.ID == "" {
-		return runner.FileInfo{}, errors.New("instance ID is required")
+	if err := backend.requireManagedInstance(instance); err != nil {
+		return runner.FileInfo{}, err
 	}
 	if err := validateGuestPath(guestPath); err != nil {
 		return runner.FileInfo{}, err
@@ -117,8 +117,8 @@ func (backend *Backend) ReadFile(
 	guestPath string,
 	maxBytes int64,
 ) ([]byte, error) {
-	if instance.ID == "" {
-		return nil, errors.New("instance ID is required")
+	if err := backend.requireManagedInstance(instance); err != nil {
+		return nil, err
 	}
 	if err := validateGuestPath(guestPath); err != nil {
 		return nil, err
@@ -133,8 +133,8 @@ func (backend *Backend) Processes(
 	ctx context.Context,
 	instance runner.Instance,
 ) ([]runner.Process, error) {
-	if instance.ID == "" {
-		return nil, errors.New("instance ID is required")
+	if err := backend.requireManagedInstance(instance); err != nil {
+		return nil, err
 	}
 
 	query := url.Values{

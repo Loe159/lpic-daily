@@ -220,6 +220,63 @@ func TestOpenRejectsRootfulAndAcceptsRootlessV2(t *testing.T) {
 	}
 }
 
+
+func TestOperationsRejectUnknownManagedInstanceBeforePodmanAPI(t *testing.T) {
+	apiCalls := 0
+	socket, stop := fakePodmanSocket(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == apiBase+"/info" {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(`{"host":{"cgroupVersion":"v2","security":{"rootless":true}}}`))
+			return
+		}
+		apiCalls++
+		http.Error(w, "unexpected", http.StatusInternalServerError)
+	})
+	defer stop()
+
+	backend, err := Open(context.Background(), "unix://"+socket)
+	if err != nil {
+		t.Fatalf("Open() error = %v", err)
+	}
+	ctx := context.Background()
+	foreign := runner.Instance{ID: "unrelated-user-container"}
+
+	checks := []struct {
+		name string
+		run  func() error
+	}{
+		{"start", func() error { return backend.Start(ctx, foreign) }},
+		{"destroy", func() error { return backend.Destroy(ctx, foreign) }},
+		{"exec", func() error {
+			_, err := backend.Exec(ctx, foreign, runner.ExecRequest{Argv: []string{"/usr/bin/true"}})
+			return err
+		}},
+		{"stat", func() error {
+			_, err := backend.Stat(ctx, foreign, "/tmp/file")
+			return err
+		}},
+		{"read-file", func() error {
+			_, err := backend.ReadFile(ctx, foreign, "/tmp/file", 1024)
+			return err
+		}},
+		{"processes", func() error {
+			_, err := backend.Processes(ctx, foreign)
+			return err
+		}},
+	}
+	for _, check := range checks {
+		t.Run(check.name, func(t *testing.T) {
+			err := check.run()
+			if err == nil || !strings.Contains(err.Error(), "unknown managed instance") {
+				t.Fatalf("%s foreign instance error = %v", check.name, err)
+			}
+		})
+	}
+	if apiCalls != 0 {
+		t.Fatalf("foreign instance operations reached Podman API %d time(s)", apiCalls)
+	}
+}
+
 func TestManagedContainerLifecyclePrepareStartResetDestroy(t *testing.T) {
 	const rawImageID = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 	const imageID = "sha256:" + rawImageID

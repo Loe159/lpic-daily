@@ -206,8 +206,8 @@ func (backend *Backend) Prepare(ctx context.Context, definition runner.Definitio
 }
 
 func (backend *Backend) Start(ctx context.Context, instance runner.Instance) error {
-	if instance.ID == "" {
-		return errors.New("instance ID is required")
+	if err := backend.requireManagedInstance(instance); err != nil {
+		return err
 	}
 	if err := backend.doJSON(
 		ctx,
@@ -239,8 +239,8 @@ func (backend *Backend) Reset(ctx context.Context, instance runner.Instance) err
 }
 
 func (backend *Backend) Destroy(ctx context.Context, instance runner.Instance) error {
-	if instance.ID == "" {
-		return errors.New("instance ID is required")
+	if err := backend.requireManagedInstance(instance); err != nil {
+		return err
 	}
 	if err := backend.remove(ctx, instance.ID); err != nil {
 		return err
@@ -248,6 +248,20 @@ func (backend *Backend) Destroy(ctx context.Context, instance runner.Instance) e
 	backend.mu.Lock()
 	delete(backend.definitions, instance.ID)
 	backend.mu.Unlock()
+	return nil
+}
+
+
+func (backend *Backend) requireManagedInstance(instance runner.Instance) error {
+	if instance.ID == "" {
+		return errors.New("instance ID is required")
+	}
+	backend.mu.RLock()
+	_, exists := backend.definitions[instance.ID]
+	backend.mu.RUnlock()
+	if !exists {
+		return fmt.Errorf("unknown managed instance %q", instance.ID)
+	}
 	return nil
 }
 
