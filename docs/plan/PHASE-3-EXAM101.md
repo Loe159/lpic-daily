@@ -34,7 +34,7 @@ For every selected concept:
 1. **103.4 — streams, pipes and redirections**: first post-slice objective, Podman-safe and independent of KVM.
 2. Finish the remaining command-line objectives: 103.2, 103.3, 103.6, 103.7 and 103.8.
 3. Expand filesystem/storage content for topic 104, reusing Phase-2 VM capabilities where full-system behavior is required.
-4. Add package/library objectives 102.3–102.6 and complete 102.1/102.2 theory/retrieval coverage.
+4. Add package/library objectives 102.3–102.6 and complete 102.1/102.2 theory/daily-question coverage.
 5. Add system-architecture objectives 101.1–101.3, using libvirt only where boot/target behavior requires it.
 6. Add cross-topic challenges that combine concepts without creating new hidden prerequisites.
 7. Run the full Phase-3 acceptance audit and regression suite.
@@ -52,7 +52,7 @@ The normal foundation validation runs the non-blocking `--check` mode so incompl
 The first authored tranche is objective **103.4**:
 - 7 stable concepts;
 - 7 progressive micro-lessons;
-- 8 deterministic retrieval questions, including explicit `stdin` redirection with `<`.
+- 8 deterministic daily questions, including explicit `stdin` redirection with `<`.
 
 Hands-on 103.4 reps/challenges follow after this initial content tranche; no artificial practical evidence is claimed before a checker can observe a meaningful result.
 

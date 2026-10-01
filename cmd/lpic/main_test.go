@@ -522,7 +522,6 @@ func (*scriptedLabRunner) Processes(context.Context, runner.Instance) ([]runner.
 func (*scriptedLabRunner) Reset(context.Context, runner.Instance) error   { return nil }
 func (*scriptedLabRunner) Destroy(context.Context, runner.Instance) error { return nil }
 
-
 type disclosureInjectingRunner struct {
 	scriptedLabRunner
 	labID    string
@@ -613,7 +612,6 @@ func TestStandaloneSolutionHintTaintsNextSuccessfulLabAttempt(t *testing.T) {
 		t.Fatalf("successful lab did not clear disclosure: %#v", disclosure)
 	}
 }
-
 
 func TestConcurrentSolutionDisclosureTaintsActiveLabAttempt(t *testing.T) {
 	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())

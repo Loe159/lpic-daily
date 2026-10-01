@@ -233,14 +233,14 @@ def main():
         )
     if missing_question:
         print(
-            "Phase-3 acceptance FAILED: concepts without deterministic daily retrieval question: "
+            "Phase-3 acceptance FAILED: concepts without deterministic daily question: "
             + ", ".join(missing_question)
         )
     if missing_lesson or missing_introduction or missing_question:
         return 1
 
     print(
-        "Phase-3 theory/retrieval coverage complete. "
+        "Phase-3 theory/daily-question coverage complete. "
         "Practical-objective and cross-topic challenge gates remain documented in "
         "docs/plan/PHASE-3-ACCEPTANCE.md."
     )
