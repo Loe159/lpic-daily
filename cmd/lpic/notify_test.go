@@ -56,7 +56,6 @@ func TestNotifySendsOnlyOncePerLocalDay(t *testing.T) {
 	}
 }
 
-
 func TestForcedNotificationDoesNotConsumeDailyDelivery(t *testing.T) {
 	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
 	now := time.Date(2026, 9, 27, 8, 0, 0, 0, time.Local)
