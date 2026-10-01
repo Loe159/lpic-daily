@@ -88,7 +88,6 @@ func TestNotificationDeliveryRoundTrip(t *testing.T) {
 	}
 }
 
-
 func TestStaleNotificationOwnerCannotReleaseOrMarkReclaimedLease(t *testing.T) {
 	ctx := context.Background()
 	store, err := Open(ctx, ":memory:")
