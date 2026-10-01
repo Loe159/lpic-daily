@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.4.lesson.pipelines",
+  "title_fr": "Relier stdout à stdin avec un pipe",
+  "objective_ids": [
+    "103.4"
+  ],
+  "concept_ids": [
+    "lpic1.103.4.pipelines"
+  ],
+  "stage": "introduce",
+  "estimated_minutes": 3,
+  "body_markdown": "Dans `commande1 | commande2`, le shell relie le `stdout` de `commande1` au `stdin` de `commande2`. La donnée circule en flux : il n'est pas nécessaire de créer un fichier intermédiaire.\n\nUn pipe ne transporte pas automatiquement `stderr`. Les diagnostics de la commande de gauche restent sur son `stderr` tant qu'une redirection explicite ne les fusionne pas avec `stdout`. Cette distinction aide à construire des pipelines dont les données et les erreurs restent prévisibles.",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic"
+}

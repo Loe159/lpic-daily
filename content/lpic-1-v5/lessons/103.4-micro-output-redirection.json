@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.4.lesson.output-redirection",
+  "title_fr": "Écraser ou ajouter avec les redirections",
+  "objective_ids": [
+    "103.4"
+  ],
+  "concept_ids": [
+    "lpic1.103.4.redirections-ecrasement-append"
+  ],
+  "stage": "introduce",
+  "estimated_minutes": 3,
+  "body_markdown": "`commande > fichier` demande au shell d'ouvrir `fichier` pour la sortie standard avant de lancer la commande. Si le fichier existe, son contenu est remplacé. `commande >> fichier` ouvre au contraire la cible en mode append et conserve le contenu existant.\n\nLa redirection est réalisée par le shell, pas par la commande elle-même. C'est pourquoi la même syntaxe fonctionne avec des programmes très différents. Avant d'utiliser `>`, vérifie toujours que l'écrasement de la cible est bien voulu.",
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "distribution": "generic"
+}

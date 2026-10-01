@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.4.q.xargs",
+  "objective_ids": [
+    "103.4"
+  ],
+  "concept_ids": [
+    "lpic1.103.4.transformer-stdin-en-arguments-via-xargs"
+  ],
+  "type": "free-recall",
+  "prompt_fr": "Quelle commande transforme des éléments lus sur `stdin` en arguments pour lancer une autre commande ?",
+  "grading": {
+    "strategy": "exact-text",
+    "accepted_answers": [
+      "xargs"
+    ],
+    "case_sensitive": false
+  },
+  "evidence_kind_on_success": "recall",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic",
+  "explanation_fr": "`xargs` construit une ou plusieurs invocations à partir des éléments reçus sur son entrée standard."
+}

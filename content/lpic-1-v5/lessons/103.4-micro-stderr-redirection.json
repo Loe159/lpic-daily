@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.4.lesson.stderr-redirection",
+  "title_fr": "Rediriger stderr séparément",
+  "objective_ids": [
+    "103.4"
+  ],
+  "concept_ids": [
+    "lpic1.103.4.redirection-stderr"
+  ],
+  "stage": "introduce",
+  "estimated_minutes": 3,
+  "body_markdown": "Le file descriptor 2 représente `stderr`. `commande 2> erreurs.log` redirige donc uniquement les diagnostics vers `erreurs.log`, tandis que `stdout` reste inchangé. `2>>` ajoute les nouvelles erreurs à un fichier existant.\n\nCette séparation est utile dans les scripts et les pipelines : une sortie exploitable peut rester propre sans perdre les messages d'échec. Envoyer `stderr` vers `/dev/null` masque volontairement les diagnostics ; fais-le seulement quand cette perte d'information est réellement souhaitée.",
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "distribution": "generic"
+}

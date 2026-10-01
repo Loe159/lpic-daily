@@ -27,6 +27,10 @@ Review remediation completed through 2026-09-30:
 - every generated root overlay and scratch QCOW2 file is forced to mode `0600`, independent of the caller's umask.
 - multi-VM scenario teardown now persists partial cleanup progress and repeated `DestroyScenario()` calls are idempotent; a late network-filter teardown failure can be retried without re-querying an already undefined network.
 
+## Parallel Phase-3 work
+
+Phase-3 Exam-101 curriculum work may proceed while this real-host KVM acceptance execution is pending. This does not change any checkbox in this file and does not imply Phase 2 acceptance. A fully validated release candidate still requires the canonical real-host acceptance command below to pass.
+
 ## Control plane
 - [ ] application process remains non-root;
 - [ ] only local `qemu:///system` is accepted by the canonical backend;

@@ -15,6 +15,7 @@ SCRIPTS = [
     ROOT / "scripts" / "validate_labs.py",
     ROOT / "scripts" / "validate_vm_image_sources.py",
     ROOT / "scripts" / "generate_phase1_coverage.py",
+    ROOT / "scripts" / "audit_phase3_coverage.py",
 ]
 
 for script in SYNTAX_ONLY:
@@ -26,7 +27,7 @@ for script in SYNTAX_ONLY:
 
 for script in SCRIPTS:
     command = [sys.executable, str(script)]
-    if script.name == "generate_phase1_coverage.py":
+    if script.name in {"generate_phase1_coverage.py", "audit_phase3_coverage.py"}:
         command.append("--check")
     completed = subprocess.run(command, cwd=ROOT)
     if completed.returncode != 0:
