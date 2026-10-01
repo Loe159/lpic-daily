@@ -342,7 +342,6 @@ func runNotifyWithExecutor(
 	return nil
 }
 
-
 type notificationSendResult struct {
 	open bool
 	err  error

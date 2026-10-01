@@ -83,7 +83,6 @@ func TestNotificationDeliveryRoundTrip(t *testing.T) {
 	}
 }
 
-
 func TestNotificationClaimRefreshExtendsLease(t *testing.T) {
 	ctx := context.Background()
 	store, err := Open(ctx, ":memory:")
