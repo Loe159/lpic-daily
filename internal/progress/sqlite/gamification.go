@@ -38,6 +38,42 @@ func (store *Store) AppendGamificationEvent(ctx context.Context, event gamificat
 	return nil
 }
 
+func (store *Store) AppendGamificationEventIfAbsent(
+	ctx context.Context,
+	event gamification.Event,
+) (bool, error) {
+	if err := event.Validate(); err != nil {
+		return false, fmt.Errorf("validate gamification event: %w", err)
+	}
+	metadata, err := json.Marshal(event.Metadata)
+	if err != nil {
+		return false, fmt.Errorf("encode gamification metadata: %w", err)
+	}
+	result, err := store.db.ExecContext(
+		ctx,
+		`INSERT OR IGNORE INTO gamification_events (
+			event_id,
+			occurred_at,
+			event_type,
+			amount,
+			metadata_json
+		) VALUES (?, ?, ?, ?, ?)`,
+		event.EventID,
+		event.OccurredAt.UTC().Format(time.RFC3339Nano),
+		string(event.Type),
+		event.Amount,
+		string(metadata),
+	)
+	if err != nil {
+		return false, fmt.Errorf("append gamification event if absent %s: %w", event.EventID, err)
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return false, fmt.Errorf("inspect gamification insert %s: %w", event.EventID, err)
+	}
+	return rows == 1, nil
+}
+
 func (store *Store) GamificationEvents(ctx context.Context) ([]gamification.Event, error) {
 	rows, err := store.db.QueryContext(
 		ctx,
