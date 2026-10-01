@@ -68,7 +68,6 @@ func TestBuiltinPhase1ContentCoversEveryConcept(t *testing.T) {
 	}
 }
 
-
 func TestQuestionTypeCannotOverstateMasteryEvidence(t *testing.T) {
 	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
 	if err != nil {
