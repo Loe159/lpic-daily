@@ -270,7 +270,7 @@ func TestRealKVMIsolationScenarioAndCrashReaping(t *testing.T) {
 	// stay inside the VM; the host sentinel and immutable base are checked below.
 	var guestOutput bytes.Buffer
 	result, err = backend.Exec(ctx, scenario.Instances[0], runner.ExecRequest{
-		Argv: []string{"/usr/bin/sh", "-c", "rm -f -- " + shellQuote(sentinelPath) + "; printf guest-write > /root/lpic-daily-isolation-probe"},
+		Argv:   []string{"/usr/bin/sh", "-c", "rm -f -- " + shellQuote(sentinelPath) + "; printf guest-write > /root/lpic-daily-isolation-probe"},
 		Stdout: &guestOutput,
 		Stderr: &guestOutput,
 	})
@@ -423,7 +423,7 @@ func integrationGuestIPv4(
 	t.Helper()
 	var stdout bytes.Buffer
 	result, err := backend.Exec(ctx, instance, runner.ExecRequest{
-		Argv: []string{"/usr/bin/sh", "-c", "ip -4 -o addr show scope global | awk '{split($4,a,\"/\"); print a[1]; exit}'"},
+		Argv:   []string{"/usr/bin/sh", "-c", "ip -4 -o addr show scope global | awk '{split($4,a,\"/\"); print a[1]; exit}'"},
 		Stdout: &stdout,
 	})
 	if err != nil {
@@ -448,7 +448,7 @@ func integrationGuestDefaultGateway(
 	t.Helper()
 	var stdout bytes.Buffer
 	result, err := backend.Exec(ctx, instance, runner.ExecRequest{
-		Argv: []string{"/usr/bin/sh", "-c", "ip -4 route show default | awk '{print $3; exit}'"},
+		Argv:   []string{"/usr/bin/sh", "-c", "ip -4 route show default | awk '{print $3; exit}'"},
 		Stdout: &stdout,
 	})
 	if err != nil {
@@ -591,7 +591,7 @@ func TestRealKVMPhase2ReferenceLabs(t *testing.T) {
 	}
 	wanted := map[string]string{
 		"lpic1.104.1.partition-filesystems": "labs/lpic-1-v5/104.1/partition-filesystems/reference-solution.sh",
-		"lpic1.102.2.grub-kernel-parameter":  "labs/lpic-1-v5/102.2/grub-kernel-parameter/reference-solution.sh",
+		"lpic1.102.2.grub-kernel-parameter": "labs/lpic-1-v5/102.2/grub-kernel-parameter/reference-solution.sh",
 	}
 	found := map[string]bool{}
 	ctx, cancel := context.WithTimeout(context.Background(), 12*time.Minute)

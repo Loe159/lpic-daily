@@ -546,10 +546,10 @@ func TestRPCControlPlaneRejectsForeignScopedResources(t *testing.T) {
 	name := "lpic-daily-foreign-scope-abc123"
 	foreignScope := "fedcba9876543210fedcba9876543210"
 	raw := &fakeRawLibvirt{
-		domain:      golibvirt.Domain{Name: name},
-		network:     golibvirt.Network{Name: name},
-		definedXML:  strings.Replace(managedTestDomainXML, testManagedOwnerScope, foreignScope, 1),
-		networkXML:  strings.Replace(managedTestNetworkXML, testManagedOwnerScope, foreignScope, 1),
+		domain:     golibvirt.Domain{Name: name},
+		network:    golibvirt.Network{Name: name},
+		definedXML: strings.Replace(managedTestDomainXML, testManagedOwnerScope, foreignScope, 1),
+		networkXML: strings.Replace(managedTestNetworkXML, testManagedOwnerScope, foreignScope, 1),
 	}
 	control, err := newScopedRPCControlPlaneForTest(t, raw)
 	if err != nil {
