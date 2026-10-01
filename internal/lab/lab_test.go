@@ -113,6 +113,28 @@ func TestLoadBuiltinStuckWorker(t *testing.T) {
 }
 
 
+func TestBuiltinLabsUseBackendSpecificCapabilityContracts(t *testing.T) {
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("LoadAll() error = %v", err)
+	}
+	for _, authored := range labs {
+		switch authored.Definition.Environment.Backend {
+		case "podman":
+			if authored.Definition.Environment.CapabilityProfile == "full-machine" {
+				t.Fatalf("%s uses VM capability profile on Podman", authored.Definition.ID)
+			}
+		case "libvirt":
+			if authored.Definition.Environment.CapabilityProfile != "full-machine" {
+				t.Fatalf("%s libvirt profile = %q, want full-machine", authored.Definition.ID, authored.Definition.Environment.CapabilityProfile)
+			}
+			if len(authored.Definition.Environment.WritableGuestPaths) != 0 {
+				t.Fatalf("%s libvirt writable_guest_paths = %#v, want empty", authored.Definition.ID, authored.Definition.Environment.WritableGuestPaths)
+			}
+		}
+	}
+}
+
 func TestBuiltinHintLaddersAreCompleteAndMatchEvidencePolicy(t *testing.T) {
 	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
 	if err != nil {

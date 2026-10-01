@@ -101,6 +101,25 @@ def main():
         environment = lab.get("environment", {})
         if environment.get("backend") not in {"podman", "libvirt"}:
             errors.append(f"{lab_id}: unsupported backend {environment.get('backend')!r}")
+        backend = environment.get("backend")
+        capability_profile = environment.get("capability_profile")
+        if backend == "podman" and capability_profile not in {
+            "baseline",
+            "identity-files",
+            "process-lab",
+        }:
+            errors.append(
+                f"{lab_id}: unsupported Podman capability_profile {capability_profile!r}"
+            )
+        if backend == "libvirt":
+            if capability_profile != "full-machine":
+                errors.append(
+                    f"{lab_id}: libvirt capability_profile must be 'full-machine'"
+                )
+            if environment.get("writable_guest_paths", []):
+                errors.append(
+                    f"{lab_id}: libvirt writable_guest_paths must be empty; writable state comes from VM disks"
+                )
         if environment.get("network") not in {"none", "isolated"}:
             errors.append(f"{lab_id}: unsupported network mode {environment.get('network')!r}")
         image_ref = environment.get("image_ref", "")
@@ -126,7 +145,6 @@ def main():
             errors.append(f"{lab_id}: timeout_seconds must be an integer from 30 to 7200")
 
         setup = lab.get("setup", {})
-        backend = environment.get("backend")
         setup_scope = setup.get("execution_scope")
         if backend == "podman":
             if setup_scope != "sandbox":

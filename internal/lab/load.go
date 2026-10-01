@@ -258,6 +258,9 @@ func validateDefinition(fsys fs.FS, base string, definition Definition) error {
 	}
 	switch definition.Environment.Backend {
 	case "podman":
+		if _, err := runner.Phase1CapabilityProfile(definition.Environment.CapabilityProfile); err != nil {
+			return fmt.Errorf("invalid Podman capability profile: %w", err)
+		}
 		if definition.Environment.Machine != nil {
 			return errors.New("podman lab must not declare machine settings")
 		}
@@ -268,6 +271,12 @@ func validateDefinition(fsys fs.FS, base string, definition Definition) error {
 			return fmt.Errorf("invalid setup reference: %w", err)
 		}
 	case "libvirt":
+		if definition.Environment.CapabilityProfile != "full-machine" {
+			return errors.New("libvirt lab capability_profile must be full-machine")
+		}
+		if len(definition.Environment.WritableGuestPaths) != 0 {
+			return errors.New("libvirt lab must not declare writable_guest_paths; VM disks define writable state")
+		}
 		if definition.Environment.Machine == nil {
 			return errors.New("libvirt lab requires machine settings")
 		}

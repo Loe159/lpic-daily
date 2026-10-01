@@ -167,8 +167,17 @@
           },
           "then": {
             "required": [
+              "machine",
               "machine"
-            ]
+            ],
+            "properties": {
+              "capability_profile": {
+                "const": "full-machine"
+              },
+              "writable_guest_paths": {
+                "maxItems": 0
+              }
+            }
           }
         },
         {
@@ -187,6 +196,15 @@
               "required": [
                 "machine"
               ]
+            },
+            "properties": {
+              "capability_profile": {
+                "enum": [
+                  "baseline",
+                  "identity-files",
+                  "process-lab"
+                ]
+              }
             }
           }
         }
