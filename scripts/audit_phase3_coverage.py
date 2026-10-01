@@ -119,6 +119,11 @@ def artifact_records(surface, pattern):
                 and data.get("stage") == "introduce"
                 and len(declared_concepts) == 1
             ),
+            "recall_question": (
+                surface == "questions"
+                and data.get("usage") != "initial-assessment"
+                and data.get("evidence_kind_on_success") == "recall"
+            ),
         })
     return records
 
@@ -131,6 +136,7 @@ def audit():
             "lessons": [],
             "questions": [],
             "introductions": [],
+            "recall_questions": [],
         }
         for concept_id in ordered_concepts
     }
@@ -155,13 +161,21 @@ def audit():
                     mapped[concept_id][surface].append(artifact_id)
                 if record["focused_introduction"]:
                     mapped[concept_id]["introductions"].append(artifact_id)
+                if record["recall_question"]:
+                    mapped[concept_id]["recall_questions"].append(artifact_id)
 
     concepts = [{
         "concept_id": concept_id,
         "objective_id": concept_to_objective[concept_id],
         "surfaces": {
             surface: sorted(mapped[concept_id][surface])
-            for surface in ("labs", "lessons", "questions", "introductions")
+            for surface in (
+                "labs",
+                "lessons",
+                "questions",
+                "introductions",
+                "recall_questions",
+            )
         },
     } for concept_id in ordered_concepts]
 
@@ -180,6 +194,10 @@ def audit():
             bool(item["surfaces"]["introductions"]) for item in concepts
         ),
         "with_question": sum(bool(item["surfaces"]["questions"]) for item in concepts),
+        "with_advancement_path": sum(
+            bool(item["surfaces"]["recall_questions"] or item["surfaces"]["labs"])
+            for item in concepts
+        ),
         "with_lab": sum(bool(item["surfaces"]["labs"]) for item in concepts),
         "objectives_with_lab": sum(objective_with_lab.values()),
     }
@@ -205,6 +223,7 @@ def main():
         f"{summary['with_lesson']} with lesson; "
         f"{summary['with_introduction']} with focused introduction; "
         f"{summary['with_question']} with daily question; "
+        f"{summary['with_advancement_path']} with recall/practical advancement path; "
         f"{summary['with_lab']} with practical lab evidence; "
         f"{summary['objectives_with_lab']} objectives with at least one lab"
     )

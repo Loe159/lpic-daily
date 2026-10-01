@@ -70,7 +70,7 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 		}
 	}
 
-	scopeObjectives, scopeConcepts, err := schedulableScope(input.Curriculum, input.Content)
+	scopeObjectives, scopeConcepts, err := schedulableScope(input.Curriculum, input.Content, input.Labs)
 	if err != nil {
 		return Plan{}, fmt.Errorf("derive schedulable curriculum scope: %w", err)
 	}
@@ -209,6 +209,7 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 func schedulableScope(
 	curriculumBundle *curriculum.Bundle,
 	contentBundle *content.Bundle,
+	labs []lab.Lab,
 ) ([]string, map[string]struct{}, error) {
 	introductions := make(map[string]bool)
 	for _, lesson := range contentBundle.Lessons {
@@ -218,12 +219,22 @@ func schedulableScope(
 		introductions[lesson.ConceptIDs[0]] = true
 	}
 	questions := make(map[string]bool)
+	recallQuestions := make(map[string]bool)
 	for _, question := range contentBundle.Questions {
 		if question.Usage == "initial-assessment" {
 			continue
 		}
 		for _, conceptID := range question.ConceptIDs {
 			questions[conceptID] = true
+			if question.EvidenceKindOnSuccess == "recall" {
+				recallQuestions[conceptID] = true
+			}
+		}
+	}
+	practical := make(map[string]bool)
+	for _, authored := range labs {
+		for _, conceptID := range authored.Definition.ConceptIDs {
+			practical[conceptID] = true
 		}
 	}
 
@@ -236,7 +247,8 @@ func schedulableScope(
 		}
 		complete := true
 		for _, conceptID := range conceptIDs {
-			if !introductions[conceptID] || !questions[conceptID] {
+			if !introductions[conceptID] || !questions[conceptID] ||
+				(!recallQuestions[conceptID] && !practical[conceptID]) {
 				complete = false
 				break
 			}
@@ -250,7 +262,7 @@ func schedulableScope(
 		}
 	}
 	if len(objectives) == 0 {
-		return nil, nil, errors.New("no objectives have complete focused-introduction and daily-question coverage")
+		return nil, nil, errors.New("no objectives have complete introduction, daily-question, and mastery-advancement coverage")
 	}
 	return objectives, concepts, nil
 }

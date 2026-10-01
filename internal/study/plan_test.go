@@ -186,6 +186,40 @@ func TestQuestionRecommendationRotatesAcrossAuthoredQuestions(t *testing.T) {
 	}
 }
 
+func TestObjectiveWithoutRecallOrPracticalPathStaysOutOfScheduler(t *testing.T) {
+	curriculumBundle, contentBundle, labs := loadInputs(t)
+	now := time.Date(2026, 10, 1, 16, 0, 0, 0, time.UTC)
+	evidence := memoryEvidence{}
+	for _, conceptID := range curriculumBundle.Phase1.ObjectiveConcepts["103.1"] {
+		evidence[conceptID] = []learning.EvidenceEvent{{
+			EventID: "ready-" + conceptID, OccurredAt: now, ConceptID: conceptID,
+			ObjectiveIDs: []string{"103.1"}, SourceItemID: "test-recall",
+			ActivityKind: learning.ActivityQuestion, EvidenceKind: learning.EvidenceRecall,
+			Result: learning.ResultPass, Distribution: "generic", AttemptIndex: 1,
+		}}
+	}
+	mutated := *contentBundle
+	mutated.Questions = append([]content.Question(nil), contentBundle.Questions...)
+	for index := range mutated.Questions {
+		if mutated.Questions[index].ID == "lpic1.103.4.q.pipeline-stdout-recall" {
+			mutated.Questions = append(mutated.Questions[:index], mutated.Questions[index+1:]...)
+			break
+		}
+	}
+	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
+		Now: now, Curriculum: curriculumBundle, Content: &mutated, Labs: labs,
+		Evidence: evidence, Policy: learning.DefaultSessionPolicy(),
+	})
+	if err != nil {
+		t.Fatalf("BuildPlan() error = %v", err)
+	}
+	for _, item := range plan.Items {
+		if item.ObjectiveID == "103.4" {
+			t.Fatalf("103.4 scheduled without recall/practical path: %#v", plan.Items)
+		}
+	}
+}
+
 func TestIncompleteFocusedIntroductionKeepsObjectiveOutOfScheduler(t *testing.T) {
 	curriculumBundle, contentBundle, labs := loadInputs(t)
 	now := time.Date(2026, 10, 1, 16, 0, 0, 0, time.UTC)
