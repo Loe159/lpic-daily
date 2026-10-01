@@ -76,6 +76,49 @@ func TestFreshPlanStartsWithFocused1031Introduction(t *testing.T) {
 	}
 }
 
+func TestAuthoredPhase3ObjectiveBecomesSchedulable(t *testing.T) {
+	curriculumBundle, contentBundle, labs := loadInputs(t)
+	now := time.Date(2026, 10, 1, 14, 0, 0, 0, time.UTC)
+	evidence := memoryEvidence{}
+
+	for _, conceptID := range curriculumBundle.Phase1.ObjectiveConcepts["103.1"] {
+		evidence[conceptID] = []learning.EvidenceEvent{{
+			EventID:      "ready-" + conceptID,
+			OccurredAt:   now,
+			ConceptID:    conceptID,
+			ObjectiveIDs: []string{"103.1"},
+			SourceItemID: "test-recall",
+			ActivityKind: learning.ActivityQuestion,
+			EvidenceKind: learning.EvidenceRecall,
+			Result:       learning.ResultPass,
+			Distribution: "generic",
+			AttemptIndex: 1,
+		}}
+	}
+
+	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
+		Now:        now,
+		Curriculum: curriculumBundle,
+		Content:    contentBundle,
+		Labs:       labs,
+		Evidence:   evidence,
+		Policy:     learning.DefaultSessionPolicy(),
+	})
+	if err != nil {
+		t.Fatalf("BuildPlan() error = %v", err)
+	}
+	if len(plan.Items) != 1 {
+		t.Fatalf("items = %#v, want one new Phase-3 item", plan.Items)
+	}
+	item := plan.Items[0]
+	if item.Kind != learning.SessionNew || item.ObjectiveID != "103.4" {
+		t.Fatalf("item = %#v, want new 103.4 concept after 103.1 readiness", item)
+	}
+	if item.RecommendedLessonID == "" || item.RecommendedQuestionID == "" {
+		t.Fatalf("103.4 item is not runnable: %#v", item)
+	}
+}
+
 func TestPlanUsesStoredRecallToCreateDueReviewWithoutReplayingLesson(t *testing.T) {
 	curriculumBundle, contentBundle, labs := loadInputs(t)
 	now := time.Date(2026, 9, 26, 20, 0, 0, 0, time.UTC)

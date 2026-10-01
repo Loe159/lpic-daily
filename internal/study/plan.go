@@ -69,16 +69,14 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 		}
 	}
 
-	phase1Concepts := make(map[string]struct{})
-	for _, objectiveID := range input.Curriculum.Phase1.SelectedObjectives {
-		for _, conceptID := range input.Curriculum.Phase1.ObjectiveConcepts[objectiveID] {
-			phase1Concepts[conceptID] = struct{}{}
-		}
+	scopeObjectives, scopeConcepts, err := schedulableScope(input.Curriculum, input.Content)
+	if err != nil {
+		return Plan{}, fmt.Errorf("derive schedulable curriculum scope: %w", err)
 	}
 
-	projections := make(map[string]learning.MasteryProjection, len(phase1Concepts))
-	evidenceByConcept := make(map[string][]learning.EvidenceEvent, len(phase1Concepts))
-	for conceptID := range phase1Concepts {
+	projections := make(map[string]learning.MasteryProjection, len(scopeConcepts))
+	evidenceByConcept := make(map[string][]learning.EvidenceEvent, len(scopeConcepts))
+	for conceptID := range scopeConcepts {
 		events, err := input.Evidence.EvidenceForConcept(ctx, conceptID)
 		if err != nil {
 			return Plan{}, fmt.Errorf("load evidence for %s: %w", conceptID, err)
@@ -109,16 +107,16 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 		Bundle:             input.Curriculum,
 		Projections:        projections,
 		ObjectiveReadiness: readiness,
-		ScopeObjectives:    input.Curriculum.Phase1.SelectedObjectives,
+		ScopeObjectives:    scopeObjectives,
 		Policy:             input.Policy,
 	})
 	if err != nil {
 		return Plan{}, fmt.Errorf("build learning session: %w", err)
 	}
 
-	conceptTitles := make(map[string]string, len(phase1Concepts))
+	conceptTitles := make(map[string]string, len(scopeConcepts))
 	for _, concept := range input.Curriculum.Concepts.Concepts {
-		if _, wanted := phase1Concepts[concept.ID]; wanted {
+		if _, wanted := scopeConcepts[concept.ID]; wanted {
 			conceptTitles[concept.ID] = concept.TitleFR
 		}
 	}
@@ -126,7 +124,7 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 	lessons := make(map[string][]content.Lesson)
 	for _, lesson := range input.Content.Lessons {
 		for _, conceptID := range lesson.ConceptIDs {
-			if _, wanted := phase1Concepts[conceptID]; wanted {
+			if _, wanted := scopeConcepts[conceptID]; wanted {
 				lessons[conceptID] = append(lessons[conceptID], lesson)
 			}
 		}
@@ -138,7 +136,7 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 			continue
 		}
 		for _, conceptID := range question.ConceptIDs {
-			if _, wanted := phase1Concepts[conceptID]; wanted {
+			if _, wanted := scopeConcepts[conceptID]; wanted {
 				questions[conceptID] = append(questions[conceptID], question.ID)
 			}
 		}
@@ -149,7 +147,7 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 	for _, authored := range input.Labs {
 		labContexts[authored.Definition.ID] = authored.Definition.PracticeContext
 		for _, conceptID := range authored.Definition.ConceptIDs {
-			if _, wanted := phase1Concepts[conceptID]; wanted {
+			if _, wanted := scopeConcepts[conceptID]; wanted {
 				labs[conceptID] = append(labs[conceptID], authored.Definition.ID)
 			}
 		}
@@ -162,7 +160,7 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 	for _, scheduled := range session.Items {
 		title, exists := conceptTitles[scheduled.ConceptID]
 		if !exists {
-			return Plan{}, fmt.Errorf("scheduled unknown Phase-1 concept %s", scheduled.ConceptID)
+			return Plan{}, fmt.Errorf("scheduled unknown study-scope concept %s", scheduled.ConceptID)
 		}
 
 		item := Item{
@@ -198,6 +196,54 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 		plan.Items = append(plan.Items, item)
 	}
 	return plan, nil
+}
+
+func schedulableScope(
+	curriculumBundle *curriculum.Bundle,
+	contentBundle *content.Bundle,
+) ([]string, map[string]struct{}, error) {
+	lessons := make(map[string]bool)
+	for _, lesson := range contentBundle.Lessons {
+		for _, conceptID := range lesson.ConceptIDs {
+			lessons[conceptID] = true
+		}
+	}
+	questions := make(map[string]bool)
+	for _, question := range contentBundle.Questions {
+		if question.Usage == "initial-assessment" {
+			continue
+		}
+		for _, conceptID := range question.ConceptIDs {
+			questions[conceptID] = true
+		}
+	}
+
+	objectives := make([]string, 0, len(curriculumBundle.Phase3.SelectedObjectives))
+	concepts := make(map[string]struct{})
+	for _, objectiveID := range curriculumBundle.Phase3.SelectedObjectives {
+		conceptIDs := curriculumBundle.Phase3.ObjectiveConcepts[objectiveID]
+		if len(conceptIDs) == 0 {
+			return nil, nil, fmt.Errorf("phase3 objective %s has no concepts", objectiveID)
+		}
+		complete := true
+		for _, conceptID := range conceptIDs {
+			if !lessons[conceptID] || !questions[conceptID] {
+				complete = false
+				break
+			}
+		}
+		if !complete {
+			continue
+		}
+		objectives = append(objectives, objectiveID)
+		for _, conceptID := range conceptIDs {
+			concepts[conceptID] = struct{}{}
+		}
+	}
+	if len(objectives) == 0 {
+		return nil, nil, errors.New("no objectives have complete lesson and daily-question coverage")
+	}
+	return objectives, concepts, nil
 }
 
 func recommendedLesson(kind learning.SessionItemKind, lessons []content.Lesson) string {

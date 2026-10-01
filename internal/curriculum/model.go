@@ -85,6 +85,21 @@ type Phase1Slice struct {
 	ExplicitNonGoals   []string            `json:"explicit_non_goals"`
 }
 
+type Phase3Scope struct {
+	SchemaVersion      string              `json:"schema_version"`
+	ID                 string              `json:"id"`
+	Certification      string              `json:"certification"`
+	SyllabusVersion    string              `json:"syllabus_version"`
+	Exam               string              `json:"exam"`
+	ExamCode           string              `json:"exam_code"`
+	Topics             []string            `json:"topics"`
+	SelectedObjectives []string            `json:"selected_objectives"`
+	ObjectiveConcepts  map[string][]string `json:"objective_concepts"`
+	ConceptCount       int                 `json:"concept_count"`
+	ScopeSource        string              `json:"scope_source"`
+	ScopeVerifiedOn    string              `json:"scope_verified_on"`
+}
+
 type SliceLearningOrder struct {
 	Foundation     []string `json:"foundation"`
 	ThenInterleave []string `json:"then_interleave"`
@@ -103,6 +118,7 @@ type Bundle struct {
 	Prerequisites PrerequisitesFile
 	Concepts      ConceptsFile
 	Phase1        Phase1Slice
+	Phase3        Phase3Scope
 	Schemas       map[string]map[string]any
 }
 
@@ -113,5 +129,7 @@ type Summary struct {
 	Concepts         int
 	Phase1Objectives int
 	Phase1Concepts   int
+	Phase3Objectives int
+	Phase3Concepts   int
 	SchemaFiles      int
 }

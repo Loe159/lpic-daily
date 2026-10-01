@@ -5,13 +5,13 @@ from pathlib import Path
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-OBJECTIVES_PATH = ROOT / "curriculum" / "lpic-1-v5" / "objectives.json"
+SCOPE_PATH = ROOT / "curriculum" / "lpic-1-v5" / "phase3-exam101.json"
 CONCEPTS_PATH = ROOT / "curriculum" / "lpic-1-v5" / "concepts.json"
 
 SURFACE_GLOBS = {
     "labs": "labs/lpic-1-v5/*/*/lab.json",
-    "lessons": "content/lpic-1-v5/lessons/**/*.json",
-    "questions": "content/lpic-1-v5/questions/**/*.json",
+    "lessons": "content/lpic-1-v5/lessons/*.json",
+    "questions": "content/lpic-1-v5/questions/*.json",
 }
 
 
@@ -23,26 +23,42 @@ def load_json(path):
 
 
 def phase3_scope():
-    objectives = load_json(OBJECTIVES_PATH).get("objectives", [])
-    selected_objectives = [
-        item["id"] for item in objectives
-        if item.get("active") is True and item.get("exam") == "101"
-    ]
-    if not selected_objectives:
-        raise ValueError("no active Exam 101 objectives found")
+    scope = load_json(SCOPE_PATH)
+    selected_objectives = scope.get("selected_objectives")
+    objective_concepts = scope.get("objective_concepts")
+    if not isinstance(selected_objectives, list) or not selected_objectives:
+        raise ValueError("phase3 scope has no selected_objectives")
+    if not isinstance(objective_concepts, dict):
+        raise ValueError("phase3 scope has no objective_concepts")
+    if set(objective_concepts) != set(selected_objectives):
+        raise ValueError("phase3 objective_concepts keys differ from selected_objectives")
 
-    selected_set = set(selected_objectives)
     concepts = load_json(CONCEPTS_PATH).get("concepts", [])
-    ordered_concepts = [
-        item["id"] for item in concepts
-        if item.get("active") is True and item.get("objective_id") in selected_set
-    ]
-    concept_to_objective = {
-        item["id"]: item["objective_id"] for item in concepts
-        if item.get("active") is True and item.get("objective_id") in selected_set
-    }
-    if len(ordered_concepts) != len(concept_to_objective):
-        raise ValueError("duplicate active Exam 101 concept id")
+    known = {item["id"]: item for item in concepts if item.get("active") is True}
+    ordered_concepts = []
+    concept_to_objective = {}
+    for objective_id in selected_objectives:
+        ids = objective_concepts.get(objective_id)
+        if not isinstance(ids, list) or not ids:
+            raise ValueError(f"phase3 objective {objective_id} has no concept list")
+        for concept_id in ids:
+            concept = known.get(concept_id)
+            if concept is None:
+                raise ValueError(f"phase3 references unknown active concept {concept_id}")
+            if concept.get("objective_id") != objective_id:
+                raise ValueError(
+                    f"phase3 concept {concept_id} belongs to {concept.get('objective_id')}, "
+                    f"not {objective_id}"
+                )
+            if concept_id in concept_to_objective:
+                raise ValueError(f"duplicate phase3 concept {concept_id}")
+            concept_to_objective[concept_id] = objective_id
+            ordered_concepts.append(concept_id)
+
+    if scope.get("concept_count") != len(ordered_concepts):
+        raise ValueError(
+            f"phase3 concept_count={scope.get('concept_count')}, mapped={len(ordered_concepts)}"
+        )
     return selected_objectives, ordered_concepts, concept_to_objective
 
 
@@ -55,9 +71,13 @@ def artifact_records(surface, pattern):
         objective_ids = data.get("objective_ids")
         if not isinstance(artifact_id, str) or not artifact_id:
             raise ValueError(f"{path.relative_to(ROOT)}: missing id")
-        if not isinstance(declared_concepts, list) or not all(isinstance(item, str) for item in declared_concepts):
+        if not isinstance(declared_concepts, list) or not all(
+            isinstance(item, str) for item in declared_concepts
+        ):
             raise ValueError(f"{path.relative_to(ROOT)}: concept_ids must be a list of strings")
-        if not isinstance(objective_ids, list) or not all(isinstance(item, str) for item in objective_ids):
+        if not isinstance(objective_ids, list) or not all(
+            isinstance(item, str) for item in objective_ids
+        ):
             raise ValueError(f"{path.relative_to(ROOT)}: objective_ids must be a list of strings")
 
         evidenced_concepts = set(declared_concepts)
@@ -69,7 +89,9 @@ def artifact_records(surface, pattern):
             for index, check in enumerate(checks, start=1):
                 concept_ids = check.get("concept_ids")
                 if not isinstance(concept_ids, list) or not concept_ids:
-                    raise ValueError(f"{path.relative_to(ROOT)}: check {index} has no concept evidence mapping")
+                    raise ValueError(
+                        f"{path.relative_to(ROOT)}: check {index} has no concept evidence mapping"
+                    )
                 unknown = set(concept_ids) - set(declared_concepts)
                 if unknown:
                     raise ValueError(
@@ -95,7 +117,10 @@ def artifact_records(surface, pattern):
 
 def audit():
     selected_objectives, ordered_concepts, concept_to_objective = phase3_scope()
-    mapped = {concept_id: {"labs": [], "lessons": [], "questions": []} for concept_id in ordered_concepts}
+    mapped = {
+        concept_id: {"labs": [], "lessons": [], "questions": []}
+        for concept_id in ordered_concepts
+    }
     seen_artifact_ids = set()
 
     for surface, pattern in SURFACE_GLOBS.items():
@@ -118,11 +143,17 @@ def audit():
     concepts = [{
         "concept_id": concept_id,
         "objective_id": concept_to_objective[concept_id],
-        "surfaces": {surface: sorted(mapped[concept_id][surface]) for surface in ("labs", "lessons", "questions")},
+        "surfaces": {
+            surface: sorted(mapped[concept_id][surface])
+            for surface in ("labs", "lessons", "questions")
+        },
     } for concept_id in ordered_concepts]
 
     objective_with_lab = {
-        objective_id: any(item["objective_id"] == objective_id and item["surfaces"]["labs"] for item in concepts)
+        objective_id: any(
+            item["objective_id"] == objective_id and item["surfaces"]["labs"]
+            for item in concepts
+        )
         for objective_id in selected_objectives
     }
     summary = {
@@ -160,12 +191,22 @@ def main():
     if args.check:
         return 0
 
-    missing_lesson = [item["concept_id"] for item in concepts if not item["surfaces"]["lessons"]]
-    missing_question = [item["concept_id"] for item in concepts if not item["surfaces"]["questions"]]
+    missing_lesson = [
+        item["concept_id"] for item in concepts if not item["surfaces"]["lessons"]
+    ]
+    missing_question = [
+        item["concept_id"] for item in concepts if not item["surfaces"]["questions"]
+    ]
     if missing_lesson:
-        print("Phase-3 acceptance FAILED: concepts without lesson: " + ", ".join(missing_lesson))
+        print(
+            "Phase-3 acceptance FAILED: concepts without lesson: "
+            + ", ".join(missing_lesson)
+        )
     if missing_question:
-        print("Phase-3 acceptance FAILED: concepts without deterministic retrieval question: " + ", ".join(missing_question))
+        print(
+            "Phase-3 acceptance FAILED: concepts without deterministic retrieval question: "
+            + ", ".join(missing_question)
+        )
     if missing_lesson or missing_question:
         return 1
 

@@ -13,12 +13,6 @@ func TestBuiltinPhase1ContentCoversEveryConcept(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Load() error = %v", err)
 	}
-	if len(bundle.Lessons) != 25 {
-		t.Fatalf("lessons = %d, want 25 (22 introductions + 3 deepen)", len(bundle.Lessons))
-	}
-	if len(bundle.Questions) != 29 {
-		t.Fatalf("questions = %d, want 29 (22 daily + 7 initial assessment)", len(bundle.Questions))
-	}
 
 	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
 	if err != nil {
@@ -26,8 +20,12 @@ func TestBuiltinPhase1ContentCoversEveryConcept(t *testing.T) {
 	}
 
 	phase1Concepts := make([]string, 0, 22)
+	phase1Set := make(map[string]struct{}, 22)
 	for _, objectiveID := range curriculumBundle.Phase1.SelectedObjectives {
-		phase1Concepts = append(phase1Concepts, curriculumBundle.Phase1.ObjectiveConcepts[objectiveID]...)
+		for _, conceptID := range curriculumBundle.Phase1.ObjectiveConcepts[objectiveID] {
+			phase1Concepts = append(phase1Concepts, conceptID)
+			phase1Set[conceptID] = struct{}{}
+		}
 	}
 	slices.Sort(phase1Concepts)
 
@@ -35,6 +33,9 @@ func TestBuiltinPhase1ContentCoversEveryConcept(t *testing.T) {
 	introductions := make(map[string]int)
 	for _, lesson := range bundle.Lessons {
 		for _, conceptID := range lesson.ConceptIDs {
+			if _, phase1 := phase1Set[conceptID]; !phase1 {
+				continue
+			}
 			lessonCoverage[conceptID]++
 			if lesson.Stage == "introduce" && len(lesson.ConceptIDs) == 1 {
 				introductions[conceptID]++
@@ -44,10 +45,11 @@ func TestBuiltinPhase1ContentCoversEveryConcept(t *testing.T) {
 
 	questionCoverage := make(map[string]int)
 	for _, question := range bundle.Questions {
-		if len(question.ConceptIDs) != 1 {
-			t.Fatalf("question %s maps %d concepts, want exactly 1 in Phase 1", question.ID, len(question.ConceptIDs))
+		for _, conceptID := range question.ConceptIDs {
+			if _, phase1 := phase1Set[conceptID]; phase1 {
+				questionCoverage[conceptID]++
+			}
 		}
-		questionCoverage[question.ConceptIDs[0]]++
 	}
 
 	for _, conceptID := range phase1Concepts {
