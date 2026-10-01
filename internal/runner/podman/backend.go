@@ -251,7 +251,6 @@ func (backend *Backend) Destroy(ctx context.Context, instance runner.Instance) e
 	return nil
 }
 
-
 func (backend *Backend) requireManagedInstance(instance runner.Instance) error {
 	if instance.ID == "" {
 		return errors.New("instance ID is required")

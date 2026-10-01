@@ -220,7 +220,6 @@ func TestOpenRejectsRootfulAndAcceptsRootlessV2(t *testing.T) {
 	}
 }
 
-
 func TestOperationsRejectUnknownManagedInstanceBeforePodmanAPI(t *testing.T) {
 	apiCalls := 0
 	socket, stop := fakePodmanSocket(t, func(w http.ResponseWriter, r *http.Request) {
