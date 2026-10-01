@@ -27,6 +27,7 @@ Baseline controls:
 - network `none` by default; isolated lab network only when objective requires networking;
 - CPU/memory/PID/time limits;
 - fresh disposable container per lab unless a scenario explicitly defines a controlled multi-step state;
+- each managed container carries a bounded expiry label; before starting a Podman lab, expired LPIC Daily containers from crashed sessions are reaped without touching recent or foreign containers;
 - resolve a mutable local image tag to Podman's immutable `sha256:` image ID before create, and retain that ID across resets.
 
 ## Backend B: KVM/QEMU + libvirt

@@ -17,6 +17,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/Loe159/lpic-daily/internal/runner"
 )
@@ -24,6 +25,10 @@ import (
 const (
 	apiBase                            = "/v6.0.0/libpod"
 	phase1WritablePathLimitBytes int64 = 32 << 20
+	managedLabel                       = "io.lpic-daily.managed"
+	labIDLabel                         = "io.lpic-daily.lab-id"
+	expiresAtLabel                     = "io.lpic-daily.expires-at"
+	abandonedCleanupGrace              = time.Minute
 )
 
 var (
@@ -110,6 +115,11 @@ type createResponse struct {
 
 type imageInspectResponse struct {
 	ID string `json:"Id"`
+}
+
+type containerSummary struct {
+	ID     string            `json:"Id"`
+	Labels map[string]string `json:"Labels"`
 }
 
 type apiError struct {
@@ -264,6 +274,69 @@ func (backend *Backend) requireManagedInstance(instance runner.Instance) error {
 	return nil
 }
 
+func (backend *Backend) ReapAbandoned(ctx context.Context, now time.Time) error {
+	if now.IsZero() {
+		return errors.New("reap time is required")
+	}
+	filters, err := json.Marshal(map[string][]string{
+		"label": {managedLabel + "=true"},
+	})
+	if err != nil {
+		return fmt.Errorf("encode Podman reap filters: %w", err)
+	}
+	query := url.Values{
+		"all":     {"true"},
+		"filters": {string(filters)},
+	}
+	var containers []containerSummary
+	if err := backend.doJSON(
+		ctx,
+		http.MethodGet,
+		apiBase+"/containers/json",
+		query,
+		nil,
+		&containers,
+	); err != nil {
+		return fmt.Errorf("list managed Podman containers: %w", err)
+	}
+
+	var errs []error
+	for _, container := range containers {
+		if container.Labels[managedLabel] != "true" {
+			continue
+		}
+		expiresText := strings.TrimSpace(container.Labels[expiresAtLabel])
+		if expiresText == "" {
+			continue
+		}
+		expiresAt, err := time.Parse(time.RFC3339Nano, expiresText)
+		if err != nil {
+			errs = append(errs, fmt.Errorf(
+				"managed container %q has invalid expiry %q: %w",
+				container.ID,
+				expiresText,
+				err,
+			))
+			continue
+		}
+		if now.Before(expiresAt) {
+			continue
+		}
+		if strings.TrimSpace(container.ID) == "" {
+			errs = append(errs, errors.New("managed expired container has empty ID"))
+			continue
+		}
+		if err := backend.remove(ctx, container.ID); err != nil {
+			errs = append(errs, fmt.Errorf("reap expired container %s: %w", container.ID, err))
+			continue
+		}
+		backend.mu.Lock()
+		delete(backend.definitions, container.ID)
+		backend.mu.Unlock()
+	}
+	return errors.Join(errs...)
+}
+
 func (backend *Backend) resolveImageID(ctx context.Context, imageRef string) (string, error) {
 	var response imageInspectResponse
 	err := backend.doJSON(
@@ -296,6 +369,9 @@ func (backend *Backend) create(ctx context.Context, definition runner.Definition
 	if err != nil {
 		return err
 	}
+	request.Labels[expiresAtLabel] = time.Now().UTC().
+		Add(definition.Timeout + abandonedCleanupGrace).
+		Format(time.RFC3339Nano)
 	var response createResponse
 	if err := backend.doJSON(ctx, http.MethodPost, apiBase+"/containers/create", nil, request, &response); err != nil {
 		return fmt.Errorf("create container %s: %w", name, err)
@@ -362,8 +438,8 @@ func buildCreateRequest(definition runner.Definition, name string) (createReques
 		Terminal:     &falseValue,
 		Stdin:        &falseValue,
 		Labels: map[string]string{
-			"io.lpic-daily.managed": "true",
-			"io.lpic-daily.lab-id":  definition.LabID,
+			managedLabel: "true",
+			labIDLabel:   definition.LabID,
 		},
 		Timeout:            uint(definition.Timeout.Seconds()),
 		Privileged:         &falseValue,

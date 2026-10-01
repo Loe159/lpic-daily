@@ -982,6 +982,9 @@ func runInteractiveLab(authored lab.Lab, stdin io.Reader, stdout, stderr io.Writ
 		if err != nil {
 			return fmt.Errorf("open rootless Podman backend: %w", err)
 		}
+		if err := backend.ReapAbandoned(ctx, time.Now()); err != nil {
+			fmt.Fprintln(stderr, "warning: reap abandoned Podman labs:", err)
+		}
 		return runInteractiveLabWithBackend(
 			ctx,
 			authored,

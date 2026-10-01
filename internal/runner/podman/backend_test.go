@@ -276,6 +276,103 @@ func TestOperationsRejectUnknownManagedInstanceBeforePodmanAPI(t *testing.T) {
 	}
 }
 
+func TestReapAbandonedOnlyRemovesExpiredManagedContainers(t *testing.T) {
+	now := time.Date(2026, 10, 1, 12, 0, 0, 0, time.UTC)
+	expired := now.Add(-time.Minute).Format(time.RFC3339Nano)
+	live := now.Add(time.Hour).Format(time.RFC3339Nano)
+	var deleted []string
+
+	socket, stop := fakePodmanSocket(t, func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.Method == http.MethodGet && r.URL.Path == apiBase+"/info":
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(`{"host":{"cgroupVersion":"v2","security":{"rootless":true}}}`))
+		case r.Method == http.MethodGet && r.URL.Path == apiBase+"/containers/json":
+			if r.URL.Query().Get("all") != "true" {
+				t.Errorf("reap list missing all=true: %s", r.URL.RawQuery)
+			}
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(fmt.Sprintf(
+				`[
+				 {"Id":"expired-managed","Labels":{"%s":"true","%s":"%s"}},
+				 {"Id":"live-managed","Labels":{"%s":"true","%s":"%s"}},
+				 {"Id":"foreign","Labels":{"%s":"false","%s":"%s"}},
+				 {"Id":"legacy-managed","Labels":{"%s":"true"}}
+				]`,
+				managedLabel, expiresAtLabel, expired,
+				managedLabel, expiresAtLabel, live,
+				managedLabel, expiresAtLabel, expired,
+				managedLabel,
+			)))
+		case r.Method == http.MethodDelete && strings.HasPrefix(r.URL.Path, apiBase+"/containers/"):
+			deleted = append(deleted, strings.TrimPrefix(r.URL.Path, apiBase+"/containers/"))
+			w.WriteHeader(http.StatusNoContent)
+		default:
+			t.Errorf("unexpected Podman request: %s %s", r.Method, r.URL.String())
+			http.Error(w, "unexpected", http.StatusNotFound)
+		}
+	})
+	defer stop()
+
+	backend, err := Open(context.Background(), "unix://"+socket)
+	if err != nil {
+		t.Fatalf("Open() error = %v", err)
+	}
+	if err := backend.ReapAbandoned(context.Background(), now); err != nil {
+		t.Fatalf("ReapAbandoned() error = %v", err)
+	}
+	if len(deleted) != 1 || deleted[0] != "expired-managed" {
+		t.Fatalf("deleted = %v, want only expired-managed", deleted)
+	}
+}
+
+func TestCreateAddsBoundedExpiryLabel(t *testing.T) {
+	const rawImageID = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+	var expiry time.Time
+	socket, stop := fakePodmanSocket(t, func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.Method == http.MethodGet && r.URL.Path == apiBase+"/info":
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(`{"host":{"cgroupVersion":"v2","security":{"rootless":true}}}`))
+		case r.Method == http.MethodGet && strings.HasPrefix(r.URL.Path, apiBase+"/images/"):
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte("{\"Id\":\"" + rawImageID + "\"}"))
+		case r.Method == http.MethodPost && r.URL.Path == apiBase+"/containers/create":
+			var request createRequest
+			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+				t.Fatalf("decode create request: %v", err)
+			}
+			parsed, err := time.Parse(time.RFC3339Nano, request.Labels[expiresAtLabel])
+			if err != nil {
+				t.Fatalf("expiry label = %q: %v", request.Labels[expiresAtLabel], err)
+			}
+			expiry = parsed
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(`{"Id":"container"}`))
+		default:
+			t.Errorf("unexpected Podman request: %s %s", r.Method, r.URL.String())
+			http.Error(w, "unexpected", http.StatusNotFound)
+		}
+	})
+	defer stop()
+
+	backend, err := Open(context.Background(), "unix://"+socket)
+	if err != nil {
+		t.Fatalf("Open() error = %v", err)
+	}
+	before := time.Now().UTC()
+	definition := validDefinition()
+	if _, err := backend.Prepare(context.Background(), definition); err != nil {
+		t.Fatalf("Prepare() error = %v", err)
+	}
+	after := time.Now().UTC()
+	minimum := before.Add(definition.Timeout)
+	maximum := after.Add(definition.Timeout + abandonedCleanupGrace + time.Second)
+	if expiry.Before(minimum) || expiry.After(maximum) {
+		t.Fatalf("expiry = %s, want between %s and %s", expiry, minimum, maximum)
+	}
+}
+
 func TestManagedContainerLifecyclePrepareStartResetDestroy(t *testing.T) {
 	const rawImageID = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 	const imageID = "sha256:" + rawImageID
