@@ -24,7 +24,7 @@ Complete Exam 101 with original, French-first, deterministic learning content wh
 
 For every selected concept:
 - provide at least one focused `introduce` lesson suitable for first exposure;
-- provide at least one deterministic daily retrieval question (initial-assessment-only questions do not satisfy scheduling coverage);
+- provide at least one deterministic daily question (initial-assessment-only questions do not satisfy scheduling coverage);
 - add practical evidence when the skill is observable safely in Podman or libvirt;
 - retain examinable legacy knowledge and label modern practice separately;
 - avoid exam dumps and copied/adapted LPI learning prose.
@@ -43,7 +43,7 @@ For every selected concept:
 
 `python3 scripts/audit_phase3_coverage.py --check` is a non-blocking progress audit used during implementation. It validates mappings and reports lesson/question/lab coverage across all 153 Exam-101 concepts.
 
-`python3 scripts/audit_phase3_coverage.py --require-complete` is an exit gate for theory/retrieval coverage. Practical-objective and cross-topic gates remain explicit in `PHASE-3-ACCEPTANCE.md`.
+`python3 scripts/audit_phase3_coverage.py --require-complete` is an exit gate for theory/daily-question coverage. Practical-objective and cross-topic gates remain explicit in `PHASE-3-ACCEPTANCE.md`.
 
 The normal foundation validation runs the non-blocking `--check` mode so incomplete Phase-3 content does not make every intermediate commit red while invalid mappings still fail closed. The Go curriculum loader also loads and validates this manifest, so it cannot silently drift from `objectives.json`, `concepts.json` or the prerequisite graph.
 
@@ -56,4 +56,4 @@ The first authored tranche is objective **103.4**:
 
 Hands-on 103.4 reps/challenges follow after this initial content tranche; no artificial practical evidence is claimed before a checker can observe a meaningful result.
 
-The daily scheduler derives its currently runnable objective scope from this Phase-3 manifest plus authored content. An objective becomes schedulable only when every mapped concept has a focused `introduce` lesson and one non-assessment daily question. This makes 103.4 reachable after 103.1 readiness without exposing unfinished Exam-101 objectives. Concepts with several daily questions recommend the least-attempted question so authored retrieval variants remain reachable over time.
+The daily scheduler derives its currently runnable objective scope from this Phase-3 manifest plus authored content. An objective becomes schedulable only when every mapped concept has a focused `introduce` lesson and one non-assessment daily question. This makes 103.4 reachable after 103.1 readiness without exposing unfinished Exam-101 objectives. Concepts with several daily questions recommend the least-attempted question so authored question variants remain reachable over time.
