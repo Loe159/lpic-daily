@@ -33,7 +33,10 @@ import (
 	"github.com/muesli/cancelreader"
 )
 
-const version = "0.0.0-dev"
+const (
+	version                          = "0.0.0-dev"
+	notificationClaimRefreshInterval = 3 * time.Minute
+)
 
 func main() {
 	if err := runWithIO(os.Args[1:], os.Stdin, os.Stdout, os.Stderr); err != nil {
@@ -296,10 +299,24 @@ func runNotifyWithExecutor(
 		}
 	}
 
-	open, err := desktop.SendDaily(ctx, executor, desktop.Notification{
+	notification := desktop.Notification{
 		Title: "LPIC Daily",
 		Body:  body,
-	})
+	}
+	var open bool
+	if force {
+		open, err = desktop.SendDaily(ctx, executor, notification)
+	} else {
+		open, err = sendDailyWithClaimRefresh(
+			ctx,
+			store,
+			localDay,
+			now,
+			executor,
+			notification,
+			notificationClaimRefreshInterval,
+		)
+	}
 	if err != nil {
 		if claimed {
 			if releaseErr := store.ReleaseNotificationClaim(ctx, localDay); releaseErr != nil {
@@ -323,6 +340,66 @@ func runNotifyWithExecutor(
 		}
 	}
 	return nil
+}
+
+
+type notificationSendResult struct {
+	open bool
+	err  error
+}
+
+func sendDailyWithClaimRefresh(
+	ctx context.Context,
+	store *progresssqlite.Store,
+	localDay string,
+	claimedAt time.Time,
+	executor desktop.Executor,
+	notification desktop.Notification,
+	refreshInterval time.Duration,
+) (bool, error) {
+	if store == nil {
+		return false, errors.New("progress store is required")
+	}
+	if refreshInterval <= 0 {
+		return false, errors.New("notification claim refresh interval must be positive")
+	}
+
+	sendCtx, cancelSend := context.WithCancel(ctx)
+	defer cancelSend()
+	result := make(chan notificationSendResult, 1)
+	go func() {
+		open, err := desktop.SendDaily(sendCtx, executor, notification)
+		result <- notificationSendResult{open: open, err: err}
+	}()
+
+	ticker := time.NewTicker(refreshInterval)
+	defer ticker.Stop()
+	currentClaimTime := claimedAt
+	for {
+		select {
+		case sent := <-result:
+			return sent.open, sent.err
+		case refreshedAt := <-ticker.C:
+			refreshed, err := store.RefreshNotificationClaim(
+				ctx,
+				localDay,
+				currentClaimTime,
+				refreshedAt,
+			)
+			if err != nil {
+				cancelSend()
+				return false, err
+			}
+			if !refreshed {
+				cancelSend()
+				return false, errors.New("notification claim was lost while delivery was pending")
+			}
+			currentClaimTime = refreshedAt
+		case <-ctx.Done():
+			cancelSend()
+			return false, ctx.Err()
+		}
+	}
 }
 
 func runToday(args []string, stdout io.Writer) error {

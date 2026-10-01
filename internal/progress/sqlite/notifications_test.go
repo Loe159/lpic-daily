@@ -83,6 +83,62 @@ func TestNotificationDeliveryRoundTrip(t *testing.T) {
 	}
 }
 
+
+func TestNotificationClaimRefreshExtendsLease(t *testing.T) {
+	ctx := context.Background()
+	store, err := Open(ctx, ":memory:")
+	if err != nil {
+		t.Fatalf("Open() error = %v", err)
+	}
+	defer store.Close()
+
+	const day = "2026-09-29"
+	start := time.Date(2026, 9, 29, 8, 0, 0, 0, time.UTC)
+	claimed, err := store.ClaimNotification(ctx, day, start)
+	if err != nil || !claimed {
+		t.Fatalf("first claim = %v, %v", claimed, err)
+	}
+
+	refreshedAt := start.Add(3 * time.Minute)
+	refreshed, err := store.RefreshNotificationClaim(ctx, day, start, refreshedAt)
+	if err != nil || !refreshed {
+		t.Fatalf("refresh = %v, %v", refreshed, err)
+	}
+
+	staleOwnerRefresh, err := store.RefreshNotificationClaim(
+		ctx,
+		day,
+		start,
+		start.Add(4*time.Minute),
+	)
+	if err != nil {
+		t.Fatalf("stale owner refresh error = %v", err)
+	}
+	if staleOwnerRefresh {
+		t.Fatal("stale claim timestamp unexpectedly refreshed current lease")
+	}
+
+	reclaimed, err := store.ClaimNotification(ctx, day, start.Add(11*time.Minute))
+	if err != nil {
+		t.Fatalf("reclaim before refreshed lease expiry error = %v", err)
+	}
+	if reclaimed {
+		t.Fatal("refreshed live claim was reclaimed too early")
+	}
+
+	reclaimed, err = store.ClaimNotification(
+		ctx,
+		day,
+		refreshedAt.Add(notificationClaimTTL),
+	)
+	if err != nil {
+		t.Fatalf("reclaim after refreshed lease expiry error = %v", err)
+	}
+	if !reclaimed {
+		t.Fatal("expired refreshed claim was not reclaimable")
+	}
+}
+
 func TestNotificationClaimExpiresAndCanBeReclaimed(t *testing.T) {
 	ctx := context.Background()
 	store, err := Open(ctx, ":memory:")

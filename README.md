@@ -69,7 +69,7 @@ The application never pulls lab images implicitly. Before create, the Podman ada
 
 ## Daily desktop notification
 
-The Fedora adapter uses `notify-send` and a user-level systemd timer. Automatic delivery is reserved before calling `notify-send`, so concurrent invocations do not normally duplicate a delivery. An explicit `notify-send` failure releases the reservation immediately; an orphaned `claimed` reservation is treated as a short lease and may be reclaimed after 10 minutes so a crash does not suppress notifications for the rest of the day. A successful delivery is still recorded once per local day. Selecting **Ouvrir** launches `lpic tui` through `xdg-terminal-exec`. A custom launcher can be supplied with `LPIC_DAILY_TERMINAL_LAUNCHER`.
+The Fedora adapter uses `notify-send` and a user-level systemd timer. Automatic delivery is reserved before calling `notify-send`, so concurrent invocations do not normally duplicate a delivery. An explicit `notify-send` failure releases the reservation immediately; while `notify-send` waits for an action, LPIC Daily renews the reservation lease. An orphaned `claimed` reservation that is no longer renewed may be reclaimed after 10 minutes so a crash does not suppress notifications for the rest of the day. A successful delivery is still recorded once per local day. Selecting **Ouvrir** launches `lpic tui` through `xdg-terminal-exec`. A custom launcher can be supplied with `LPIC_DAILY_TERMINAL_LAUNCHER`.
 
 For a local development install:
 

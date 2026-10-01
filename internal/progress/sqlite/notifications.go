@@ -88,6 +88,38 @@ func (store *Store) ClaimNotification(ctx context.Context, localDay string, at t
 	return rows == 1, nil
 }
 
+func (store *Store) RefreshNotificationClaim(
+	ctx context.Context,
+	localDay string,
+	claimedAt time.Time,
+	at time.Time,
+) (bool, error) {
+	if localDay == "" || claimedAt.IsZero() || at.IsZero() {
+		return false, fmt.Errorf("local day and claim timestamps are required")
+	}
+	if at.Before(claimedAt) {
+		return false, fmt.Errorf("notification claim refresh cannot move backwards in time")
+	}
+
+	result, err := store.db.ExecContext(
+		ctx,
+		`UPDATE notification_delivery
+		 SET notified_at = ?
+		 WHERE local_day = ? AND status = 'claimed' AND notified_at = ?`,
+		at.UTC().Format(time.RFC3339Nano),
+		localDay,
+		claimedAt.UTC().Format(time.RFC3339Nano),
+	)
+	if err != nil {
+		return false, fmt.Errorf("refresh notification claim for %s: %w", localDay, err)
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return false, fmt.Errorf("inspect refreshed notification claim for %s: %w", localDay, err)
+	}
+	return rows == 1, nil
+}
+
 func (store *Store) ReleaseNotificationClaim(ctx context.Context, localDay string) error {
 	if localDay == "" {
 		return fmt.Errorf("local day is required")
