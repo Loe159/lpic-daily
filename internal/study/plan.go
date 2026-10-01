@@ -181,7 +181,7 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 		slices.Sort(item.QuestionIDs)
 		slices.Sort(item.LabIDs)
 
-			item.RecommendedLessonID = recommendedLesson(scheduled.Kind, lessons[scheduled.ConceptID])
+		item.RecommendedLessonID = recommendedLesson(scheduled.Kind, lessons[scheduled.ConceptID])
 		item.RecommendedQuestionID = recommendedQuestion(
 			item.QuestionIDs,
 			evidenceByConcept[scheduled.ConceptID],
@@ -243,7 +243,7 @@ func schedulableScope(
 		}
 	}
 	if len(objectives) == 0 {
-		return nil, nil, errors.New("no objectives have complete lesson and daily-question coverage")
+		return nil, nil, errors.New("no objectives have complete focused-introduction and daily-question coverage")
 	}
 	return objectives, concepts, nil
 }
