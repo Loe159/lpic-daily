@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/fs"
 	"path"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -129,12 +130,19 @@ func loadOne(fsys fs.FS, labPath string, schemaValidator *schemavalidation.Valid
 		}
 	}
 
-	return Lab{
+	loaded := Lab{
 		Definition:           definition,
 		Hints:                hints,
 		SetupScript:          setupScript,
 		ReferenceSolutionRef: definition.ReferenceSolutionRef,
-	}, nil
+	}
+	if _, err := loaded.RunnerDefinition(); err != nil {
+		return Lab{}, fmt.Errorf("%s runner definition: %w", definition.ID, err)
+	}
+	if _, err := loaded.CompileChecks(); err != nil {
+		return Lab{}, fmt.Errorf("%s checks: %w", definition.ID, err)
+	}
+	return loaded, nil
 }
 
 func (lab Lab) RunnerDefinition() (runner.Definition, error) {
@@ -188,6 +196,9 @@ func (lab Lab) CompileChecks() ([]checker.Check, error) {
 				Group:   item.Group,
 			})
 		case "file-content-regex":
+			if _, err := regexp.Compile(item.Pattern); err != nil {
+				return nil, fmt.Errorf("%s: invalid regex %q: %w", id, item.Pattern, err)
+			}
 			checks = append(checks, checker.FileContentRegex{
 				CheckID: id,
 				Path:    item.Path,

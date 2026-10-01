@@ -34,7 +34,7 @@ Raw PTY passthrough is reserved for explicit interactive terminal surfaces where
 
 ### Lab conformance
 
-Authored labs are validated against their schemas and runtime contracts. Phase-1 coverage generation requires all 22 selected concepts to remain traceable, to have exactly one focused `introduce` lesson, at least one daily non-assessment question, and two distinct machine-checked practical contexts.
+Authored labs are validated against their schemas and runtime contracts. Loading a built-in lab also validates the derived runner definition and compiles checker configuration (including Go regex syntax), so invalid authored execution settings fail before the lab is advertised as runnable. Phase-1 coverage generation requires all 22 selected concepts to remain traceable, to have exactly one focused `introduce` lesson, at least one daily non-assessment question, and two distinct machine-checked practical contexts.
 
 State-based grading must accept equivalent valid end states rather than depending on an exact learner command transcript.
 

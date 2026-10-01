@@ -113,6 +113,21 @@ func TestLoadBuiltinStuckWorker(t *testing.T) {
 }
 
 
+func TestBuiltinLabsCompileRunnerDefinitionsAndChecksAtLoadTime(t *testing.T) {
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("LoadAll() error = %v", err)
+	}
+	for _, authored := range labs {
+		if _, err := authored.RunnerDefinition(); err != nil {
+			t.Fatalf("%s RunnerDefinition() error = %v", authored.Definition.ID, err)
+		}
+		if _, err := authored.CompileChecks(); err != nil {
+			t.Fatalf("%s CompileChecks() error = %v", authored.Definition.ID, err)
+		}
+	}
+}
+
 func TestBuiltinLabsUseBackendSpecificCapabilityContracts(t *testing.T) {
 	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
 	if err != nil {
