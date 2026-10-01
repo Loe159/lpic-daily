@@ -181,10 +181,11 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 		slices.Sort(item.QuestionIDs)
 		slices.Sort(item.LabIDs)
 
-		item.RecommendedLessonID = recommendedLesson(scheduled.Kind, lessons[scheduled.ConceptID])
-		if len(item.QuestionIDs) != 0 {
-			item.RecommendedQuestionID = item.QuestionIDs[0]
-		}
+			item.RecommendedLessonID = recommendedLesson(scheduled.Kind, lessons[scheduled.ConceptID])
+		item.RecommendedQuestionID = recommendedQuestion(
+			item.QuestionIDs,
+			evidenceByConcept[scheduled.ConceptID],
+		)
 		item.RecommendedLabID = recommendedLab(
 			item.MasteryStage,
 			item.LabIDs,
@@ -202,11 +203,12 @@ func schedulableScope(
 	curriculumBundle *curriculum.Bundle,
 	contentBundle *content.Bundle,
 ) ([]string, map[string]struct{}, error) {
-	lessons := make(map[string]bool)
+	introductions := make(map[string]bool)
 	for _, lesson := range contentBundle.Lessons {
-		for _, conceptID := range lesson.ConceptIDs {
-			lessons[conceptID] = true
+		if lesson.Stage != "introduce" || len(lesson.ConceptIDs) != 1 {
+			continue
 		}
+		introductions[lesson.ConceptIDs[0]] = true
 	}
 	questions := make(map[string]bool)
 	for _, question := range contentBundle.Questions {
@@ -227,7 +229,7 @@ func schedulableScope(
 		}
 		complete := true
 		for _, conceptID := range conceptIDs {
-			if !lessons[conceptID] || !questions[conceptID] {
+			if !introductions[conceptID] || !questions[conceptID] {
 				complete = false
 				break
 			}
@@ -274,6 +276,49 @@ func recommendedLesson(kind learning.SessionItemKind, lessons []content.Lesson) 
 		return ""
 	}
 	return candidates[0].ID
+}
+
+func recommendedQuestion(
+	questionIDs []string,
+	events []learning.EvidenceEvent,
+) string {
+	if len(questionIDs) == 0 {
+		return ""
+	}
+
+	candidates := slices.Clone(questionIDs)
+	slices.Sort(candidates)
+	attempts := make(map[string]int, len(candidates))
+	known := make(map[string]struct{}, len(candidates))
+	for _, questionID := range candidates {
+		known[questionID] = struct{}{}
+	}
+	for _, event := range events {
+		if event.ActivityKind != learning.ActivityQuestion {
+			continue
+		}
+		if _, exists := known[event.SourceItemID]; !exists {
+			continue
+		}
+		if event.AttemptIndex > attempts[event.SourceItemID] {
+			attempts[event.SourceItemID] = event.AttemptIndex
+		}
+	}
+
+	slices.SortFunc(candidates, func(a, b string) int {
+		if attempts[a] != attempts[b] {
+			return attempts[a] - attempts[b]
+		}
+		switch {
+		case a < b:
+			return -1
+		case a > b:
+			return 1
+		default:
+			return 0
+		}
+	})
+	return candidates[0]
 }
 
 func recommendedLab(

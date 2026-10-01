@@ -119,6 +119,119 @@ func TestAuthoredPhase3ObjectiveBecomesSchedulable(t *testing.T) {
 	}
 }
 
+func TestQuestionRecommendationRotatesAcrossAuthoredQuestions(t *testing.T) {
+	curriculumBundle, contentBundle, labs := loadInputs(t)
+	now := time.Date(2026, 10, 1, 15, 0, 0, 0, time.UTC)
+	evidence := memoryEvidence{}
+
+	for _, conceptID := range curriculumBundle.Phase1.ObjectiveConcepts["103.1"] {
+		evidence[conceptID] = []learning.EvidenceEvent{{
+			EventID:      "ready-" + conceptID,
+			OccurredAt:   now,
+			ConceptID:    conceptID,
+			ObjectiveIDs: []string{"103.1"},
+			SourceItemID: "test-recall",
+			ActivityKind: learning.ActivityQuestion,
+			EvidenceKind: learning.EvidenceRecall,
+			Result:       learning.ResultPass,
+			Distribution: "generic",
+			AttemptIndex: 1,
+		}}
+	}
+
+	conceptID := "lpic1.103.4.stdin-stdout-stderr-et-descripteurs"
+	evidence[conceptID] = []learning.EvidenceEvent{
+		{
+			EventID:      "lesson-1034",
+			OccurredAt:   now,
+			ConceptID:    conceptID,
+			ObjectiveIDs: []string{"103.4"},
+			SourceItemID: "lpic1.103.4.lesson.file-descriptors",
+			ActivityKind: learning.ActivityLesson,
+			EvidenceKind: learning.EvidenceExposure,
+			Result:       learning.ResultPass,
+			Distribution: "generic",
+			AttemptIndex: 1,
+		},
+		{
+			EventID:      "question-stderr",
+			OccurredAt:   now,
+			ConceptID:    conceptID,
+			ObjectiveIDs: []string{"103.4"},
+			SourceItemID: "lpic1.103.4.q.stderr-fd",
+			ActivityKind: learning.ActivityQuestion,
+			EvidenceKind: learning.EvidenceRecall,
+			Result:       learning.ResultFail,
+			Distribution: "generic",
+			AttemptIndex: 1,
+		},
+	}
+
+	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
+		Now:        now,
+		Curriculum: curriculumBundle,
+		Content:    contentBundle,
+		Labs:       labs,
+		Evidence:   evidence,
+		Policy:     learning.DefaultSessionPolicy(),
+	})
+	if err != nil {
+		t.Fatalf("BuildPlan() error = %v", err)
+	}
+	if len(plan.Items) != 1 || plan.Items[0].ConceptID != conceptID {
+		t.Fatalf("items = %#v, want immediate practice for %s", plan.Items, conceptID)
+	}
+	if got := plan.Items[0].RecommendedQuestionID; got != "lpic1.103.4.q.stdin-redirection" {
+		t.Fatalf("recommended question = %q, want least-attempted stdin question", got)
+	}
+}
+
+func TestIncompleteFocusedIntroductionKeepsObjectiveOutOfScheduler(t *testing.T) {
+	curriculumBundle, contentBundle, labs := loadInputs(t)
+	now := time.Date(2026, 10, 1, 16, 0, 0, 0, time.UTC)
+	evidence := memoryEvidence{}
+
+	for _, conceptID := range curriculumBundle.Phase1.ObjectiveConcepts["103.1"] {
+		evidence[conceptID] = []learning.EvidenceEvent{{
+			EventID:      "ready-" + conceptID,
+			OccurredAt:   now,
+			ConceptID:    conceptID,
+			ObjectiveIDs: []string{"103.1"},
+			SourceItemID: "test-recall",
+			ActivityKind: learning.ActivityQuestion,
+			EvidenceKind: learning.EvidenceRecall,
+			Result:       learning.ResultPass,
+			Distribution: "generic",
+			AttemptIndex: 1,
+		}}
+	}
+
+	mutated := *contentBundle
+	mutated.Lessons = append([]content.Lesson(nil), contentBundle.Lessons...)
+	for index := range mutated.Lessons {
+		if mutated.Lessons[index].ID == "lpic1.103.4.lesson.redirection-order" {
+			mutated.Lessons[index].Stage = "deepen"
+		}
+	}
+
+	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
+		Now:        now,
+		Curriculum: curriculumBundle,
+		Content:    &mutated,
+		Labs:       labs,
+		Evidence:   evidence,
+		Policy:     learning.DefaultSessionPolicy(),
+	})
+	if err != nil {
+		t.Fatalf("BuildPlan() error = %v", err)
+	}
+	for _, item := range plan.Items {
+		if item.ObjectiveID == "103.4" {
+			t.Fatalf("103.4 scheduled without focused introduction coverage: %#v", plan.Items)
+		}
+	}
+}
+
 func TestPlanUsesStoredRecallToCreateDueReviewWithoutReplayingLesson(t *testing.T) {
 	curriculumBundle, contentBundle, labs := loadInputs(t)
 	now := time.Date(2026, 9, 26, 20, 0, 0, 0, time.UTC)

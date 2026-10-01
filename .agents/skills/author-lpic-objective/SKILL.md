@@ -13,5 +13,6 @@ description: Create or revise original LPIC curriculum content
 5. Mark legacy exam knowledge separately from recommended modern practice.
 6. Add retrieval questions and practical evidence that map back to concepts.
 7. Write all explanatory prose originally; do not adapt LPI Learning Materials.
-8. Run `python3 scripts/validate_curriculum.py` and coverage tests after edits.
+8. Ensure every newly schedulable concept has a focused `introduce` lesson and at least one non-`initial-assessment` daily retrieval question.
+9. Run `python3 scripts/validate_curriculum.py`, `python3 scripts/audit_phase3_coverage.py --check`, and the relevant Go/coverage tests after edits.
 

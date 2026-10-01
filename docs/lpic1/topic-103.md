@@ -110,7 +110,7 @@ Recommended practice backend: **podman**
 
 **Examinable terms/files/utilities to cover**
 
-`stdin`, `stdout`, `stderr`, `>`, `>>`, `2>`, `2>&1`, `|`, `tee`, `xargs`
+`stdin`, `stdout`, `stderr`, `<`, `>`, `>>`, `2>`, `2>&1`, `|`, `tee`, `xargs`
 
 **Competence evidence**
 - construire pipelines robustes

@@ -56,4 +56,4 @@ The first authored tranche is objective **103.4**:
 
 Hands-on 103.4 reps/challenges follow after this initial content tranche; no artificial practical evidence is claimed before a checker can observe a meaningful result.
 
-The daily scheduler derives its currently runnable objective scope from this Phase-3 manifest plus authored content. An objective becomes schedulable only when every mapped concept has at least one lesson and one non-assessment question. This makes 103.4 reachable after 103.1 readiness without exposing unfinished Exam-101 objectives.
+The daily scheduler derives its currently runnable objective scope from this Phase-3 manifest plus authored content. An objective becomes schedulable only when every mapped concept has a focused `introduce` lesson and one non-assessment daily question. This makes 103.4 reachable after 103.1 readiness without exposing unfinished Exam-101 objectives. Concepts with several daily questions recommend the least-attempted question so authored retrieval variants remain reachable over time.

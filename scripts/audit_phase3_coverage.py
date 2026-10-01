@@ -111,6 +111,14 @@ def artifact_records(surface, pattern):
             "concept_ids": evidenced_concepts,
             "objective_ids": set(objective_ids),
             "path": path,
+            "counts_for_coverage": not (
+                surface == "questions" and data.get("usage") == "initial-assessment"
+            ),
+            "focused_introduction": (
+                surface == "lessons"
+                and data.get("stage") == "introduce"
+                and len(declared_concepts) == 1
+            ),
         })
     return records
 
@@ -118,7 +126,12 @@ def artifact_records(surface, pattern):
 def audit():
     selected_objectives, ordered_concepts, concept_to_objective = phase3_scope()
     mapped = {
-        concept_id: {"labs": [], "lessons": [], "questions": []}
+        concept_id: {
+            "labs": [],
+            "lessons": [],
+            "questions": [],
+            "introductions": [],
+        }
         for concept_id in ordered_concepts
     }
     seen_artifact_ids = set()
@@ -138,14 +151,17 @@ def audit():
                         f"{record['path'].relative_to(ROOT)}: concept {concept_id} belongs to "
                         f"Exam-101 objective {objective_id}, but that objective is not referenced"
                     )
-                mapped[concept_id][surface].append(artifact_id)
+                if record["counts_for_coverage"]:
+                    mapped[concept_id][surface].append(artifact_id)
+                if record["focused_introduction"]:
+                    mapped[concept_id]["introductions"].append(artifact_id)
 
     concepts = [{
         "concept_id": concept_id,
         "objective_id": concept_to_objective[concept_id],
         "surfaces": {
             surface: sorted(mapped[concept_id][surface])
-            for surface in ("labs", "lessons", "questions")
+            for surface in ("labs", "lessons", "questions", "introductions")
         },
     } for concept_id in ordered_concepts]
 
@@ -160,6 +176,9 @@ def audit():
         "objectives": len(selected_objectives),
         "concepts": len(concepts),
         "with_lesson": sum(bool(item["surfaces"]["lessons"]) for item in concepts),
+        "with_introduction": sum(
+            bool(item["surfaces"]["introductions"]) for item in concepts
+        ),
         "with_question": sum(bool(item["surfaces"]["questions"]) for item in concepts),
         "with_lab": sum(bool(item["surfaces"]["labs"]) for item in concepts),
         "objectives_with_lab": sum(objective_with_lab.values()),
@@ -184,7 +203,8 @@ def main():
         "Phase-3 Exam 101 coverage: "
         f"{summary['objectives']} objectives / {summary['concepts']} concepts; "
         f"{summary['with_lesson']} with lesson; "
-        f"{summary['with_question']} with question; "
+        f"{summary['with_introduction']} with focused introduction; "
+        f"{summary['with_question']} with daily question; "
         f"{summary['with_lab']} with practical lab evidence; "
         f"{summary['objectives_with_lab']} objectives with at least one lab"
     )
@@ -194,6 +214,10 @@ def main():
     missing_lesson = [
         item["concept_id"] for item in concepts if not item["surfaces"]["lessons"]
     ]
+    missing_introduction = [
+        item["concept_id"] for item in concepts
+        if not item["surfaces"]["introductions"]
+    ]
     missing_question = [
         item["concept_id"] for item in concepts if not item["surfaces"]["questions"]
     ]
@@ -202,12 +226,17 @@ def main():
             "Phase-3 acceptance FAILED: concepts without lesson: "
             + ", ".join(missing_lesson)
         )
+    if missing_introduction:
+        print(
+            "Phase-3 acceptance FAILED: concepts without a focused introduce lesson: "
+            + ", ".join(missing_introduction)
+        )
     if missing_question:
         print(
-            "Phase-3 acceptance FAILED: concepts without deterministic retrieval question: "
+            "Phase-3 acceptance FAILED: concepts without deterministic daily retrieval question: "
             + ", ".join(missing_question)
         )
-    if missing_lesson or missing_question:
+    if missing_lesson or missing_introduction or missing_question:
         return 1
 
     print(
