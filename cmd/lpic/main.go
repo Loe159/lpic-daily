@@ -308,10 +308,14 @@ func runNotifyWithExecutor(
 		}
 		return err
 	}
-	if err := store.MarkNotificationSent(ctx, localDay, now); err != nil {
-		return err
+	if !force {
+		if err := store.MarkNotificationSent(ctx, localDay, now); err != nil {
+			return err
+		}
+		fmt.Fprintln(stdout, "Notification quotidienne envoyée.")
+	} else {
+		fmt.Fprintln(stdout, "Notification de test envoyée (état quotidien inchangé).")
 	}
-	fmt.Fprintln(stdout, "Notification quotidienne envoyée.")
 
 	if open {
 		if err := desktop.LaunchDaily(ctx, executor); err != nil {

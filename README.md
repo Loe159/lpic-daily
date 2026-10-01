@@ -82,7 +82,7 @@ systemctl --user daemon-reload
 systemctl --user enable --now lpic-daily-notify.timer
 ```
 
-Test immediately with:
+Test immediately without consuming the day's automatic-delivery marker:
 
 ```bash
 lpic notify --force

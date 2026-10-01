@@ -56,6 +56,35 @@ func TestNotifySendsOnlyOncePerLocalDay(t *testing.T) {
 	}
 }
 
+
+func TestForcedNotificationDoesNotConsumeDailyDelivery(t *testing.T) {
+	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
+	now := time.Date(2026, 9, 27, 8, 0, 0, 0, time.Local)
+	executor := &notificationExecutor{}
+
+	var forced bytes.Buffer
+	if err := runNotifyWithExecutor(context.Background(), true, &forced, executor, now); err != nil {
+		t.Fatalf("forced notify error = %v", err)
+	}
+	if len(executor.runs) != 1 {
+		t.Fatalf("forced notify runs = %d, want 1", len(executor.runs))
+	}
+	if !strings.Contains(forced.String(), "état quotidien inchangé") {
+		t.Fatalf("forced output = %q", forced.String())
+	}
+
+	var automatic bytes.Buffer
+	if err := runNotifyWithExecutor(context.Background(), false, &automatic, executor, now.Add(time.Hour)); err != nil {
+		t.Fatalf("automatic notify after force error = %v", err)
+	}
+	if len(executor.runs) != 2 {
+		t.Fatalf("forced test consumed daily delivery: notify runs = %d, want 2", len(executor.runs))
+	}
+	if !strings.Contains(automatic.String(), "Notification quotidienne envoyée.") {
+		t.Fatalf("automatic output = %q", automatic.String())
+	}
+}
+
 func TestNotifyActionLaunchesTUI(t *testing.T) {
 	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
 	t.Setenv("LPIC_DAILY_TERMINAL_LAUNCHER", "")
