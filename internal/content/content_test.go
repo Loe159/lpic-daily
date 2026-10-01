@@ -45,6 +45,9 @@ func TestBuiltinPhase1ContentCoversEveryConcept(t *testing.T) {
 
 	questionCoverage := make(map[string]int)
 	for _, question := range bundle.Questions {
+		if question.Usage == "initial-assessment" {
+			continue
+		}
 		for _, conceptID := range question.ConceptIDs {
 			if _, phase1 := phase1Set[conceptID]; phase1 {
 				questionCoverage[conceptID]++
@@ -60,7 +63,7 @@ func TestBuiltinPhase1ContentCoversEveryConcept(t *testing.T) {
 			t.Errorf("concept %s focused introduction coverage = %d, want exactly 1", conceptID, introductions[conceptID])
 		}
 		if questionCoverage[conceptID] < 1 {
-			t.Errorf("concept %s has no question coverage", conceptID)
+			t.Errorf("concept %s has no daily non-assessment question coverage", conceptID)
 		}
 	}
 }
