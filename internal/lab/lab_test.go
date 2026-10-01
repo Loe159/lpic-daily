@@ -112,7 +112,6 @@ func TestLoadBuiltinStuckWorker(t *testing.T) {
 	}
 }
 
-
 func TestBuiltinLabsCompileRunnerDefinitionsAndChecksAtLoadTime(t *testing.T) {
 	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
 	if err != nil {
