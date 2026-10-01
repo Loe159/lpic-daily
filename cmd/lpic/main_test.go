@@ -103,8 +103,8 @@ func TestInitialAssessmentUnlocksDependentObjectiveWithoutLessonEvidence(t *test
 	if err := runWithIO([]string{"today"}, strings.NewReader(""), &today, &bytes.Buffer{}); err != nil {
 		t.Fatalf("today after assessment error = %v", err)
 	}
-	if !strings.Contains(today.String(), "103.5") {
-		t.Fatalf("today did not unlock preferred dependent objective: %q", today.String())
+	if !strings.Contains(today.String(), "103.4") {
+		t.Fatalf("today did not unlock authored Phase-3 dependent objective: %q", today.String())
 	}
 }
 

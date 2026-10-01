@@ -175,7 +175,6 @@ func Validate(bundle *Bundle) error {
 	return errors.Join(errs...)
 }
 
-
 func validatePhase3Scope(
 	bundle *Bundle,
 	objectiveByID map[string]Objective,
