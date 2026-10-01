@@ -282,7 +282,6 @@ func TestPlanUsesStoredRecallToCreateDueReviewWithoutReplayingLesson(t *testing.
 	}
 }
 
-
 func TestRecognitionOnlyConceptPrefersLabOnDueReview(t *testing.T) {
 	curriculumBundle, contentBundle, labs := loadInputs(t)
 	now := time.Date(2026, 10, 2, 12, 0, 0, 0, time.UTC)

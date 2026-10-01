@@ -89,7 +89,6 @@ func TestNewConceptDefaultsToFocusedLesson(t *testing.T) {
 	}
 }
 
-
 func TestRecognizedExposedReviewDefaultsToLab(t *testing.T) {
 	model := NewDashboard(study.Plan{Items: []study.Item{{
 		ConceptID:             "first",
