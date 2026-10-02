@@ -77,7 +77,7 @@ The scheduler uses:
 - need for distribution variation;
 - desired session intensity/length.
 
-The learner can inspect why an item was scheduled. Once independent practical evidence is old enough for transfer, scheduling should prefer an unused practical context when one exists.
+The learner can inspect why an item was scheduled. A successful recognition-only answer does not become recall evidence. When such a practical concept is reviewed while still `exposed`, the default daily action should prefer an available lab instead of trapping the learner in repeated recognition questions. Once independent practical evidence is old enough for transfer, scheduling should prefer an unused practical context when one exists.
 
 An initial/adaptive assessment may satisfy a prerequisite by evidence; the system must not invent a fake lesson completion.
 
