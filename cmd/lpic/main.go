@@ -33,7 +33,10 @@ import (
 	"github.com/muesli/cancelreader"
 )
 
-const version = "0.0.0-dev"
+const (
+	version                          = "0.0.0-dev"
+	notificationClaimRefreshInterval = 3 * time.Minute
+)
 
 func main() {
 	if err := runWithIO(os.Args[1:], os.Stdin, os.Stdout, os.Stderr); err != nil {
@@ -296,22 +299,48 @@ func runNotifyWithExecutor(
 		}
 	}
 
-	open, err := desktop.SendDaily(ctx, executor, desktop.Notification{
+	notification := desktop.Notification{
 		Title: "LPIC Daily",
 		Body:  body,
-	})
+	}
+	var (
+		open      bool
+		claimTime = now
+	)
+	if force {
+		open, err = desktop.SendDaily(ctx, executor, notification)
+	} else {
+		open, claimTime, err = sendDailyWithClaimRefresh(
+			ctx,
+			store,
+			localDay,
+			now,
+			executor,
+			notification,
+			notificationClaimRefreshInterval,
+		)
+	}
 	if err != nil {
 		if claimed {
-			if releaseErr := store.ReleaseNotificationClaim(ctx, localDay); releaseErr != nil {
+			_, releaseErr := store.ReleaseNotificationClaim(ctx, localDay, claimTime)
+			if releaseErr != nil {
 				return errors.Join(err, releaseErr)
 			}
 		}
 		return err
 	}
-	if err := store.MarkNotificationSent(ctx, localDay, now); err != nil {
-		return err
+	if !force {
+		sentAt := now
+		if sentAt.Before(claimTime) {
+			sentAt = claimTime
+		}
+		if err := store.MarkNotificationSent(ctx, localDay, claimTime, sentAt); err != nil {
+			return err
+		}
+		fmt.Fprintln(stdout, "Notification quotidienne envoyée.")
+	} else {
+		fmt.Fprintln(stdout, "Notification de test envoyée (état quotidien inchangé).")
 	}
-	fmt.Fprintln(stdout, "Notification quotidienne envoyée.")
 
 	if open {
 		if err := desktop.LaunchDaily(ctx, executor); err != nil {
@@ -319,6 +348,65 @@ func runNotifyWithExecutor(
 		}
 	}
 	return nil
+}
+
+type notificationSendResult struct {
+	open bool
+	err  error
+}
+
+func sendDailyWithClaimRefresh(
+	ctx context.Context,
+	store *progresssqlite.Store,
+	localDay string,
+	claimedAt time.Time,
+	executor desktop.Executor,
+	notification desktop.Notification,
+	refreshInterval time.Duration,
+) (bool, time.Time, error) {
+	if store == nil {
+		return false, claimedAt, errors.New("progress store is required")
+	}
+	if refreshInterval <= 0 {
+		return false, claimedAt, errors.New("notification claim refresh interval must be positive")
+	}
+
+	sendCtx, cancelSend := context.WithCancel(ctx)
+	defer cancelSend()
+	result := make(chan notificationSendResult, 1)
+	go func() {
+		open, err := desktop.SendDaily(sendCtx, executor, notification)
+		result <- notificationSendResult{open: open, err: err}
+	}()
+
+	ticker := time.NewTicker(refreshInterval)
+	defer ticker.Stop()
+	currentClaimTime := claimedAt
+	for {
+		select {
+		case sent := <-result:
+			return sent.open, currentClaimTime, sent.err
+		case refreshedAt := <-ticker.C:
+			refreshed, err := store.RefreshNotificationClaim(
+				ctx,
+				localDay,
+				currentClaimTime,
+				refreshedAt,
+			)
+			if err != nil {
+				cancelSend()
+				return false, currentClaimTime, err
+			}
+			if !refreshed {
+				cancelSend()
+				return false, currentClaimTime, errors.New("notification claim was lost while delivery was pending")
+			}
+			currentClaimTime = refreshedAt
+		case <-ctx.Done():
+			cancelSend()
+			return false, currentClaimTime, ctx.Err()
+		}
+	}
 }
 
 func runToday(args []string, stdout io.Writer) error {
@@ -365,7 +453,7 @@ func runToday(args []string, stdout io.Writer) error {
 
 	fmt.Fprintln(stdout, "LPIC Daily — Aujourd'hui")
 	if len(plan.Items) == 0 {
-		fmt.Fprintln(stdout, "Aucune activité due dans le périmètre Phase 1.")
+		fmt.Fprintln(stdout, "Aucune activité due dans le périmètre de contenu actuellement disponible.")
 		return nil
 	}
 
@@ -902,6 +990,9 @@ func runInteractiveLab(authored lab.Lab, stdin io.Reader, stdout, stderr io.Writ
 		if err != nil {
 			return fmt.Errorf("open rootless Podman backend: %w", err)
 		}
+		if err := backend.ReapAbandoned(ctx, time.Now()); err != nil {
+			fmt.Fprintln(stderr, "warning: reap abandoned Podman labs:", err)
+		}
 		return runInteractiveLabWithBackend(
 			ctx,
 			authored,
@@ -1223,6 +1314,14 @@ func runInteractiveLabWithBackend(
 					passed = false
 				}
 				fmt.Fprintf(stdout, "  %-11s %s — %s\n", state, result.CheckID, result.Detail)
+			}
+			persistedHintLevel, err := pendingLabHintLevel(sessionCtx, authored.Definition.ID)
+			if err != nil {
+				return fmt.Errorf("refresh lab disclosure before recording attempt: %w", err)
+			}
+			if persistedHintLevel > highestHintLevel {
+				highestHintLevel = persistedHintLevel
+				nextHint = nextHintIndex(authored.Hints, highestHintLevel)
 			}
 			store, err := openProgressStore(sessionCtx)
 			if err != nil {
