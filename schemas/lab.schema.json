@@ -521,5 +521,37 @@
     "reset_policy": {
       "const": "disposable"
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "environment": {
+            "properties": {
+              "backend": {
+                "const": "libvirt"
+              }
+            },
+            "required": [
+              "backend"
+            ]
+          }
+        },
+        "required": [
+          "environment"
+        ]
+      },
+      "then": {
+        "properties": {
+          "resources": {
+            "properties": {
+              "memory_mb": {
+                "minimum": 256
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
 }
