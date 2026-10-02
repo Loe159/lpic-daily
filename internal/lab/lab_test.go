@@ -112,6 +112,75 @@ func TestLoadBuiltinStuckWorker(t *testing.T) {
 	}
 }
 
+func TestBuiltinLabsCompileRunnerDefinitionsAndChecksAtLoadTime(t *testing.T) {
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("LoadAll() error = %v", err)
+	}
+	for _, authored := range labs {
+		if _, err := authored.RunnerDefinition(); err != nil {
+			t.Fatalf("%s RunnerDefinition() error = %v", authored.Definition.ID, err)
+		}
+		if _, err := authored.CompileChecks(); err != nil {
+			t.Fatalf("%s CompileChecks() error = %v", authored.Definition.ID, err)
+		}
+	}
+}
+
+func TestBuiltinLabsUseBackendSpecificCapabilityContracts(t *testing.T) {
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("LoadAll() error = %v", err)
+	}
+	for _, authored := range labs {
+		switch authored.Definition.Environment.Backend {
+		case "podman":
+			if authored.Definition.Environment.CapabilityProfile == "full-machine" {
+				t.Fatalf("%s uses VM capability profile on Podman", authored.Definition.ID)
+			}
+		case "libvirt":
+			if authored.Definition.Environment.CapabilityProfile != "full-machine" {
+				t.Fatalf("%s libvirt profile = %q, want full-machine", authored.Definition.ID, authored.Definition.Environment.CapabilityProfile)
+			}
+			if len(authored.Definition.Environment.WritableGuestPaths) != 0 {
+				t.Fatalf("%s libvirt writable_guest_paths = %#v, want empty", authored.Definition.ID, authored.Definition.Environment.WritableGuestPaths)
+			}
+		}
+	}
+}
+
+func TestBuiltinHintLaddersAreCompleteAndMatchEvidencePolicy(t *testing.T) {
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("LoadAll() error = %v", err)
+	}
+	for _, authored := range labs {
+		if len(authored.Hints) != 4 {
+			t.Fatalf("%s hints = %d, want 4", authored.Definition.ID, len(authored.Hints))
+		}
+		for index, hint := range authored.Hints {
+			wantLevel := index + 1
+			if hint.Level != wantLevel {
+				t.Fatalf("%s hint[%d] level = %d, want %d", authored.Definition.ID, index, hint.Level, wantLevel)
+			}
+			switch hint.Level {
+			case 1:
+				if hint.EvidenceImpact != "none" && hint.EvidenceImpact != "minor" {
+					t.Fatalf("%s level-1 impact = %q", authored.Definition.ID, hint.EvidenceImpact)
+				}
+			case 2, 3:
+				if hint.EvidenceImpact != "material" {
+					t.Fatalf("%s level-%d impact = %q, want material", authored.Definition.ID, hint.Level, hint.EvidenceImpact)
+				}
+			case 4:
+				if hint.EvidenceImpact != "solution-revealed" {
+					t.Fatalf("%s level-4 impact = %q, want solution-revealed", authored.Definition.ID, hint.EvidenceImpact)
+				}
+			}
+		}
+	}
+}
+
 func TestSessionRunsSetupAndStateChecks(t *testing.T) {
 	authored := loadBuiltinLab(t, sharedDropboxID)
 	fake := &fakeRunner{}
