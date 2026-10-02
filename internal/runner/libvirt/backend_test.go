@@ -1022,7 +1022,7 @@ func TestBackendReapRemovesAbandonedResources(t *testing.T) {
 	control.networks[name] = strings.Replace(managedTestNetworkXML, testManagedOwnerScope, backend.ownerScope, 1)
 	control.networkActive[name] = true
 	control.networkFilters[name] = strings.Replace(
-		managedTestNetworkFilterXML,
+		strings.Replace(managedTestNetworkFilterXML, "lpic-daily-vm-abc123", name, 1),
 		testManagedOwnerScope,
 		backend.ownerScope,
 		1,
