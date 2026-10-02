@@ -7,7 +7,7 @@ Canonical scope: `curriculum/lpic-1-v5/phase3-exam101.json`.
 Phase 3 covers all 23 active Exam-101 objectives across topics 101–104 and all 153 active stable concepts currently mapped to them.
 
 ## Curriculum coverage
-- [ ] Every selected concept has at least one original French-first lesson and a focused `introduce` lesson suitable for first exposure.
+- [ ] Every selected concept has at least one original French-first lesson and exactly one focused `introduce` lesson suitable for first exposure.
 - [ ] Every selected concept has at least one deterministic daily non-assessment question; `initial-assessment` questions do not satisfy this gate. Each concept must also have a path beyond recognition through a recall-capable daily question or practical lab evidence.
 - [ ] `python3 scripts/audit_phase3_coverage.py --require-complete` passes.
 - [ ] The Go curriculum loader and Python graph validator both reject drift in `phase3-exam101.json`.
