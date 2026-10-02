@@ -9,4 +9,4 @@ Scope: `content/` only.
 - Questions must be deterministically gradable offline from the declared grading strategy.
 - Prefer one clear concept per recall question. Avoid trick wording and trivia not required by the mapped concept.
 - Do not encode a lab reference solution in a lesson or low-level hint.
-- After changing content, run `python3 scripts/generate_phase1_coverage.py --write` and the full foundation validation.
+- After changing content, refresh Phase-1 coverage when Phase-1 concepts are affected with `python3 scripts/generate_phase1_coverage.py --write`, run `python3 scripts/audit_phase3_coverage.py --check`, then run the full foundation validation.
