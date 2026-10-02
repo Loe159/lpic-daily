@@ -303,9 +303,10 @@ func (backend *Backend) ReapAbandoned(ctx context.Context, now time.Time) error 
 
 	var errs []error
 	for _, container := range containers {
+		managedName := managedContainerName(container.Names)
 		if container.Labels[managedLabel] != "true" ||
 			strings.TrimSpace(container.Labels[labIDLabel]) == "" ||
-			!hasManagedContainerName(container.Names) {
+			managedName == "" {
 			continue
 		}
 		expiresText := strings.TrimSpace(container.Labels[expiresAtLabel])
@@ -334,20 +335,20 @@ func (backend *Backend) ReapAbandoned(ctx context.Context, now time.Time) error 
 			continue
 		}
 		backend.mu.Lock()
-		delete(backend.definitions, container.ID)
+		delete(backend.definitions, managedName)
 		backend.mu.Unlock()
 	}
 	return errors.Join(errs...)
 }
 
-func hasManagedContainerName(names []string) bool {
+func managedContainerName(names []string) string {
 	for _, name := range names {
 		name = strings.TrimPrefix(strings.TrimSpace(name), "/")
 		if strings.HasPrefix(name, "lpic-daily-") {
-			return true
+			return name
 		}
 	}
-	return false
+	return ""
 }
 
 func (backend *Backend) resolveImageID(ctx context.Context, imageRef string) (string, error) {
