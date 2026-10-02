@@ -4,9 +4,15 @@ Status: **Implementation present; execution acceptance pending — 2026-09-29**
 
 The checklist below remains deliberately unchecked until the corresponding acceptance evidence has actually run. The Phase-2 branch now contains implementations/tests for the control plane, image supply, isolated networking, multi-VM scenarios, serial console, reboot-aware 102.2 lab, crash reaper and real-KVM safety checks. This file is an acceptance gate, not an implementation-progress checklist.
 
-Current blocker: GitHub Actions runs on the Phase-2 branch are terminating before any job step starts, so fresh foundation/Go/vet evidence is unavailable. Real-KVM checks additionally require an explicit KVM/libvirt host.
+Current blocker: final real-KVM acceptance still requires an explicit compatible KVM/libvirt host. Generic GitHub Actions validation is available again and must be green for the exact acceptance commit.
 
-Review remediation completed through 2026-09-30:
+Review remediation completed through 2026-10-02:
+- real-host validation now waits for DHCP/default-route readiness instead of assuming QEMU Guest Agent readiness implies network readiness;
+- nwfilters carry an owner-scoped deterministic UUID in addition to namespaced metadata, allowing safe cleanup when libvirt omits custom nwfilter metadata on round-trip while still rejecting contradictory ownership metadata;
+- trusted v2 guest images route QEMU Guest Agent execution through a project-owned SELinux-aware trampoline using the distribution-provided `virt_qemu_ga_run_unconfined` transition, so legitimate administrative labs do not depend on permissive SELinux;
+- the 104.1 reference solution waits for udev/block-device convergence after repartitioning, avoiding host-speed-dependent `/dev/vdb1`/`vdb2` races;
+- real-KVM reference-solution failures now preserve stdout/stderr, host iptables/nftables incompatibilities are surfaced explicitly, and the doctor libvirt cold-start probe uses a less brittle timeout;
+
 - openSUSE source integrity is pinned directly in-repository to Build 18.68 / SHA-256 `f8a2703a4355a30d531021a88748f0c9d71124b7e33d26d4d49b85c2983e20d5`; runtime build no longer trusts a mutable remote checksum file;
 - isolated-network allocation uses collision-aware RFC1918 /28 selection, excluding host routes and all existing libvirt networks, with a cross-process allocation lock around inventory + definition;
 - VM console input is cancellable and Ctrl-] behavior plus CLI console/reboot dispatch have unit coverage; console streaming uses a dedicated libvirt connection so escape/cancellation closes only the stream, and the real-KVM harness verifies the guest remains QGA-responsive before successful teardown.
@@ -33,7 +39,7 @@ Review remediation completed through 2026-09-30:
 - [ ] failed/missing libvirt authorization fails closed;
 - [ ] no VM lab falls back to Podman or host execution;
 - [ ] concrete libvirt dependency is isolated behind project-owned interfaces;
-- [ ] abandoned-resource inventory requires LPIC Daily ownership metadata, not only a name prefix.
+- [ ] abandoned-resource inventory requires LPIC Daily owner identity, not only a name prefix; nwfilters may use the deterministic owner-scoped UUID fallback only when custom metadata is absent.
 
 ## Image supply chain
 - [ ] curriculum references an opaque image ID, never a path/URL;
@@ -99,3 +105,8 @@ Review remediation completed through 2026-09-30:
 - [ ] CI green on supported non-KVM jobs.
 
 Canonical one-command acceptance entry point on a compatible host: `LPIC_DAILY_RUN_KVM_INTEGRATION=1 scripts/run_phase2_acceptance.sh`.
+
+
+## Host firewall compatibility note
+
+LPIC Daily does not mutate the host firewall or third-party VPN configuration. If libvirt reports an `iptables`/nftables parsing failure while starting an isolated VM, acceptance must stop fail-closed and surface the host compatibility error. Operators should first verify `sudo iptables -w -L` and inspect third-party nftables rules (for example Tailscale) rather than weakening the VM isolation policy.
