@@ -272,6 +272,9 @@ func validateDefinition(fsys fs.FS, base string, definition Definition) error {
 		if _, err := runner.Phase1CapabilityProfile(definition.Environment.CapabilityProfile); err != nil {
 			return fmt.Errorf("invalid Podman capability profile: %w", err)
 		}
+		if definition.Environment.Network != "none" {
+			return errors.New("podman lab network must be none until isolated networking is implemented")
+		}
 		if definition.Environment.Machine != nil {
 			return errors.New("podman lab must not declare machine settings")
 		}
