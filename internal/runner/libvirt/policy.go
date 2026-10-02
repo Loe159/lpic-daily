@@ -487,6 +487,7 @@ type dhcpRangeXML struct {
 type networkFilterXML struct {
 	XMLName  xml.Name            `xml:"filter"`
 	Name     string              `xml:"name,attr"`
+	UUID     string              `xml:"uuid,omitempty"`
 	Chain    string              `xml:"chain,attr"`
 	Metadata metadataXML         `xml:"metadata"`
 	Rules    []networkFilterRule `xml:"rule"`
@@ -512,6 +513,49 @@ type networkFilterIP struct {
 
 type networkFilterIPv6 struct{}
 
+func managedNetworkFilterUUID(name, ownerScope string) (string, error) {
+	if !managedNamePattern.MatchString(name) {
+		return "", fmt.Errorf("invalid managed network filter name %q", name)
+	}
+	if err := validateManagedOwnerScope(ownerScope); err != nil {
+		return "", err
+	}
+	digest := sha256.Sum256([]byte("lpic-daily-nwfilter\x00" + ownerScope + "\x00" + name))
+	value := append([]byte(nil), digest[:16]...)
+	value[6] = (value[6] & 0x0f) | 0x50
+	value[8] = (value[8] & 0x3f) | 0x80
+	encoded := hex.EncodeToString(value)
+	return encoded[0:8] + "-" + encoded[8:12] + "-" + encoded[12:16] + "-" +
+		encoded[16:20] + "-" + encoded[20:32], nil
+}
+
+func hasManagedNetworkFilterOwnership(payload, name, ownerScope string) bool {
+	expectedUUID, err := managedNetworkFilterUUID(name, ownerScope)
+	if err != nil {
+		return false
+	}
+	var document struct {
+		Name     string      `xml:"name,attr"`
+		UUID     string      `xml:"uuid"`
+		Metadata metadataXML `xml:"metadata"`
+	}
+	if err := xml.Unmarshal([]byte(payload), &document); err != nil {
+		return false
+	}
+	if document.Name != name {
+		return false
+	}
+
+	managed := document.Metadata.Managed
+	metadataPresent := managed.Owner != "" || managed.Version != "" || managed.Scope != ""
+	if metadataPresent {
+		return managed.Owner == managedMetadataOwner &&
+			managed.Version == managedMetadataVersion &&
+			managed.Scope == ownerScope
+	}
+	return strings.EqualFold(strings.TrimSpace(document.UUID), expectedUUID)
+}
+
 func BuildHostIsolationFilterXML(name string, subnet netip.Prefix, ownerScope string) (string, error) {
 	if err := validateManagedOwnerScope(ownerScope); err != nil {
 		return "", err
@@ -523,8 +567,13 @@ func BuildHostIsolationFilterXML(name string, subnet netip.Prefix, ownerScope st
 	if err != nil {
 		return "", err
 	}
+	filterUUID, err := managedNetworkFilterUUID(name, ownerScope)
+	if err != nil {
+		return "", err
+	}
 	doc := networkFilterXML{
 		Name:     name,
+		UUID:     filterUUID,
 		Chain:    "root",
 		Metadata: newManagedMetadata(ownerScope),
 		Rules: []networkFilterRule{
