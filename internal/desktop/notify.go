@@ -27,7 +27,13 @@ func (OSExecutor) Start(ctx context.Context, name string, args ...string) error 
 	command.Stdin = nil
 	command.Stdout = nil
 	command.Stderr = nil
-	return command.Start()
+	if err := command.Start(); err != nil {
+		return err
+	}
+	if err := command.Process.Release(); err != nil {
+		return fmt.Errorf("release detached process: %w", err)
+	}
+	return nil
 }
 
 type Notification struct {
