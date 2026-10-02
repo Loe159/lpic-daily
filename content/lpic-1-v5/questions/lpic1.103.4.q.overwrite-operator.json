@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.4.q.overwrite-operator",
+  "objective_ids": [
+    "103.4"
+  ],
+  "concept_ids": [
+    "lpic1.103.4.redirections-ecrasement-append"
+  ],
+  "type": "free-recall",
+  "prompt_fr": "Quel opérateur Bash redirige `stdout` vers un fichier en remplaçant son contenu existant ?",
+  "grading": {
+    "strategy": "exact-text",
+    "accepted_answers": [
+      ">"
+    ],
+    "case_sensitive": true
+  },
+  "evidence_kind_on_success": "recall",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic",
+  "explanation_fr": "`>` ouvre la cible pour remplacer son contenu, contrairement à `>>` qui ajoute à la fin."
+}
