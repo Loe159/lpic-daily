@@ -35,11 +35,11 @@ Build the complete adaptive daily loop for **103.1, 103.5 and 104.5**:
 
 Exit criteria are canonical in `docs/plan/PHASE-1-ACCEPTANCE.md` and were accepted on 2026-09-27.
 
-## Phase 2 — VM runner (current)
-Add libvirt/QEMU/KVM images and cover one boot objective + one storage objective end to end. Establish Fedora, Debian and openSUSE guest-image pipeline and isolated multi-machine lab networking.
+## Phase 2 — VM runner (implementation complete; real-KVM acceptance pending)
+Add libvirt/QEMU/KVM images and cover one boot objective + one storage objective end to end. Establish Fedora, Debian and openSUSE guest-image pipeline and isolated multi-machine lab networking. The implementation is present; acceptance remains pending until the real-host KVM suite is executed successfully.
 
-## Phase 3 — Exam 101 curriculum
-Complete topics 101–104 with automated coverage checks, progressive lessons, practical reps and cross-topic challenges.
+## Phase 3 — Exam 101 curriculum (in progress)
+Complete topics 101–104 with automated coverage checks, progressive lessons, practical reps and cross-topic challenges. Phase 3 started in parallel on 2026-10-01; see `docs/plan/PHASE-3-EXAM101.md`. Phase-2 KVM acceptance remains a separate release-validation gate.
 
 ## Phase 4 — Exam 102 curriculum
 Complete topics 105–110, including networking, services and crypto. Ensure modern-versus-legacy labeling remains accurate.
