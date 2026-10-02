@@ -101,6 +101,25 @@ def main():
         environment = lab.get("environment", {})
         if environment.get("backend") not in {"podman", "libvirt"}:
             errors.append(f"{lab_id}: unsupported backend {environment.get('backend')!r}")
+        backend = environment.get("backend")
+        capability_profile = environment.get("capability_profile")
+        if backend == "podman" and capability_profile not in {
+            "baseline",
+            "identity-files",
+            "process-lab",
+        }:
+            errors.append(
+                f"{lab_id}: unsupported Podman capability_profile {capability_profile!r}"
+            )
+        if backend == "libvirt":
+            if capability_profile != "full-machine":
+                errors.append(
+                    f"{lab_id}: libvirt capability_profile must be 'full-machine'"
+                )
+            if environment.get("writable_guest_paths", []):
+                errors.append(
+                    f"{lab_id}: libvirt writable_guest_paths must be empty; writable state comes from VM disks"
+                )
         if environment.get("network") not in {"none", "isolated"}:
             errors.append(f"{lab_id}: unsupported network mode {environment.get('network')!r}")
         image_ref = environment.get("image_ref", "")
@@ -126,7 +145,6 @@ def main():
             errors.append(f"{lab_id}: timeout_seconds must be an integer from 30 to 7200")
 
         setup = lab.get("setup", {})
-        backend = environment.get("backend")
         setup_scope = setup.get("execution_scope")
         if backend == "podman":
             if setup_scope != "sandbox":
@@ -161,8 +179,21 @@ def main():
             level = hint.get("level")
             if level not in {1, 2, 3, 4}:
                 errors.append(f"{hint_id}: invalid level {level}")
-            if level == 4 and hint.get("evidence_impact") != "solution-revealed":
-                errors.append(f"{hint_id}: level 4 must reveal the solution")
+
+        levels = [hint.get("level") for hint in hints.values()]
+        if sorted(levels) != [1, 2, 3, 4]:
+            errors.append(
+                f"{lab_id}: hint ladder must contain each level 1..4 exactly once; got {sorted(levels)}"
+            )
+        for hint_id, hint in hints.items():
+            level = hint.get("level")
+            impact = hint.get("evidence_impact")
+            if level == 1 and impact not in {"none", "minor"}:
+                errors.append(f"{hint_id}: level 1 must have evidence_impact none/minor")
+            elif level in {2, 3} and impact != "material":
+                errors.append(f"{hint_id}: level {level} must have evidence_impact material")
+            elif level == 4 and impact != "solution-revealed":
+                errors.append(f"{hint_id}: level 4 must have evidence_impact solution-revealed")
 
         requested = lab.get("hint_ids", [])
         if len(requested) != len(set(requested)):
