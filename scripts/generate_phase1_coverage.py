@@ -10,8 +10,8 @@ MATRIX_PATH = ROOT / "curriculum" / "lpic-1-v5" / "phase1-coverage.json"
 
 SURFACE_GLOBS = {
     "labs": "labs/lpic-1-v5/*/*/lab.json",
-    "lessons": "content/lpic-1-v5/lessons/**/*.json",
-    "questions": "content/lpic-1-v5/questions/**/*.json",
+    "lessons": "content/lpic-1-v5/lessons/*.json",
+    "questions": "content/lpic-1-v5/questions/*.json",
 }
 
 
@@ -69,7 +69,23 @@ def artifact_records(surface, pattern):
                 )
             concepts = checked_concepts
 
-        records.append((artifact_id, concepts, set(objectives), path, practice_context))
+        counts_for_coverage = not (
+            surface == "questions" and data.get("usage") == "initial-assessment"
+        )
+        focused_introduction = (
+            surface == "lessons"
+            and data.get("stage") == "introduce"
+            and len(declared_concepts) == 1
+        )
+        records.append((
+            artifact_id,
+            concepts,
+            set(objectives),
+            path,
+            practice_context,
+            counts_for_coverage,
+            focused_introduction,
+        ))
     return records
 
 
@@ -93,9 +109,18 @@ def generate():
     }
 
     lab_contexts = {concept_id: set() for concept_id in ordered_concepts}
+    focused_introductions = {concept_id: 0 for concept_id in ordered_concepts}
     seen_artifact_ids = set()
     for surface, pattern in SURFACE_GLOBS.items():
-        for artifact_id, concept_ids, objective_ids, path, practice_context in artifact_records(surface, pattern):
+        for (
+            artifact_id,
+            concept_ids,
+            objective_ids,
+            path,
+            practice_context,
+            counts_for_coverage,
+            focused_introduction,
+        ) in artifact_records(surface, pattern):
             if artifact_id in seen_artifact_ids:
                 raise ValueError(f"duplicate learning artifact id {artifact_id}")
             seen_artifact_ids.add(artifact_id)
@@ -109,7 +134,10 @@ def generate():
                         f"{path.relative_to(ROOT)}: concept {concept_id} belongs to "
                         f"Phase-1 objective {objective_id}, but that objective is not referenced"
                     )
-                mapped[concept_id][surface].append(artifact_id)
+                if counts_for_coverage:
+                    mapped[concept_id][surface].append(artifact_id)
+                if focused_introduction:
+                    focused_introductions[concept_id] += 1
                 if surface == "labs":
                     lab_contexts[concept_id].add(practice_context)
 
@@ -125,6 +153,7 @@ def generate():
             "objective_id": objective_id,
             "surfaces": surfaces,
             "lab_contexts": sorted(lab_contexts[concept_id]),
+            "focused_introduction_count": focused_introductions[concept_id],
         })
 
     return {
@@ -144,6 +173,9 @@ def generate():
             "with_two_labs": sum(len(item["surfaces"]["labs"]) >= 2 for item in concepts),
             "with_two_lab_contexts": sum(len(item["lab_contexts"]) >= 2 for item in concepts),
             "with_lesson": sum(bool(item["surfaces"]["lessons"]) for item in concepts),
+            "with_focused_introduction": sum(
+                item["focused_introduction_count"] == 1 for item in concepts
+            ),
             "with_question": sum(bool(item["surfaces"]["questions"]) for item in concepts),
         },
         "concepts": concepts,
@@ -200,6 +232,21 @@ def main():
         )
         return 1
 
+    incomplete_learning_surface = [
+        item["concept_id"]
+        for item in generated["concepts"]
+        if not item["surfaces"]["lessons"]
+        or not item["surfaces"]["questions"]
+        or item["focused_introduction_count"] != 1
+    ]
+    if incomplete_learning_surface:
+        print(
+            "Phase-1 coverage FAILED: every Phase-1 concept needs at least one lesson, "
+            "exactly one focused introduce lesson, and at least one daily non-assessment question: "
+            + ", ".join(incomplete_learning_surface)
+        )
+        return 1
+
     insufficient_transfer = [
         item["concept_id"]
         for item in generated["concepts"]
@@ -221,7 +268,8 @@ def main():
         f"{summary['with_two_labs']} with two labs; "
         f"{summary['with_two_lab_contexts']} with two explicit practice contexts; "
         f"{summary['with_lesson']} with lesson; "
-        f"{summary['with_question']} with question"
+        f"{summary['with_focused_introduction']} with exactly one focused introduction; "
+        f"{summary['with_question']} with daily question"
     )
     return 0
 
