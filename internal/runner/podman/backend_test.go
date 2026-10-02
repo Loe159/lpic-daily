@@ -322,11 +322,21 @@ func TestReapAbandonedOnlyRemovesExpiredManagedContainers(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open() error = %v", err)
 	}
+	backend.mu.Lock()
+	backend.definitions["lpic-daily-test-expired"] = validDefinition()
+	backend.mu.Unlock()
+
 	if err := backend.ReapAbandoned(context.Background(), now); err != nil {
 		t.Fatalf("ReapAbandoned() error = %v", err)
 	}
 	if len(deleted) != 1 || deleted[0] != "expired-managed" {
 		t.Fatalf("deleted = %v, want only expired-managed", deleted)
+	}
+	backend.mu.RLock()
+	_, stillTracked := backend.definitions["lpic-daily-test-expired"]
+	backend.mu.RUnlock()
+	if stillTracked {
+		t.Fatal("reaped container remained tracked by managed name")
 	}
 }
 
