@@ -294,15 +294,19 @@ func TestReapAbandonedOnlyRemovesExpiredManagedContainers(t *testing.T) {
 			w.Header().Set("Content-Type", "application/json")
 			_, _ = w.Write([]byte(fmt.Sprintf(
 				`[
-				 {"Id":"expired-managed","Labels":{"%s":"true","%s":"%s"}},
-				 {"Id":"live-managed","Labels":{"%s":"true","%s":"%s"}},
-				 {"Id":"foreign","Labels":{"%s":"false","%s":"%s"}},
-				 {"Id":"legacy-managed","Labels":{"%s":"true"}}
+				 {"Id":"expired-managed","Names":["lpic-daily-test-expired"],"Labels":{"%s":"true","%s":"lab.expired","%s":"%s"}},
+				 {"Id":"live-managed","Names":["lpic-daily-test-live"],"Labels":{"%s":"true","%s":"lab.live","%s":"%s"}},
+				 {"Id":"foreign","Names":["foreign"],"Labels":{"%s":"false","%s":"foreign","%s":"%s"}},
+				 {"Id":"spoofed-label","Names":["foreign-spoofed"],"Labels":{"%s":"true","%s":"lab.spoof","%s":"%s"}},
+				 {"Id":"missing-lab-id","Names":["lpic-daily-test-missing-lab"],"Labels":{"%s":"true","%s":"%s"}},
+				 {"Id":"legacy-managed","Names":["lpic-daily-test-legacy"],"Labels":{"%s":"true","%s":"lab.legacy"}}
 				]`,
+				managedLabel, labIDLabel, expiresAtLabel, expired,
+				managedLabel, labIDLabel, expiresAtLabel, live,
+				managedLabel, labIDLabel, expiresAtLabel, expired,
+				managedLabel, labIDLabel, expiresAtLabel, expired,
 				managedLabel, expiresAtLabel, expired,
-				managedLabel, expiresAtLabel, live,
-				managedLabel, expiresAtLabel, expired,
-				managedLabel,
+				managedLabel, labIDLabel,
 			)))
 		case r.Method == http.MethodDelete && strings.HasPrefix(r.URL.Path, apiBase+"/containers/"):
 			deleted = append(deleted, strings.TrimPrefix(r.URL.Path, apiBase+"/containers/"))
