@@ -266,6 +266,55 @@ func TestIncompleteFocusedIntroductionKeepsObjectiveOutOfScheduler(t *testing.T)
 	}
 }
 
+func TestDuplicateFocusedIntroductionKeepsObjectiveOutOfScheduler(t *testing.T) {
+	curriculumBundle, contentBundle, labs := loadInputs(t)
+	now := time.Date(2026, 10, 1, 16, 30, 0, 0, time.UTC)
+	evidence := memoryEvidence{}
+
+	for _, conceptID := range curriculumBundle.Phase1.ObjectiveConcepts["103.1"] {
+		evidence[conceptID] = []learning.EvidenceEvent{{
+			EventID:      "ready-" + conceptID,
+			OccurredAt:   now,
+			ConceptID:    conceptID,
+			ObjectiveIDs: []string{"103.1"},
+			SourceItemID: "test-recall",
+			ActivityKind: learning.ActivityQuestion,
+			EvidenceKind: learning.EvidenceRecall,
+			Result:       learning.ResultPass,
+			Distribution: "generic",
+			AttemptIndex: 1,
+		}}
+	}
+
+	mutated := *contentBundle
+	mutated.Lessons = append([]content.Lesson(nil), contentBundle.Lessons...)
+	for _, lesson := range contentBundle.Lessons {
+		if lesson.ID == "lpic1.103.4.lesson.redirection-order" {
+			duplicate := lesson
+			duplicate.ID = "lpic1.103.4.lesson.redirection-order-duplicate"
+			mutated.Lessons = append(mutated.Lessons, duplicate)
+			break
+		}
+	}
+
+	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
+		Now:        now,
+		Curriculum: curriculumBundle,
+		Content:    &mutated,
+		Labs:       labs,
+		Evidence:   evidence,
+		Policy:     learning.DefaultSessionPolicy(),
+	})
+	if err != nil {
+		t.Fatalf("BuildPlan() error = %v", err)
+	}
+	for _, item := range plan.Items {
+		if item.ObjectiveID == "103.4" {
+			t.Fatalf("103.4 scheduled with duplicate focused introduction: %#v", plan.Items)
+		}
+	}
+}
+
 func TestPlanUsesStoredRecallToCreateDueReviewWithoutReplayingLesson(t *testing.T) {
 	curriculumBundle, contentBundle, labs := loadInputs(t)
 	now := time.Date(2026, 9, 26, 20, 0, 0, 0, time.UTC)
