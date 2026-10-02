@@ -3,10 +3,30 @@ package content
 import (
 	"slices"
 	"testing"
+	"testing/fstest"
 
 	lpicdaily "github.com/Loe159/lpic-daily"
 	"github.com/Loe159/lpic-daily/internal/curriculum"
 )
+
+func TestRecursiveJSONFilesIncludesNestedContent(t *testing.T) {
+	fsys := fstest.MapFS{
+		"content/lpic-1-v5/lessons/root.json":        {Data: []byte("{}")},
+		"content/lpic-1-v5/lessons/topic/nested.json": {Data: []byte("{}")},
+		"content/lpic-1-v5/lessons/topic/readme.txt":  {Data: []byte("ignore")},
+	}
+	got, err := recursiveJSONFiles(fsys, "content/lpic-1-v5/lessons")
+	if err != nil {
+		t.Fatalf("recursiveJSONFiles() error = %v", err)
+	}
+	want := []string{
+		"content/lpic-1-v5/lessons/root.json",
+		"content/lpic-1-v5/lessons/topic/nested.json",
+	}
+	if !slices.Equal(got, want) {
+		t.Fatalf("recursiveJSONFiles() = %#v, want %#v", got, want)
+	}
+}
 
 func TestBuiltinPhase1ContentCoversEveryConcept(t *testing.T) {
 	bundle, err := Load(lpicdaily.BuiltinFS)
