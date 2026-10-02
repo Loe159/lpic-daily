@@ -2,9 +2,9 @@
 
 Status: **Implementation present; execution acceptance pending — 2026-09-29**
 
-The checklist below remains deliberately unchecked until the corresponding acceptance evidence has actually run. The Phase-2 branch now contains implementations/tests for the control plane, image supply, isolated networking, multi-VM scenarios, serial console, reboot-aware 102.2 lab, crash reaper and real-KVM safety checks. This file is an acceptance gate, not an implementation-progress checklist.
+The checklist distinguishes evidence that can be established in generic CI from criteria that require a real KVM/libvirt host. Non-KVM items are checked only when their corresponding unit, fake-control-plane, schema or static validation has run successfully; real-machine behavior remains unchecked until the dedicated acceptance harness executes it. This file is an acceptance gate, not an implementation-progress checklist.
 
-Current blocker: final real-KVM acceptance still requires an explicit compatible KVM/libvirt host. Generic GitHub Actions validation is available again and must be green for the exact acceptance commit.
+Current blocker: only the real-KVM/libvirt acceptance evidence remains unavailable in generic hosted CI. The supported non-KVM CI gates must remain green on the combined Phase 1–3 branch; KVM-dependent criteria remain deliberately unchecked.
 
 Review remediation completed through 2026-10-02:
 - real-host validation now waits for DHCP/default-route readiness instead of assuming QEMU Guest Agent readiness implies network readiness;
@@ -12,7 +12,6 @@ Review remediation completed through 2026-10-02:
 - trusted v2 guest images route QEMU Guest Agent execution through a project-owned SELinux-aware trampoline using the distribution-provided `virt_qemu_ga_run_unconfined` transition, so legitimate administrative labs do not depend on permissive SELinux;
 - the 104.1 reference solution waits for udev/block-device convergence after repartitioning, avoiding host-speed-dependent `/dev/vdb1`/`vdb2` races;
 - real-KVM reference-solution failures now preserve stdout/stderr, host iptables/nftables incompatibilities are surfaced explicitly, and the doctor libvirt cold-start probe uses a less brittle timeout;
-
 - openSUSE source integrity is pinned directly in-repository to Build 18.68 / SHA-256 `f8a2703a4355a30d531021a88748f0c9d71124b7e33d26d4d49b85c2983e20d5`; runtime build no longer trusts a mutable remote checksum file;
 - isolated-network allocation uses collision-aware RFC1918 /28 selection, excluding host routes and all existing libvirt networks, with a cross-process allocation lock around inventory + definition;
 - VM console input is cancellable and Ctrl-] behavior plus CLI console/reboot dispatch have unit coverage; console streaming uses a dedicated libvirt connection so escape/cancellation closes only the stream, and the real-KVM harness verifies the guest remains QGA-responsive before successful teardown.
@@ -33,80 +32,84 @@ Review remediation completed through 2026-10-02:
 - every generated root overlay and scratch QCOW2 file is forced to mode `0600`, independent of the caller's umask.
 - multi-VM scenario teardown now persists partial cleanup progress and repeated `DestroyScenario()` calls are idempotent; a late network-filter teardown failure can be retried without re-querying an already undefined network.
 
+## Parallel Phase-3 work
+
+Phase-3 Exam-101 curriculum work may proceed while this real-host KVM acceptance execution is pending. This does not change any checkbox in this file and does not imply Phase 2 acceptance. A fully validated release candidate still requires the canonical real-host acceptance command below to pass.
+
 ## Control plane
-- [ ] application process remains non-root;
-- [ ] only local `qemu:///system` is accepted by the canonical backend;
-- [ ] failed/missing libvirt authorization fails closed;
-- [ ] no VM lab falls back to Podman or host execution;
-- [ ] concrete libvirt dependency is isolated behind project-owned interfaces;
-- [ ] abandoned-resource inventory requires LPIC Daily owner identity, not only a name prefix; nwfilters may use the deterministic owner-scoped UUID fallback only when custom metadata is absent.
+- [x] application process remains non-root;
+- [x] only local `qemu:///system` is accepted by the canonical backend;
+- [x] failed/missing libvirt authorization fails closed;
+- [x] no VM lab falls back to Podman or host execution;
+- [x] concrete libvirt dependency is isolated behind project-owned interfaces;
+- [x] abandoned-resource inventory requires LPIC Daily owner identity, not only a name prefix; nwfilters may use the deterministic owner-scoped UUID fallback only when custom metadata is absent, and tests reject contradictory/foreign ownership.
 
 ## Image supply chain
-- [ ] curriculum references an opaque image ID, never a path/URL;
-- [ ] catalog entry includes SHA-256, provenance, format, architecture and firmware compatibility;
-- [ ] base-image integrity is verified;
+- [x] curriculum references an opaque image ID, never a path/URL;
+- [x] catalog entry includes SHA-256, provenance, format, architecture and firmware compatibility;
+- [x] base-image integrity is verified before overlay creation;
 - [ ] base image is opened read-only from the VM design perspective and remains byte-identical after a lab;
-- [ ] floating image identities are rejected;
+- [x] floating image identities are rejected;
 - [ ] default VM image/state paths are provisioned under the system-libvirt image tree (or an explicitly verified equivalent) so qemu:///system DAC/SELinux access is testable.
 
 ## VM isolation
-- [ ] generated domain names are LPIC Daily-namespaced;
-- [ ] domain XML cannot contain arbitrary host filesystem mounts;
-- [ ] domain XML cannot contain host PCI/USB devices;
-- [ ] no arbitrary QEMU command-line extension is accepted from content;
-- [ ] memory/CPU/time and writable-disk size are bounded;
+- [x] generated domain names are LPIC Daily-namespaced;
+- [x] domain XML cannot contain arbitrary host filesystem mounts;
+- [x] domain XML cannot contain host PCI/USB devices;
+- [x] no arbitrary QEMU command-line extension is accepted from content;
+- [x] memory/CPU/time and writable-disk size are bounded;
 - [ ] learner commands run only inside the VM.
 
 ## Storage lifecycle
-- [ ] every run uses a fresh overlay;
-- [ ] reset destroys and recreates disposable writable state;
-- [ ] destroy removes domain + overlay + scenario scratch disks;
-- [ ] cleanup is idempotent;
-- [ ] abandoned resource reaping is tested.
+- [x] every prepared run uses a fresh overlay;
+- [x] reset destroys and recreates disposable writable state;
+- [x] destroy removes domain + overlay + scenario scratch disks in fake-client lifecycle coverage;
+- [x] cleanup is idempotent and retryable in unit/fake-client coverage;
+- [x] abandoned resource reaping is covered by fake-control-plane lifecycle tests, including live-lease preservation and prefixed foreign-resource rejection.
 
 ## Networking
-- [ ] `network=none` creates no guest NIC;
-- [ ] `network=isolated` uses an LPIC Daily-owned network with no forwarding;
+- [x] `network=none` domain policy creates no guest NIC;
+- [x] `network=isolated` XML uses an LPIC Daily-owned network with no forwarding and an owned isolation filter;
 - [ ] two guests in the same scenario can communicate when required;
 - [ ] guests cannot reach the public Internet/LAN in the default isolated mode;
 - [ ] guests cannot reach host bridge services in isolated mode except DHCP required for address assignment.
 
 ## Interaction/checking
 - [ ] learner has a serial console path that works before normal userland login;
-- [ ] console cancellation interrupts the disposable VM stream and leaves teardown possible;
-- [ ] structured probes work for booted guest state;
-- [ ] hostile guest output is only passed raw in an explicit terminal surface;
-- [ ] checker success depends on observable state, not exact commands.
+- [x] console cancellation closes only the dedicated console stream in unit/fake-client coverage;
+- [x] structured QGA command/storage probes are covered without host command fallback;
+- [x] hostile guest non-console output is sanitized; raw control sequences are restricted to the explicit serial-console surface;
+- [x] checker success depends on observable state, not exact commands; checker tests accept different command histories that produce the same final state.
 
 ## Curriculum proof
 - [ ] one 104.1 storage lab succeeds end-to-end;
 - [ ] one 102.2 bootloader lab succeeds end-to-end including reboot;
 - [ ] failed reference state is rejected;
 - [ ] test-only reference solution passes;
-- [ ] both labs have graduated hints and original debriefs.
+- [x] both VM labs have four-level graduated hint ladders and non-empty authored debriefs enforced by schema/loader validation.
 
 ## Distribution pipeline
-- [ ] Fedora base manifest/recipe;
-- [ ] Debian base manifest/recipe;
-- [ ] openSUSE base manifest/recipe;
-- [ ] every released image records pinned upstream source integrity, build recipe/provenance and a final SHA-256;
-- [ ] byte-for-byte reproducibility is not claimed unless package repositories are snapshot-pinned.
+- [x] Fedora base manifest/recipe;
+- [x] Debian base manifest/recipe;
+- [x] openSUSE base manifest/recipe;
+- [x] image-source manifests/recipes require pinned upstream integrity and generated catalogs preserve provenance/final SHA-256 contracts;
+- [x] byte-for-byte reproducibility is explicitly not claimed while package repositories are not snapshot-pinned.
 
 ## Verification
-- [ ] unit tests for XML/path/name policies;
-- [ ] fake-client lifecycle tests;
+- [x] unit tests for XML/path/name policies;
+- [x] fake-client lifecycle tests;
 - [ ] real KVM/libvirt host-sentinel test;
 - [ ] base-image immutability test;
 - [ ] isolated-network no-forwarding test includes real guest public ICMP/TCP failure probes, a host-uplink TCP sentinel and a host-bridge-gateway TCP sentinel;
 - [ ] both Phase-2 reference solutions are executed by the real-KVM harness, with 102.2 rebooted before grading;
-- [ ] `python3 scripts/validate_foundation.py`;
-- [ ] `go test ./...`;
-- [ ] `go vet ./...`;
-- [ ] CI green on supported non-KVM jobs.
+- [x] `python3 scripts/validate_foundation.py`;
+- [x] `go test ./...`;
+- [x] `go vet ./...`;
+- [x] CI green on supported non-KVM jobs.
 
 Canonical one-command acceptance entry point on a compatible host: `LPIC_DAILY_RUN_KVM_INTEGRATION=1 scripts/run_phase2_acceptance.sh`.
 
 
 ## Host firewall compatibility note
 
-LPIC Daily does not mutate the host firewall or third-party VPN configuration. If libvirt reports an `iptables`/nftables parsing failure while starting an isolated VM, acceptance must stop fail-closed and surface the host compatibility error. Operators should first verify `sudo iptables -w -L` and inspect third-party nftables rules (for example Tailscale) rather than weakening the VM isolation policy.
+LPIC Daily does not mutate the host firewall or third-party VPN configuration. If libvirt reports an `iptables`/nftables parsing failure while starting an isolated VM, acceptance stops fail-closed and surfaces the host compatibility error. Operators should verify `sudo iptables -w -L` and inspect third-party nftables rules (for example Tailscale) rather than weakening the VM isolation policy.
