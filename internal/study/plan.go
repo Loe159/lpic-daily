@@ -211,12 +211,12 @@ func schedulableScope(
 	contentBundle *content.Bundle,
 	labs []lab.Lab,
 ) ([]string, map[string]struct{}, error) {
-	introductions := make(map[string]bool)
+	introductionCounts := make(map[string]int)
 	for _, lesson := range contentBundle.Lessons {
 		if lesson.Stage != "introduce" || len(lesson.ConceptIDs) != 1 {
 			continue
 		}
-		introductions[lesson.ConceptIDs[0]] = true
+		introductionCounts[lesson.ConceptIDs[0]]++
 	}
 	questions := make(map[string]bool)
 	recallQuestions := make(map[string]bool)
@@ -247,7 +247,7 @@ func schedulableScope(
 		}
 		complete := true
 		for _, conceptID := range conceptIDs {
-			if !introductions[conceptID] || !questions[conceptID] ||
+			if introductionCounts[conceptID] != 1 || !questions[conceptID] ||
 				(!recallQuestions[conceptID] && !practical[conceptID]) {
 				complete = false
 				break
