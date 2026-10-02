@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.4.q.redirection-order",
+  "objective_ids": [
+    "103.4"
+  ],
+  "concept_ids": [
+    "lpic1.103.4.ordre-des-redirections"
+  ],
+  "type": "multiple-choice",
+  "prompt_fr": "Quelle forme envoie `stdout` et `stderr` vers `tout.log` ?",
+  "choices": [
+    {
+      "id": "stdout-then-stderr",
+      "label_fr": "`commande > tout.log 2>&1`"
+    },
+    {
+      "id": "stderr-then-stdout",
+      "label_fr": "`commande 2>&1 > tout.log`"
+    }
+  ],
+  "grading": {
+    "strategy": "choice-ids",
+    "accepted_choice_ids": [
+      "stdout-then-stderr"
+    ]
+  },
+  "evidence_kind_on_success": "recognition",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic",
+  "explanation_fr": "Les redirections sont appliquées de gauche à droite : stdout est d'abord envoyé au fichier, puis stderr est dupliqué vers cette destination."
+}
