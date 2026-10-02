@@ -119,6 +119,7 @@ type imageInspectResponse struct {
 
 type containerSummary struct {
 	ID     string            `json:"Id"`
+	Names  []string          `json:"Names"`
 	Labels map[string]string `json:"Labels"`
 }
 
@@ -302,7 +303,9 @@ func (backend *Backend) ReapAbandoned(ctx context.Context, now time.Time) error 
 
 	var errs []error
 	for _, container := range containers {
-		if container.Labels[managedLabel] != "true" {
+		if container.Labels[managedLabel] != "true" ||
+			strings.TrimSpace(container.Labels[labIDLabel]) == "" ||
+			!hasManagedContainerName(container.Names) {
 			continue
 		}
 		expiresText := strings.TrimSpace(container.Labels[expiresAtLabel])
@@ -335,6 +338,16 @@ func (backend *Backend) ReapAbandoned(ctx context.Context, now time.Time) error 
 		backend.mu.Unlock()
 	}
 	return errors.Join(errs...)
+}
+
+func hasManagedContainerName(names []string) bool {
+	for _, name := range names {
+		name = strings.TrimPrefix(strings.TrimSpace(name), "/")
+		if strings.HasPrefix(name, "lpic-daily-") {
+			return true
+		}
+	}
+	return false
 }
 
 func (backend *Backend) resolveImageID(ctx context.Context, imageRef string) (string, error) {
