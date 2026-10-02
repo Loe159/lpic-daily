@@ -250,16 +250,29 @@ def main():
             "Phase-3 acceptance FAILED: concepts without a focused introduce lesson: "
             + ", ".join(missing_introduction)
         )
+    missing_advancement = [
+        item["concept_id"]
+        for item in concepts
+        if not (
+            item["surfaces"]["recall_questions"]
+            or item["surfaces"]["labs"]
+        )
+    ]
     if missing_question:
         print(
             "Phase-3 acceptance FAILED: concepts without deterministic daily question: "
             + ", ".join(missing_question)
         )
-    if missing_lesson or missing_introduction or missing_question:
+    if missing_advancement:
+        print(
+            "Phase-3 acceptance FAILED: concepts without recall or practical advancement path: "
+            + ", ".join(missing_advancement)
+        )
+    if missing_lesson or missing_introduction or missing_question or missing_advancement:
         return 1
 
     print(
-        "Phase-3 theory/daily-question coverage complete. "
+        "Phase-3 theory/daily-question/advancement coverage complete. "
         "Practical-objective and cross-topic challenge gates remain documented in "
         "docs/plan/PHASE-3-ACCEPTANCE.md."
     )
