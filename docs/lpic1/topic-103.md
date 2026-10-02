@@ -110,12 +110,12 @@ Recommended practice backend: **podman**
 
 **Examinable terms/files/utilities to cover**
 
-`stdin`, `stdout`, `stderr`, `>`, `>>`, `2>`, `2>&1`, `|`, `tee`, `xargs`
+`stdin`, `stdout`, `stderr`, `<`, `>`, `>>`, `2>`, `2>&1`, `|`, `tee`, `xargs`
 
 **Competence evidence**
 - construire pipelines robustes
 - séparer stdout/stderr
-- expliquer différence pipe vs substitution/arguments
+- expliquer différence entre pipe et passage d’arguments via `xargs`
 
 **Content/lab implications**
 - Explain the causal model before memorization-heavy details.
