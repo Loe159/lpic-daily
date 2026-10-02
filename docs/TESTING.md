@@ -10,7 +10,7 @@ The Go curriculum/content loaders independently validate embedded authored JSON 
 
 ### Phase 3 curriculum coverage
 
-`python3 scripts/audit_phase3_coverage.py --check` validates Phase-3 artifact mappings without requiring unfinished Exam-101 content to be complete. `--require-complete` is the theory/daily-question/mastery-advancement exit gate. The audit reads the canonical `phase3-exam101.json` manifest and uses the same non-recursive lesson/question paths as the Go runtime.
+`python3 scripts/audit_phase3_coverage.py --check` validates Phase-3 artifact mappings without requiring unfinished Exam-101 content to be complete. `--require-complete` is the theory/daily-question/mastery-advancement exit gate. The audit reads the canonical `phase3-exam101.json` manifest and, like the Go runtime and embedded filesystem, discovers lesson/question JSON recursively below their content directories.
 
 The study planner only schedules Phase-3 objectives whose mapped concepts all have a focused `introduce` lesson, at least one daily question, and a path beyond recognition: either a daily recall-capable question or a practical lab. `initial-assessment` questions do not count toward this gate. Tests verify 103.4 becomes reachable after 103.1 readiness, unfinished objectives remain unavailable, and concepts with multiple questions recommend the least-attempted question.
 
