@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.4.q.append-operator",
+  "objective_ids": [
+    "103.4"
+  ],
+  "concept_ids": [
+    "lpic1.103.4.redirections-ecrasement-append"
+  ],
+  "type": "free-recall",
+  "prompt_fr": "Quel opérateur Bash redirige `stdout` en ajoutant à la fin d'un fichier sans l'écraser ?",
+  "grading": {
+    "strategy": "exact-text",
+    "accepted_answers": [
+      ">>"
+    ],
+    "case_sensitive": true
+  },
+  "evidence_kind_on_success": "recall",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic",
+  "explanation_fr": "`>>` ouvre la cible en mode append, contrairement à `>` qui remplace son contenu."
+}
