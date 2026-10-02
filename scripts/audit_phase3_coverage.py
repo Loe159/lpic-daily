@@ -190,8 +190,8 @@ def audit():
         "objectives": len(selected_objectives),
         "concepts": len(concepts),
         "with_lesson": sum(bool(item["surfaces"]["lessons"]) for item in concepts),
-        "with_introduction": sum(
-            bool(item["surfaces"]["introductions"]) for item in concepts
+        "with_exactly_one_introduction": sum(
+            len(item["surfaces"]["introductions"]) == 1 for item in concepts
         ),
         "with_question": sum(bool(item["surfaces"]["questions"]) for item in concepts),
         "with_advancement_path": sum(
@@ -221,12 +221,23 @@ def main():
         "Phase-3 Exam 101 coverage: "
         f"{summary['objectives']} objectives / {summary['concepts']} concepts; "
         f"{summary['with_lesson']} with lesson; "
-        f"{summary['with_introduction']} with focused introduction; "
+        f"{summary['with_exactly_one_introduction']} with exactly one focused introduction; "
         f"{summary['with_question']} with daily question; "
         f"{summary['with_advancement_path']} with recall/practical advancement path; "
         f"{summary['with_lab']} with practical lab evidence; "
         f"{summary['objectives_with_lab']} objectives with at least one lab"
     )
+    duplicate_introductions = [
+        item["concept_id"] for item in concepts
+        if len(item["surfaces"]["introductions"]) > 1
+    ]
+    if duplicate_introductions:
+        print(
+            "Phase-3 coverage audit FAILED: concepts with multiple focused introduce lessons: "
+            + ", ".join(duplicate_introductions)
+        )
+        return 1
+
     if args.check:
         return 0
 
