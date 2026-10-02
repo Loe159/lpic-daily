@@ -304,8 +304,8 @@ func runNotifyWithExecutor(
 		Body:  body,
 	}
 	var (
-		open        bool
-		claimTime   = now
+		open      bool
+		claimTime = now
 	)
 	if force {
 		open, err = desktop.SendDaily(ctx, executor, notification)
