@@ -16,8 +16,8 @@ import (
 )
 
 const (
-	lessonGlob   = "content/lpic-1-v5/lessons/*.json"
-	questionGlob = "content/lpic-1-v5/questions/*.json"
+	lessonsDir   = "content/lpic-1-v5/lessons"
+	questionsDir = "content/lpic-1-v5/questions"
 )
 
 var allowedLabels = map[string]struct{}{
@@ -36,16 +36,14 @@ func Load(fsys fs.FS) (*Bundle, error) {
 		return nil, fmt.Errorf("compile content schemas: %w", err)
 	}
 
-	lessonPaths, err := fs.Glob(fsys, lessonGlob)
+	lessonPaths, err := recursiveJSONFiles(fsys, lessonsDir)
 	if err != nil {
-		return nil, fmt.Errorf("glob lessons: %w", err)
+		return nil, fmt.Errorf("list lessons: %w", err)
 	}
-	questionPaths, err := fs.Glob(fsys, questionGlob)
+	questionPaths, err := recursiveJSONFiles(fsys, questionsDir)
 	if err != nil {
-		return nil, fmt.Errorf("glob questions: %w", err)
+		return nil, fmt.Errorf("list questions: %w", err)
 	}
-	slices.Sort(lessonPaths)
-	slices.Sort(questionPaths)
 
 	if len(lessonPaths) == 0 {
 		return nil, errors.New("no built-in lessons found")
@@ -110,6 +108,24 @@ func Load(fsys fs.FS) (*Bundle, error) {
 	}
 
 	return bundle, nil
+}
+
+func recursiveJSONFiles(fsys fs.FS, root string) ([]string, error) {
+	var paths []string
+	if err := fs.WalkDir(fsys, root, func(name string, entry fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		if entry.IsDir() || path.Ext(name) != ".json" {
+			return nil
+		}
+		paths = append(paths, name)
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	slices.Sort(paths)
+	return paths, nil
 }
 
 func validateLesson(
