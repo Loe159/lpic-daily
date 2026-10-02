@@ -10,8 +10,8 @@ MATRIX_PATH = ROOT / "curriculum" / "lpic-1-v5" / "phase1-coverage.json"
 
 SURFACE_GLOBS = {
     "labs": "labs/lpic-1-v5/*/*/lab.json",
-    "lessons": "content/lpic-1-v5/lessons/*.json",
-    "questions": "content/lpic-1-v5/questions/*.json",
+    "lessons": "content/lpic-1-v5/lessons/**/*.json",
+    "questions": "content/lpic-1-v5/questions/**/*.json",
 }
 
 
