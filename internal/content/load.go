@@ -178,7 +178,7 @@ func validateQuestion(
 	switch question.Type {
 	case "free-recall", "fill-in", "multiple-choice", "ordering", "command-output":
 	case "matching":
-		return errors.New("matching questions are reserved by the schema but not implemented in the Phase-1 runtime")
+		return errors.New("matching questions are reserved by the schema but not implemented in the current runtime")
 	default:
 		return fmt.Errorf("unsupported question type %q", question.Type)
 	}
