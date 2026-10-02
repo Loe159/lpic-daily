@@ -204,6 +204,9 @@
                   "identity-files",
                   "process-lab"
                 ]
+              },
+              "network": {
+                "const": "none"
               }
             }
           }
