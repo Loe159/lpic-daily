@@ -6,7 +6,7 @@ LPIC Daily is a terminal-first, local-first learning environment designed to bui
 
 ## Current runnable slice
 
-Phase 3 currently adds complete lesson/deterministic-question coverage for objective **103.4 — streams, pipes and redirections**. Once 103.1 readiness is satisfied, the daily scheduler may select 103.4; unfinished Phase-3 objectives remain excluded until every mapped concept has a focused `introduce` lesson and a daily (non-assessment) question.
+Phase 3 currently adds complete lesson/deterministic-question coverage for objective **103.4 — streams, pipes and redirections**. Once 103.1 readiness is satisfied, the daily scheduler may select 103.4; unfinished Phase-3 objectives remain excluded until every mapped concept has a focused `introduce` lesson, a daily non-assessment question, and a path beyond recognition through either recall-capable retrieval or practical evidence.
 
 The current runnable labs are:
 
