@@ -11,8 +11,8 @@ jobs:
   foundation:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: Validate curriculum, learning graph and schemas
@@ -21,7 +21,7 @@ jobs:
   go-core:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
@@ -63,7 +63,7 @@ jobs:
     steps:
       - name: Install Fedora runner prerequisites
         run: dnf -y install git-core python3 tar gzip findutils
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
@@ -78,7 +78,7 @@ jobs:
   podman-security:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
@@ -150,7 +150,7 @@ jobs:
           graphroot="/home/lpicci/.local/share/containers/storage"
           EOF
           chown -R lpicci:lpicci /home/lpicci/.config
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
