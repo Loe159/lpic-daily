@@ -22,7 +22,7 @@ python3 scripts/generate_phase1_coverage.py --write   # when Phase-1 surfaces ch
 python3 scripts/audit_phase3_coverage.py --check      # all current Exam-101 surfaces
 ```
 
-Both coverage tools intentionally use the same non-recursive lesson/question paths as the Go content loader, so a nested JSON file cannot count as covered content that the application would ignore.
+Both coverage tools, the Go content loader and the embedded filesystem discover lesson/question content recursively below their canonical directories, so nested JSON cannot count in coverage without also being shipped and loaded by the application.
 
 Validation:
 
