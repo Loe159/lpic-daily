@@ -58,6 +58,7 @@ def main():
     graph = load("prerequisites.json")
     concepts = load("concepts.json")
     phase1 = load("phase1-slice.json")
+    phase3 = load("phase3-exam101.json")
 
     errors = []
     active = [o for o in objectives["objectives"] if o.get("active")]
@@ -155,11 +156,60 @@ def main():
         if unknown:
             errors.append(f"Phase 1 unknown concept IDs for {objective_id}: {sorted(unknown)}")
 
+
+    expected_phase3_objectives = [o["id"] for o in active if o["exam"] == "101"]
+    if phase3.get("selected_objectives") != expected_phase3_objectives:
+        errors.append(
+            "Phase 3 objective scope drift: "
+            f"expected={expected_phase3_objectives}, got={phase3.get('selected_objectives')}"
+        )
+    if phase3.get("exam") != "101" or phase3.get("exam_code") != "101-500":
+        errors.append("Phase 3 must describe Exam 101 / 101-500")
+    if phase3.get("topics") != ["101", "102", "103", "104"]:
+        errors.append(f"Phase 3 topics drift: {phase3.get('topics')}")
+    if phase3.get("scope_source") != objectives.get("canonical_scope_source"):
+        errors.append("Phase 3 scope source differs from objectives.json canonical source")
+
+    phase3_selected = phase3.get("selected_objectives", [])
+    phase3_selected_set = set(phase3_selected)
+    phase3_concepts = phase3.get("objective_concepts", {})
+    if set(phase3_concepts) != phase3_selected_set:
+        errors.append(
+            "Phase 3 objective_concepts keys differ from selected objectives: "
+            f"missing={sorted(phase3_selected_set-set(phase3_concepts))}, "
+            f"extra={sorted(set(phase3_concepts)-phase3_selected_set)}"
+        )
+
+    mapped_phase3_concepts = 0
+    for objective_id in phase3_selected:
+        if objective_id not in active_set:
+            errors.append(f"Phase 3 references unknown objective {objective_id}")
+            continue
+        if next(o for o in active if o["id"] == objective_id)["exam"] != "101":
+            errors.append(f"Phase 3 references non-Exam-101 objective {objective_id}")
+        missing = set(node_by_id[objective_id]["hard_prerequisites"]) - phase3_selected_set
+        if missing:
+            errors.append(
+                f"Phase 3 scope is not closed over hard prerequisites for {objective_id}: {sorted(missing)}"
+            )
+        expected = [c["id"] for c in sorted(concepts_by_objective[objective_id], key=lambda x: x["pedagogy_order"])]
+        actual = phase3_concepts.get(objective_id, [])
+        mapped_phase3_concepts += len(actual)
+        if actual != expected:
+            errors.append(
+                f"Phase 3 concept set drift for {objective_id}: expected={expected}, got={actual}"
+            )
+
+    if phase3.get("concept_count") != mapped_phase3_concepts:
+        errors.append(
+            f"Phase 3 concept_count={phase3.get('concept_count')}, mapped={mapped_phase3_concepts}"
+        )
+
     fail(errors)
     print(
         "Learning graph validation OK: "
         f"{len(active_ids)} objectives; {len(concept_rows)} concepts; "
-        f"Phase 1 objectives={','.join(selected)}"
+        f"Phase 1 objectives={','.join(selected)}; Phase 3 Exam-101 concepts={mapped_phase3_concepts}"
     )
 
 
