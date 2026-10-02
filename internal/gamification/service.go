@@ -10,6 +10,7 @@ import (
 
 type Store interface {
 	AppendGamificationEvent(context.Context, Event) error
+	AppendGamificationEventIfAbsent(context.Context, Event) (bool, error)
 	GamificationEvents(context.Context) ([]Event, error)
 }
 
@@ -49,14 +50,11 @@ func RecordActivity(
 		return Snapshot{}, nil, err
 	}
 
-	newlyUnlocked := NewlyUnlocked(snapshot)
-	for _, achievement := range newlyUnlocked {
-		unlockID, err := newEventID()
-		if err != nil {
-			return Snapshot{}, nil, err
-		}
+	candidates := NewlyUnlocked(snapshot)
+	newlyUnlocked := make([]Achievement, 0, len(candidates))
+	for _, achievement := range candidates {
 		unlock := Event{
-			EventID:    unlockID,
+			EventID:    "achievement-" + achievement.ID,
 			OccurredAt: at,
 			Type:       EventAchievementUnlocked,
 			Amount:     achievement.XPReward,
@@ -64,12 +62,16 @@ func RecordActivity(
 				"achievement_id": achievement.ID,
 			},
 		}
-		if err := store.AppendGamificationEvent(ctx, unlock); err != nil {
+		inserted, err := store.AppendGamificationEventIfAbsent(ctx, unlock)
+		if err != nil {
 			return Snapshot{}, nil, fmt.Errorf("unlock achievement %s: %w", achievement.ID, err)
+		}
+		if inserted {
+			newlyUnlocked = append(newlyUnlocked, achievement)
 		}
 	}
 
-	if len(newlyUnlocked) != 0 {
+	if len(candidates) != 0 {
 		events, err = store.GamificationEvents(ctx)
 		if err != nil {
 			return Snapshot{}, nil, err
