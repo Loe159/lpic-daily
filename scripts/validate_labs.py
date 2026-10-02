@@ -171,6 +171,9 @@ def main():
         for hint_path in hint_files:
             hint = load_json(hint_path)
             hint_id = hint.get("id")
+            if not isinstance(hint_id, str) or not hint_id:
+                errors.append(f"{hint_path.relative_to(ROOT)}: missing/invalid hint id")
+                continue
             if hint_id in seen_hint_ids:
                 errors.append(f"duplicate hint id {hint_id}")
             seen_hint_ids.add(hint_id)
@@ -208,13 +211,21 @@ def main():
                 errors.append(f"{hint_id}: level 4 must have evidence_impact solution-revealed")
 
         requested = lab.get("hint_ids", [])
-        if len(requested) != len(set(requested)):
-            errors.append(f"{lab_id}: duplicate hint IDs")
-        if set(requested) != set(hints):
-            errors.append(
-                f"{lab_id}: hint reference drift missing={sorted(set(hints)-set(requested))} "
-                f"extra={sorted(set(requested)-set(hints))}"
-            )
+        valid_requested = (
+            isinstance(requested, list)
+            and all(isinstance(item, str) and item for item in requested)
+        )
+        if not valid_requested:
+            errors.append(f"{lab_id}: hint_ids must be a list of non-empty strings")
+        else:
+            requested_set = set(requested)
+            if len(requested) != len(requested_set):
+                errors.append(f"{lab_id}: duplicate hint IDs")
+            if requested_set != set(hints):
+                errors.append(
+                    f"{lab_id}: hint reference drift missing={sorted(set(hints)-requested_set)} "
+                    f"extra={sorted(requested_set-set(hints))}"
+                )
 
         checks = lab.get("checks", [])
         if not checks:
