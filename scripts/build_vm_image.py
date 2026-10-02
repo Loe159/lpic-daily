@@ -61,10 +61,43 @@ def recipe_commands(image):
         "systemctl enable serial-getty@ttyS0.service",
         "truncate -s 0 /etc/machine-id",
         "rm -f /var/lib/dbus/machine-id /etc/ssh/ssh_host_*",
+        "install -d -m 0755 /usr/libexec/qemu-ga/fsfreeze-hook.d /usr/libexec/lpic-daily /etc/systemd/system/qemu-guest-agent.service.d",
+        """cat > /usr/libexec/qemu-ga/fsfreeze-hook.d/lpic-daily-exec <<'EOF'
+#!/bin/sh
+set -eu
+if [ "$#" -eq 1 ]; then
+    case "$1" in
+        freeze|thaw) exit 0 ;;
+    esac
+fi
+if [ "$#" -lt 1 ]; then
+    echo "LPIC Daily guest exec helper requires a command" >&2
+    exit 64
+fi
+exec "$@"
+EOF""",
+        "chmod 0755 /usr/libexec/qemu-ga/fsfreeze-hook.d/lpic-daily-exec",
+        """cat > /usr/libexec/lpic-daily/qga-selinux-setup <<'EOF'
+#!/bin/sh
+set -eu
+helper=/usr/libexec/qemu-ga/fsfreeze-hook.d/lpic-daily-exec
+if command -v restorecon >/dev/null 2>&1; then
+    restorecon -F "$helper" || true
+fi
+if command -v getsebool >/dev/null 2>&1 && getsebool virt_qemu_ga_run_unconfined >/dev/null 2>&1; then
+    setsebool virt_qemu_ga_run_unconfined 1
+fi
+EOF""",
+        "chmod 0755 /usr/libexec/lpic-daily/qga-selinux-setup",
+        """cat > /etc/systemd/system/qemu-guest-agent.service.d/10-lpic-daily-exec.conf <<'EOF'
+[Service]
+ExecStartPre=/usr/libexec/lpic-daily/qga-selinux-setup
+EOF""",
+        "if command -v restorecon >/dev/null 2>&1; then restorecon -F /usr/libexec/qemu-ga/fsfreeze-hook.d/lpic-daily-exec; fi",
     ]
     recipe = image["recipe"]
     distribution = image["distribution"]
-    if recipe == "fedora-cloud-v1":
+    if recipe == "fedora-cloud-v2":
         expected_distribution = "fedora"
         commands = [
             "grubby --update-kernel=ALL --args='console=tty0 console=ttyS0,115200n8'",
@@ -72,13 +105,13 @@ def recipe_commands(image):
             """printf '%s\n' 'GRUB_TERMINAL_INPUT="console serial"' 'GRUB_TERMINAL_OUTPUT="console serial"' 'GRUB_SERIAL_COMMAND="serial --unit=0 --speed=115200 --word=8 --parity=no --stop=1"' 'GRUB_TIMEOUT_STYLE="menu"' 'GRUB_TIMEOUT="5"' >> /etc/default/grub""",
             "grub2-mkconfig -o /boot/grub2/grub.cfg",
         ]
-    elif recipe == "debian-cloud-v1":
+    elif recipe == "debian-cloud-v2":
         expected_distribution = "debian"
         commands = [
             """grep -q 'console=ttyS0,115200n8' /etc/default/grub || sed -i 's/^GRUB_CMDLINE_LINUX="/GRUB_CMDLINE_LINUX="console=tty0 console=ttyS0,115200n8 /' /etc/default/grub""",
             "update-grub",
         ]
-    elif recipe == "opensuse-cloud-v1":
+    elif recipe == "opensuse-cloud-v2":
         expected_distribution = "opensuse"
         commands = [
             """grep -q 'console=ttyS0,115200n8' /etc/default/grub || sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT="/GRUB_CMDLINE_LINUX_DEFAULT="console=tty0 console=ttyS0,115200n8 /' /etc/default/grub""",
