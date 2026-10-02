@@ -137,6 +137,8 @@ def main():
         memory_mb = resources.get("memory_mb")
         if not isinstance(memory_mb, int) or isinstance(memory_mb, bool) or not 64 <= memory_mb <= 16384:
             errors.append(f"{lab_id}: memory_mb must be an integer from 64 to 16384")
+        elif backend == "libvirt" and memory_mb < 256:
+            errors.append(f"{lab_id}: libvirt memory_mb must be at least 256")
         pids = resources.get("pids")
         if not isinstance(pids, int) or isinstance(pids, bool) or not 16 <= pids <= 4096:
             errors.append(f"{lab_id}: pids must be an integer from 16 to 4096")
