@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "images": [
     {
-      "id": "fedora-44-x86_64-v1",
+      "id": "fedora-44-x86_64-v2",
       "distribution": "fedora",
       "version": "44-1.7",
       "architecture": "x86_64",
@@ -20,15 +20,16 @@
       ],
       "packages": [
         "qemu-guest-agent",
+        "policycoreutils",
         "parted",
         "e2fsprogs",
         "util-linux",
         "iputils"
       ],
-      "recipe": "fedora-cloud-v1"
+      "recipe": "fedora-cloud-v2"
     },
     {
-      "id": "debian-13-x86_64-v1",
+      "id": "debian-13-x86_64-v2",
       "distribution": "debian",
       "version": "13-20260712-2537",
       "architecture": "x86_64",
@@ -46,14 +47,15 @@
       ],
       "packages": [
         "qemu-guest-agent",
+        "policycoreutils",
         "parted",
         "e2fsprogs",
         "util-linux"
       ],
-      "recipe": "debian-cloud-v1"
+      "recipe": "debian-cloud-v2"
     },
     {
-      "id": "opensuse-leap-16.0-x86_64-v1",
+      "id": "opensuse-leap-16.0-x86_64-v2",
       "distribution": "opensuse",
       "version": "16.0-build18.68",
       "architecture": "x86_64",
@@ -71,11 +73,12 @@
       ],
       "packages": [
         "qemu-guest-agent",
+        "policycoreutils",
         "parted",
         "e2fsprogs",
         "util-linux"
       ],
-      "recipe": "opensuse-cloud-v1"
+      "recipe": "opensuse-cloud-v2"
     }
   ]
 }
