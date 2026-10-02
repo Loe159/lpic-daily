@@ -52,7 +52,7 @@ The normal foundation validation runs the non-blocking `--check` mode so incompl
 The first authored tranche is objective **103.4**:
 - 7 stable concepts;
 - 7 progressive micro-lessons;
-- 8 deterministic daily questions, including explicit `stdin` redirection with `<`.
+- 11 deterministic daily questions, including recall/recognition variants and explicit `stdin` redirection with `<`.
 
 Hands-on 103.4 reps/challenges follow after this initial content tranche; no artificial practical evidence is claimed before a checker can observe a meaningful result.
 
