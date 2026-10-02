@@ -93,7 +93,7 @@ EOF""",
 [Service]
 ExecStartPre=/usr/libexec/lpic-daily/qga-selinux-setup
 EOF""",
-        "if command -v restorecon >/dev/null 2>&1; then restorecon -F /usr/libexec/qemu-ga/fsfreeze-hook.d/lpic-daily-exec; fi",
+        "if command -v restorecon >/dev/null 2>&1; then restorecon -F /usr/libexec/qemu-ga/fsfreeze-hook.d/lpic-daily-exec || true; fi",
     ]
     recipe = image["recipe"]
     distribution = image["distribution"]
