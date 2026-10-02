@@ -123,6 +123,9 @@ func defaultAction(item *study.Item) Action {
 	if item.Kind == learning.SessionNew && item.RecommendedLessonID != "" {
 		return Action{Kind: ActionLesson, ID: item.RecommendedLessonID}
 	}
+	if item.PreferLab && item.RecommendedLabID != "" {
+		return Action{Kind: ActionLab, ID: item.RecommendedLabID}
+	}
 	if item.MasteryStage >= learning.StageGuided && item.RecommendedLabID != "" {
 		return Action{Kind: ActionLab, ID: item.RecommendedLabID}
 	}
@@ -160,7 +163,7 @@ func (model Dashboard) render() string {
 	output.WriteString("\n")
 
 	if len(model.plan.Items) == 0 {
-		output.WriteString("\nAucune activité due dans le périmètre Phase 1.\n")
+		output.WriteString("\nAucune activité due dans le périmètre de contenu actuellement disponible.\n")
 		output.WriteString("\nq quitter\n")
 		return output.String()
 	}
