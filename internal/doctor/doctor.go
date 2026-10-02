@@ -201,7 +201,7 @@ func systemLibvirtCheck() Check {
 		}
 	}()
 
-	timer := time.NewTimer(2 * time.Second)
+	timer := time.NewTimer(5 * time.Second)
 	defer timer.Stop()
 
 	select {
@@ -230,7 +230,7 @@ func systemLibvirtCheck() Check {
 		return Check{
 			Name:   "system-libvirt",
 			Status: "warn",
-			Detail: "qemu:///system probe timed out after 2s; full-system labs remain fail-closed",
+			Detail: "qemu:///system probe timed out after 5s; full-system labs remain fail-closed",
 		}
 	}
 }
