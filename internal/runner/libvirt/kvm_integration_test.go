@@ -64,7 +64,7 @@ func TestRealKVMIsolationScenarioAndCrashReaping(t *testing.T) {
 	if err != nil {
 		t.Fatalf("LoadImageCatalog() error = %v", err)
 	}
-	image, err := catalog.Resolve("fedora-44-x86_64-v1", imageRoot)
+	image, err := catalog.Resolve("fedora-44-x86_64-v2", imageRoot)
 	if err != nil {
 		t.Fatalf("resolve Fedora test image: %v", err)
 	}
@@ -126,7 +126,7 @@ func TestRealKVMIsolationScenarioAndCrashReaping(t *testing.T) {
 	defer cancel()
 	definition := runner.Definition{
 		LabID:             "integration.kvm.peer-a",
-		ImageRef:          "fedora-44-x86_64-v1",
+		ImageRef:          "fedora-44-x86_64-v2",
 		Distribution:      "fedora",
 		Network:           runner.NetworkIsolated,
 		CapabilityProfile: "full-machine",
@@ -421,22 +421,14 @@ func integrationGuestIPv4(
 	instance runner.Instance,
 ) string {
 	t.Helper()
-	var stdout bytes.Buffer
-	result, err := backend.Exec(ctx, instance, runner.ExecRequest{
-		Argv:   []string{"/usr/bin/sh", "-c", "ip -4 -o addr show scope global | awk '{split($4,a,\"/\"); print a[1]; exit}'"},
-		Stdout: &stdout,
-	})
-	if err != nil {
-		t.Fatalf("read guest IPv4: %v", err)
-	}
-	if result.ExitCode != 0 {
-		t.Fatalf("read guest IPv4 exit = %d", result.ExitCode)
-	}
-	value := strings.TrimSpace(stdout.String())
-	if value == "" || strings.ContainsAny(value, " \t\r\n") {
-		t.Fatalf("invalid guest IPv4 %q", value)
-	}
-	return value
+	return integrationWaitForGuestIPv4(
+		t,
+		ctx,
+		backend,
+		instance,
+		"guest IPv4",
+		"ip -4 -o addr show scope global | awk '{split($4,a,\"/\"); print a[1]; exit}'",
+	)
 }
 
 func integrationGuestDefaultGateway(
@@ -446,22 +438,56 @@ func integrationGuestDefaultGateway(
 	instance runner.Instance,
 ) string {
 	t.Helper()
-	var stdout bytes.Buffer
-	result, err := backend.Exec(ctx, instance, runner.ExecRequest{
-		Argv:   []string{"/usr/bin/sh", "-c", "ip -4 route show default | awk '{print $3; exit}'"},
-		Stdout: &stdout,
-	})
-	if err != nil {
-		t.Fatalf("read guest default gateway: %v", err)
+	return integrationWaitForGuestIPv4(
+		t,
+		ctx,
+		backend,
+		instance,
+		"guest default gateway",
+		"ip -4 route show default | awk '{print $3; exit}'",
+	)
+}
+
+func integrationWaitForGuestIPv4(
+	t *testing.T,
+	ctx context.Context,
+	backend *Backend,
+	instance runner.Instance,
+	label string,
+	command string,
+) string {
+	t.Helper()
+	waitCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+	ticker := time.NewTicker(250 * time.Millisecond)
+	defer ticker.Stop()
+
+	lastDetail := "no probe completed"
+	for {
+		var stdout bytes.Buffer
+		result, err := backend.Exec(waitCtx, instance, runner.ExecRequest{
+			Argv:   []string{"/usr/bin/sh", "-c", command},
+			Stdout: &stdout,
+		})
+		value := strings.TrimSpace(stdout.String())
+		if err == nil && result.ExitCode == 0 {
+			if parsed := net.ParseIP(value); parsed != nil && parsed.To4() != nil &&
+				!strings.ContainsAny(value, " \t\r\n") {
+				return value
+			}
+			lastDetail = fmt.Sprintf("invalid value %q", value)
+		} else if err != nil {
+			lastDetail = err.Error()
+		} else {
+			lastDetail = fmt.Sprintf("probe exit=%d output=%q", result.ExitCode, value)
+		}
+
+		select {
+		case <-waitCtx.Done():
+			t.Fatalf("wait for %s: %v (last probe: %s)", label, waitCtx.Err(), lastDetail)
+		case <-ticker.C:
+		}
 	}
-	if result.ExitCode != 0 {
-		t.Fatalf("read guest default gateway exit = %d", result.ExitCode)
-	}
-	value := strings.TrimSpace(stdout.String())
-	if parsed := net.ParseIP(value); parsed == nil || parsed.To4() == nil {
-		t.Fatalf("invalid guest default gateway %q", value)
-	}
-	return value
 }
 
 func integrationFileSHA256(path string) (string, error) {
@@ -640,14 +666,23 @@ func TestRealKVMPhase2ReferenceLabs(t *testing.T) {
 
 func runPhase2ReferenceSolution(t *testing.T, ctx context.Context, backend runner.Runner, instance runner.Instance, script []byte) {
 	t.Helper()
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
 	result, err := backend.Exec(ctx, instance, runner.ExecRequest{
-		Argv: []string{"/usr/bin/bash", "-eu", "-c", string(script)},
+		Argv:   []string{"/usr/bin/bash", "-eu", "-c", string(script)},
+		Stdout: &stdout,
+		Stderr: &stderr,
 	})
 	if err != nil {
-		t.Fatalf("reference solution exec error = %v", err)
+		t.Fatalf("reference solution exec error = %v; stdout=%q stderr=%q", err, stdout.String(), stderr.String())
 	}
 	if result.ExitCode != 0 {
-		t.Fatalf("reference solution exit = %d, want 0", result.ExitCode)
+		t.Fatalf(
+			"reference solution exit = %d, want 0; stdout=%q stderr=%q",
+			result.ExitCode,
+			stdout.String(),
+			stderr.String(),
+		)
 	}
 }
 

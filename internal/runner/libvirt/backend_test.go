@@ -236,7 +236,7 @@ func (fake *fakeControlPlane) ListManagedNetworks() ([]string, error) {
 func (fake *fakeControlPlane) ListManagedNetworkFilters() ([]string, error) {
 	names := make([]string, 0, len(fake.networkFilters))
 	for name, resourceXML := range fake.networkFilters {
-		if hasManagedMetadata(resourceXML, fake.ownerScope) {
+		if hasManagedNetworkFilterOwnership(resourceXML, name, fake.ownerScope) {
 			names = append(names, name)
 		}
 	}
@@ -590,8 +590,8 @@ func TestBackendExecUsesStructuredGuestAgentCommand(t *testing.T) {
 	if control.agentCommands[0] != `{"execute":"guest-ping"}` {
 		t.Fatalf("first agent command = %s, want guest-ping", control.agentCommands[0])
 	}
-	if !strings.Contains(control.agentCommands[1], `"path":"/usr/bin/false"`) ||
-		!strings.Contains(control.agentCommands[1], `"arg":["--example"]`) ||
+	if !strings.Contains(control.agentCommands[1], `"path":"`+guestExecHelperPath+`"`) ||
+		!strings.Contains(control.agentCommands[1], `"arg":["/usr/bin/false","--example"]`) ||
 		!strings.Contains(control.agentCommands[1], `"env":["A_FIRST=a","Z_LAST=z"]`) {
 		t.Fatalf("guest-exec request = %s", control.agentCommands[1])
 	}
@@ -1022,7 +1022,7 @@ func TestBackendReapRemovesAbandonedResources(t *testing.T) {
 	control.networks[name] = strings.Replace(managedTestNetworkXML, testManagedOwnerScope, backend.ownerScope, 1)
 	control.networkActive[name] = true
 	control.networkFilters[name] = strings.Replace(
-		managedTestNetworkFilterXML,
+		strings.Replace(managedTestNetworkFilterXML, "lpic-daily-vm-abc123", name, 1),
 		testManagedOwnerScope,
 		backend.ownerScope,
 		1,

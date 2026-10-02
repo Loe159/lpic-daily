@@ -570,6 +570,39 @@ func TestRPCControlPlaneRejectsForeignScopedResources(t *testing.T) {
 	}
 }
 
+func TestRPCControlPlaneCleansFilterWhenLibvirtDropsMetadata(t *testing.T) {
+	name := "lpic-daily-filter-fallback-abc123"
+	filterUUID, err := managedNetworkFilterUUID(name, testManagedOwnerScope)
+	if err != nil {
+		t.Fatalf("managedNetworkFilterUUID() error = %v", err)
+	}
+	raw := &fakeRawLibvirt{
+		networkFilter:    golibvirt.Nwfilter{Name: name},
+		networkFilterXML: `<filter name="` + name + `"><uuid>` + filterUUID + `</uuid></filter>`,
+	}
+	control, err := newScopedRPCControlPlaneForTest(t, raw)
+	if err != nil {
+		t.Fatalf("new control plane: %v", err)
+	}
+	if err := control.UndefineNetworkFilter(name); err != nil {
+		t.Fatalf("UndefineNetworkFilter(metadata omitted) error = %v", err)
+	}
+	if !raw.networkFilterUndefined {
+		t.Fatal("metadata-less owner-scoped network filter was not undefined")
+	}
+}
+
+func TestDomainStartErrorExplainsHostFirewallCompatibility(t *testing.T) {
+	err := domainStartError(
+		"lpic-daily-test-abc123",
+		errors.New("internal error: Failed to run firewall command iptables -w -L: Error: meta sreg is not an immediate"),
+	)
+	if err == nil || !strings.Contains(err.Error(), "iptables/nftables compatibility") ||
+		!strings.Contains(err.Error(), "Tailscale") {
+		t.Fatalf("domainStartError() = %v", err)
+	}
+}
+
 func TestRPCControlPlaneRequiresOwnerScopeForManagedOperations(t *testing.T) {
 	raw := &fakeRawLibvirt{domain: golibvirt.Domain{Name: "lpic-daily-test-abc123"}}
 	control, err := newRPCControlPlane(raw)

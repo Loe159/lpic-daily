@@ -207,7 +207,7 @@ func (control *RPCControlPlane) StartDomain(name string) error {
 	}
 	started, err := control.raw.DomainCreateWithFlags(domain, 0)
 	if err != nil {
-		return fmt.Errorf("start domain %s: %w", name, err)
+		return domainStartError(name, err)
 	}
 	if started.Name != name {
 		return fmt.Errorf("libvirt started unexpected domain %q, expected %q", started.Name, name)
@@ -527,7 +527,7 @@ func (control *RPCControlPlane) ListManagedNetworkFilters() ([]string, error) {
 		if err != nil {
 			return nil, fmt.Errorf("inspect network filter %s ownership metadata: %w", filter.Name, err)
 		}
-		if hasManagedMetadata(resourceXML, control.ownerScope) {
+		if hasManagedNetworkFilterOwnership(resourceXML, filter.Name, control.ownerScope) {
 			names = append(names, filter.Name)
 		}
 	}
@@ -621,10 +621,26 @@ func (control *RPCControlPlane) lookupManagedNetworkFilter(name string) (golibvi
 	if err != nil {
 		return golibvirt.Nwfilter{}, fmt.Errorf("inspect network filter %s ownership metadata: %w", name, err)
 	}
-	if !hasManagedMetadata(resourceXML, control.ownerScope) {
+	if !hasManagedNetworkFilterOwnership(resourceXML, name, control.ownerScope) {
 		return golibvirt.Nwfilter{}, fmt.Errorf("network filter %s is not owned by this LPIC Daily instance", name)
 	}
 	return filter, nil
+}
+
+func domainStartError(name string, err error) error {
+	message := err.Error()
+	if strings.Contains(message, "firewall command iptables") ||
+		strings.Contains(message, "Parsing nftables rule failed") ||
+		strings.Contains(message, "meta sreg is not an immediate") {
+		return fmt.Errorf(
+			"start domain %s: host iptables/nftables compatibility failure; "+
+				"verify 'sudo iptables -w -L' and third-party nftables rules "+
+				"(for example Tailscale) before retrying: %w",
+			name,
+			err,
+		)
+	}
+	return fmt.Errorf("start domain %s: %w", name, err)
 }
 
 func validateManagedResourceName(kind, name string) error {

@@ -27,7 +27,7 @@
   "practice_context": "partition-filesystems",
   "environment": {
     "backend": "libvirt",
-    "image_ref": "fedora-44-x86_64-v1",
+    "image_ref": "fedora-44-x86_64-v2",
     "distribution": "fedora",
     "network": "none",
     "capability_profile": "full-machine",

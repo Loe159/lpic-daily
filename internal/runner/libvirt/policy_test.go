@@ -159,8 +159,13 @@ func TestHostIsolationFilterBlocksHostGatewayAndIPv6(t *testing.T) {
 	if !hasManagedMetadata(payload, testManagedOwnerScope) {
 		t.Fatalf("network filter XML missing LPIC Daily ownership metadata:\n%s", payload)
 	}
+	filterUUID, err := managedNetworkFilterUUID("lpic-daily-net-abc", testManagedOwnerScope)
+	if err != nil {
+		t.Fatalf("managedNetworkFilterUUID() error = %v", err)
+	}
 	for _, want := range []string{
 		`<filter name="lpic-daily-net-abc" chain="root">`,
+		"<uuid>" + filterUUID + "</uuid>",
 		`<udp dstipaddr="10.77.0.1" dstportstart="67"></udp>`,
 		`<ip dstipaddr="10.77.0.1"></ip>`,
 		`<ipv6></ipv6>`,
@@ -168,6 +173,26 @@ func TestHostIsolationFilterBlocksHostGatewayAndIPv6(t *testing.T) {
 		if !strings.Contains(payload, want) {
 			t.Fatalf("network filter XML missing %q:\n%s", want, payload)
 		}
+	}
+}
+
+func TestNetworkFilterOwnershipFallsBackToDeterministicUUID(t *testing.T) {
+	name := "lpic-daily-net-abc"
+	filterUUID, err := managedNetworkFilterUUID(name, testManagedOwnerScope)
+	if err != nil {
+		t.Fatalf("managedNetworkFilterUUID() error = %v", err)
+	}
+	withoutMetadata := `<filter name="` + name + `"><uuid>` + filterUUID + `</uuid></filter>`
+	if !hasManagedNetworkFilterOwnership(withoutMetadata, name, testManagedOwnerScope) {
+		t.Fatalf("owner-scoped UUID fallback was rejected: %s", withoutMetadata)
+	}
+
+	foreignScope := "fedcba9876543210fedcba9876543210"
+	conflictingMetadata := `<filter name="` + name + `"><uuid>` + filterUUID +
+		`</uuid><metadata><lpic-daily xmlns="urn:lpic-daily:managed:v1" owner="lpic-daily" version="1" scope="` +
+		foreignScope + `"></lpic-daily></metadata></filter>`
+	if hasManagedNetworkFilterOwnership(conflictingMetadata, name, testManagedOwnerScope) {
+		t.Fatal("conflicting ownership metadata unexpectedly accepted through UUID fallback")
 	}
 }
 

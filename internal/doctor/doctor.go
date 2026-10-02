@@ -157,6 +157,8 @@ func vmStorageCheck() Check {
 	}
 }
 
+const requiredPhase2VMImageID = "fedora-44-x86_64-v2"
+
 func vmImageCatalogCheck() Check {
 	imageRoot, err := appstate.VMImageRoot()
 	if err != nil {
@@ -172,6 +174,17 @@ func vmImageCatalogCheck() Check {
 			Name:   "vm-image-catalog",
 			Status: "warn",
 			Detail: fmt.Sprintf("%s is unavailable or invalid: %v", catalogPath, err),
+		}
+	}
+	if _, err := catalog.Resolve(requiredPhase2VMImageID, imageRoot); err != nil {
+		return Check{
+			Name:   "vm-image-catalog",
+			Status: "warn",
+			Detail: fmt.Sprintf(
+				"catalog is valid but required Phase-2 image %s is unavailable: %v; rebuild it with scripts/build_vm_image.py",
+				requiredPhase2VMImageID,
+				err,
+			),
 		}
 	}
 	return Check{
@@ -201,7 +214,7 @@ func systemLibvirtCheck() Check {
 		}
 	}()
 
-	timer := time.NewTimer(2 * time.Second)
+	timer := time.NewTimer(5 * time.Second)
 	defer timer.Stop()
 
 	select {
@@ -230,7 +243,7 @@ func systemLibvirtCheck() Check {
 		return Check{
 			Name:   "system-libvirt",
 			Status: "warn",
-			Detail: "qemu:///system probe timed out after 2s; full-system labs remain fail-closed",
+			Detail: "qemu:///system probe timed out after 5s; full-system labs remain fail-closed",
 		}
 	}
 }

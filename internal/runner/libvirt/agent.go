@@ -17,6 +17,7 @@ const (
 	guestAgentCallTimeoutSeconds = int32(5)
 	guestAgentReadyTimeout       = 20 * time.Second
 	guestAgentReadyRetry         = 100 * time.Millisecond
+	guestExecHelperPath          = "/usr/libexec/qemu-ga/fsfreeze-hook.d/lpic-daily-exec"
 	maxGuestAgentResponseBytes   = 2 << 20
 	maxGuestExecOutputBytes      = 1 << 20
 )
@@ -101,17 +102,23 @@ func (backend *Backend) Exec(
 	if err != nil {
 		return runner.ExecResult{}, err
 	}
+	helperArgs := make([]string, 0, len(request.Argv))
+	helperArgs = append(helperArgs, request.Argv...)
 	var started guestExecStarted
 	if err := backend.agentJSON(ctx, instance.ID, qgaRequest{
 		Execute: "guest-exec",
 		Arguments: guestExecArguments{
-			Path:          request.Argv[0],
-			Arg:           append([]string(nil), request.Argv[1:]...),
+			Path:          guestExecHelperPath,
+			Arg:           helperArgs,
 			Env:           environment,
 			CaptureOutput: true,
 		},
 	}, &started); err != nil {
-		return runner.ExecResult{}, fmt.Errorf("start guest exec: %w", err)
+		return runner.ExecResult{}, fmt.Errorf(
+			"start guest exec through trusted helper %s (rebuild the VM image if the helper is missing): %w",
+			guestExecHelperPath,
+			err,
+		)
 	}
 	if started.PID <= 0 {
 		return runner.ExecResult{}, fmt.Errorf("guest-exec returned invalid pid %d", started.PID)
