@@ -9,16 +9,20 @@ Research baseline: 2026-09-24. Official current version at that date is 5.0/5.0.
 - `concepts.json` — stable mastery IDs for the 295 current concept entries.
 - `phase1-slice.json` — accepted first implementation slice.
 - `phase1-coverage.json` — generated concept-to-artifact matrix for the slice; never edit it by hand.
+- `phase3-exam101.json` — canonical Phase-3 Exam-101 scope; loaded and validated by the Go runtime and Python graph checks.
 
 Objective weights sum to 60 for each exam. Objective 104.4 is not an active v5 objective and is recorded only as removed metadata in `objectives.json`.
 
 The concepts and assessment descriptions are original project decomposition, not copied lesson content. Future agents must verify the official objectives if LPI publishes a new exam version rather than silently updating these files.
 
-Coverage refresh:
+Coverage and audit:
 
 ```bash
-python3 scripts/generate_phase1_coverage.py --write
+python3 scripts/generate_phase1_coverage.py --write   # when Phase-1 surfaces change
+python3 scripts/audit_phase3_coverage.py --check      # all current Exam-101 surfaces
 ```
+
+Both coverage tools intentionally use the same non-recursive lesson/question paths as the Go content loader, so a nested JSON file cannot count as covered content that the application would ignore.
 
 Validation:
 
