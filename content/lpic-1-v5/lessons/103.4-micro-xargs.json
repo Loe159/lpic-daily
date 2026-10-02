@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.4.lesson.xargs",
+  "title_fr": "Transformer un flux en arguments avec xargs",
+  "objective_ids": [
+    "103.4"
+  ],
+  "concept_ids": [
+    "lpic1.103.4.transformer-stdin-en-arguments-via-xargs"
+  ],
+  "stage": "introduce",
+  "estimated_minutes": 4,
+  "body_markdown": "Un pipe alimente le `stdin` d'une commande, mais certains programmes attendent surtout des arguments. `xargs` lit des éléments sur son entrée standard et construit des invocations en plaçant ces éléments dans l'argument vector de la commande cible.\n\nCette différence est importante : `printf '%s\\n' a b | xargs echo` ne transmet pas le flux à `echo` comme entrée, il lance `echo` avec des arguments issus du flux. Pour des noms contenant espaces ou retours à la ligne, préfère un format délimité par NUL et les options compatibles plutôt qu'un découpage ambigu.",
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "distribution": "generic"
+}
