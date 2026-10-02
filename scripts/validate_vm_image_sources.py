@@ -15,9 +15,9 @@ ALLOWED_FIRMWARE = {"bios", "uefi"}
 ALLOWED_ALGORITHMS = {"sha256": 32, "sha512": 64}
 ALLOWED_ENCODINGS = {"hex", "base64"}
 ALLOWED_RECIPES = {
-    "fedora-cloud-v1": "fedora",
-    "debian-cloud-v1": "debian",
-    "opensuse-cloud-v1": "opensuse",
+    "fedora-cloud-v2": "fedora",
+    "debian-cloud-v2": "debian",
+    "opensuse-cloud-v2": "opensuse",
 }
 
 def fail(message):
