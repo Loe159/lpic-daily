@@ -169,6 +169,16 @@ func validateQuestion(
 	if question.EvidenceKindOnSuccess != "recognition" && question.EvidenceKindOnSuccess != "recall" {
 		return fmt.Errorf("unsupported evidence kind %q", question.EvidenceKindOnSuccess)
 	}
+	switch question.Type {
+	case "multiple-choice", "ordering":
+		if question.EvidenceKindOnSuccess != "recognition" {
+			return fmt.Errorf("%s questions must record recognition evidence", question.Type)
+		}
+	case "free-recall", "fill-in", "command-output":
+		if question.EvidenceKindOnSuccess != "recall" {
+			return fmt.Errorf("%s questions must record recall evidence", question.Type)
+		}
+	}
 	switch question.Usage {
 	case "", "daily", "initial-assessment":
 	default:
