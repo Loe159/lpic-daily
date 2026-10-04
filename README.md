@@ -171,9 +171,10 @@ Validation standard :
 
 ```bash
 python3 scripts/validate_foundation.py
+go mod tidy && git diff --exit-code -- go.mod go.sum
+test -z "$(find . -name '*.go' -type f -print0 | xargs -0 gofmt -l)"
 go test ./...
 go vet ./...
-gofmt -w .
 go run ./cmd/lpic validate
 ```
 
