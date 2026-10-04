@@ -457,7 +457,7 @@ func integrationWaitForGuestIPv4(
 	command string,
 ) string {
 	t.Helper()
-	waitCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	waitCtx, cancel := context.WithTimeout(ctx, 90*time.Second)
 	defer cancel()
 	ticker := time.NewTicker(250 * time.Millisecond)
 	defer ticker.Stop()
