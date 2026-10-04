@@ -8,6 +8,12 @@
 
 The Go curriculum/content loaders independently validate embedded authored JSON against the Draft 2020-12 schemas before semantic validation. Invalid or unsupported content fails closed.
 
+### Phase 3 curriculum coverage
+
+`python3 scripts/audit_phase3_coverage.py --check` validates Phase-3 artifact mappings without requiring unfinished Exam-101 content to be complete. `--require-complete` is the theory/daily-question/mastery-advancement exit gate. The audit reads the canonical `phase3-exam101.json` manifest and, like the Go runtime and embedded filesystem, discovers lesson/question JSON recursively below their content directories.
+
+The study planner only schedules Phase-3 objectives whose mapped concepts all have a focused `introduce` lesson, at least one daily question, and a path beyond recognition: either a daily recall-capable question or a practical lab. `initial-assessment` questions do not count toward this gate. Tests verify 103.4 becomes reachable after 103.1 readiness, unfinished objectives remain unavailable, and concepts with multiple questions recommend the least-attempted question.
+
 ### Go unit and domain tests
 
 `go test ./...` covers the curriculum/content loaders, scheduler and mastery projection, SQLite progress store, TUI behavior, runner contracts, state checkers, lab orchestration and CLI behavior.
@@ -28,7 +34,7 @@ Raw PTY passthrough is reserved for explicit interactive terminal surfaces where
 
 ### Lab conformance
 
-Authored labs are validated against their schemas and runtime contracts. Phase-1 coverage generation requires all 22 selected concepts to remain traceable and to have two distinct machine-checked practical contexts.
+Authored labs are validated against their schemas and runtime contracts. Loading a built-in lab also validates the derived runner definition and compiles checker configuration (including Go regex syntax), so invalid authored execution settings fail before the lab is advertised as runnable. Phase-1 coverage generation requires all 22 selected concepts to remain traceable, to have exactly one focused `introduce` lesson, at least one daily non-assessment question, and two distinct machine-checked practical contexts.
 
 State-based grading must accept equivalent valid end states rather than depending on an exact learner command transcript.
 

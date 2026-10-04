@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.4.lesson.file-descriptors",
+  "title_fr": "stdin, stdout, stderr et descripteurs",
+  "objective_ids": [
+    "103.4"
+  ],
+  "concept_ids": [
+    "lpic1.103.4.stdin-stdout-stderr-et-descripteurs"
+  ],
+  "stage": "introduce",
+  "estimated_minutes": 3,
+  "body_markdown": "Un processus Unix reçoit normalement trois flux ouverts : `stdin` pour l'entrée, `stdout` pour la sortie normale et `stderr` pour les diagnostics. Bash les désigne aussi par leurs file descriptors : 0, 1 et 2. Une redirection d'entrée comme `commande < fichier` fait ouvrir le fichier par le shell et le connecte au `stdin` de la commande.\n\nCes flux sont indépendants. Une commande peut donc lire depuis un fichier, envoyer son résultat vers un autre fichier tout en laissant ses erreurs visibles dans le terminal, ou connecter sa sortie à l'entrée d'une autre commande. Comprendre ces trois descripteurs permet de raisonner sur les redirections sans mémoriser des recettes isolées.",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic"
+}

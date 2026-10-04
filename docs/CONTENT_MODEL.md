@@ -46,6 +46,7 @@ La partie exécutable décrit environnement, ressources, setup **dans la sandbox
 
 Principes:
 - backend explicite `podman` ou `libvirt`;
+- un lab Podman utilise uniquement un profil de capacités prédéfini (`baseline`, `identity-files`, `process-lab`); un lab libvirt utilise `full-machine` et ne déclare pas de `writable_guest_paths`, car son état modifiable provient exclusivement des disques VM jetables;
 - réseau `none` ou `isolated`, jamais Internet implicite;
 - aucun host mount arbitraire dans le format;
 - setup exécuté uniquement dans la sandbox;
@@ -57,7 +58,7 @@ Les success criteria expliquent le résultat attendu mais ne doivent pas imposer
 
 ### Hint
 
-Chaque hint possède un niveau 1–4 et un impact sur la force de l'évidence. Le niveau 4 révèle la solution et doit être marqué `solution-revealed`.
+Chaque lab possède exactement quatre hints, un par niveau 1–4. Le niveau 1 reste léger (`none` ou `minor`), les niveaux 2 et 3 sont `material` et réduisent une preuve pratique à `guided-practice`, et le niveau 4 révèle la solution (`solution-revealed`). Le contrat d'authoring et la projection de mastery utilisent ainsi la même frontière de preuve.
 
 ### Mastery evidence
 

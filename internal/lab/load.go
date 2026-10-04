@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/fs"
 	"path"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -114,13 +115,34 @@ func loadOne(fsys fs.FS, labPath string, schemaValidator *schemavalidation.Valid
 	slices.SortFunc(hints, func(a, b Hint) int {
 		return a.Level - b.Level
 	})
+	if len(hints) != 4 {
+		return Lab{}, fmt.Errorf("%s: expected exactly four graduated hints, got %d", definition.ID, len(hints))
+	}
+	for index, hint := range hints {
+		expectedLevel := index + 1
+		if hint.Level != expectedLevel {
+			return Lab{}, fmt.Errorf(
+				"%s: hint ladder must contain each level 1..4 exactly once; position %d has level %d",
+				definition.ID,
+				expectedLevel,
+				hint.Level,
+			)
+		}
+	}
 
-	return Lab{
+	loaded := Lab{
 		Definition:           definition,
 		Hints:                hints,
 		SetupScript:          setupScript,
 		ReferenceSolutionRef: definition.ReferenceSolutionRef,
-	}, nil
+	}
+	if _, err := loaded.RunnerDefinition(); err != nil {
+		return Lab{}, fmt.Errorf("%s runner definition: %w", definition.ID, err)
+	}
+	if _, err := loaded.CompileChecks(); err != nil {
+		return Lab{}, fmt.Errorf("%s checks: %w", definition.ID, err)
+	}
+	return loaded, nil
 }
 
 func (lab Lab) RunnerDefinition() (runner.Definition, error) {
@@ -174,6 +196,9 @@ func (lab Lab) CompileChecks() ([]checker.Check, error) {
 				Group:   item.Group,
 			})
 		case "file-content-regex":
+			if _, err := regexp.Compile(item.Pattern); err != nil {
+				return nil, fmt.Errorf("%s: invalid regex %q: %w", id, item.Pattern, err)
+			}
 			checks = append(checks, checker.FileContentRegex{
 				CheckID: id,
 				Path:    item.Path,
@@ -244,6 +269,12 @@ func validateDefinition(fsys fs.FS, base string, definition Definition) error {
 	}
 	switch definition.Environment.Backend {
 	case "podman":
+		if _, err := runner.Phase1CapabilityProfile(definition.Environment.CapabilityProfile); err != nil {
+			return fmt.Errorf("invalid Podman capability profile: %w", err)
+		}
+		if definition.Environment.Network != "none" {
+			return errors.New("podman lab network must be none until isolated networking is implemented")
+		}
 		if definition.Environment.Machine != nil {
 			return errors.New("podman lab must not declare machine settings")
 		}
@@ -254,6 +285,12 @@ func validateDefinition(fsys fs.FS, base string, definition Definition) error {
 			return fmt.Errorf("invalid setup reference: %w", err)
 		}
 	case "libvirt":
+		if definition.Environment.CapabilityProfile != "full-machine" {
+			return errors.New("libvirt lab capability_profile must be full-machine")
+		}
+		if len(definition.Environment.WritableGuestPaths) != 0 {
+			return errors.New("libvirt lab must not declare writable_guest_paths; VM disks define writable state")
+		}
 		if definition.Environment.Machine == nil {
 			return errors.New("libvirt lab requires machine settings")
 		}
@@ -326,8 +363,19 @@ func validateHint(labID string, hint Hint) error {
 	if hint.Level < 1 || hint.Level > 4 {
 		return fmt.Errorf("hint %s level %d outside 1..4", hint.ID, hint.Level)
 	}
-	if hint.Level == 4 && hint.EvidenceImpact != "solution-revealed" {
-		return fmt.Errorf("hint %s level 4 must reveal solution", hint.ID)
+	switch hint.Level {
+	case 1:
+		if hint.EvidenceImpact != "none" && hint.EvidenceImpact != "minor" {
+			return fmt.Errorf("hint %s level 1 must have none/minor evidence impact", hint.ID)
+		}
+	case 2, 3:
+		if hint.EvidenceImpact != "material" {
+			return fmt.Errorf("hint %s level %d must have material evidence impact", hint.ID, hint.Level)
+		}
+	case 4:
+		if hint.EvidenceImpact != "solution-revealed" {
+			return fmt.Errorf("hint %s level 4 must reveal solution", hint.ID)
+		}
 	}
 	if strings.TrimSpace(hint.ContentFR) == "" {
 		return fmt.Errorf("hint %s has empty content", hint.ID)

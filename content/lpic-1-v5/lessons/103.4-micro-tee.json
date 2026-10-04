@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.4.lesson.tee",
+  "title_fr": "Observer et enregistrer un flux avec tee",
+  "objective_ids": [
+    "103.4"
+  ],
+  "concept_ids": [
+    "lpic1.103.4.dupliquer-sortie-avec-tee"
+  ],
+  "stage": "introduce",
+  "estimated_minutes": 3,
+  "body_markdown": "`tee` lit son `stdin`, écrit une copie dans un ou plusieurs fichiers et renvoie aussi le même flux sur `stdout`. Il permet donc d'enregistrer une étape d'un pipeline sans interrompre la chaîne.\n\nPar exemple, `generateur | tee capture.txt | analyseur` conserve le flux dans `capture.txt` tout en l'envoyant à `analyseur`. Par défaut le fichier est remplacé ; `tee -a` ajoute à la fin lorsqu'il faut conserver l'historique.",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic"
+}

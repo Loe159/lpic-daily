@@ -54,8 +54,8 @@ func (backend *Backend) Exec(
 	instance runner.Instance,
 	request runner.ExecRequest,
 ) (runner.ExecResult, error) {
-	if instance.ID == "" {
-		return runner.ExecResult{}, errors.New("instance ID is required")
+	if err := backend.requireManagedInstance(instance); err != nil {
+		return runner.ExecResult{}, err
 	}
 	if err := request.Validate(); err != nil {
 		return runner.ExecResult{}, fmt.Errorf("validate exec request: %w", err)

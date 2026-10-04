@@ -2,9 +2,11 @@
 
 LPIC Daily is a terminal-first, local-first learning environment designed to build durable Linux administration skills while covering the complete LPIC-1 v5.0 syllabus (101-500 and 102-500).
 
-**Phase 1 is complete.** The adaptive scheduler, append-only mastery evidence, separate XP/streak/achievement projection, Bubble Tea daily dashboard, SQLite progress store, six rootless Podman labs with two explicit practical contexts per Phase-1 concept, Fedora desktop-notification adapter, Fedora 44 CI and real rootless Podman host-isolation test are implemented and validated. The current roadmap phase is **Phase 2: libvirt/QEMU/KVM VM runner**, before scaling content to the full LPIC-1 curriculum.
+**Phase 1 is complete.** The adaptive scheduler, append-only mastery evidence, separate XP/streak/achievement projection, Bubble Tea daily dashboard, SQLite progress store, six rootless Podman labs with two explicit practical contexts per Phase-1 concept, Fedora desktop-notification adapter, Fedora 44 CI and real rootless Podman host-isolation test are implemented and validated. **Phase 2 VM-runner implementation is present, with real-host KVM acceptance still pending. Phase 3 Exam-101 curriculum is now in progress in parallel.**
 
 ## Current runnable slice
+
+Phase 3 currently adds complete lesson/deterministic-question coverage for objective **103.4 — streams, pipes and redirections**. Once 103.1 readiness is satisfied, the daily scheduler may select 103.4; unfinished Phase-3 objectives remain excluded until every mapped concept has exactly one focused `introduce` lesson, a daily non-assessment question, and a path beyond recognition through either recall-capable retrieval or practical evidence.
 
 The current runnable labs are:
 
@@ -67,7 +69,7 @@ The application never pulls lab images implicitly. Before create, the Podman ada
 
 ## Daily desktop notification
 
-The Fedora adapter uses `notify-send` and a user-level systemd timer. Automatic delivery is reserved before calling `notify-send`, so it is attempted at most once per local day when work is due. An explicit `notify-send` failure releases the reservation for retry; a process crash after reservation intentionally suppresses automatic retries for that day to avoid duplicate notifications. Selecting **Ouvrir** launches `lpic tui` through `xdg-terminal-exec`. A custom launcher can be supplied with `LPIC_DAILY_TERMINAL_LAUNCHER`.
+The Fedora adapter uses `notify-send` and a user-level systemd timer. Automatic delivery is reserved before calling `notify-send`, so concurrent invocations do not normally duplicate a delivery. An explicit `notify-send` failure releases the reservation immediately; while `notify-send` waits for an action, LPIC Daily renews the reservation lease. An orphaned `claimed` reservation that is no longer renewed may be reclaimed after 10 minutes so a crash does not suppress notifications for the rest of the day. A successful delivery is still recorded once per local day. Selecting **Ouvrir** launches `lpic tui` through `xdg-terminal-exec`. A custom launcher can be supplied with `LPIC_DAILY_TERMINAL_LAUNCHER`.
 
 For a local development install:
 
@@ -80,7 +82,7 @@ systemctl --user daemon-reload
 systemctl --user enable --now lpic-daily-notify.timer
 ```
 
-Test immediately with:
+Test immediately without consuming the day's automatic-delivery marker:
 
 ```bash
 lpic notify --force

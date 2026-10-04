@@ -26,6 +26,9 @@ func TestBuiltinBundleValidates(t *testing.T) {
 	if summary.Phase1Concepts != 22 {
 		t.Fatalf("phase1 concepts = %d, want 22", summary.Phase1Concepts)
 	}
+	if summary.Phase3Objectives != 23 || summary.Phase3Concepts != 153 {
+		t.Fatalf("phase3 scope = (%d objectives, %d concepts), want (23, 153)", summary.Phase3Objectives, summary.Phase3Concepts)
+	}
 	if summary.SchemaFiles != 10 {
 		t.Fatalf("schemas = %d, want 10", summary.SchemaFiles)
 	}

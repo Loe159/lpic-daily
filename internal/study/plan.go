@@ -40,6 +40,7 @@ type Item struct {
 	RecommendedLessonID   string
 	RecommendedQuestionID string
 	RecommendedLabID      string
+	PreferLab             bool
 }
 
 type Plan struct {
@@ -69,16 +70,14 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 		}
 	}
 
-	phase1Concepts := make(map[string]struct{})
-	for _, objectiveID := range input.Curriculum.Phase1.SelectedObjectives {
-		for _, conceptID := range input.Curriculum.Phase1.ObjectiveConcepts[objectiveID] {
-			phase1Concepts[conceptID] = struct{}{}
-		}
+	scopeObjectives, scopeConcepts, err := schedulableScope(input.Curriculum, input.Content, input.Labs)
+	if err != nil {
+		return Plan{}, fmt.Errorf("derive schedulable curriculum scope: %w", err)
 	}
 
-	projections := make(map[string]learning.MasteryProjection, len(phase1Concepts))
-	evidenceByConcept := make(map[string][]learning.EvidenceEvent, len(phase1Concepts))
-	for conceptID := range phase1Concepts {
+	projections := make(map[string]learning.MasteryProjection, len(scopeConcepts))
+	evidenceByConcept := make(map[string][]learning.EvidenceEvent, len(scopeConcepts))
+	for conceptID := range scopeConcepts {
 		events, err := input.Evidence.EvidenceForConcept(ctx, conceptID)
 		if err != nil {
 			return Plan{}, fmt.Errorf("load evidence for %s: %w", conceptID, err)
@@ -109,16 +108,16 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 		Bundle:             input.Curriculum,
 		Projections:        projections,
 		ObjectiveReadiness: readiness,
-		ScopeObjectives:    input.Curriculum.Phase1.SelectedObjectives,
+		ScopeObjectives:    scopeObjectives,
 		Policy:             input.Policy,
 	})
 	if err != nil {
 		return Plan{}, fmt.Errorf("build learning session: %w", err)
 	}
 
-	conceptTitles := make(map[string]string, len(phase1Concepts))
+	conceptTitles := make(map[string]string, len(scopeConcepts))
 	for _, concept := range input.Curriculum.Concepts.Concepts {
-		if _, wanted := phase1Concepts[concept.ID]; wanted {
+		if _, wanted := scopeConcepts[concept.ID]; wanted {
 			conceptTitles[concept.ID] = concept.TitleFR
 		}
 	}
@@ -126,7 +125,7 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 	lessons := make(map[string][]content.Lesson)
 	for _, lesson := range input.Content.Lessons {
 		for _, conceptID := range lesson.ConceptIDs {
-			if _, wanted := phase1Concepts[conceptID]; wanted {
+			if _, wanted := scopeConcepts[conceptID]; wanted {
 				lessons[conceptID] = append(lessons[conceptID], lesson)
 			}
 		}
@@ -138,7 +137,7 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 			continue
 		}
 		for _, conceptID := range question.ConceptIDs {
-			if _, wanted := phase1Concepts[conceptID]; wanted {
+			if _, wanted := scopeConcepts[conceptID]; wanted {
 				questions[conceptID] = append(questions[conceptID], question.ID)
 			}
 		}
@@ -149,7 +148,7 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 	for _, authored := range input.Labs {
 		labContexts[authored.Definition.ID] = authored.Definition.PracticeContext
 		for _, conceptID := range authored.Definition.ConceptIDs {
-			if _, wanted := phase1Concepts[conceptID]; wanted {
+			if _, wanted := scopeConcepts[conceptID]; wanted {
 				labs[conceptID] = append(labs[conceptID], authored.Definition.ID)
 			}
 		}
@@ -162,7 +161,7 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 	for _, scheduled := range session.Items {
 		title, exists := conceptTitles[scheduled.ConceptID]
 		if !exists {
-			return Plan{}, fmt.Errorf("scheduled unknown Phase-1 concept %s", scheduled.ConceptID)
+			return Plan{}, fmt.Errorf("scheduled unknown study-scope concept %s", scheduled.ConceptID)
 		}
 
 		item := Item{
@@ -184,9 +183,10 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 		slices.Sort(item.LabIDs)
 
 		item.RecommendedLessonID = recommendedLesson(scheduled.Kind, lessons[scheduled.ConceptID])
-		if len(item.QuestionIDs) != 0 {
-			item.RecommendedQuestionID = item.QuestionIDs[0]
-		}
+		item.RecommendedQuestionID = recommendedQuestion(
+			item.QuestionIDs,
+			evidenceByConcept[scheduled.ConceptID],
+		)
 		item.RecommendedLabID = recommendedLab(
 			item.MasteryStage,
 			item.LabIDs,
@@ -194,10 +194,77 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 			evidenceByConcept[scheduled.ConceptID],
 			input.Now,
 		)
+		projection := projections[scheduled.ConceptID]
+		item.PreferLab = scheduled.Kind != learning.SessionNew &&
+			projection.Stage == learning.StageExposed &&
+			projection.SuccessfulRecognition > 0 &&
+			projection.SuccessfulRecall == 0 &&
+			item.RecommendedLabID != ""
 
 		plan.Items = append(plan.Items, item)
 	}
 	return plan, nil
+}
+
+func schedulableScope(
+	curriculumBundle *curriculum.Bundle,
+	contentBundle *content.Bundle,
+	labs []lab.Lab,
+) ([]string, map[string]struct{}, error) {
+	introductionCounts := make(map[string]int)
+	for _, lesson := range contentBundle.Lessons {
+		if lesson.Stage != "introduce" || len(lesson.ConceptIDs) != 1 {
+			continue
+		}
+		introductionCounts[lesson.ConceptIDs[0]]++
+	}
+	questions := make(map[string]bool)
+	recallQuestions := make(map[string]bool)
+	for _, question := range contentBundle.Questions {
+		if question.Usage == "initial-assessment" {
+			continue
+		}
+		for _, conceptID := range question.ConceptIDs {
+			questions[conceptID] = true
+			if question.EvidenceKindOnSuccess == "recall" {
+				recallQuestions[conceptID] = true
+			}
+		}
+	}
+	practical := make(map[string]bool)
+	for _, authored := range labs {
+		for _, conceptID := range authored.Definition.ConceptIDs {
+			practical[conceptID] = true
+		}
+	}
+
+	objectives := make([]string, 0, len(curriculumBundle.Phase3.SelectedObjectives))
+	concepts := make(map[string]struct{})
+	for _, objectiveID := range curriculumBundle.Phase3.SelectedObjectives {
+		conceptIDs := curriculumBundle.Phase3.ObjectiveConcepts[objectiveID]
+		if len(conceptIDs) == 0 {
+			return nil, nil, fmt.Errorf("phase3 objective %s has no concepts", objectiveID)
+		}
+		complete := true
+		for _, conceptID := range conceptIDs {
+			if introductionCounts[conceptID] != 1 || !questions[conceptID] ||
+				(!recallQuestions[conceptID] && !practical[conceptID]) {
+				complete = false
+				break
+			}
+		}
+		if !complete {
+			continue
+		}
+		objectives = append(objectives, objectiveID)
+		for _, conceptID := range conceptIDs {
+			concepts[conceptID] = struct{}{}
+		}
+	}
+	if len(objectives) == 0 {
+		return nil, nil, errors.New("no objectives have complete introduction, daily-question, and mastery-advancement coverage")
+	}
+	return objectives, concepts, nil
 }
 
 func recommendedLesson(kind learning.SessionItemKind, lessons []content.Lesson) string {
@@ -228,6 +295,49 @@ func recommendedLesson(kind learning.SessionItemKind, lessons []content.Lesson) 
 		return ""
 	}
 	return candidates[0].ID
+}
+
+func recommendedQuestion(
+	questionIDs []string,
+	events []learning.EvidenceEvent,
+) string {
+	if len(questionIDs) == 0 {
+		return ""
+	}
+
+	candidates := slices.Clone(questionIDs)
+	slices.Sort(candidates)
+	attempts := make(map[string]int, len(candidates))
+	known := make(map[string]struct{}, len(candidates))
+	for _, questionID := range candidates {
+		known[questionID] = struct{}{}
+	}
+	for _, event := range events {
+		if event.ActivityKind != learning.ActivityQuestion {
+			continue
+		}
+		if _, exists := known[event.SourceItemID]; !exists {
+			continue
+		}
+		if event.AttemptIndex > attempts[event.SourceItemID] {
+			attempts[event.SourceItemID] = event.AttemptIndex
+		}
+	}
+
+	slices.SortFunc(candidates, func(a, b string) int {
+		if attempts[a] != attempts[b] {
+			return attempts[a] - attempts[b]
+		}
+		switch {
+		case a < b:
+			return -1
+		case a > b:
+			return 1
+		default:
+			return 0
+		}
+	})
+	return candidates[0]
 }
 
 func recommendedLab(

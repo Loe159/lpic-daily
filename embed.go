@@ -9,5 +9,5 @@ import "embed"
 // BuiltinFS contains the built-in LPIC curriculum, content contracts and
 // authored labs used by the shipped application.
 //
-//go:embed curriculum/lpic-1-v5/*.json schemas/*.schema.json labs/lpic-1-v5/*/*/*.json labs/lpic-1-v5/*/*/*.sh labs/lpic-1-v5/*/*/hints/*.json content/lpic-1-v5/lessons/*.json content/lpic-1-v5/questions/*.json
+//go:embed curriculum/lpic-1-v5/*.json schemas/*.schema.json labs/lpic-1-v5/*/*/*.json labs/lpic-1-v5/*/*/*.sh labs/lpic-1-v5/*/*/hints/*.json content/lpic-1-v5/lessons content/lpic-1-v5/questions
 var BuiltinFS embed.FS

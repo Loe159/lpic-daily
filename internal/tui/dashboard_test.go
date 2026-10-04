@@ -89,6 +89,23 @@ func TestNewConceptDefaultsToFocusedLesson(t *testing.T) {
 	}
 }
 
+func TestRecognizedExposedReviewDefaultsToLab(t *testing.T) {
+	model := NewDashboard(study.Plan{Items: []study.Item{{
+		ConceptID:             "first",
+		ConceptTitleFR:        "Premier",
+		ObjectiveID:           "103.1",
+		Kind:                  learning.SessionReview,
+		MasteryStage:          learning.StageExposed,
+		RecommendedQuestionID: "question.first",
+		RecommendedLabID:      "lab.first",
+		PreferLab:             true,
+	}}}, gamification.Snapshot{})
+	model, quit := model.updateKey("enter")
+	if !quit || model.action != (Action{Kind: ActionLab, ID: "lab.first"}) {
+		t.Fatalf("action = %#v quit=%v", model.action, quit)
+	}
+}
+
 func TestGuidedReviewDefaultsToLab(t *testing.T) {
 	model := NewDashboard(study.Plan{Items: []study.Item{{
 		ConceptID:             "first",

@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.4.q.pipeline-stdout-recall",
+  "objective_ids": [
+    "103.4"
+  ],
+  "concept_ids": [
+    "lpic1.103.4.pipelines"
+  ],
+  "type": "free-recall",
+  "prompt_fr": "Dans un pipeline Bash `a | b`, quel flux standard de `a` est connecté au `stdin` de `b` ?",
+  "grading": {
+    "strategy": "exact-text",
+    "accepted_answers": [
+      "stdout"
+    ],
+    "case_sensitive": false
+  },
+  "evidence_kind_on_success": "recall",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic",
+  "explanation_fr": "Le pipe connecte le `stdout` de la commande de gauche au `stdin` de celle de droite. `stderr` reste séparé sans redirection explicite."
+}

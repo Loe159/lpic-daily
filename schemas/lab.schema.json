@@ -15,6 +15,7 @@
     "concept_ids",
     "labels",
     "estimated_minutes",
+    "practice_context",
     "environment",
     "resources",
     "setup",
@@ -168,7 +169,15 @@
           "then": {
             "required": [
               "machine"
-            ]
+            ],
+            "properties": {
+              "capability_profile": {
+                "const": "full-machine"
+              },
+              "writable_guest_paths": {
+                "maxItems": 0
+              }
+            }
           }
         },
         {
@@ -187,6 +196,18 @@
               "required": [
                 "machine"
               ]
+            },
+            "properties": {
+              "capability_profile": {
+                "enum": [
+                  "baseline",
+                  "identity-files",
+                  "process-lab"
+                ]
+              },
+              "network": {
+                "const": "none"
+              }
             }
           }
         }
@@ -492,7 +513,9 @@
       "items": {
         "$ref": "common.schema.json#/$defs/contentId"
       },
-      "uniqueItems": true
+      "uniqueItems": true,
+      "minItems": 4,
+      "maxItems": 4
     },
     "reference_solution_ref": {
       "type": "string",
@@ -501,5 +524,37 @@
     "reset_policy": {
       "const": "disposable"
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "environment": {
+            "properties": {
+              "backend": {
+                "const": "libvirt"
+              }
+            },
+            "required": [
+              "backend"
+            ]
+          }
+        },
+        "required": [
+          "environment"
+        ]
+      },
+      "then": {
+        "properties": {
+          "resources": {
+            "properties": {
+              "memory_mb": {
+                "minimum": 256
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
 }

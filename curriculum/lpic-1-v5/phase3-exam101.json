@@ -1,0 +1,243 @@
+{
+  "schema_version": "1.0.0",
+  "id": "phase3-exam101",
+  "certification": "LPIC-1",
+  "syllabus_version": "5.0.0",
+  "exam": "101",
+  "exam_code": "101-500",
+  "topics": [
+    "101",
+    "102",
+    "103",
+    "104"
+  ],
+  "selected_objectives": [
+    "101.1",
+    "101.2",
+    "101.3",
+    "102.1",
+    "102.2",
+    "102.3",
+    "102.4",
+    "102.5",
+    "102.6",
+    "103.1",
+    "103.2",
+    "103.3",
+    "103.4",
+    "103.5",
+    "103.6",
+    "103.7",
+    "103.8",
+    "104.1",
+    "104.2",
+    "104.3",
+    "104.5",
+    "104.6",
+    "104.7"
+  ],
+  "objective_concepts": {
+    "101.1": [
+      "lpic1.101.1.role-de-proc-sys-et-dev",
+      "lpic1.101.1.ressources-et-identification-du-materiel",
+      "lpic1.101.1.modules-du-noyau-lies-au-materiel",
+      "lpic1.101.1.bus-pci-et-usb",
+      "lpic1.101.1.sysfs-udev-et-d-bus-comme-couches-de-decouverte-gestion",
+      "lpic1.101.1.differences-entre-grandes-familles-de-stockage"
+    ],
+    "101.2": [
+      "lpic1.101.2.sequence-firmware-bootloader-kernel-initramfs-init-systemd",
+      "lpic1.101.2.bios-versus-uefi",
+      "lpic1.101.2.parametres-noyau-au-boot",
+      "lpic1.101.2.role-de-initramfs",
+      "lpic1.101.2.sysvinit-systemd-et-connaissance-historique-d-upstart",
+      "lpic1.101.2.diagnostic-des-evenements-de-boot"
+    ],
+    "101.3": [
+      "lpic1.101.3.runlevels-sysv-et-targets-systemd",
+      "lpic1.101.3.mode-mono-utilisateur-recuperation",
+      "lpic1.101.3.target-par-defaut",
+      "lpic1.101.3.arret-redemarrage-propre",
+      "lpic1.101.3.notification-aux-utilisateurs",
+      "lpic1.101.3.services-et-dependances-de-demarrage",
+      "lpic1.101.3.notion-d-evenements-acpi"
+    ],
+    "102.1": [
+      "lpic1.102.1.separer-var-home-et-boot-selon-usage",
+      "lpic1.102.1.swap-et-dimensionnement-conceptuel",
+      "lpic1.102.1.contraintes-boot-et-architecture",
+      "lpic1.102.1.efi-system-partition",
+      "lpic1.102.1.partitions-et-points-de-montage",
+      "lpic1.102.1.principes-de-base-lvm"
+    ],
+    "102.2": [
+      "lpic1.102.2.grub-legacy-versus-grub-2",
+      "lpic1.102.2.emplacement-configuration-du-bootloader",
+      "lpic1.102.2.entrees-alternatives-et-recuperation",
+      "lpic1.102.2.mbr-et-relation-avec-schema-de-boot",
+      "lpic1.102.2.generation-de-configuration-grub-2",
+      "lpic1.102.2.interaction-au-menu-console-grub"
+    ],
+    "102.3": [
+      "lpic1.102.3.resolution-des-dependances-dynamiques",
+      "lpic1.102.3.chemins-de-recherche-du-chargeur-dynamique",
+      "lpic1.102.3.cache-ldconfig",
+      "lpic1.102.3.override-via-variables-d-environnement",
+      "lpic1.102.3.diagnostic-d-une-bibliotheque-manquante"
+    ],
+    "102.4": [
+      "lpic1.102.4.roles-respectifs-dpkg-et-apt",
+      "lpic1.102.4.installation-mise-a-jour-suppression",
+      "lpic1.102.4.sources-et-metadonnees",
+      "lpic1.102.4.dependances",
+      "lpic1.102.4.inspection-d-un-paquet-et-de-ses-fichiers",
+      "lpic1.102.4.reconfiguration",
+      "lpic1.102.4.identifier-quel-paquet-fournit-possede-un-fichier"
+    ],
+    "102.5": [
+      "lpic1.102.5.format-base-rpm",
+      "lpic1.102.5.installation-et-requetes-rpm",
+      "lpic1.102.5.signature-integrite",
+      "lpic1.102.5.resolution-des-dependances-via-gestionnaire-haut-niveau",
+      "lpic1.102.5.repositories-yum-dnf",
+      "lpic1.102.5.workflow-zypper-opensuse",
+      "lpic1.102.5.identifier-fichier-paquet"
+    ],
+    "102.6": [
+      "lpic1.102.6.vm-versus-conteneur-applicatif-systeme",
+      "lpic1.102.6.ressources-virtuelles-block-network",
+      "lpic1.102.6.images-clones-et-templates",
+      "lpic1.102.6.identites-devant-etre-regenerees-lors-d-un-clonage",
+      "lpic1.102.6.guest-drivers",
+      "lpic1.102.6.principes-cloud-init-iaas"
+    ],
+    "103.1": [
+      "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes",
+      "lpic1.103.1.variables-shell-environnement",
+      "lpic1.103.1.path-et-resolution-de-commande",
+      "lpic1.103.1.quoting-escaping",
+      "lpic1.103.1.historique",
+      "lpic1.103.1.documentation-et-identification-d-une-commande",
+      "lpic1.103.1.informations-systeme-de-base"
+    ],
+    "103.2": [
+      "lpic1.103.2.flux-texte-ligne-octet",
+      "lpic1.103.2.selection-de-colonnes-lignes",
+      "lpic1.103.2.tri-dedoublonnage",
+      "lpic1.103.2.assemblage-et-decoupage",
+      "lpic1.103.2.transformations-simples",
+      "lpic1.103.2.checksums",
+      "lpic1.103.2.lecture-compression-en-flux"
+    ],
+    "103.3": [
+      "lpic1.103.3.creation-copie-deplacement-suppression",
+      "lpic1.103.3.recursivite-et-globbing",
+      "lpic1.103.3.recherche-par-metadonnees",
+      "lpic1.103.3.actions-find",
+      "lpic1.103.3.archives-tar-cpio",
+      "lpic1.103.3.copie-bas-niveau-dd",
+      "lpic1.103.3.compression-gzip-bzip2-xz",
+      "lpic1.103.3.detection-de-type"
+    ],
+    "103.4": [
+      "lpic1.103.4.stdin-stdout-stderr-et-descripteurs",
+      "lpic1.103.4.redirections-ecrasement-append",
+      "lpic1.103.4.redirection-stderr",
+      "lpic1.103.4.pipelines",
+      "lpic1.103.4.dupliquer-sortie-avec-tee",
+      "lpic1.103.4.transformer-stdin-en-arguments-via-xargs",
+      "lpic1.103.4.ordre-des-redirections"
+    ],
+    "103.5": [
+      "lpic1.103.5.processus-avant-arriere-plan",
+      "lpic1.103.5.jobs-du-shell",
+      "lpic1.103.5.signaux",
+      "lpic1.103.5.inspection-arbres-ressources",
+      "lpic1.103.5.processus-survivant-a-la-session",
+      "lpic1.103.5.selection-par-nom-pid",
+      "lpic1.103.5.multiplexeurs-de-terminal"
+    ],
+    "103.6": [
+      "lpic1.103.6.nice-value-et-ordonnancement-utilisateur",
+      "lpic1.103.6.priorite-par-defaut",
+      "lpic1.103.6.demarrer-avec-une-priorite",
+      "lpic1.103.6.modifier-priorite-existante",
+      "lpic1.103.6.observer-priorite"
+    ],
+    "103.7": [
+      "lpic1.103.7.regex-basiques-etendues",
+      "lpic1.103.7.classes-de-caracteres",
+      "lpic1.103.7.quantificateurs-et-ancres",
+      "lpic1.103.7.groupes-alternatives",
+      "lpic1.103.7.recherche-de-lignes",
+      "lpic1.103.7.substitution-transformation-avec-sed",
+      "lpic1.103.7.difference-glob-vs-regex"
+    ],
+    "103.8": [
+      "lpic1.103.8.modes-normal-insertion-commande",
+      "lpic1.103.8.navigation",
+      "lpic1.103.8.insertion-remplacement",
+      "lpic1.103.8.suppression-copie-collage",
+      "lpic1.103.8.recherche",
+      "lpic1.103.8.sauvegarde-quitter",
+      "lpic1.103.8.editeur-par-defaut",
+      "lpic1.103.8.connaissance-nano-emacs-vim"
+    ],
+    "104.1": [
+      "lpic1.104.1.mbr-versus-gpt",
+      "lpic1.104.1.creation-modification-de-partitions",
+      "lpic1.104.1.ext2-ext3-ext4",
+      "lpic1.104.1.xfs",
+      "lpic1.104.1.vfat-exfat",
+      "lpic1.104.1.swap",
+      "lpic1.104.1.principes-btrfs-multi-device-compression-subvolumes",
+      "lpic1.104.1.creation-de-filesystem"
+    ],
+    "104.2": [
+      "lpic1.104.2.occupation-blocs-inodes",
+      "lpic1.104.2.verification-ext",
+      "lpic1.104.2.reparation",
+      "lpic1.104.2.tuning-ext",
+      "lpic1.104.2.outils-xfs",
+      "lpic1.104.2.difference-outils-online-offline-selon-fs",
+      "lpic1.104.2.symptomes-de-corruption-espace-epuise"
+    ],
+    "104.3": [
+      "lpic1.104.3.montage-manuel",
+      "lpic1.104.3.fstab-persistant",
+      "lpic1.104.3.uuid-labels",
+      "lpic1.104.3.options-de-montage",
+      "lpic1.104.3.demontage-et-fichiers-occupes",
+      "lpic1.104.3.unites-mount-systemd",
+      "lpic1.104.3.peripheriques-amovibles"
+    ],
+    "104.5": [
+      "lpic1.104.5.permissions-rwx-fichier-dossier",
+      "lpic1.104.5.notation-symbolique-octale",
+      "lpic1.104.5.proprietaire-groupe",
+      "lpic1.104.5.umask",
+      "lpic1.104.5.suid",
+      "lpic1.104.5.sgid",
+      "lpic1.104.5.sticky-bit",
+      "lpic1.104.5.effets-speciaux-sur-repertoires"
+    ],
+    "104.6": [
+      "lpic1.104.6.inode-et-hard-link",
+      "lpic1.104.6.symlink-et-cible",
+      "lpic1.104.6.limites-filesystem-directory-des-hard-links",
+      "lpic1.104.6.liens-casses",
+      "lpic1.104.6.difference-copie-lien",
+      "lpic1.104.6.usages-administratifs"
+    ],
+    "104.7": [
+      "lpic1.104.7.role-des-principaux-repertoires-fhs",
+      "lpic1.104.7.recherche-temps-reel-vs-base-locate",
+      "lpic1.104.7.mise-a-jour-base-locate",
+      "lpic1.104.7.localiser-binaire-source-man",
+      "lpic1.104.7.resolution-de-commande-shell"
+    ]
+  },
+  "concept_count": 153,
+  "scope_source": "https://www.lpi.org/fr/exam-101-102-objectives/",
+  "scope_verified_on": "2026-10-01"
+}

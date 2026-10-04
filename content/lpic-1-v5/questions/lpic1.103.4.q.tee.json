@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.4.q.tee",
+  "objective_ids": [
+    "103.4"
+  ],
+  "concept_ids": [
+    "lpic1.103.4.dupliquer-sortie-avec-tee"
+  ],
+  "type": "free-recall",
+  "prompt_fr": "Quelle commande lit `stdin`, écrit une copie dans un fichier et renvoie aussi le flux sur `stdout` ?",
+  "grading": {
+    "strategy": "exact-text",
+    "accepted_answers": [
+      "tee"
+    ],
+    "case_sensitive": false
+  },
+  "evidence_kind_on_success": "recall",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic",
+  "explanation_fr": "`tee` duplique le flux : vers le ou les fichiers indiqués et vers stdout."
+}

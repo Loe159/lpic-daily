@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.4.q.stdin-redirection",
+  "objective_ids": [
+    "103.4"
+  ],
+  "concept_ids": [
+    "lpic1.103.4.stdin-stdout-stderr-et-descripteurs"
+  ],
+  "type": "free-recall",
+  "prompt_fr": "Quel opérateur Bash connecte le contenu d'un fichier au `stdin` d'une commande ?",
+  "grading": {
+    "strategy": "exact-text",
+    "accepted_answers": [
+      "<"
+    ],
+    "case_sensitive": true
+  },
+  "evidence_kind_on_success": "recall",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic",
+  "explanation_fr": "`<` redirige l'entrée standard : le shell ouvre le fichier et le connecte au file descriptor 0 de la commande."
+}

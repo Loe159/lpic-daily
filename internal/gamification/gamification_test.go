@@ -17,6 +17,16 @@ func (store *memoryStore) AppendGamificationEvent(_ context.Context, event gamif
 	return nil
 }
 
+func (store *memoryStore) AppendGamificationEventIfAbsent(_ context.Context, event gamification.Event) (bool, error) {
+	for _, existing := range store.events {
+		if existing.EventID == event.EventID {
+			return false, nil
+		}
+	}
+	store.events = append(store.events, event)
+	return true, nil
+}
+
 func (store *memoryStore) GamificationEvents(context.Context) ([]gamification.Event, error) {
 	return append([]gamification.Event(nil), store.events...), nil
 }
@@ -66,5 +76,51 @@ func TestRecordActivityUnlocksAchievementsWithoutMasteryState(t *testing.T) {
 		if achievement.AffectsMastery {
 			t.Fatalf("achievement %s unexpectedly affects mastery", achievement.ID)
 		}
+	}
+}
+
+func TestAchievementUnlockIsIdempotentAcrossRepeatedProjection(t *testing.T) {
+	store := &memoryStore{}
+	now := time.Date(2026, 9, 27, 10, 0, 0, 0, time.UTC)
+
+	_, first, err := gamification.RecordActivity(
+		context.Background(),
+		store,
+		gamification.EventLessonCompleted,
+		now,
+		map[string]string{"source_item_id": "lesson-1"},
+		time.UTC,
+	)
+	if err != nil {
+		t.Fatalf("first RecordActivity() error = %v", err)
+	}
+	if len(first) != 1 || first[0].ID != "first-steps" {
+		t.Fatalf("first unlock = %#v", first)
+	}
+
+	_, second, err := gamification.RecordActivity(
+		context.Background(),
+		store,
+		gamification.EventQuestionFailed,
+		now.Add(time.Minute),
+		map[string]string{"source_item_id": "question-1"},
+		time.UTC,
+	)
+	if err != nil {
+		t.Fatalf("second RecordActivity() error = %v", err)
+	}
+	if len(second) != 0 {
+		t.Fatalf("achievement unlocked twice: %#v", second)
+	}
+
+	unlocks := 0
+	for _, event := range store.events {
+		if event.Type == gamification.EventAchievementUnlocked &&
+			event.Metadata["achievement_id"] == "first-steps" {
+			unlocks++
+		}
+	}
+	if unlocks != 1 {
+		t.Fatalf("first-steps unlock events = %d, want 1", unlocks)
 	}
 }

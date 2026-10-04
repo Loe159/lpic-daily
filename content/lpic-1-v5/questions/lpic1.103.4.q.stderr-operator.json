@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.4.q.stderr-operator",
+  "objective_ids": [
+    "103.4"
+  ],
+  "concept_ids": [
+    "lpic1.103.4.redirection-stderr"
+  ],
+  "type": "free-recall",
+  "prompt_fr": "Quel opérateur redirige uniquement `stderr` vers un fichier en l'écrasant ?",
+  "grading": {
+    "strategy": "exact-text",
+    "accepted_answers": [
+      "2>"
+    ],
+    "case_sensitive": true
+  },
+  "evidence_kind_on_success": "recall",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic",
+  "explanation_fr": "`2>` cible le file descriptor 2, c'est-à-dire stderr."
+}

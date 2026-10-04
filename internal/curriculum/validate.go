@@ -151,6 +151,8 @@ func Validate(bundle *Bundle) error {
 		}
 	}
 
+	errs = append(errs, validatePhase3Scope(bundle, objectiveByID, nodeByID, conceptsByObjective)...)
+
 	if len(bundle.Schemas) != 10 {
 		errs = append(errs, fmt.Errorf("expected 10 schema files, got %d", len(bundle.Schemas)))
 	}
@@ -171,6 +173,105 @@ func Validate(bundle *Bundle) error {
 	}
 
 	return errors.Join(errs...)
+}
+
+func validatePhase3Scope(
+	bundle *Bundle,
+	objectiveByID map[string]Objective,
+	nodeByID map[string]ObjectiveNode,
+	conceptsByObjective map[string][]Concept,
+) []error {
+	var errs []error
+	scope := bundle.Phase3
+
+	if scope.SchemaVersion != "1.0.0" {
+		errs = append(errs, fmt.Errorf("phase3 schema version: expected 1.0.0, got %q", scope.SchemaVersion))
+	}
+	if scope.ID != "phase3-exam101" {
+		errs = append(errs, fmt.Errorf("phase3 id: expected phase3-exam101, got %q", scope.ID))
+	}
+	if scope.Certification != "LPIC-1" || scope.SyllabusVersion != bundle.Objectives.SyllabusVersion {
+		errs = append(errs, errors.New("phase3 certification/syllabus metadata drift"))
+	}
+	if scope.Exam != "101" || scope.ExamCode != "101-500" {
+		errs = append(errs, errors.New("phase3 must describe Exam 101 / 101-500"))
+	}
+	if !slices.Equal(scope.Topics, []string{"101", "102", "103", "104"}) {
+		errs = append(errs, fmt.Errorf("phase3 topics drift: %v", scope.Topics))
+	}
+	if scope.ScopeSource != bundle.Objectives.CanonicalScopeSource {
+		errs = append(errs, errors.New("phase3 scope source differs from canonical objective source"))
+	}
+	if strings.TrimSpace(scope.ScopeVerifiedOn) == "" {
+		errs = append(errs, errors.New("phase3 scope_verified_on is required"))
+	}
+
+	expectedObjectives := make([]string, 0, 23)
+	for _, objective := range bundle.Objectives.Objectives {
+		if objective.Active && objective.Exam == "101" {
+			expectedObjectives = append(expectedObjectives, objective.ID)
+		}
+	}
+	if !slices.Equal(scope.SelectedObjectives, expectedObjectives) {
+		errs = append(errs, fmt.Errorf(
+			"phase3 objective scope drift: expected %v, got %v",
+			expectedObjectives,
+			scope.SelectedObjectives,
+		))
+	}
+
+	selected := make(map[string]struct{}, len(scope.SelectedObjectives))
+	for _, objectiveID := range scope.SelectedObjectives {
+		selected[objectiveID] = struct{}{}
+	}
+	if len(scope.ObjectiveConcepts) != len(scope.SelectedObjectives) {
+		errs = append(errs, fmt.Errorf(
+			"phase3 objective_concepts has %d entries, expected %d",
+			len(scope.ObjectiveConcepts),
+			len(scope.SelectedObjectives),
+		))
+	}
+	for objectiveID := range scope.ObjectiveConcepts {
+		if _, exists := selected[objectiveID]; !exists {
+			errs = append(errs, fmt.Errorf("phase3 objective_concepts contains out-of-scope objective %s", objectiveID))
+		}
+	}
+
+	totalConcepts := 0
+	for _, objectiveID := range scope.SelectedObjectives {
+		objective, exists := objectiveByID[objectiveID]
+		if !exists || objective.Exam != "101" {
+			errs = append(errs, fmt.Errorf("phase3 references invalid Exam-101 objective %s", objectiveID))
+			continue
+		}
+		node := nodeByID[objectiveID]
+		for _, dependency := range node.HardPrerequisites {
+			if _, included := selected[dependency]; !included {
+				errs = append(errs, fmt.Errorf("phase3 objective %s missing hard prerequisite %s", objectiveID, dependency))
+			}
+		}
+
+		expected := conceptsByObjective[objectiveID]
+		actualIDs := scope.ObjectiveConcepts[objectiveID]
+		totalConcepts += len(actualIDs)
+		if len(actualIDs) != len(expected) {
+			errs = append(errs, fmt.Errorf("phase3 concept count drift for %s", objectiveID))
+			continue
+		}
+		for _, concept := range expected {
+			if !slices.Contains(actualIDs, concept.ID) {
+				errs = append(errs, fmt.Errorf("phase3 %s missing concept %s", objectiveID, concept.ID))
+			}
+		}
+	}
+	if scope.ConceptCount != totalConcepts {
+		errs = append(errs, fmt.Errorf(
+			"phase3 concept_count=%d, mapped concepts=%d",
+			scope.ConceptCount,
+			totalConcepts,
+		))
+	}
+	return errs
 }
 
 func validateAcyclic(nodes []ObjectiveNode, includeRecommended bool) error {
@@ -257,6 +358,8 @@ func Summarize(bundle *Bundle) Summary {
 	summary := Summary{
 		Concepts:         len(bundle.Concepts.Concepts),
 		Phase1Objectives: len(bundle.Phase1.SelectedObjectives),
+		Phase3Objectives: len(bundle.Phase3.SelectedObjectives),
+		Phase3Concepts:   bundle.Phase3.ConceptCount,
 		SchemaFiles:      len(bundle.Schemas),
 	}
 	for _, objective := range bundle.Objectives.Objectives {
@@ -285,6 +388,8 @@ func FormatSummary(summary Summary) string {
 		fmt.Sprintf("concepts=%d", summary.Concepts),
 		fmt.Sprintf("phase1_objectives=%d", summary.Phase1Objectives),
 		fmt.Sprintf("phase1_concepts=%d", summary.Phase1Concepts),
+		fmt.Sprintf("phase3_objectives=%d", summary.Phase3Objectives),
+		fmt.Sprintf("phase3_concepts=%d", summary.Phase3Concepts),
 		fmt.Sprintf("schemas=%d", summary.SchemaFiles),
 	}, " ")
 }

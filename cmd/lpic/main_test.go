@@ -103,8 +103,8 @@ func TestInitialAssessmentUnlocksDependentObjectiveWithoutLessonEvidence(t *test
 	if err := runWithIO([]string{"today"}, strings.NewReader(""), &today, &bytes.Buffer{}); err != nil {
 		t.Fatalf("today after assessment error = %v", err)
 	}
-	if !strings.Contains(today.String(), "103.5") {
-		t.Fatalf("today did not unlock preferred dependent objective: %q", today.String())
+	if !strings.Contains(today.String(), "103.4") {
+		t.Fatalf("today did not unlock authored Phase-3 dependent objective: %q", today.String())
 	}
 }
 
@@ -522,6 +522,26 @@ func (*scriptedLabRunner) Processes(context.Context, runner.Instance) ([]runner.
 func (*scriptedLabRunner) Reset(context.Context, runner.Instance) error   { return nil }
 func (*scriptedLabRunner) Destroy(context.Context, runner.Instance) error { return nil }
 
+type disclosureInjectingRunner struct {
+	scriptedLabRunner
+	labID    string
+	injected bool
+}
+
+func (fake *disclosureInjectingRunner) Stat(
+	ctx context.Context,
+	instance runner.Instance,
+	guestPath string,
+) (runner.FileInfo, error) {
+	if !fake.injected {
+		fake.injected = true
+		if err := recordLabDisclosure(ctx, fake.labID, 4, true); err != nil {
+			return runner.FileInfo{}, err
+		}
+	}
+	return fake.scriptedLabRunner.Stat(ctx, instance, guestPath)
+}
+
 func TestStandaloneSolutionHintTaintsNextSuccessfulLabAttempt(t *testing.T) {
 	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
 
@@ -590,6 +610,46 @@ func TestStandaloneSolutionHintTaintsNextSuccessfulLabAttempt(t *testing.T) {
 	}
 	if disclosure.HighestHintLevel != 0 {
 		t.Fatalf("successful lab did not clear disclosure: %#v", disclosure)
+	}
+}
+
+func TestConcurrentSolutionDisclosureTaintsActiveLabAttempt(t *testing.T) {
+	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
+
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("LoadAll() error = %v", err)
+	}
+	authored, err := findLab(labs, sharedDropboxID)
+	if err != nil {
+		t.Fatalf("findLab() error = %v", err)
+	}
+
+	fake := &disclosureInjectingRunner{labID: authored.Definition.ID}
+	var stdout, stderr bytes.Buffer
+	if err := runInteractiveLabWithBackend(
+		context.Background(),
+		authored,
+		fake,
+		false,
+		strings.NewReader(":check\n"),
+		&stdout,
+		&stderr,
+	); err != nil {
+		t.Fatalf("runInteractiveLabWithBackend() error = %v; stderr=%q", err, stderr.String())
+	}
+
+	store, err := openProgressStore(context.Background())
+	if err != nil {
+		t.Fatalf("open progress store: %v", err)
+	}
+	defer store.Close()
+	events, err := store.EvidenceForConcept(context.Background(), authored.Definition.ConceptIDs[0])
+	if err != nil {
+		t.Fatalf("EvidenceForConcept() error = %v", err)
+	}
+	if len(events) != 1 || events[0].HighestHintLevel != 4 || !events[0].SolutionRevealed {
+		t.Fatalf("concurrent disclosure was laundered: %#v", events)
 	}
 }
 

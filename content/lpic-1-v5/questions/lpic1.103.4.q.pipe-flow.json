@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.4.q.pipe-flow",
+  "objective_ids": [
+    "103.4"
+  ],
+  "concept_ids": [
+    "lpic1.103.4.pipelines"
+  ],
+  "type": "multiple-choice",
+  "prompt_fr": "Dans `a | b`, quel flux de `a` est connecté à l'entrée standard de `b` ?",
+  "choices": [
+    {
+      "id": "stdout",
+      "label_fr": "stdout"
+    },
+    {
+      "id": "stderr",
+      "label_fr": "stderr"
+    },
+    {
+      "id": "both",
+      "label_fr": "stdout et stderr automatiquement"
+    }
+  ],
+  "grading": {
+    "strategy": "choice-ids",
+    "accepted_choice_ids": [
+      "stdout"
+    ]
+  },
+  "evidence_kind_on_success": "recognition",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic",
+  "explanation_fr": "Le pipe relie stdout de la commande de gauche à stdin de celle de droite ; stderr reste séparé sauf redirection explicite."
+}

@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.4.q.stderr-fd",
+  "objective_ids": [
+    "103.4"
+  ],
+  "concept_ids": [
+    "lpic1.103.4.stdin-stdout-stderr-et-descripteurs"
+  ],
+  "type": "free-recall",
+  "prompt_fr": "Quel numéro de file descriptor représente `stderr` ?",
+  "grading": {
+    "strategy": "exact-text",
+    "accepted_answers": [
+      "2"
+    ],
+    "case_sensitive": false
+  },
+  "evidence_kind_on_success": "recall",
+  "labels": [
+    "lpic-required"
+  ],
+  "distribution": "generic",
+  "explanation_fr": "Par convention, stdin=0, stdout=1 et stderr=2."
+}

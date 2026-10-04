@@ -27,6 +27,7 @@ Baseline controls:
 - network `none` by default; isolated lab network only when objective requires networking;
 - CPU/memory/PID/time limits;
 - fresh disposable container per lab unless a scenario explicitly defines a controlled multi-step state;
+- each managed container carries a bounded expiry label; before starting a Podman lab, expired LPIC Daily containers from crashed sessions are reaped without touching recent or foreign containers;
 - resolve a mutable local image tag to Podman's immutable `sha256:` image ID before create, and retain that ID across resets.
 
 ## Backend B: KVM/QEMU + libvirt
@@ -57,18 +58,10 @@ Checks should query observable guest/container state through structured probes o
 
 Authored JSON is validated against the embedded Draft 2020-12 schemas by the Go loaders before semantic validation and execution. Security-critical runtime limits are enforced again by the runner even if a caller bypasses authoring-time validation.
 
-## Threat-model backlog
-Before Phase 1 implementation, formalize threats for:
-- malicious imported course pack;
-- container escape and excessive capabilities;
-- libvirt authorization/polkit misuse;
-- QCOW2 image provenance and tampering;
-- terminal escape sequences and hostile output;
-- symlink/path traversal in pack extraction;
-- denial of service via fork bombs/disk exhaustion;
-- local privilege escalation through helper APIs;
-- isolation between simultaneous labs;
-- update/signing mechanism.
+## Threat-model maintenance
+The baseline threat model is maintained in `docs/THREAT_MODEL.md` and covers malicious content, container/VM isolation, libvirt authorization, image provenance, hostile terminal output, path traversal, resource exhaustion and abandoned-resource cleanup.
+
+Future features must extend that model before implementation when they introduce a new trust boundary. In particular, imported community-pack activation and the update/signing mechanism remain future-scope security work rather than unresolved Phase-1 prerequisites.
 
 
 ## Real rootless Podman host-safety integration test
@@ -83,4 +76,4 @@ Run on a Linux machine with rootless Podman:
 ./scripts/test_podman_host_safety.sh
 ```
 
-Set `LPIC_DAILY_SKIP_IMAGE_BUILD=1` only when `localhost/lpic-daily/fedora-phase1:1` is already present locally. Normal CI compiles this integration test to prevent drift; it is not claimed as executed until a compatible rootless Podman environment actually runs the script.
+Set `LPIC_DAILY_SKIP_IMAGE_BUILD=1` only when `localhost/lpic-daily/fedora-phase1:1` is already present locally. The supported CI workflow executes the real rootless Podman conformance/host-safety suite on Ubuntu and Fedora jobs; local runs remain available through the same script.

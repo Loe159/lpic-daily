@@ -101,6 +101,25 @@ def main():
         environment = lab.get("environment", {})
         if environment.get("backend") not in {"podman", "libvirt"}:
             errors.append(f"{lab_id}: unsupported backend {environment.get('backend')!r}")
+        backend = environment.get("backend")
+        capability_profile = environment.get("capability_profile")
+        if backend == "podman" and capability_profile not in {
+            "baseline",
+            "identity-files",
+            "process-lab",
+        }:
+            errors.append(
+                f"{lab_id}: unsupported Podman capability_profile {capability_profile!r}"
+            )
+        if backend == "libvirt":
+            if capability_profile != "full-machine":
+                errors.append(
+                    f"{lab_id}: libvirt capability_profile must be 'full-machine'"
+                )
+            if environment.get("writable_guest_paths", []):
+                errors.append(
+                    f"{lab_id}: libvirt writable_guest_paths must be empty; writable state comes from VM disks"
+                )
         if environment.get("network") not in {"none", "isolated"}:
             errors.append(f"{lab_id}: unsupported network mode {environment.get('network')!r}")
         image_ref = environment.get("image_ref", "")
@@ -118,6 +137,8 @@ def main():
         memory_mb = resources.get("memory_mb")
         if not isinstance(memory_mb, int) or isinstance(memory_mb, bool) or not 64 <= memory_mb <= 16384:
             errors.append(f"{lab_id}: memory_mb must be an integer from 64 to 16384")
+        elif backend == "libvirt" and memory_mb < 256:
+            errors.append(f"{lab_id}: libvirt memory_mb must be at least 256")
         pids = resources.get("pids")
         if not isinstance(pids, int) or isinstance(pids, bool) or not 16 <= pids <= 4096:
             errors.append(f"{lab_id}: pids must be an integer from 16 to 4096")
@@ -126,7 +147,6 @@ def main():
             errors.append(f"{lab_id}: timeout_seconds must be an integer from 30 to 7200")
 
         setup = lab.get("setup", {})
-        backend = environment.get("backend")
         setup_scope = setup.get("execution_scope")
         if backend == "podman":
             if setup_scope != "sandbox":
@@ -151,6 +171,9 @@ def main():
         for hint_path in hint_files:
             hint = load_json(hint_path)
             hint_id = hint.get("id")
+            if not isinstance(hint_id, str) or not hint_id:
+                errors.append(f"{hint_path.relative_to(ROOT)}: missing/invalid hint id")
+                continue
             if hint_id in seen_hint_ids:
                 errors.append(f"duplicate hint id {hint_id}")
             seen_hint_ids.add(hint_id)
@@ -159,19 +182,50 @@ def main():
             if hint.get("lab_id") != lab_id:
                 errors.append(f"{hint_id}: lab_id does not match {lab_id}")
             level = hint.get("level")
-            if level not in {1, 2, 3, 4}:
-                errors.append(f"{hint_id}: invalid level {level}")
-            if level == 4 and hint.get("evidence_impact") != "solution-revealed":
-                errors.append(f"{hint_id}: level 4 must reveal the solution")
+            if not isinstance(level, int) or isinstance(level, bool) or level not in (1, 2, 3, 4):
+                errors.append(f"{hint_id}: invalid level {level!r}")
+
+        levels = [hint.get("level") for hint in hints.values()]
+        valid_levels = (
+            len(levels) == 4
+            and all(
+                isinstance(level, int)
+                and not isinstance(level, bool)
+                and level in (1, 2, 3, 4)
+                for level in levels
+            )
+            and sorted(levels) == [1, 2, 3, 4]
+        )
+        if not valid_levels:
+            errors.append(
+                f"{lab_id}: hint ladder must contain each level 1..4 exactly once; got {levels!r}"
+            )
+        for hint_id, hint in hints.items():
+            level = hint.get("level")
+            impact = hint.get("evidence_impact")
+            if level == 1 and impact not in {"none", "minor"}:
+                errors.append(f"{hint_id}: level 1 must have evidence_impact none/minor")
+            elif level in (2, 3) and impact != "material":
+                errors.append(f"{hint_id}: level {level} must have evidence_impact material")
+            elif level == 4 and impact != "solution-revealed":
+                errors.append(f"{hint_id}: level 4 must have evidence_impact solution-revealed")
 
         requested = lab.get("hint_ids", [])
-        if len(requested) != len(set(requested)):
-            errors.append(f"{lab_id}: duplicate hint IDs")
-        if set(requested) != set(hints):
-            errors.append(
-                f"{lab_id}: hint reference drift missing={sorted(set(hints)-set(requested))} "
-                f"extra={sorted(set(requested)-set(hints))}"
-            )
+        valid_requested = (
+            isinstance(requested, list)
+            and all(isinstance(item, str) and item for item in requested)
+        )
+        if not valid_requested:
+            errors.append(f"{lab_id}: hint_ids must be a list of non-empty strings")
+        else:
+            requested_set = set(requested)
+            if len(requested) != len(requested_set):
+                errors.append(f"{lab_id}: duplicate hint IDs")
+            if requested_set != set(hints):
+                errors.append(
+                    f"{lab_id}: hint reference drift missing={sorted(set(hints)-requested_set)} "
+                    f"extra={sorted(requested_set-set(hints))}"
+                )
 
         checks = lab.get("checks", [])
         if not checks:

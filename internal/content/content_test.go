@@ -3,21 +3,35 @@ package content
 import (
 	"slices"
 	"testing"
+	"testing/fstest"
 
 	lpicdaily "github.com/Loe159/lpic-daily"
 	"github.com/Loe159/lpic-daily/internal/curriculum"
 )
 
+func TestRecursiveJSONFilesIncludesNestedContent(t *testing.T) {
+	fsys := fstest.MapFS{
+		"content/lpic-1-v5/lessons/root.json":         {Data: []byte("{}")},
+		"content/lpic-1-v5/lessons/topic/nested.json": {Data: []byte("{}")},
+		"content/lpic-1-v5/lessons/topic/readme.txt":  {Data: []byte("ignore")},
+	}
+	got, err := recursiveJSONFiles(fsys, "content/lpic-1-v5/lessons")
+	if err != nil {
+		t.Fatalf("recursiveJSONFiles() error = %v", err)
+	}
+	want := []string{
+		"content/lpic-1-v5/lessons/root.json",
+		"content/lpic-1-v5/lessons/topic/nested.json",
+	}
+	if !slices.Equal(got, want) {
+		t.Fatalf("recursiveJSONFiles() = %#v, want %#v", got, want)
+	}
+}
+
 func TestBuiltinPhase1ContentCoversEveryConcept(t *testing.T) {
 	bundle, err := Load(lpicdaily.BuiltinFS)
 	if err != nil {
 		t.Fatalf("Load() error = %v", err)
-	}
-	if len(bundle.Lessons) != 25 {
-		t.Fatalf("lessons = %d, want 25 (22 introductions + 3 deepen)", len(bundle.Lessons))
-	}
-	if len(bundle.Questions) != 29 {
-		t.Fatalf("questions = %d, want 29 (22 daily + 7 initial assessment)", len(bundle.Questions))
 	}
 
 	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
@@ -26,8 +40,12 @@ func TestBuiltinPhase1ContentCoversEveryConcept(t *testing.T) {
 	}
 
 	phase1Concepts := make([]string, 0, 22)
+	phase1Set := make(map[string]struct{}, 22)
 	for _, objectiveID := range curriculumBundle.Phase1.SelectedObjectives {
-		phase1Concepts = append(phase1Concepts, curriculumBundle.Phase1.ObjectiveConcepts[objectiveID]...)
+		for _, conceptID := range curriculumBundle.Phase1.ObjectiveConcepts[objectiveID] {
+			phase1Concepts = append(phase1Concepts, conceptID)
+			phase1Set[conceptID] = struct{}{}
+		}
 	}
 	slices.Sort(phase1Concepts)
 
@@ -35,6 +53,9 @@ func TestBuiltinPhase1ContentCoversEveryConcept(t *testing.T) {
 	introductions := make(map[string]int)
 	for _, lesson := range bundle.Lessons {
 		for _, conceptID := range lesson.ConceptIDs {
+			if _, phase1 := phase1Set[conceptID]; !phase1 {
+				continue
+			}
 			lessonCoverage[conceptID]++
 			if lesson.Stage == "introduce" && len(lesson.ConceptIDs) == 1 {
 				introductions[conceptID]++
@@ -44,10 +65,14 @@ func TestBuiltinPhase1ContentCoversEveryConcept(t *testing.T) {
 
 	questionCoverage := make(map[string]int)
 	for _, question := range bundle.Questions {
-		if len(question.ConceptIDs) != 1 {
-			t.Fatalf("question %s maps %d concepts, want exactly 1 in Phase 1", question.ID, len(question.ConceptIDs))
+		if question.Usage == "initial-assessment" {
+			continue
 		}
-		questionCoverage[question.ConceptIDs[0]]++
+		for _, conceptID := range question.ConceptIDs {
+			if _, phase1 := phase1Set[conceptID]; phase1 {
+				questionCoverage[conceptID]++
+			}
+		}
 	}
 
 	for _, conceptID := range phase1Concepts {
@@ -58,8 +83,56 @@ func TestBuiltinPhase1ContentCoversEveryConcept(t *testing.T) {
 			t.Errorf("concept %s focused introduction coverage = %d, want exactly 1", conceptID, introductions[conceptID])
 		}
 		if questionCoverage[conceptID] < 1 {
-			t.Errorf("concept %s has no question coverage", conceptID)
+			t.Errorf("concept %s has no daily non-assessment question coverage", conceptID)
 		}
+	}
+}
+
+func TestQuestionTypeCannotOverstateMasteryEvidence(t *testing.T) {
+	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("curriculum.Load() error = %v", err)
+	}
+	contentBundle, err := Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+
+	knownObjectives := make(map[string]struct{})
+	for _, objective := range curriculumBundle.Objectives.Objectives {
+		if objective.Active {
+			knownObjectives[objective.ID] = struct{}{}
+		}
+	}
+	knownConcepts := make(map[string]curriculum.Concept)
+	for _, concept := range curriculumBundle.Concepts.Concepts {
+		if concept.Active {
+			knownConcepts[concept.ID] = concept
+		}
+	}
+
+	var multipleChoice Question
+	var textQuestion Question
+	for _, question := range contentBundle.Questions {
+		if multipleChoice.ID == "" && question.Type == "multiple-choice" {
+			multipleChoice = question
+		}
+		if textQuestion.ID == "" && (question.Type == "free-recall" || question.Type == "fill-in") {
+			textQuestion = question
+		}
+	}
+	if multipleChoice.ID == "" || textQuestion.ID == "" {
+		t.Fatal("builtin content must contain both choice and text questions")
+	}
+
+	multipleChoice.EvidenceKindOnSuccess = "recall"
+	if err := validateQuestion(multipleChoice, knownObjectives, knownConcepts); err == nil {
+		t.Fatal("multiple-choice question incorrectly accepted recall evidence")
+	}
+
+	textQuestion.EvidenceKindOnSuccess = "recognition"
+	if err := validateQuestion(textQuestion, knownObjectives, knownConcepts); err == nil {
+		t.Fatal("text question incorrectly accepted recognition evidence")
 	}
 }
 

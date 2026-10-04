@@ -37,6 +37,7 @@ All **22 concepts** currently mapped to these three objectives must have traceab
 - [x] Concept-level coverage remains traceable to stable concept IDs.
 - [x] Content can label `lpic-required`, `lpic-legacy`, and `modern-practice` where applicable.
 - [x] All 22 slice concepts appear in the coverage matrix.
+- [x] Every Phase-1 concept has exactly one focused `introduce` lesson and at least one deterministic daily non-assessment question; initial-assessment questions cannot satisfy daily coverage. Recognition questions remain weaker mastery evidence than free recall.
 - [x] Every Phase-1 concept has at least two labs with distinct machine-checked `practice_context` values so independent evidence can later become transfer evidence.
 
 ## Technical acceptance
