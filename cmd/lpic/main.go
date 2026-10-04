@@ -228,6 +228,7 @@ func runInstall(args []string, stdin io.Reader, stdout, stderr io.Writer) error 
 		Stderr:    stderr,
 		PrepareVM: prepareVM,
 		AssumeYes: assumeYes,
+		FirstRun:  true,
 	})
 }
 
