@@ -31,6 +31,8 @@ const (
 	vmSourcesManifest    = "packaging/vm-images/sources.json"
 )
 
+var ErrDeclined = errors.New("bootstrap action declined")
+
 type Runner interface {
 	LookPath(string) (string, error)
 	Run(context.Context, string, ...string) ([]byte, error)
@@ -90,11 +92,19 @@ func Install(ctx context.Context, assets fs.FS, opts Options) error {
 		return err
 	}
 	if err := setup.ensurePodman(ctx); err != nil {
-		return err
+		if errors.Is(err, ErrDeclined) {
+			fmt.Fprintln(setup.opts.Stdout, "Labs Podman: préparation ignorée; elle sera reproposée au premier lab.")
+		} else {
+			return err
+		}
 	}
 	if setup.opts.PrepareVM {
 		if err := setup.ensureVM(ctx); err != nil {
-			return err
+			if errors.Is(err, ErrDeclined) {
+				fmt.Fprintln(setup.opts.Stdout, "Labs VM: préparation ignorée; elle sera reproposée au premier lab VM.")
+			} else {
+				return err
+			}
 		}
 	} else {
 		fmt.Fprintln(setup.opts.Stdout, "VM KVM/libvirt: préparation différée jusqu'au premier lab VM.")
@@ -241,7 +251,7 @@ func (setup *installer) ensurePodman(ctx context.Context) error {
 		return err
 	}
 	if !ready {
-		return errors.New("Podman is required for container labs")
+		return fmt.Errorf("%w: Podman installation was not approved", ErrDeclined)
 	}
 
 	if _, err := setup.opts.Runner.Run(ctx, "podman", "image", "exists", Phase1Image); err == nil {
@@ -254,7 +264,7 @@ func (setup *installer) ensurePodman(ctx context.Context) error {
 			"Image de base Fedora 44 absente. Autoriser son téléchargement depuis registry.fedoraproject.org ?",
 			true,
 		) {
-			return errors.New("Phase-1 base image download declined")
+			return fmt.Errorf("%w: Phase-1 base image download was not approved", ErrDeclined)
 		}
 		fmt.Fprintln(setup.opts.Stdout, "Téléchargement explicite de l'image de base Fedora 44…")
 		if err := setup.opts.Runner.Interactive(
@@ -337,7 +347,7 @@ func (setup *installer) ensureVM(ctx context.Context) error {
 			return err
 		}
 		if !ready {
-			return fmt.Errorf("%s is required for VM labs", requirement.executable)
+			return fmt.Errorf("%w: %s installation was not approved", ErrDeclined, requirement.executable)
 		}
 	}
 
@@ -363,7 +373,7 @@ func (setup *installer) ensureVM(ctx context.Context) error {
 		"Le lab VM nécessite le téléchargement et la construction de l'image Fedora de confiance. Continuer ?",
 		false,
 	) {
-		return errors.New("VM image preparation declined")
+		return fmt.Errorf("%w: VM image preparation was not approved", ErrDeclined)
 	}
 
 	root, cleanup, err := setup.extractVMBuildTree()
@@ -408,7 +418,7 @@ func (setup *installer) ensureVMStorage(ctx context.Context) error {
 		"Le stockage qemu:///system doit être provisionné avec sudo. Autoriser cette étape ?",
 		false,
 	) {
-		return errors.New("VM storage provisioning declined")
+		return fmt.Errorf("%w: VM storage provisioning was not approved", ErrDeclined)
 	}
 	if _, err := setup.opts.Runner.LookPath("sudo"); err != nil {
 		return errors.New("sudo is required to provision system-libvirt storage")
