@@ -116,9 +116,22 @@ func EnsureFirstRun(ctx context.Context, assets fs.FS, opts Options) error {
 	if done {
 		return nil
 	}
-	opts.FirstRun = true
-	opts.PrepareVM = false
-	return Install(ctx, assets, opts)
+	setup, err := newInstaller(assets, opts)
+	if err != nil {
+		return err
+	}
+	fmt.Fprintln(setup.opts.Stdout, "Première utilisation: configuration automatique de LPIC Daily…")
+	if err := setup.configureDesktopIntegration(ctx); err != nil {
+		return err
+	}
+	if _, err := setup.ensurePodmanRuntime(ctx); err != nil {
+		return err
+	}
+	fmt.Fprintln(setup.opts.Stdout, "Les images de labs seront préparées automatiquement à leur première utilisation.")
+	if err := writeFirstRunMarker(); err != nil {
+		return fmt.Errorf("record initial setup: %w", err)
+	}
+	return nil
 }
 
 func EnsurePodmanLab(ctx context.Context, assets fs.FS, opts Options) error {
@@ -222,20 +235,12 @@ func (setup *installer) configureDesktopIntegration(ctx context.Context) error {
 }
 
 func (setup *installer) ensurePodman(ctx context.Context) error {
-	ready, err := setup.ensureExecutable(ctx, "podman", []string{"podman"})
+	ready, err := setup.ensurePodmanRuntime(ctx)
 	if err != nil {
 		return err
 	}
 	if !ready {
-		fmt.Fprintln(setup.opts.Stderr, "Avertissement: Podman absent; les labs conteneur resteront indisponibles.")
-		return nil
-	}
-
-	if _, err := setup.opts.Runner.LookPath("systemctl"); err == nil {
-		output, runErr := setup.opts.Runner.Run(ctx, "systemctl", "--user", "enable", "--now", "podman.socket")
-		if runErr != nil {
-			return fmt.Errorf("start rootless Podman socket: %w (%s)", runErr, strings.TrimSpace(string(output)))
-		}
+		return errors.New("Podman is required for container labs")
 	}
 
 	if _, err := setup.opts.Runner.Run(ctx, "podman", "image", "exists", Phase1Image); err == nil {
@@ -269,6 +274,28 @@ func (setup *installer) ensurePodman(ctx context.Context) error {
 	}
 	fmt.Fprintln(setup.opts.Stdout, "Image des labs Podman: installée.")
 	return nil
+}
+
+func (setup *installer) ensurePodmanRuntime(ctx context.Context) (bool, error) {
+	ready, err := setup.ensureExecutable(ctx, "podman", []string{"podman"})
+	if err != nil {
+		return false, err
+	}
+	if !ready {
+		fmt.Fprintln(setup.opts.Stderr, "Avertissement: Podman absent; les labs conteneur resteront indisponibles.")
+		return false, nil
+	}
+
+	if _, err := setup.opts.Runner.LookPath("systemctl"); err != nil {
+		fmt.Fprintln(setup.opts.Stderr, "Avertissement: systemctl absent; impossible d'activer automatiquement le socket rootless Podman.")
+		return true, nil
+	}
+	output, runErr := setup.opts.Runner.Run(ctx, "systemctl", "--user", "enable", "--now", "podman.socket")
+	if runErr != nil {
+		return false, fmt.Errorf("start rootless Podman socket: %w (%s)", runErr, strings.TrimSpace(string(output)))
+	}
+	fmt.Fprintln(setup.opts.Stdout, "Podman rootless: prêt.")
+	return true, nil
 }
 
 func (setup *installer) ensureVM(ctx context.Context) error {
