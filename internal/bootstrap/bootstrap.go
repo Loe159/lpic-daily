@@ -278,6 +278,8 @@ func (setup *installer) ensureVM(ctx context.Context) error {
 	}{
 		{"qemu-img", []string{"qemu-img"}},
 		{"virt-customize", []string{"guestfs-tools"}},
+		{"virsh", []string{"libvirt-client"}},
+		{"virtqemud", []string{"libvirt-daemon-kvm"}},
 	}
 	for _, requirement := range required {
 		ready, err := setup.ensureExecutable(ctx, requirement.executable, requirement.packages)
