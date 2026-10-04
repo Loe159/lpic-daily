@@ -46,9 +46,6 @@ func main() {
 	}
 }
 
-func run(args []string) error {
-	return runWithIO(args, os.Stdin, os.Stdout, os.Stderr)
-}
 
 func runWithIO(args []string, stdin io.Reader, stdout, stderr io.Writer) error {
 	if len(args) == 0 {
