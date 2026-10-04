@@ -375,6 +375,13 @@ func (setup *installer) ensurePodman(ctx context.Context) error {
 		return nil
 	}
 
+	if !setup.confirm(
+		"La première préparation du lab Podman construit une image Fedora et peut télécharger des paquets. Continuer ?",
+		true,
+	) {
+		return fmt.Errorf("%w: Phase-1 lab image build was not approved", ErrDeclined)
+	}
+
 	if _, err := setup.opts.Runner.Run(ctx, "podman", "image", "exists", Phase1BaseImage); err != nil {
 		if !setup.confirm(
 			"Image de base Fedora 44 absente. Autoriser son téléchargement depuis registry.fedoraproject.org ?",
