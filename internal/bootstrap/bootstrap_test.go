@@ -104,7 +104,9 @@ func TestInstallConfiguresUserIntegrationAndBuildsMissingPodmanImage(t *testing.
 	if !runner.imageExists {
 		t.Fatal("Podman image was not built")
 	}
-	if len(runner.interactive) != 1 || !strings.Contains(runner.interactive[0], "podman build") {
+	if len(runner.interactive) != 2 ||
+		!strings.Contains(runner.interactive[0], "podman pull") ||
+		!strings.Contains(runner.interactive[1], "podman build --pull=never") {
 		t.Fatalf("interactive calls = %#v", runner.interactive)
 	}
 }
