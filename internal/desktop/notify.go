@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
@@ -41,6 +42,12 @@ type Notification struct {
 	Body  string
 }
 
+type TerminalLauncher struct {
+	Command string
+	Prefix  []string
+	Source  string
+}
+
 func SendDaily(ctx context.Context, executor Executor, notification Notification) (bool, error) {
 	if executor == nil {
 		return false, errors.New("executor is required")
@@ -65,25 +72,65 @@ func SendDaily(ctx context.Context, executor Executor, notification Notification
 	return strings.TrimSpace(string(bytes.TrimSpace(output))) == "open", nil
 }
 
+func DetectTerminalLauncher() (TerminalLauncher, error) {
+	if override := strings.TrimSpace(os.Getenv("LPIC_DAILY_TERMINAL_LAUNCHER")); override != "" {
+		parts := strings.Fields(override)
+		if len(parts) == 0 {
+			return TerminalLauncher{}, errors.New("LPIC_DAILY_TERMINAL_LAUNCHER is empty")
+		}
+		return TerminalLauncher{
+			Command: parts[0],
+			Prefix:  append([]string(nil), parts[1:]...),
+			Source:  "LPIC_DAILY_TERMINAL_LAUNCHER",
+		}, nil
+	}
+
+	candidates := []TerminalLauncher{
+		{Command: "xdg-terminal-exec", Prefix: []string{"--"}, Source: "auto"},
+		{Command: "kitty", Prefix: []string{"--"}, Source: "auto"},
+		{Command: "foot", Prefix: []string{"--"}, Source: "auto"},
+		{Command: "wezterm", Prefix: []string{"start", "--"}, Source: "auto"},
+		{Command: "gnome-terminal", Prefix: []string{"--"}, Source: "auto"},
+		{Command: "konsole", Prefix: []string{"-e"}, Source: "auto"},
+		{Command: "alacritty", Prefix: []string{"-e"}, Source: "auto"},
+		{Command: "xterm", Prefix: []string{"-e"}, Source: "auto"},
+	}
+	for _, candidate := range candidates {
+		if _, err := exec.LookPath(candidate.Command); err == nil {
+			return candidate, nil
+		}
+	}
+	return TerminalLauncher{}, errors.New(
+		"no supported terminal launcher found (tried xdg-terminal-exec, kitty, foot, wezterm, gnome-terminal, konsole, alacritty and xterm)",
+	)
+}
+
 func LaunchDaily(ctx context.Context, executor Executor) error {
 	if executor == nil {
 		return errors.New("executor is required")
 	}
 
-	if override := strings.TrimSpace(os.Getenv("LPIC_DAILY_TERMINAL_LAUNCHER")); override != "" {
-		parts := strings.Fields(override)
-		if len(parts) == 0 {
-			return errors.New("LPIC_DAILY_TERMINAL_LAUNCHER is empty")
+	launcher, err := DetectTerminalLauncher()
+	if err != nil {
+		return err
+	}
+	binary := strings.TrimSpace(os.Getenv("LPIC_DAILY_BINARY"))
+	if binary == "" {
+		binary, err = os.Executable()
+		if err != nil {
+			return fmt.Errorf("resolve LPIC Daily executable: %w", err)
 		}
-		args := append(parts[1:], "lpic", "tui")
-		if err := executor.Start(ctx, parts[0], args...); err != nil {
-			return fmt.Errorf("launch configured terminal: %w", err)
+	}
+	if !filepath.IsAbs(binary) && strings.ContainsRune(binary, filepath.Separator) {
+		binary, err = filepath.Abs(binary)
+		if err != nil {
+			return fmt.Errorf("resolve LPIC Daily executable path: %w", err)
 		}
-		return nil
 	}
 
-	if err := executor.Start(ctx, "xdg-terminal-exec", "--", "lpic", "tui"); err != nil {
-		return fmt.Errorf("launch xdg-terminal-exec: %w", err)
+	args := append(append([]string(nil), launcher.Prefix...), binary, "tui")
+	if err := executor.Start(ctx, launcher.Command, args...); err != nil {
+		return fmt.Errorf("launch %s terminal: %w", launcher.Command, err)
 	}
 	return nil
 }
