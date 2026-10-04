@@ -1,10 +1,10 @@
 # Phase 2 acceptance criteria
 
-Status: **Implementation present; execution acceptance pending — 2026-09-29**
+Status: **Implementation present; real-host acceptance partially passed — 2026-10-04**
 
 The checklist distinguishes evidence that can be established in generic CI from criteria that require a real KVM/libvirt host. Non-KVM items are checked only when their corresponding unit, fake-control-plane, schema or static validation has run successfully; real-machine behavior remains unchecked until the dedicated acceptance harness executes it. This file is an acceptance gate, not an implementation-progress checklist.
 
-Current blocker: only the real-KVM/libvirt acceptance evidence remains unavailable in generic hosted CI. The supported non-KVM CI gates must remain green on the combined Phase 1–3 branch; KVM-dependent criteria remain deliberately unchecked.
+Current blocker: a 2026-10-04 real-host run passed foundation/unit validation and both Phase-2 reference labs, but the multi-VM isolation scenario timed out while reacquiring QEMU Guest Agent readiness on peer-a before the host/public egress probes completed. Guest-agent readiness tolerance has since been widened for cold/multi-VM boots and requires one focused real-host retest. GitHub-hosted CI is also currently failing before any job step starts, so the combined Phase 1–3 branch is not yet CI-validated.
 
 Review remediation completed through 2026-10-02:
 - real-host validation now waits for DHCP/default-route readiness instead of assuming QEMU Guest Agent readiness implies network readiness;
@@ -82,10 +82,10 @@ Phase-3 Exam-101 curriculum work may proceed while this real-host KVM acceptance
 - [x] checker success depends on observable state, not exact commands; checker tests accept different command histories that produce the same final state.
 
 ## Curriculum proof
-- [ ] one 104.1 storage lab succeeds end-to-end;
-- [ ] one 102.2 bootloader lab succeeds end-to-end including reboot;
+- [x] one 104.1 storage lab succeeds end-to-end on the 2026-10-04 real-host run;
+- [x] one 102.2 bootloader lab succeeds end-to-end including reboot on the 2026-10-04 real-host run;
 - [ ] failed reference state is rejected;
-- [ ] test-only reference solution passes;
+- [x] test-only reference solutions for both Phase-2 labs pass on the 2026-10-04 real-host run;
 - [x] both VM labs have four-level graduated hint ladders and non-empty authored debriefs enforced by schema/loader validation.
 
 ## Distribution pipeline
@@ -101,11 +101,11 @@ Phase-3 Exam-101 curriculum work may proceed while this real-host KVM acceptance
 - [ ] real KVM/libvirt host-sentinel test;
 - [ ] base-image immutability test;
 - [ ] isolated-network no-forwarding test includes real guest public ICMP/TCP failure probes, a host-uplink TCP sentinel and a host-bridge-gateway TCP sentinel;
-- [ ] both Phase-2 reference solutions are executed by the real-KVM harness, with 102.2 rebooted before grading;
+- [x] both Phase-2 reference solutions were executed successfully by the real-KVM harness on 2026-10-04, with 102.2 rebooted before grading;
 - [x] `python3 scripts/validate_foundation.py`;
 - [x] `go test ./...`;
 - [x] `go vet ./...`;
-- [x] CI green on supported non-KVM jobs.
+- [ ] CI green on supported non-KVM jobs (currently blocked before step execution on GitHub Actions).
 
 Canonical one-command acceptance entry point on a compatible host: `LPIC_DAILY_RUN_KVM_INTEGRATION=1 scripts/run_phase2_acceptance.sh`.
 
