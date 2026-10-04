@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build and install one trusted LPIC Daily VM image.
 
-This is an explicit maintainer/admin workflow. The application never invokes it.
+Used directly by maintainers and by the consent-gated LPIC Daily bootstrap flow.
 """
 from pathlib import Path
 from urllib.request import Request, urlopen

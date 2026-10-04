@@ -1,39 +1,49 @@
 # Curriculum/content authoring rules
 
 ## Canonical mapping
-Every piece of LPIC-1 content must map to one or more IDs in `curriculum/lpic-1-v5/objectives.json`. The JSON manifest is the canonical coverage inventory; Markdown explains it to humans/agents.
+Every LPIC-1 learning artifact must map to one or more IDs in `curriculum/lpic-1-v5/objectives.json`. Machine-readable manifests are canonical; Markdown documents explain them to humans and agents.
 
 ## Originality and licensing
-The official LPI objective list is used as the factual syllabus reference. LPI Learning Materials are useful for checking understanding but are distributed under a restrictive Creative Commons BY-NC-ND license; do not copy, translate, paraphrase closely, remix or adapt their lesson text into this project. Build original explanations from the objective facts plus independent primary Linux documentation/man pages.
+Use the official LPI objective list only as the factual syllabus reference. Do not copy, translate, closely paraphrase, remix or adapt LPI Learning Materials. Build original explanations from the objective facts plus independent primary Linux documentation/man pages.
 
 ## Required layers per concept
-A concept is not considered fully taught merely because it appears in prose. Mature content should eventually include:
+A mature concept should include:
 - explanation/mental model;
 - worked example where useful;
-- retrieval question;
-- practical rep or lab when the skill is observable;
+- deterministic retrieval question;
+- practical rep/lab when safely observable;
 - debrief/common failure modes;
 - scheduled review hooks.
 
-## Modern versus legacy
-Use the canonical machine-readable labels from `common.schema.json`:
-- `lpic-required`: required by the current LPIC syllabus;
-- `lpic-legacy`: still examinable but generally legacy practice;
-- `modern-practice`: contemporary operational practice taught alongside exam knowledge.
+An objective must not become schedulable until all mapped concepts satisfy the configured learning-surface gates.
 
-Never silently replace an examinable legacy term with a modern equivalent.
+## Modern versus legacy
+Use the canonical labels:
+- `lpic-required`;
+- `lpic-legacy`;
+- `modern-practice`.
+
+Never silently replace examinable legacy knowledge with a modern equivalent.
 
 ## Lab authoring
-Labs specify desired state, environment and checker semantics. Avoid command-string grading. Reference solutions are private authoring/test fixtures, not hints exposed by default.
+Labs specify desired state, environment and checker semantics. Avoid command-string grading. Reference solutions are private authoring/test fixtures, not learner hints.
 
-Every state check must declare the stable `concept_ids` it provides evidence for. The union of check mappings must cover every concept declared by the lab; a concept merely listed at lab level does not count as practical coverage. Map only concepts that the observable check genuinely demonstrates.
+Every state check must declare the stable `concept_ids` it proves. The union of check mappings must cover the concepts claimed by the lab.
 
-For Phase-1 Podman content:
-- `network` must be `none`;
-- setup/reference paths must stay inside the lab directory;
-- images are preinstalled by a trusted workflow; the app never pulls them implicitly;
+### Podman labs
+- run rootless;
+- `network=none` until an explicitly isolated container-network contract is implemented;
+- setup/reference paths stay inside the lab directory;
 - `:latest` is forbidden;
-- released image identities must be digest/provenance pinned even when a local development alias is used while authoring.
+- released image identity/provenance remains pinned;
+- bootstrap may explicitly pull a trusted base image only after user consent, then builds the project lab image with `--pull=never`.
+
+### VM labs
+- use the libvirt backend only;
+- never fall back to Podman or host execution;
+- curriculum references an opaque trusted image ID, never a host path or URL;
+- required VM images may be prepared lazily by the bootstrap flow after explicit consent;
+- runtime verifies the installed image catalog/digest before creating disposable overlays.
 
 ## Source policy
-Prefer authoritative references: LPI objectives for syllabus scope; upstream projects/man-pages/distribution documentation for Linux behavior; peer-reviewed or established educational research for learning claims.
+Prefer authoritative references: LPI objectives for syllabus scope; upstream projects, man-pages and distribution documentation for Linux behavior; established educational research for learning claims.

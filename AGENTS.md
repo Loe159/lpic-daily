@@ -8,7 +8,7 @@ Build LPIC Daily as a safe, terminal-first learning system that teaches transfer
 2. Read the ADR(s) that govern the area you will change.
 3. For curriculum/content work, read `curriculum/AGENTS.md`, `docs/CONTENT_AUTHORING.md`, `docs/CONTENT_MODEL.md` and `docs/CURRICULUM_GRAPH.md`.
 4. For labs/isolation work, read `labs/AGENTS.md` and `docs/SECURITY.md`.
-5. For application code, read `src/AGENTS.md` and `docs/ARCHITECTURE.md`.
+5. For application code, read `docs/ARCHITECTURE.md` plus the ADRs governing the touched module.
 
 Do not load every document by default. Keep context task-specific.
 
@@ -24,19 +24,27 @@ Do not load every document by default. Keep context task-specific.
 - Content rules: `docs/CONTENT_AUTHORING.md`
 - Current execution plan: `docs/plan/`
 
-If sources conflict, stop and resolve the conflict in documentation before implementation.
+If sources conflict, resolve the conflict in canonical documentation before implementation.
 
 ## Non-negotiable rules
 - Never execute learner lab commands directly on the host as a fallback.
 - Treat lab content as untrusted input.
 - Keep the normal application unprivileged; privileged operations must be narrow, explicit and auditable.
 - Every LPIC objective must remain traceable to its official objective ID and version.
-- Concept IDs are immutable once published; wording may change without renaming the ID.
-- Do not copy or adapt LPI Learning Materials. Write original explanations and exercises from factual objectives and independently researched Linux documentation.
-- Prefer deterministic state-based lab checks over matching command strings.
-- Mastery is derived from append-only evidence; XP/streaks/achievements never count as mastery.
-- Do not add AI tutor/generation to the initial scope. Core learning, hints, grading, lab execution and offline operation are deterministic.
+- Concept IDs are immutable once published.
+- Do not copy or closely adapt LPI Learning Materials.
+- Prefer deterministic state-based lab checks over command matching.
+- Mastery is derived from append-only evidence; gamification never counts as mastery.
+- Core learning, hints, grading and lab execution remain deterministic and offline-capable.
 - A change is incomplete until relevant tests/validators pass and docs/coverage are updated.
+
+## Application-code rules
+- Preserve the module boundaries in `docs/ARCHITECTURE.md`.
+- Isolate side effects behind interfaces.
+- Do not add a host-shell lab backend or fallback.
+- Prefer structured argv over shell-string construction.
+- Preserve disclosure, evidence, sandbox and cleanup invariants across retries/restarts.
+- Update tests and architecture/security documentation with behavioral changes.
 
 ## Change workflow
 Use the matching skill under `.agents/skills/` before substantial work.
@@ -47,7 +55,7 @@ Run at minimum:
 python3 scripts/validate_foundation.py
 ```
 
-plus implementation-specific tests once Go code exists. Report what was actually executed.
+plus implementation-specific tests. Report what was actually executed.
 
 ## Scope
-Nested `AGENTS.md` files add or tighten instructions for their directory. The nearest applicable file wins for local details; this root file remains authoritative for project-wide invariants.
+Nested `AGENTS.md` files may add stricter rules for their directory. The nearest applicable file wins for local details; this root file remains authoritative for project-wide invariants.
