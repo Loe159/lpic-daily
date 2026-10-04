@@ -1,10 +1,10 @@
 # Phase 2 acceptance criteria
 
-Status: **Implementation present; real-host acceptance partially passed — 2026-10-04**
+Status: **Real-host acceptance passed — 2026-10-04**
 
 The checklist distinguishes evidence that can be established in generic CI from criteria that require a real KVM/libvirt host. Non-KVM items are checked only when their corresponding unit, fake-control-plane, schema or static validation has run successfully; real-machine behavior remains unchecked until the dedicated acceptance harness executes it. This file is an acceptance gate, not an implementation-progress checklist.
 
-Current blocker: the focused real-host multi-VM isolation/crash-reaping scenario now passes on 2026-10-04, and both Phase-2 reference labs already pass. The canonical full acceptance run subsequently reached the formatting gate and stopped only because `internal/content/content_test.go` required gofmt; that formatting defect is fixed and the full command needs one final rerun. GitHub-hosted CI is also currently failing before any job step starts, so the combined Phase 1–3 branch is not yet CI-validated.
+Real-host KVM/libvirt acceptance passed in full on 2026-10-04 using the canonical acceptance command. The remaining repository-wide validation issue is external to Phase 2: GitHub Actions currently fails before executing any job step on the combined Phase 1–3 branch.
 
 Review remediation completed through 2026-10-02:
 - real-host validation now waits for DHCP/default-route readiness instead of assuming QEMU Guest Agent readiness implies network readiness;
@@ -58,7 +58,7 @@ Phase-3 Exam-101 curriculum work may proceed while this real-host KVM acceptance
 - [x] domain XML cannot contain host PCI/USB devices;
 - [x] no arbitrary QEMU command-line extension is accepted from content;
 - [x] memory/CPU/time and writable-disk size are bounded;
-- [ ] learner commands run only inside the VM.
+- [x] learner commands run only inside the VM.
 
 ## Storage lifecycle
 - [x] every prepared run uses a fresh overlay;
@@ -75,7 +75,7 @@ Phase-3 Exam-101 curriculum work may proceed while this real-host KVM acceptance
 - [x] guests cannot reach host bridge services in isolated mode except DHCP required for address assignment (2026-10-04 real-host KVM run).
 
 ## Interaction/checking
-- [ ] learner has a serial console path that works before normal userland login;
+- [x] learner has a serial console path that works before normal userland login;
 - [x] console cancellation closes only the dedicated console stream in unit/fake-client coverage;
 - [x] structured QGA command/storage probes are covered without host command fallback;
 - [x] hostile guest non-console output is sanitized; raw control sequences are restricted to the explicit serial-console surface;
@@ -84,7 +84,7 @@ Phase-3 Exam-101 curriculum work may proceed while this real-host KVM acceptance
 ## Curriculum proof
 - [x] one 104.1 storage lab succeeds end-to-end on the 2026-10-04 real-host run;
 - [x] one 102.2 bootloader lab succeeds end-to-end including reboot on the 2026-10-04 real-host run;
-- [ ] failed reference state is rejected;
+- [x] failed reference state is rejected;
 - [x] test-only reference solutions for both Phase-2 labs pass on the 2026-10-04 real-host run;
 - [x] both VM labs have four-level graduated hint ladders and non-empty authored debriefs enforced by schema/loader validation.
 
