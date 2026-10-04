@@ -15,7 +15,7 @@ import (
 
 const (
 	guestAgentCallTimeoutSeconds = int32(5)
-	guestAgentReadyTimeout       = 20 * time.Second
+	guestAgentReadyTimeout       = 45 * time.Second
 	guestAgentReadyRetry         = 100 * time.Millisecond
 	guestExecHelperPath          = "/usr/libexec/qemu-ga/fsfreeze-hook.d/lpic-daily-exec"
 	maxGuestAgentResponseBytes   = 2 << 20
