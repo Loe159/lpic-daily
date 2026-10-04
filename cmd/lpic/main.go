@@ -16,6 +16,7 @@ import (
 	lpicdaily "github.com/Loe159/lpic-daily"
 	"github.com/Loe159/lpic-daily/internal/appstate"
 	"github.com/Loe159/lpic-daily/internal/assessment"
+	"github.com/Loe159/lpic-daily/internal/bootstrap"
 	"github.com/Loe159/lpic-daily/internal/content"
 	"github.com/Loe159/lpic-daily/internal/curriculum"
 	"github.com/Loe159/lpic-daily/internal/desktop"
@@ -61,6 +62,8 @@ func runWithIO(args []string, stdin io.Reader, stdout, stderr io.Writer) error {
 	}
 
 	switch args[0] {
+	case "install":
+		return runInstall(args[1:], stdin, stdout, stderr)
 	case "validate":
 		bundle, err := curriculum.Load(lpicdaily.BuiltinFS)
 		if err != nil {
@@ -130,6 +133,14 @@ func runDashboard(stdin io.Reader, stdout, stderr io.Writer) error {
 		return errors.New("lpic tui requires an interactive terminal on stdin and stdout")
 	}
 
+	if err := bootstrap.EnsureFirstRun(context.Background(), lpicdaily.BuiltinFS, bootstrap.Options{
+		Stdin:  stdin,
+		Stdout: stdout,
+		Stderr: stderr,
+	}); err != nil {
+		return fmt.Errorf("initial LPIC Daily setup: %w", err)
+	}
+
 	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
 	if err != nil {
 		return fmt.Errorf("load curriculum: %w", err)
@@ -193,6 +204,32 @@ func runDashboard(stdin io.Reader, stdout, stderr io.Writer) error {
 
 		fmt.Fprintln(stdout)
 	}
+}
+
+func runInstall(args []string, stdin io.Reader, stdout, stderr io.Writer) error {
+	prepareVM := true
+	assumeYes := false
+	for _, arg := range args {
+		switch arg {
+		case "--yes", "-y":
+			assumeYes = true
+		case "--no-vm":
+			prepareVM = false
+		case "help", "-h", "--help":
+			fmt.Fprintln(stdout, "Usage: lpic install [--yes] [--no-vm]")
+			return nil
+		default:
+			return fmt.Errorf("usage: lpic install [--yes] [--no-vm]")
+		}
+	}
+	return bootstrap.Install(context.Background(), lpicdaily.BuiltinFS, bootstrap.Options{
+		Stdin:     stdin,
+		Stdout:    stdout,
+		Stderr:    stderr,
+		PrepareVM: prepareVM,
+		AssumeYes: assumeYes,
+		FirstRun:  true,
+	})
 }
 
 func runNotify(args []string, stdout io.Writer) error {
@@ -986,6 +1023,13 @@ func runInteractiveLab(authored lab.Lab, stdin io.Reader, stdout, stderr io.Writ
 
 	switch authored.Definition.Environment.Backend {
 	case "podman":
+		if err := bootstrap.EnsurePodmanLab(ctx, lpicdaily.BuiltinFS, bootstrap.Options{
+			Stdin:  stdin,
+			Stdout: stdout,
+			Stderr: stderr,
+		}); err != nil {
+			return fmt.Errorf("prepare Podman lab environment: %w", err)
+		}
 		backend, err := podmanrunner.Open(ctx, "")
 		if err != nil {
 			return fmt.Errorf("open rootless Podman backend: %w", err)
@@ -1003,6 +1047,13 @@ func runInteractiveLab(authored lab.Lab, stdin io.Reader, stdout, stderr io.Writ
 			stderr,
 		)
 	case "libvirt":
+		if err := bootstrap.EnsureVMLab(ctx, lpicdaily.BuiltinFS, bootstrap.Options{
+			Stdin:  stdin,
+			Stdout: stdout,
+			Stderr: stderr,
+		}); err != nil {
+			return fmt.Errorf("prepare VM lab environment: %w", err)
+		}
 		backend, err := openLibvirtBackend()
 		if err != nil {
 			return err
@@ -1783,6 +1834,7 @@ func printUsage(out io.Writer) {
 	fmt.Fprint(out, `LPIC Daily
 
 Usage:
+  lpic install [--yes] [--no-vm] configure notifications and lab dependencies
   lpic tui                       open the interactive daily dashboard
   lpic notify [--force]           send today's desktop notification once
   lpic assess                     run the Phase-1 initial recall assessment

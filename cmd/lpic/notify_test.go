@@ -86,14 +86,17 @@ func TestForcedNotificationDoesNotConsumeDailyDelivery(t *testing.T) {
 
 func TestNotifyActionLaunchesTUI(t *testing.T) {
 	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
-	t.Setenv("LPIC_DAILY_TERMINAL_LAUNCHER", "")
+	t.Setenv("LPIC_DAILY_TERMINAL_LAUNCHER", "kitty -e")
+	t.Setenv("LPIC_DAILY_BINARY", "/home/test/.local/bin/lpic")
 	executor := &notificationExecutor{output: []byte("open\n")}
 	now := time.Date(2026, 9, 27, 9, 0, 0, 0, time.Local)
 
 	if err := runNotifyWithExecutor(context.Background(), true, &bytes.Buffer{}, executor, now); err != nil {
 		t.Fatalf("notify error = %v", err)
 	}
-	if len(executor.starts) != 1 || executor.starts[0].name != "xdg-terminal-exec" {
+	if len(executor.starts) != 1 ||
+		executor.starts[0].name != "kitty" ||
+		strings.Join(executor.starts[0].args, " ") != "-e /home/test/.local/bin/lpic tui" {
 		t.Fatalf("starts = %#v", executor.starts)
 	}
 }

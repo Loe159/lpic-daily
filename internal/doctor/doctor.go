@@ -6,10 +6,10 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/Loe159/lpic-daily/internal/appstate"
+	"github.com/Loe159/lpic-daily/internal/desktop"
 	libvirtrunner "github.com/Loe159/lpic-daily/internal/runner/libvirt"
 	podmanrunner "github.com/Loe159/lpic-daily/internal/runner/podman"
 )
@@ -58,18 +58,21 @@ func Run() Report {
 		"notify-send is missing; daily desktop notifications are unavailable",
 	))
 
-	launcher := "xdg-terminal-exec"
-	if override := strings.TrimSpace(os.Getenv("LPIC_DAILY_TERMINAL_LAUNCHER")); override != "" {
-		if fields := strings.Fields(override); len(fields) != 0 {
-			launcher = fields[0]
-		}
+	launcher, launcherErr := desktop.DetectTerminalLauncher()
+	if launcherErr != nil {
+		report.Checks = append(report.Checks, Check{
+			Name:   "terminal-launcher",
+			Status: "warn",
+			Detail: launcherErr.Error(),
+		})
+	} else {
+		report.Checks = append(report.Checks, executableCheck(
+			"terminal-launcher",
+			launcher.Command,
+			fmt.Sprintf("%s can launch the daily TUI (%s)", launcher.Command, launcher.Source),
+			fmt.Sprintf("%s is missing; notification actions cannot open the TUI", launcher.Command),
+		))
 	}
-	report.Checks = append(report.Checks, executableCheck(
-		"terminal-launcher",
-		launcher,
-		fmt.Sprintf("%s can launch the daily TUI", launcher),
-		fmt.Sprintf("%s is missing; notification actions cannot open the TUI", launcher),
-	))
 
 	return report
 }
