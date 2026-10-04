@@ -71,6 +71,7 @@ func TestInstallConfiguresUserIntegrationAndBuildsMissingPodmanImage(t *testing.
 	t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, "config"))
 	t.Setenv("XDG_DATA_HOME", filepath.Join(home, "data"))
 	t.Setenv("XDG_STATE_HOME", filepath.Join(home, "state"))
+	t.Setenv("LPIC_DAILY_SKIP_SELF_INSTALL", "1")
 
 	runner := &fakeRunner{
 		paths: map[string]bool{
@@ -117,6 +118,7 @@ func TestEnsureFirstRunUsesMarker(t *testing.T) {
 	t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, "config"))
 	t.Setenv("XDG_DATA_HOME", filepath.Join(home, "data"))
 	t.Setenv("XDG_STATE_HOME", filepath.Join(home, "state"))
+	t.Setenv("LPIC_DAILY_SKIP_SELF_INSTALL", "1")
 
 	runner := &fakeRunner{
 		paths: map[string]bool{
