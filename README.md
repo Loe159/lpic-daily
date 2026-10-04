@@ -2,7 +2,7 @@
 
 LPIC Daily is a terminal-first, local-first learning environment designed to build durable Linux administration skills while covering the complete LPIC-1 v5.0 syllabus (101-500 and 102-500).
 
-**Phase 1 is complete.** The adaptive scheduler, append-only mastery evidence, separate XP/streak/achievement projection, Bubble Tea daily dashboard, SQLite progress store, six rootless Podman labs with two explicit practical contexts per Phase-1 concept, Fedora desktop-notification adapter, Fedora 44 CI and real rootless Podman host-isolation test are implemented and validated. **Phase 2 VM-runner implementation is present, with real-host KVM acceptance still pending. Phase 3 Exam-101 curriculum is now in progress in parallel.**
+**Phases 1 and 2 are complete and accepted.** The adaptive scheduler, append-only mastery evidence, separate XP/streak/achievement projection, Bubble Tea daily dashboard, SQLite progress store, rootless Podman labs, desktop notifications and the libvirt/QEMU/KVM VM runner are implemented and validated. Real-host KVM acceptance passed on 2026-10-04. **Phase 3 Exam-101 curriculum is now in progress.**
 
 ## Current runnable slice
 
@@ -21,35 +21,52 @@ lpic1.104.5.transfer-team-share-audit
 
 `shell-environment-repair` and `transfer-shell-handoff` cover all seven 103.1 concepts in two contexts. `stuck-worker` and `transfer-operator-session` cover all seven 103.5 concepts, including PTY job control, `nohup`/SIGHUP behavior and terminal multiplexing. `shared-dropbox` and `transfer-team-share-audit` cover all eight 104.5 concepts, including behaviorally checked `umask`, SUID auditing, SGID and sticky-bit semantics. After independent evidence ages beyond the transfer gap, the scheduler prefers an unused lab context.
 
-Phase 2 contains the authored VM labs `lpic1.104.1.partition-filesystems` and `lpic1.102.2.grub-kernel-parameter`. The CLI dispatches `libvirt` labs only to the system libvirt backend; there is no Podman fallback. VM runs require a trusted local image catalog at `/var/lib/libvirt/images/lpic-daily/<uid>/images/catalog.json` (or an explicit `LPIC_DAILY_VM_IMAGE_DIR`). The repository now includes the explicit Fedora/Debian/openSUSE image build/install pipeline in `packaging/vm-images/` and `scripts/build_vm_image.py`; images are never downloaded implicitly by the application. Provision the default qemu:///system-compatible storage once with `sudo scripts/provision_vm_storage.sh` before building VM images; this also creates the host-global network-allocation lock shared by all LPIC Daily users of `qemu:///system`. VM labs refuse to run with effective UID 0. `lpic doctor` reports `qemu-img`, trusted VM catalog and `qemu:///system` readiness separately. These VM labs remain outside the default runnable slice until Phase-2 acceptance has been executed on a compatible KVM/libvirt host. The canonical gate is `LPIC_DAILY_RUN_KVM_INTEGRATION=1 scripts/run_phase2_acceptance.sh`.
+Phase 2 contains the authored VM labs `lpic1.104.1.partition-filesystems` and `lpic1.102.2.grub-kernel-parameter`. The CLI dispatches `libvirt` labs only to the system libvirt backend; there is no Podman fallback. VM labs refuse to run as root. Real-host Phase-2 acceptance passed on 2026-10-04.
 
-Current daily workflow:
+Runtime prerequisites are now bootstrapped by LPIC Daily itself. User-scoped configuration is applied automatically; privileged or network-heavy actions are shown and require confirmation. VM storage and the trusted Fedora guest image are prepared lazily when the first VM lab needs them.
+
+## Installation and first run
+
+Build or install the `lpic` binary, then simply run:
 
 ```bash
-go run ./cmd/lpic tui
-go run ./cmd/lpic today
-go run ./cmd/lpic assess
-go run ./cmd/lpic learn lpic1.103.1.lesson.shell-sequences
-go run ./cmd/lpic question lpic1.103.1.q.sequence-and
-go run ./cmd/lpic validate
-go run ./cmd/lpic doctor
-go run ./cmd/lpic lab list
-go run ./cmd/lpic lab show lpic1.103.1.shell-environment-repair
-go run ./cmd/lpic lab show lpic1.103.5.stuck-worker
-go run ./cmd/lpic lab show lpic1.104.5.shared-dropbox
+lpic
 ```
 
-For local development, prepare the Phase-1 Fedora image:
+On the first interactive launch LPIC Daily automatically configures the user-scoped pieces it can safely manage itself:
+
+- the daily user-systemd notification timer;
+- the desktop entry;
+- the rootless Podman socket when Podman is already available;
+- automatic terminal-launcher detection for notification actions.
+
+Lab images are lazy. The first Podman lab prepares its image automatically. If the Fedora base image must be downloaded, LPIC Daily asks first and then performs an explicit `podman pull` followed by an offline `podman build --pull=never`.
+
+The first VM lab similarly checks KVM/libvirt prerequisites and asks before package installation, `sudo` storage provisioning, or downloading/building the trusted Fedora VM image.
+
+To proactively prepare everything:
 
 ```bash
-podman build -t localhost/lpic-daily/fedora-phase1:1 labs/images/fedora-phase1
-systemctl --user enable --now podman.socket
+lpic install
 ```
 
-Then run:
+To prepare user integration and Podman but defer the heavier VM setup:
 
 ```bash
-go run ./cmd/lpic lab run lpic1.104.5.shared-dropbox
+lpic install --no-vm
+```
+
+`--yes` accepts bootstrap confirmations for unattended development setups.
+
+Normal use is then:
+
+```bash
+lpic
+lpic today
+lpic assess
+lpic doctor
+lpic lab list
+lpic lab run lpic1.104.5.shared-dropbox
 ```
 
 Inside command mode:
@@ -69,20 +86,11 @@ The application never pulls lab images implicitly. Before create, the Podman ada
 
 ## Daily desktop notification
 
-The Fedora adapter uses `notify-send` and a user-level systemd timer. Automatic delivery is reserved before calling `notify-send`, so concurrent invocations do not normally duplicate a delivery. An explicit `notify-send` failure releases the reservation immediately; while `notify-send` waits for an action, LPIC Daily renews the reservation lease. An orphaned `claimed` reservation that is no longer renewed may be reclaimed after 10 minutes so a crash does not suppress notifications for the rest of the day. A successful delivery is still recorded once per local day. Selecting **Ouvrir** launches `lpic tui` through `xdg-terminal-exec`. A custom launcher can be supplied with `LPIC_DAILY_TERMINAL_LAUNCHER`.
+The Fedora adapter uses `notify-send` and a user-level systemd timer. The timer/service files are installed automatically on first interactive launch or by `lpic install`.
 
-For a local development install:
+Selecting **Ouvrir** starts `lpic tui` in an automatically detected terminal. LPIC Daily prefers `xdg-terminal-exec` when available and otherwise supports Kitty, foot, WezTerm, GNOME Terminal, Konsole, Alacritty and xterm. `LPIC_DAILY_TERMINAL_LAUNCHER` remains available as an explicit override.
 
-```bash
-go build -o ~/.local/bin/lpic ./cmd/lpic
-mkdir -p ~/.config/systemd/user ~/.local/share/applications
-cp packaging/systemd/lpic-daily-notify.* ~/.config/systemd/user/
-cp packaging/desktop/lpic-daily.desktop ~/.local/share/applications/
-systemctl --user daemon-reload
-systemctl --user enable --now lpic-daily-notify.timer
-```
-
-Test immediately without consuming the day's automatic-delivery marker:
+Test the notification without consuming the day's automatic-delivery marker:
 
 ```bash
 lpic notify --force
