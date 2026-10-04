@@ -166,19 +166,9 @@ func TestRealKVMIsolationScenarioAndCrashReaping(t *testing.T) {
 	}
 
 	firstIP := integrationGuestIPv4(t, ctx, backend, scenario.Instances[0])
-	ping := runner.ExecRequest{
-		Argv: []string{"/usr/bin/ping", "-c", "1", "-W", "3", firstIP},
-	}
-	result, err := backend.Exec(ctx, scenario.Instances[1], ping)
-	if err != nil {
-		t.Fatalf("peer ping error = %v", err)
-	}
-	if result.ExitCode != 0 {
-		t.Fatalf("peer ping exit = %d, want 0", result.ExitCode)
-	}
-
 	gatewayIP := integrationGatewayForGuestIPv4(t, firstIP)
 	probeInstance := scenario.Instances[1]
+
 	gatewayListener, err := net.Listen("tcp4", net.JoinHostPort(gatewayIP, "0"))
 	if err != nil {
 		t.Fatalf("listen on isolated host gateway %s: %v", gatewayIP, err)
@@ -192,50 +182,6 @@ func TestRealKVMIsolationScenarioAndCrashReaping(t *testing.T) {
 		}
 		gatewayAccepted <- acceptErr
 	}()
-	result, err = backend.Exec(ctx, probeInstance, runner.ExecRequest{
-		Argv: []string{
-			"/usr/bin/timeout", "3", "/usr/bin/bash", "-c",
-			fmt.Sprintf("printf probe >/dev/tcp/%s/%d", gatewayIP, gatewayPort),
-		},
-	})
-	if err != nil {
-		t.Fatalf("isolated-network host-gateway probe error = %v", err)
-	}
-	_ = gatewayListener.Close()
-	if result.ExitCode == 0 {
-		t.Fatalf("isolated VM unexpectedly reached host bridge gateway %s:%d", gatewayIP, gatewayPort)
-	}
-	select {
-	case acceptErr := <-gatewayAccepted:
-		if acceptErr == nil {
-			t.Fatalf("isolated VM connected to host bridge gateway %s:%d", gatewayIP, gatewayPort)
-		}
-	case <-time.After(time.Second):
-		t.Fatal("host bridge gateway sentinel did not stop after listener close")
-	}
-
-	result, err = backend.Exec(ctx, probeInstance, runner.ExecRequest{
-		Argv: []string{"/usr/bin/ping", "-c", "1", "-W", "2", "1.1.1.1"},
-	})
-	if err != nil {
-		t.Fatalf("isolated-network public egress probe error = %v", err)
-	}
-	if result.ExitCode == 0 {
-		t.Fatal("isolated VM unexpectedly reached a public Internet address over ICMP")
-	}
-
-	result, err = backend.Exec(ctx, probeInstance, runner.ExecRequest{
-		Argv: []string{
-			"/usr/bin/timeout", "3", "/usr/bin/bash", "-c",
-			"printf probe >/dev/tcp/1.1.1.1/443",
-		},
-	})
-	if err != nil {
-		t.Fatalf("isolated-network public TCP egress probe error = %v", err)
-	}
-	if result.ExitCode == 0 {
-		t.Fatal("isolated VM unexpectedly reached a public Internet address over TCP")
-	}
 
 	uplinkPort := hostUplinkListener.Addr().(*net.TCPAddr).Port
 	uplinkAccepted := make(chan error, 1)
@@ -246,19 +192,69 @@ func TestRealKVMIsolationScenarioAndCrashReaping(t *testing.T) {
 		}
 		uplinkAccepted <- acceptErr
 	}()
-	result, err = backend.Exec(ctx, probeInstance, runner.ExecRequest{
-		Argv: []string{
-			"/usr/bin/timeout", "3", "/usr/bin/bash", "-c",
-			fmt.Sprintf("printf probe >/dev/tcp/%s/%d", hostUplinkIP, uplinkPort),
-		},
+
+	var networkProbeOutput bytes.Buffer
+	probeScript := fmt.Sprintf(`
+set +e
+/usr/bin/ping -c 1 -W 3 %s >/dev/null 2>&1
+printf 'peer_ping=%%d\n' "$?"
+/usr/bin/timeout 3 /usr/bin/bash -c 'printf probe >/dev/tcp/%s/%d' >/dev/null 2>&1
+printf 'gateway_tcp=%%d\n' "$?"
+/usr/bin/ping -c 1 -W 2 1.1.1.1 >/dev/null 2>&1
+printf 'public_icmp=%%d\n' "$?"
+/usr/bin/timeout 3 /usr/bin/bash -c 'printf probe >/dev/tcp/1.1.1.1/443' >/dev/null 2>&1
+printf 'public_tcp=%%d\n' "$?"
+/usr/bin/timeout 3 /usr/bin/bash -c 'printf probe >/dev/tcp/%s/%d' >/dev/null 2>&1
+printf 'host_uplink_tcp=%%d\n' "$?"
+rm -f -- %s
+printf guest-write > /root/lpic-daily-isolation-probe
+printf 'guest_write=%%d\n' "$?"
+exit 0
+`,
+		firstIP,
+		gatewayIP,
+		gatewayPort,
+		hostUplinkIP,
+		uplinkPort,
+		shellQuote(sentinelPath),
+	)
+	result, err := backend.Exec(ctx, probeInstance, runner.ExecRequest{
+		Argv:   []string{"/usr/bin/bash", "-c", probeScript},
+		Stdout: &networkProbeOutput,
+		Stderr: &networkProbeOutput,
 	})
-	if err != nil {
-		t.Fatalf("isolated-network host-uplink probe error = %v", err)
+	if err != nil || result.ExitCode != 0 {
+		t.Fatalf(
+			"isolated-network consolidated guest probe = exit %d, err %v, output %q",
+			result.ExitCode,
+			err,
+			networkProbeOutput.String(),
+		)
 	}
+	statuses := integrationParseProbeStatuses(t, networkProbeOutput.String())
+	if statuses["peer_ping"] != 0 {
+		t.Fatalf("peer ping exit = %d, want 0; output=%q", statuses["peer_ping"], networkProbeOutput.String())
+	}
+	for _, blocked := range []string{"gateway_tcp", "public_icmp", "public_tcp", "host_uplink_tcp"} {
+		if statuses[blocked] == 0 {
+			t.Fatalf("%s unexpectedly succeeded; output=%q", blocked, networkProbeOutput.String())
+		}
+	}
+	if statuses["guest_write"] != 0 {
+		t.Fatalf("guest isolation write exit = %d, want 0; output=%q", statuses["guest_write"], networkProbeOutput.String())
+	}
+
+	_ = gatewayListener.Close()
+	select {
+	case acceptErr := <-gatewayAccepted:
+		if acceptErr == nil {
+			t.Fatalf("isolated VM connected to host bridge gateway %s:%d", gatewayIP, gatewayPort)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("host bridge gateway sentinel did not stop after listener close")
+	}
+
 	_ = hostUplinkListener.Close()
-	if result.ExitCode == 0 {
-		t.Fatalf("isolated VM unexpectedly reached host uplink %s:%d", hostUplinkIP, uplinkPort)
-	}
 	select {
 	case acceptErr := <-uplinkAccepted:
 		if acceptErr == nil {
@@ -266,18 +262,6 @@ func TestRealKVMIsolationScenarioAndCrashReaping(t *testing.T) {
 		}
 	case <-time.After(time.Second):
 		t.Fatal("host uplink sentinel did not stop after listener close")
-	}
-
-	// Attempt writes at host/base-looking paths from inside the guest. These must
-	// stay inside the VM; the host sentinel and immutable base are checked below.
-	var guestOutput bytes.Buffer
-	result, err = backend.Exec(ctx, probeInstance, runner.ExecRequest{
-		Argv:   []string{"/usr/bin/sh", "-c", "rm -f -- " + shellQuote(sentinelPath) + "; printf guest-write > /root/lpic-daily-isolation-probe"},
-		Stdout: &guestOutput,
-		Stderr: &guestOutput,
-	})
-	if err != nil || result.ExitCode != 0 {
-		t.Fatalf("guest destructive probe = exit %d, err %v, output %q", result.ExitCode, err, guestOutput.String())
 	}
 
 	if err := backend.DestroyScenario(ctx, scenario); err != nil {
@@ -487,6 +471,39 @@ func integrationWaitForGuestIPv4(
 		case <-ticker.C:
 		}
 	}
+}
+
+func integrationParseProbeStatuses(t *testing.T, output string) map[string]int {
+	t.Helper()
+	required := map[string]struct{}{
+		"peer_ping":       {},
+		"gateway_tcp":     {},
+		"public_icmp":     {},
+		"public_tcp":      {},
+		"host_uplink_tcp": {},
+		"guest_write":     {},
+	}
+	statuses := make(map[string]int, len(required))
+	for _, line := range strings.Split(output, "\n") {
+		key, value, ok := strings.Cut(strings.TrimSpace(line), "=")
+		if !ok {
+			continue
+		}
+		if _, wanted := required[key]; !wanted {
+			continue
+		}
+		exitCode, err := strconv.Atoi(value)
+		if err != nil {
+			t.Fatalf("parse probe status %q: %v", line, err)
+		}
+		statuses[key] = exitCode
+	}
+	for key := range required {
+		if _, exists := statuses[key]; !exists {
+			t.Fatalf("missing probe status %s in output %q", key, output)
+		}
+	}
+	return statuses
 }
 
 func integrationFileSHA256(path string) (string, error) {
