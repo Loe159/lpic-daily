@@ -11,7 +11,7 @@ import (
 
 func TestRecursiveJSONFilesIncludesNestedContent(t *testing.T) {
 	fsys := fstest.MapFS{
-		"content/lpic-1-v5/lessons/root.json":        {Data: []byte("{}")},
+		"content/lpic-1-v5/lessons/root.json":         {Data: []byte("{}")},
 		"content/lpic-1-v5/lessons/topic/nested.json": {Data: []byte("{}")},
 		"content/lpic-1-v5/lessons/topic/readme.txt":  {Data: []byte("ignore")},
 	}
