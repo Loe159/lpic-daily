@@ -23,7 +23,7 @@ Review remediation completed through 2026-10-02:
 - scenario rollback and backend-close recovery paths now use bounded cleanup contexts instead of unbounded orchestration contexts;
 - VM image recipe IDs are executable contracts rather than provenance-only labels, recipe/distribution mismatches are rejected, and `virtual_size_mb` is enforced as the exact installed virtual-size contract;
 - the generated image catalog preserves the pinned upstream source-integrity algorithm/encoding/value alongside the final artifact SHA-256;
-- the Fedora image recipe exposes GRUB itself on the serial console before userland, and real-KVM coverage requires observable GRUB output;
+- the Fedora image recipe configures GRUB and kernel output for the serial console; real-KVM coverage verifies observable boot output before the login prompt, avoiding a race where libvirt console attachment can occur just after a fast GRUB handoff;
 - isolated-network real-KVM coverage now checks blocked public ICMP, blocked public TCP, a host-uplink TCP sentinel and a host-bridge-gateway TCP sentinel instead of relying on a single ping probe;
 - isolated VM NICs now reference LPIC Daily-owned libvirt nwfilters; DHCP to the bridge gateway is allowed while other IPv4 host-gateway traffic and guest IPv6 egress are blocked;
 - VM non-interactive command output is sanitized before rendering on the host terminal; raw control sequences remain restricted to the explicit `:console` passthrough;
