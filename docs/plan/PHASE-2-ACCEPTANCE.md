@@ -4,7 +4,7 @@ Status: **Real-host acceptance passed — 2026-10-04**
 
 The checklist distinguishes evidence that can be established in generic CI from criteria that require a real KVM/libvirt host. Non-KVM items are checked only when their corresponding unit, fake-control-plane, schema or static validation has run successfully; real-machine behavior remains unchecked until the dedicated acceptance harness executes it. This file is an acceptance gate, not an implementation-progress checklist.
 
-Real-host KVM/libvirt acceptance passed in full on 2026-10-04 using the canonical acceptance command. The remaining repository-wide validation issue is external to Phase 2: GitHub Actions currently fails before executing any job step on the combined Phase 1–3 branch.
+Real-host KVM/libvirt acceptance passed in full on 2026-10-04 using the canonical acceptance command. Phase 2 is accepted. Repository-wide CI remains a separate regression signal; acceptance evidence must not be downgraded merely because a hosted CI run is unavailable.
 
 Review remediation completed through 2026-10-02:
 - real-host validation now waits for DHCP/default-route readiness instead of assuming QEMU Guest Agent readiness implies network readiness;
@@ -32,10 +32,6 @@ Review remediation completed through 2026-10-02:
 - every generated root overlay and scratch QCOW2 file is forced to mode `0600`, independent of the caller's umask.
 - multi-VM scenario teardown now persists partial cleanup progress and repeated `DestroyScenario()` calls are idempotent; a late network-filter teardown failure can be retried without re-querying an already undefined network.
 
-## Parallel Phase-3 work
-
-Phase-3 Exam-101 curriculum work may proceed while this real-host KVM acceptance execution is pending. This does not change any checkbox in this file and does not imply Phase 2 acceptance. A fully validated release candidate still requires the canonical real-host acceptance command below to pass.
-
 ## Control plane
 - [x] application process remains non-root;
 - [x] only local `qemu:///system` is accepted by the canonical backend;
@@ -48,9 +44,9 @@ Phase-3 Exam-101 curriculum work may proceed while this real-host KVM acceptance
 - [x] curriculum references an opaque image ID, never a path/URL;
 - [x] catalog entry includes SHA-256, provenance, format, architecture and firmware compatibility;
 - [x] base-image integrity is verified before overlay creation;
-- [ ] base image is opened read-only from the VM design perspective and remains byte-identical after a lab;
+- [x] base image is opened read-only and remained byte-identical after the 2026-10-04 real-host acceptance run;
 - [x] floating image identities are rejected;
-- [ ] default VM image/state paths are provisioned under the system-libvirt image tree (or an explicitly verified equivalent) so qemu:///system DAC/SELinux access is testable.
+- [x] default VM image/state paths were provisioned under the system-libvirt image tree and exercised successfully on the 2026-10-04 real-host acceptance run.
 
 ## VM isolation
 - [x] generated domain names are LPIC Daily-namespaced;
