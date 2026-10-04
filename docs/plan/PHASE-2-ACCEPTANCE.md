@@ -4,7 +4,7 @@ Status: **Implementation present; real-host acceptance partially passed — 2026
 
 The checklist distinguishes evidence that can be established in generic CI from criteria that require a real KVM/libvirt host. Non-KVM items are checked only when their corresponding unit, fake-control-plane, schema or static validation has run successfully; real-machine behavior remains unchecked until the dedicated acceptance harness executes it. This file is an acceptance gate, not an implementation-progress checklist.
 
-Current blocker: a 2026-10-04 real-host run passed foundation/unit validation and both Phase-2 reference labs, but the multi-VM isolation scenario repeatedly lost QEMU Guest Agent availability on peer-a after initial successful guest execution; extending the timeout did not recover it. The isolation harness now derives the deterministic /28 gateway from the already observed peer-a address and executes all remaining peer/network/host-isolation assertions in one structured guest-exec on peer-b, avoiding repeated QGA reacquisition without weakening network coverage. One focused real-host retest is required. GitHub-hosted CI is also currently failing before any job step starts, so the combined Phase 1–3 branch is not yet CI-validated.
+Current blocker: the focused real-host multi-VM isolation/crash-reaping scenario now passes on 2026-10-04, and both Phase-2 reference labs already pass. The canonical full acceptance run subsequently reached the formatting gate and stopped only because `internal/content/content_test.go` required gofmt; that formatting defect is fixed and the full command needs one final rerun. GitHub-hosted CI is also currently failing before any job step starts, so the combined Phase 1–3 branch is not yet CI-validated.
 
 Review remediation completed through 2026-10-02:
 - real-host validation now waits for DHCP/default-route readiness instead of assuming QEMU Guest Agent readiness implies network readiness;
@@ -70,9 +70,9 @@ Phase-3 Exam-101 curriculum work may proceed while this real-host KVM acceptance
 ## Networking
 - [x] `network=none` domain policy creates no guest NIC;
 - [x] `network=isolated` XML uses an LPIC Daily-owned network with no forwarding and an owned isolation filter;
-- [ ] two guests in the same scenario can communicate when required;
-- [ ] guests cannot reach the public Internet/LAN in the default isolated mode;
-- [ ] guests cannot reach host bridge services in isolated mode except DHCP required for address assignment.
+- [x] two guests in the same scenario can communicate when required (2026-10-04 real-host KVM run);
+- [x] guests cannot reach the public Internet/LAN in the default isolated mode (2026-10-04 real-host KVM run);
+- [x] guests cannot reach host bridge services in isolated mode except DHCP required for address assignment (2026-10-04 real-host KVM run).
 
 ## Interaction/checking
 - [ ] learner has a serial console path that works before normal userland login;
@@ -98,9 +98,9 @@ Phase-3 Exam-101 curriculum work may proceed while this real-host KVM acceptance
 ## Verification
 - [x] unit tests for XML/path/name policies;
 - [x] fake-client lifecycle tests;
-- [ ] real KVM/libvirt host-sentinel test;
-- [ ] base-image immutability test;
-- [ ] isolated-network no-forwarding test includes real guest public ICMP/TCP failure probes, a host-uplink TCP sentinel and a host-bridge-gateway TCP sentinel;
+- [x] real KVM/libvirt host-sentinel test (2026-10-04 focused run);
+- [x] base-image immutability test (2026-10-04 focused run);
+- [x] isolated-network no-forwarding test includes real guest public ICMP/TCP failure probes, a host-uplink TCP sentinel and a host-bridge-gateway TCP sentinel (2026-10-04 focused run);
 - [x] both Phase-2 reference solutions were executed successfully by the real-KVM harness on 2026-10-04, with 102.2 rebooted before grading;
 - [x] `python3 scripts/validate_foundation.py`;
 - [x] `go test ./...`;
