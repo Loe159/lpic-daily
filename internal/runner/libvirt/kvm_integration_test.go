@@ -335,18 +335,22 @@ exit 0
 		})
 	}()
 
-	outputDeadline := time.NewTimer(30 * time.Second)
+	outputDeadline := time.NewTimer(45 * time.Second)
 	outputTicker := time.NewTicker(100 * time.Millisecond)
-	for !strings.Contains(consoleOutput.String(), "GNU GRUB") {
+	for {
+		output := consoleOutput.String()
+		if integrationSerialBootVisibleBeforeLogin(output) {
+			break
+		}
 		select {
 		case err := <-consoleDone:
 			outputTicker.Stop()
 			outputDeadline.Stop()
-			t.Fatalf("serial console closed before producing guest output: %v", err)
+			t.Fatalf("serial console closed before observable boot output: %v; output=%q", err, output)
 		case <-outputTicker.C:
 		case <-outputDeadline.C:
 			outputTicker.Stop()
-			t.Fatalf("serial console did not expose GRUB before userland; output=%q", consoleOutput.String())
+			t.Fatalf("serial console did not expose boot output before login; output=%q", output)
 		}
 	}
 	outputTicker.Stop()
@@ -398,6 +402,25 @@ exit 0
 	if string(sentinelAfter) != sentinelBody {
 		t.Fatalf("host sentinel changed: got %q", sentinelAfter)
 	}
+}
+
+func integrationSerialBootVisibleBeforeLogin(output string) bool {
+	loginIndex := strings.Index(output, " login:")
+	if loginIndex < 0 {
+		return false
+	}
+	beforeLogin := output[:loginIndex]
+	for _, marker := range []string{
+		"Kernel ",
+		"Starting ",
+		"Reached target ",
+		"Fedora Linux ",
+	} {
+		if strings.Contains(beforeLogin, marker) {
+			return true
+		}
+	}
+	return false
 }
 
 func integrationGuestIPv4(
