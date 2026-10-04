@@ -88,6 +88,9 @@ func Install(ctx context.Context, assets fs.FS, opts Options) error {
 	}
 	fmt.Fprintln(setup.opts.Stdout, "LPIC Daily — configuration de l'environnement")
 
+	if err := setup.installUserBinary(); err != nil {
+		return err
+	}
 	if err := setup.configureDesktopIntegration(ctx); err != nil {
 		return err
 	}
@@ -132,6 +135,9 @@ func EnsureFirstRun(ctx context.Context, assets fs.FS, opts Options) error {
 		return err
 	}
 	fmt.Fprintln(setup.opts.Stdout, "Première utilisation: configuration automatique de LPIC Daily…")
+	if err := setup.installUserBinary(); err != nil {
+		return err
+	}
 	if err := setup.configureDesktopIntegration(ctx); err != nil {
 		return err
 	}
@@ -182,6 +188,116 @@ func newInstaller(assets fs.FS, opts Options) (*installer, error) {
 		opts:   opts,
 		input:  bufio.NewReader(opts.Stdin),
 	}, nil
+}
+
+func (setup *installer) installUserBinary() error {
+	if strings.TrimSpace(os.Getenv("LPIC_DAILY_SKIP_SELF_INSTALL")) == "1" {
+		return nil
+	}
+	executable, err := os.Executable()
+	if err != nil {
+		return fmt.Errorf("resolve current LPIC Daily executable: %w", err)
+	}
+	source, err := os.Open(executable)
+	if err != nil {
+		return fmt.Errorf("open current LPIC Daily executable: %w", err)
+	}
+	defer source.Close()
+
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+	binDir := filepath.Join(home, ".local", "bin")
+	if err := os.MkdirAll(binDir, 0o700); err != nil {
+		return fmt.Errorf("create user bin directory: %w", err)
+	}
+	targetPath := filepath.Join(binDir, "lpic")
+	sourceInfo, err := source.Stat()
+	if err != nil {
+		return err
+	}
+	if existingInfo, statErr := os.Stat(targetPath); statErr == nil &&
+		existingInfo.Size() == sourceInfo.Size() {
+		if same, compareErr := filesEqual(executable, targetPath); compareErr == nil && same {
+			return nil
+		}
+	}
+
+	temp, err := os.CreateTemp(binDir, ".lpic-install-*")
+	if err != nil {
+		return fmt.Errorf("create temporary user binary: %w", err)
+	}
+	tempPath := temp.Name()
+	cleanup := func() {
+		_ = temp.Close()
+		_ = os.Remove(tempPath)
+	}
+	if _, err := io.Copy(temp, source); err != nil {
+		cleanup()
+		return fmt.Errorf("copy LPIC Daily executable: %w", err)
+	}
+	if err := temp.Chmod(0o755); err != nil {
+		cleanup()
+		return err
+	}
+	if err := temp.Sync(); err != nil {
+		cleanup()
+		return err
+	}
+	if err := temp.Close(); err != nil {
+		_ = os.Remove(tempPath)
+		return err
+	}
+	if err := os.Rename(tempPath, targetPath); err != nil {
+		_ = os.Remove(tempPath)
+		return fmt.Errorf("install LPIC Daily executable: %w", err)
+	}
+	fmt.Fprintf(setup.opts.Stdout, "Binaire utilisateur: %s\n", targetPath)
+	return nil
+}
+
+func filesEqual(left, right string) (bool, error) {
+	leftFile, err := os.Open(left)
+	if err != nil {
+		return false, err
+	}
+	defer leftFile.Close()
+	rightFile, err := os.Open(right)
+	if err != nil {
+		return false, err
+	}
+	defer rightFile.Close()
+	leftInfo, err := leftFile.Stat()
+	if err != nil {
+		return false, err
+	}
+	rightInfo, err := rightFile.Stat()
+	if err != nil {
+		return false, err
+	}
+	if leftInfo.Size() != rightInfo.Size() {
+		return false, nil
+	}
+	const chunk = 64 * 1024
+	leftBuffer := make([]byte, chunk)
+	rightBuffer := make([]byte, chunk)
+	for {
+		leftN, leftErr := leftFile.Read(leftBuffer)
+		rightN, rightErr := rightFile.Read(rightBuffer)
+		if leftN != rightN || !bytes.Equal(leftBuffer[:leftN], rightBuffer[:rightN]) {
+			return false, nil
+		}
+		if leftErr == io.EOF && rightErr == io.EOF {
+			return true, nil
+		}
+		if leftErr != nil && leftErr != io.EOF {
+			return false, leftErr
+		}
+		if rightErr != nil && rightErr != io.EOF {
+			return false, rightErr
+		}
+	}
 }
 
 func (setup *installer) configureDesktopIntegration(ctx context.Context) error {
