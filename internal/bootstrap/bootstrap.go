@@ -20,6 +20,7 @@ import (
 
 const (
 	Phase1Image          = "localhost/lpic-daily/fedora-phase1:1"
+	Phase1BaseImage      = "registry.fedoraproject.org/fedora:44"
 	RequiredVMImageID    = "fedora-44-x86_64-v2"
 	firstRunMarker       = "bootstrap-v1"
 	notificationService  = "packaging/systemd/lpic-daily-notify.service"
@@ -248,6 +249,27 @@ func (setup *installer) ensurePodman(ctx context.Context) error {
 		return nil
 	}
 
+	if _, err := setup.opts.Runner.Run(ctx, "podman", "image", "exists", Phase1BaseImage); err != nil {
+		if !setup.confirm(
+			"Image de base Fedora 44 absente. Autoriser son téléchargement depuis registry.fedoraproject.org ?",
+			true,
+		) {
+			return errors.New("Phase-1 base image download declined")
+		}
+		fmt.Fprintln(setup.opts.Stdout, "Téléchargement explicite de l'image de base Fedora 44…")
+		if err := setup.opts.Runner.Interactive(
+			ctx,
+			setup.opts.Stdin,
+			setup.opts.Stdout,
+			setup.opts.Stderr,
+			"podman",
+			"pull",
+			Phase1BaseImage,
+		); err != nil {
+			return fmt.Errorf("pull Phase-1 Fedora base image: %w", err)
+		}
+	}
+
 	fmt.Fprintln(setup.opts.Stdout, "Image des labs Podman absente: construction automatique…")
 	contextDir, cleanup, err := setup.extractPhase1Context()
 	if err != nil {
@@ -261,6 +283,7 @@ func (setup *installer) ensurePodman(ctx context.Context) error {
 		setup.opts.Stderr,
 		"podman",
 		"build",
+		"--pull=never",
 		"--tag",
 		Phase1Image,
 		"--file",
