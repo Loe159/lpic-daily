@@ -13,6 +13,7 @@ import (
 	"io"
 	"io/fs"
 	"net"
+	"net/netip"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -176,7 +177,8 @@ func TestRealKVMIsolationScenarioAndCrashReaping(t *testing.T) {
 		t.Fatalf("peer ping exit = %d, want 0", result.ExitCode)
 	}
 
-	gatewayIP := integrationGuestDefaultGateway(t, ctx, backend, scenario.Instances[0])
+	gatewayIP := integrationGatewayForGuestIPv4(t, firstIP)
+	probeInstance := scenario.Instances[1]
 	gatewayListener, err := net.Listen("tcp4", net.JoinHostPort(gatewayIP, "0"))
 	if err != nil {
 		t.Fatalf("listen on isolated host gateway %s: %v", gatewayIP, err)
@@ -190,7 +192,7 @@ func TestRealKVMIsolationScenarioAndCrashReaping(t *testing.T) {
 		}
 		gatewayAccepted <- acceptErr
 	}()
-	result, err = backend.Exec(ctx, scenario.Instances[0], runner.ExecRequest{
+	result, err = backend.Exec(ctx, probeInstance, runner.ExecRequest{
 		Argv: []string{
 			"/usr/bin/timeout", "3", "/usr/bin/bash", "-c",
 			fmt.Sprintf("printf probe >/dev/tcp/%s/%d", gatewayIP, gatewayPort),
@@ -212,7 +214,7 @@ func TestRealKVMIsolationScenarioAndCrashReaping(t *testing.T) {
 		t.Fatal("host bridge gateway sentinel did not stop after listener close")
 	}
 
-	result, err = backend.Exec(ctx, scenario.Instances[0], runner.ExecRequest{
+	result, err = backend.Exec(ctx, probeInstance, runner.ExecRequest{
 		Argv: []string{"/usr/bin/ping", "-c", "1", "-W", "2", "1.1.1.1"},
 	})
 	if err != nil {
@@ -222,7 +224,7 @@ func TestRealKVMIsolationScenarioAndCrashReaping(t *testing.T) {
 		t.Fatal("isolated VM unexpectedly reached a public Internet address over ICMP")
 	}
 
-	result, err = backend.Exec(ctx, scenario.Instances[0], runner.ExecRequest{
+	result, err = backend.Exec(ctx, probeInstance, runner.ExecRequest{
 		Argv: []string{
 			"/usr/bin/timeout", "3", "/usr/bin/bash", "-c",
 			"printf probe >/dev/tcp/1.1.1.1/443",
@@ -244,7 +246,7 @@ func TestRealKVMIsolationScenarioAndCrashReaping(t *testing.T) {
 		}
 		uplinkAccepted <- acceptErr
 	}()
-	result, err = backend.Exec(ctx, scenario.Instances[0], runner.ExecRequest{
+	result, err = backend.Exec(ctx, probeInstance, runner.ExecRequest{
 		Argv: []string{
 			"/usr/bin/timeout", "3", "/usr/bin/bash", "-c",
 			fmt.Sprintf("printf probe >/dev/tcp/%s/%d", hostUplinkIP, uplinkPort),
@@ -269,7 +271,7 @@ func TestRealKVMIsolationScenarioAndCrashReaping(t *testing.T) {
 	// Attempt writes at host/base-looking paths from inside the guest. These must
 	// stay inside the VM; the host sentinel and immutable base are checked below.
 	var guestOutput bytes.Buffer
-	result, err = backend.Exec(ctx, scenario.Instances[0], runner.ExecRequest{
+	result, err = backend.Exec(ctx, probeInstance, runner.ExecRequest{
 		Argv:   []string{"/usr/bin/sh", "-c", "rm -f -- " + shellQuote(sentinelPath) + "; printf guest-write > /root/lpic-daily-isolation-probe"},
 		Stdout: &guestOutput,
 		Stderr: &guestOutput,
@@ -431,21 +433,18 @@ func integrationGuestIPv4(
 	)
 }
 
-func integrationGuestDefaultGateway(
-	t *testing.T,
-	ctx context.Context,
-	backend *Backend,
-	instance runner.Instance,
-) string {
+func integrationGatewayForGuestIPv4(t *testing.T, guestIP string) string {
 	t.Helper()
-	return integrationWaitForGuestIPv4(
-		t,
-		ctx,
-		backend,
-		instance,
-		"guest default gateway",
-		"ip -4 route show default | awk '{print $3; exit}'",
-	)
+	address, err := netip.ParseAddr(strings.TrimSpace(guestIP))
+	if err != nil || !address.Is4() {
+		t.Fatalf("parse guest IPv4 %q: %v", guestIP, err)
+	}
+	prefix := netip.PrefixFrom(address, isolatedSubnetBits).Masked()
+	gateway, _, _, _, err := isolatedSubnetAddresses(prefix)
+	if err != nil {
+		t.Fatalf("derive isolated gateway from guest IPv4 %s: %v", guestIP, err)
+	}
+	return gateway
 }
 
 func integrationWaitForGuestIPv4(
@@ -457,7 +456,7 @@ func integrationWaitForGuestIPv4(
 	command string,
 ) string {
 	t.Helper()
-	waitCtx, cancel := context.WithTimeout(ctx, 90*time.Second)
+	waitCtx, cancel := context.WithTimeout(ctx, 45*time.Second)
 	defer cancel()
 	ticker := time.NewTicker(250 * time.Millisecond)
 	defer ticker.Stop()
