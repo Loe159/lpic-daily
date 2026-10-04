@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"io/fs"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -96,7 +97,7 @@ func TestInstallConfiguresUserIntegrationAndBuildsMissingPodmanImage(t *testing.
 		if _, err := filepath.Glob(path); err != nil {
 			t.Fatalf("glob %s: %v", path, err)
 		}
-		if _, err := fs.Stat(osDirFSRoot{}, path); err != nil {
+		if _, err := os.Stat(path); err != nil {
 			t.Fatalf("expected installed file %s: %v", path, err)
 		}
 	}
@@ -106,12 +107,6 @@ func TestInstallConfiguresUserIntegrationAndBuildsMissingPodmanImage(t *testing.
 	if len(runner.interactive) != 1 || !strings.Contains(runner.interactive[0], "podman build") {
 		t.Fatalf("interactive calls = %#v", runner.interactive)
 	}
-}
-
-type osDirFSRoot struct{}
-
-func (osDirFSRoot) Open(name string) (fs.File, error) {
-	return nil, errors.New("not implemented")
 }
 
 func TestEnsureFirstRunUsesMarker(t *testing.T) {
