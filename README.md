@@ -1,42 +1,31 @@
-# LPIC Daily
+<p align="center">
+  <img src="assets/lpic-daily-banner.svg" alt="LPIC Daily — Apprends Linux. Pratique chaque jour." width="100%">
+</p>
 
-> Un environnement d’apprentissage Linux **terminal-first**, **local-first** et **offline-first** pour préparer LPIC-1 en pratiquant réellement l’administration système.
+<p align="center">
+  <strong>Un entraînement Linux quotidien, local et pratique pour préparer LPIC-1.</strong>
+</p>
 
-LPIC Daily transforme le programme LPIC-1 v5.0 (101-500 + 102-500) en une boucle quotidienne : micro-cours, rappel actif, questions déterministes, labs jetables, progression adaptative et notifications desktop.
+LPIC Daily transforme l’apprentissage de Linux en une routine courte et progressive : cours ciblés, questions de rappel, exercices pratiques et labs jetables directement depuis le terminal.
 
-Le projet privilégie les compétences transférables plutôt que la mémorisation de commandes : les labs évaluent l’**état final observable**, pas une séquence de commandes imposée.
+Au lieu de simplement mémoriser des commandes, tu manipules de vrais environnements Linux et LPIC Daily vérifie l’état final obtenu.
 
-## État du projet
+## Ce que tu peux faire
 
-- **Phase 1 — boucle d’apprentissage complète : validée**
-- **Phase 2 — labs VM libvirt/QEMU/KVM : validée sur hôte réel le 4 octobre 2026**
-- **Phase 3 — couverture Exam 101 : en cours**
-- Objectif 103.4 déjà intégré avec micro-leçons et questions quotidiennes déterministes
+- **Apprendre chaque jour** avec une séance adaptée à ta progression.
+- **Réviser au bon moment** grâce au suivi local de ta maîtrise.
+- **Pratiquer dans de vrais labs** sans risquer de casser ton système.
+- **Recevoir une notification quotidienne** et ouvrir directement ta séance.
+- **Suivre ta progression** avec XP, streaks et achievements.
+- **Travailler hors ligne** : les cours, questions, résultats et progrès restent locaux.
 
-Le scope machine-readable couvre actuellement **42 objectifs LPIC-1**, **295 concepts stables** et l’intégralité des **23 objectifs / 153 concepts Exam 101** comme cible de Phase 3.
+Le contenu est en français, avec les termes Linux conservés en anglais lorsqu’ils sont utilisés ainsi dans la pratique et dans LPIC.
 
-## Pourquoi LPIC Daily
+## Installation
 
-- **Pratique réelle, environnement jetable** : Podman rootless pour les labs légers, KVM/libvirt pour boot, stockage et scénarios full-system.
-- **Sécurité fail-closed** : aucun fallback vers l’exécution directe sur l’hôte.
-- **Progression adaptative** : prérequis, maîtrise, révisions dues et poids LPIC influencent la séance.
-- **Maîtrise fondée sur des preuves** : lecture, reconnaissance, rappel, pratique guidée, pratique autonome et transfer sont distingués.
-- **French-first** : explications en français, vocabulaire Linux conservé en anglais lorsqu’il est naturel.
-- **Local-first** : SQLite local, fonctionnement cœur sans cloud, compte ni IA.
-- **Gamification séparée** : XP, streaks et achievements motivent sans falsifier la maîtrise.
-- **Traçabilité LPIC** : chaque activité reste reliée aux objectifs officiels et à des concept IDs stables.
+LPIC Daily fonctionne sous Linux. Fedora est actuellement l’environnement le mieux intégré.
 
-## Démarrage rapide
-
-### Prérequis de développement
-
-- Linux
-- Go **1.27+**
-- Python 3
-- Podman pour les labs conteneur
-- KVM/libvirt + QEMU pour les labs VM
-
-### Build
+Pour compiler le projet, il te faut **Go 1.27+** :
 
 ```bash
 git clone https://github.com/Loe159/lpic-daily.git
@@ -45,182 +34,83 @@ go build -o lpic ./cmd/lpic
 ./lpic
 ```
 
-Au premier lancement interactif, LPIC Daily configure automatiquement ce qui peut l’être sans privilèges :
+Au premier lancement, LPIC Daily configure automatiquement les éléments utilisateur nécessaires. Lorsqu’une opération nécessite une installation système, un téléchargement ou `sudo`, elle est affichée et demande confirmation.
 
-- copie du binaire utilisateur dans `~/.local/bin/lpic`;
-- timer systemd utilisateur pour les notifications quotidiennes;
-- desktop entry;
-- socket Podman rootless lorsqu’il est disponible;
-- détection du terminal utilisé par l’action de notification.
-
-Les opérations privilégiées ou réseau importantes restent explicites et demandent confirmation.
-
-Pour préparer l’environnement à l’avance :
+Tu peux aussi préparer l’environnement explicitement :
 
 ```bash
 lpic install
 ```
 
-Pour différer KVM/libvirt :
+Si tu ne veux pas installer la partie KVM/libvirt tout de suite :
 
 ```bash
 lpic install --no-vm
 ```
 
-Pour une installation non interactive de développement :
-
-```bash
-lpic install --yes
-```
+> Les labs VM nécessitent également Python 3, QEMU/KVM et libvirt. Sur Fedora, LPIC Daily peut proposer d’installer les dépendances manquantes.
 
 ## Utilisation
 
+Lance simplement :
+
 ```bash
-lpic                    # dashboard TUI
-lpic today              # séance du jour
-lpic today --quick      # séance courte
-lpic assess             # évaluation initiale
-lpic doctor             # diagnostic de l’environnement
-lpic lab list           # labs disponibles
-lpic lab run <lab-id>   # lancer un lab
-lpic notify --force     # tester la notification
-lpic validate           # valider le contenu embarqué
+lpic
 ```
+
+Tu arrives sur le dashboard de ta séance du jour.
+
+Quelques commandes utiles :
+
+```bash
+lpic today              # afficher la séance du jour
+lpic today --quick      # séance plus courte
+lpic assess             # évaluation initiale
+lpic lab list           # voir les labs disponibles
+lpic lab run <lab-id>   # lancer un lab
+lpic doctor             # vérifier l'environnement
+```
+
+## Les labs
+
+Les exercices s’exécutent dans des environnements jetables :
+
+- **Podman rootless** pour les exercices de shell, fichiers, permissions et processus ;
+- **QEMU/KVM + libvirt** lorsqu’une vraie machine est nécessaire, par exemple pour le boot ou le stockage.
 
 Dans un lab :
 
 ```text
-:shell    shell PTY persistant dans la sandbox
-:check    évaluer l’état final
-:hint     afficher l’indice suivant
-:reset    recréer l’état jetable
-:quit     détruire le lab et quitter
+:shell    ouvrir un shell persistant
+:check    vérifier ton travail
+:hint     demander l'indice suivant
+:reset    recommencer le lab
+:quit     quitter et détruire l'environnement
 ```
 
-Les commandes apprenant sont exécutées **dans la sandbox uniquement**.
+Les commandes du lab ne sont jamais exécutées directement sur ton système hôte en fallback.
 
-## Isolation
+## Progression et données
 
-### Podman rootless
+Ta progression est stockée localement dans SQLite. Aucun compte ni service cloud n’est nécessaire pour utiliser le cœur de LPIC Daily.
 
-Utilisé pour shell, fichiers, processus et exercices ne nécessitant pas une machine complète.
+La maîtrise et la gamification sont séparées : gagner de l’XP ou maintenir un streak ne suffit pas à valider une compétence. Les concepts progressent selon les preuves réellement obtenues dans les cours, questions et exercices.
 
-Principes :
+## À propos de LPIC-1
 
-- rootless uniquement;
-- rootfs en lecture seule lorsque possible;
-- chemins écrivable explicitement bornés;
-- aucune montage arbitraire de l’hôte;
-- réseau désactivé par défaut;
-- limites CPU / RAM / PID / durée;
-- image résolue vers une identité immuable avant création.
+LPIC Daily suit les objectifs LPIC-1 v5.0 des examens **101-500** et **102-500**.
 
-### libvirt / QEMU / KVM
+Le projet cherche à couvrir le programme de certification tout en enseignant des pratiques Linux réellement utiles. Les connaissances historiques encore demandées à l’examen sont distinguées des pratiques modernes lorsque c’est nécessaire.
 
-Utilisé lorsque l’objectif dépend du kernel, du bootloader, du stockage bloc ou d’une machine complète.
-
-Principes :
-
-- processus LPIC Daily non-root;
-- `qemu:///system` local uniquement;
-- bases QCOW2 vérifiées et immuables;
-- overlays jetables par exécution;
-- aucun passthrough PCI/USB arbitraire;
-- réseaux isolés sans forwarding Internet/LAN;
-- ownership des ressources libvirt vérifié;
-- nettoyage et reaping des ressources abandonnées.
-
-Voir `docs/SECURITY.md` et `docs/THREAT_MODEL.md`.
-
-## Architecture
-
-```text
-TUI / CLI
-   |
-   +-- curriculum ------ machine-readable LPIC scope
-   +-- content --------- lessons / questions
-   +-- learning -------- evidence / mastery / scheduler
-   +-- progress -------- SQLite
-   +-- lab ------------- orchestration
-       |
-       +-- runner/podman
-       +-- runner/libvirt
-       +-- checker
-```
-
-Principaux répertoires :
-
-```text
-cmd/lpic/              CLI et orchestration
-internal/learning/     evidence, mastery, scheduler
-internal/progress/     persistence SQLite
-internal/runner/       contrats de sandbox + backends
-internal/checker/      grading par état observable
-internal/lab/          chargement et orchestration des labs
-content/               micro-leçons et questions
-curriculum/            graphe LPIC et concept IDs
-labs/                  labs et fixtures
-schemas/               contrats JSON
-docs/                  architecture, sécurité, produit, ADR
-scripts/               validations et tooling
-```
-
-## Validation
-
-Validation standard :
-
-```bash
-python3 scripts/validate_foundation.py
-go mod tidy && git diff --exit-code -- go.mod go.sum
-test -z "$(find . -name '*.go' -type f -print0 | xargs -0 gofmt -l)"
-go test ./...
-go vet ./...
-go run ./cmd/lpic validate
-```
-
-Acceptance KVM sur un hôte compatible :
-
-```bash
-LPIC_DAILY_RUN_KVM_INTEGRATION=1 scripts/run_phase2_acceptance.sh
-```
-
-Audit de progression Exam 101 :
-
-```bash
-python3 scripts/audit_phase3_coverage.py --check
-```
-
-Gate de couverture théorique Phase 3 :
-
-```bash
-python3 scripts/audit_phase3_coverage.py --require-complete
-```
+> LPIC Daily est un projet indépendant et n’est pas affilié à Linux Professional Institute. Le contenu pédagogique du projet est original.
 
 ## Contribuer
 
-Avant une modification importante :
+Les contributions sont bienvenues. Consulte [CONTRIBUTING.md](CONTRIBUTING.md) pour commencer.
 
-1. lire `AGENTS.md`;
-2. lire les ADR et documents du domaine modifié;
-3. conserver les invariants de sécurité et la traçabilité objective/concept;
-4. ajouter ou mettre à jour les tests;
-5. exécuter les validations pertinentes;
-6. mettre à jour la documentation si le comportement change.
+## Licence
 
-Les règles détaillées de contribution assistée par agents sont dans `docs/CONTRIBUTING_WITH_AGENTS.md`.
+Le code est distribué sous **Apache-2.0**.  
+Le contenu éducatif et la documentation originale sont distribués sous **CC BY 4.0**.
 
-## Roadmap
-
-- Phase 3 : terminer Exam 101 (topics 101–104)
-- Phase 4 : couvrir Exam 102 (topics 105–110)
-- Phase 5 : renforcer interleaving, transfer, assessments et explicabilité
-- Phase 6 : simulation d’examen, packaging, update/signing et hardening final
-
-Voir `docs/plan/ROADMAP.md`.
-
-## Licences
-
-- Code : **Apache-2.0** — voir `LICENSE`
-- Contenu éducatif et documentation originale : **CC BY 4.0** — voir `LICENSE-CONTENT.md`
-
-LPIC Daily est un projet indépendant. Les contenus pédagogiques sont originaux et ne reproduisent pas les supports propriétaires de LPI.
+Voir [LICENSE](LICENSE) et [LICENSE-CONTENT.md](LICENSE-CONTENT.md).
