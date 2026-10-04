@@ -3,6 +3,7 @@ package desktop_test
 import (
 	"context"
 	"errors"
+	"os"
 	"reflect"
 	"testing"
 
@@ -59,14 +60,33 @@ func TestSendDailyFailsClosedWhenNotifierFails(t *testing.T) {
 	}
 }
 
-func TestLaunchDailyUsesExplicitArgumentVector(t *testing.T) {
-	t.Setenv("LPIC_DAILY_TERMINAL_LAUNCHER", "")
+func TestLaunchDailyUsesConfiguredLauncherAndBinary(t *testing.T) {
+	t.Setenv("LPIC_DAILY_TERMINAL_LAUNCHER", "kitty -e")
+	t.Setenv("LPIC_DAILY_BINARY", "/home/test/.local/bin/lpic")
 	executor := &fakeExecutor{}
 	if err := desktop.LaunchDaily(context.Background(), executor); err != nil {
 		t.Fatalf("LaunchDaily() error = %v", err)
 	}
-	want := call{name: "xdg-terminal-exec", args: []string{"--", "lpic", "tui"}}
+	want := call{name: "kitty", args: []string{"-e", "/home/test/.local/bin/lpic", "tui"}}
 	if len(executor.starts) != 1 || !reflect.DeepEqual(executor.starts[0], want) {
 		t.Fatalf("starts = %#v, want %#v", executor.starts, want)
+	}
+}
+
+func TestDetectTerminalLauncherFallsBackToKitty(t *testing.T) {
+	t.Setenv("LPIC_DAILY_TERMINAL_LAUNCHER", "")
+	dir := t.TempDir()
+	kitty := dir + "/kitty"
+	if err := os.WriteFile(kitty, []byte("#!/bin/sh\n"), 0o755); err != nil {
+		t.Fatalf("write kitty stub: %v", err)
+	}
+	t.Setenv("PATH", dir)
+
+	launcher, err := desktop.DetectTerminalLauncher()
+	if err != nil {
+		t.Fatalf("DetectTerminalLauncher() error = %v", err)
+	}
+	if launcher.Command != "kitty" || !reflect.DeepEqual(launcher.Prefix, []string{"--"}) {
+		t.Fatalf("launcher = %#v", launcher)
 	}
 }
