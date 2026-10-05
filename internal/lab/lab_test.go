@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	lpicdaily "github.com/Loe159/lpic-daily"
+	"github.com/Loe159/lpic-daily/internal/curriculum"
 	"github.com/Loe159/lpic-daily/internal/lab"
 	"github.com/Loe159/lpic-daily/internal/runner"
 )
@@ -426,7 +427,7 @@ func TestFailedResetCleanupRemainsRetryable(t *testing.T) {
 
 
 func TestBuiltinLabsProvideTwoPracticeContextsPerActiveConcept(t *testing.T) {
-	labs, err := LoadAll(lpicdaily.BuiltinFS)
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
 	if err != nil {
 		t.Fatalf("LoadAll() error = %v", err)
 	}
