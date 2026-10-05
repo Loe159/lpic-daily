@@ -309,6 +309,10 @@ func TestEveryConceptAnchorAppearsInFocusedLesson(t *testing.T) {
 			if !strings.Contains(body, "`"+anchor+"`") {
 				t.Errorf("%s anchor %q missing from focused lesson", concept.ID, anchor)
 			}
+			explanation := standaloneTermExplanation(anchor, concept.ObjectiveID)
+			if !strings.Contains(body, explanation) {
+				t.Errorf("%s anchor %q explanation missing from focused lesson", concept.ID, anchor)
+			}
 		}
 	}
 }
