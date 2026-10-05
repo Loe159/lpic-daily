@@ -425,7 +425,6 @@ func TestFailedResetCleanupRemainsRetryable(t *testing.T) {
 	}
 }
 
-
 func TestBuiltinLabsProvideTwoPracticeContextsPerActiveConcept(t *testing.T) {
 	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
 	if err != nil {
