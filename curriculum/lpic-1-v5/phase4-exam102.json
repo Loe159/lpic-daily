@@ -1,0 +1,227 @@
+{
+  "schema_version": "1.0.0",
+  "id": "phase4-exam102",
+  "certification": "LPIC-1",
+  "syllabus_version": "5.0.0",
+  "exam": "102",
+  "exam_code": "102-500",
+  "topics": [
+    "105",
+    "106",
+    "107",
+    "108",
+    "109",
+    "110"
+  ],
+  "selected_objectives": [
+    "105.1",
+    "105.2",
+    "106.1",
+    "106.2",
+    "106.3",
+    "107.1",
+    "107.2",
+    "107.3",
+    "108.1",
+    "108.2",
+    "108.3",
+    "108.4",
+    "109.1",
+    "109.2",
+    "109.3",
+    "109.4",
+    "110.1",
+    "110.2",
+    "110.3"
+  ],
+  "objective_concepts": {
+    "105.1": [
+      "lpic1.105.1.login-shell-vs-shell-interactif",
+      "lpic1.105.1.ordre-finalite-fichiers-de-profil",
+      "lpic1.105.1.variables-environnement",
+      "lpic1.105.1.fonctions-aliases",
+      "lpic1.105.1.path",
+      "lpic1.105.1.etc-skel",
+      "lpic1.105.1.configuration-globale-vs-utilisateur"
+    ],
+    "105.2": [
+      "lpic1.105.2.shebang-et-execution",
+      "lpic1.105.2.variables-arguments",
+      "lpic1.105.2.tests-et-statuts-de-sortie",
+      "lpic1.105.2.if",
+      "lpic1.105.2.boucles-for-while",
+      "lpic1.105.2.lecture-entree",
+      "lpic1.105.2.substitution-de-commande",
+      "lpic1.105.2.chainage",
+      "lpic1.105.2.exec",
+      "lpic1.105.2.emplacement-permissions-de-scripts",
+      "lpic1.105.2.actions-conditionnelles-comme-mail"
+    ],
+    "106.1": [
+      "lpic1.106.1.client-serveur-x11",
+      "lpic1.106.1.display",
+      "lpic1.106.1.xauthority-et-acces",
+      "lpic1.106.1.configuration-xorg",
+      "lpic1.106.1.clavier-affichage",
+      "lpic1.106.1.display-manager-window-manager",
+      "lpic1.106.1.x-distant",
+      "lpic1.106.1.concepts-de-base-wayland"
+    ],
+    "106.2": [
+      "lpic1.106.2.roles-desktop-environment-window-manager-display-manager",
+      "lpic1.106.2.caracteristiques-generales-kde-gnome-xfce",
+      "lpic1.106.2.protocoles-d-acces-graphique-distant",
+      "lpic1.106.2.differences-vnc-rdp-spice-xdmcp"
+    ],
+    "106.3": [
+      "lpic1.106.3.contraste-themes",
+      "lpic1.106.3.lecteur-d-ecran",
+      "lpic1.106.3.braille",
+      "lpic1.106.3.magnification",
+      "lpic1.106.3.clavier-virtuel",
+      "lpic1.106.3.sticky-slow-bounce-toggle-keys",
+      "lpic1.106.3.controle-souris-au-clavier",
+      "lpic1.106.3.gestes",
+      "lpic1.106.3.reconnaissance-vocale"
+    ],
+    "107.1": [
+      "lpic1.107.1.bases-passwd-shadow-group",
+      "lpic1.107.1.creation-modification-suppression-comptes",
+      "lpic1.107.1.verrouillage-et-expiration",
+      "lpic1.107.1.groupes-primaires-secondaires",
+      "lpic1.107.1.comptes-systeme-a-usage-limite",
+      "lpic1.107.1.squelettes",
+      "lpic1.107.1.lookup-via-nss-getent"
+    ],
+    "107.2": [
+      "lpic1.107.2.crontab-utilisateur-systeme",
+      "lpic1.107.2.syntaxe-calendrier-cron",
+      "lpic1.107.2.at-taches-ponctuelles",
+      "lpic1.107.2.allow-deny",
+      "lpic1.107.2.spool-concept",
+      "lpic1.107.2.systemd-timers-et-transient-timers",
+      "lpic1.107.2.choix-cron-vs-timer"
+    ],
+    "107.3": [
+      "lpic1.107.3.locale-et-categories-lc",
+      "lpic1.107.3.lang-lc-all-priorite",
+      "lpic1.107.3.timezone-systeme-utilisateur",
+      "lpic1.107.3.utc-vs-heure-locale",
+      "lpic1.107.3.utf-8-unicode-ascii-iso-8859",
+      "lpic1.107.3.conversion-encodage",
+      "lpic1.107.3.configuration-timezone-avec-timedatectl-tzselect",
+      "lpic1.107.3.lang-c-et-scripts-reproductibles"
+    ],
+    "108.1": [
+      "lpic1.108.1.horloge-systeme-vs-rtc",
+      "lpic1.108.1.utc",
+      "lpic1.108.1.timezone",
+      "lpic1.108.1.ntp",
+      "lpic1.108.1.chrony",
+      "lpic1.108.1.sources-pools",
+      "lpic1.108.1.inspection-etat-synchronisation",
+      "lpic1.108.1.configuration-de-base",
+      "lpic1.108.1.inspection-ntp-avec-ntpq"
+    ],
+    "108.2": [
+      "lpic1.108.2.syslog-facilities-priorities-actions",
+      "lpic1.108.2.rsyslog-configuration",
+      "lpic1.108.2.journald-requetes-filtres",
+      "lpic1.108.2.persistance-taille-vacuum-journal",
+      "lpic1.108.2.interaction-journald-rsyslog",
+      "lpic1.108.2.rotation-logs",
+      "lpic1.108.2.logger-systemd-cat",
+      "lpic1.108.2.connaissance-syslog-ng",
+      "lpic1.108.2.journalisation-distante-rsyslog",
+      "lpic1.108.2.recuperation-journal-systemd"
+    ],
+    "108.3": [
+      "lpic1.108.3.role-mta",
+      "lpic1.108.3.aliases",
+      "lpic1.108.3.forward-utilisateur",
+      "lpic1.108.3.file-d-attente",
+      "lpic1.108.3.interface-sendmail-compatible",
+      "lpic1.108.3.connaissance-postfix-sendmail-exim",
+      "lpic1.108.3.mail-local-de-scripts"
+    ],
+    "108.4": [
+      "lpic1.108.4.architecture-client-serveur-cups",
+      "lpic1.108.4.queues-imprimantes-locales-et-distantes",
+      "lpic1.108.4.jobs-impression",
+      "lpic1.108.4.configuration-de-base",
+      "lpic1.108.4.diagnostic-queue",
+      "lpic1.108.4.compatibilite-commandes-bsd-system-v-de-base"
+    ],
+    "109.1": [
+      "lpic1.109.1.ipv4-et-ipv6",
+      "lpic1.109.1.cidr-masques-sous-reseaux",
+      "lpic1.109.1.adresses-privees-publiques",
+      "lpic1.109.1.tcp-vs-udp-vs-icmp",
+      "lpic1.109.1.ports-et-services-courants",
+      "lpic1.109.1.boucle-locale-et-routes-conceptuelles",
+      "lpic1.109.1.lecture-etc-services",
+      "lpic1.109.1.caracteristiques-ipv6"
+    ],
+    "109.2": [
+      "lpic1.109.2.hostname",
+      "lpic1.109.2.hosts-nss-resolv-conf",
+      "lpic1.109.2.configuration-ip-gateway-dns",
+      "lpic1.109.2.networkmanager-nmcli",
+      "lpic1.109.2.interfaces-ethernet-wi-fi",
+      "lpic1.109.2.connaissance-systemd-networkd",
+      "lpic1.109.2.ifup-ifdown-historique",
+      "lpic1.109.2.persistance-et-ordre-resolution"
+    ],
+    "109.3": [
+      "lpic1.109.3.interfaces-adresses-routes-via-iproute2",
+      "lpic1.109.3.default-gateway",
+      "lpic1.109.3.sockets-via-ss",
+      "lpic1.109.3.connectivite-icmp",
+      "lpic1.109.3.chemin-reseau",
+      "lpic1.109.3.tests-tcp-udp-avec-netcat",
+      "lpic1.109.3.legacy-net-tools",
+      "lpic1.109.3.distinction-panne-l2-l3-dns-service"
+    ],
+    "109.4": [
+      "lpic1.109.4.ordre-de-resolution-nss",
+      "lpic1.109.4.hosts-vs-dns",
+      "lpic1.109.4.resolver-configuration",
+      "lpic1.109.4.requetes-a-aaaa-mx-ns-courantes",
+      "lpic1.109.4.diagnostic-dns",
+      "lpic1.109.4.systemd-resolved-awareness",
+      "lpic1.109.4.difference-resolution-locale-et-serveur-dns"
+    ],
+    "110.1": [
+      "lpic1.110.1.audit-suid-sgid",
+      "lpic1.110.1.politiques-mot-de-passe-expiration",
+      "lpic1.110.1.ports-processus-ouverts",
+      "lpic1.110.1.fichiers-ouverts",
+      "lpic1.110.1.limites-ressources",
+      "lpic1.110.1.sessions-historique-login",
+      "lpic1.110.1.sudo-de-base",
+      "lpic1.110.1.recherche-d-exposition"
+    ],
+    "110.2": [
+      "lpic1.110.2.shadow-passwords",
+      "lpic1.110.2.desactivation-services-inutiles",
+      "lpic1.110.2.login-interdit-via-nologin",
+      "lpic1.110.2.socket-activation-systemd",
+      "lpic1.110.2.xinetd-historique",
+      "lpic1.110.2.tcp-wrappers-historique",
+      "lpic1.110.2.principe-surface-d-attaque-minimale"
+    ],
+    "110.3": [
+      "lpic1.110.3.ssh-client-serveur-concepts",
+      "lpic1.110.3.cles-utilisateur-et-host-keys",
+      "lpic1.110.3.known-hosts-authorized-keys",
+      "lpic1.110.3.ssh-agent",
+      "lpic1.110.3.tunnels-local-remote-dynamic-et-x11-forwarding",
+      "lpic1.110.3.gpg-cles-signatures-chiffrement",
+      "lpic1.110.3.revocation",
+      "lpic1.110.3.verification-identite-integrite"
+    ]
+  },
+  "concept_count": 147,
+  "scope_source": "https://www.lpi.org/fr/exam-101-102-objectives/",
+  "scope_verified_on": "2026-10-05"
+}
