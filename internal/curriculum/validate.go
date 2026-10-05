@@ -160,9 +160,32 @@ func Validate(bundle *Bundle) error {
 			errs = append(errs, fmt.Errorf("%s concept count drift", objective.ID))
 			continue
 		}
+		anchoredTerms := make(map[string]struct{})
+		anchorSignatures := make(map[string]string)
 		for index := range concepts {
 			if concepts[index].TitleFR != objective.Concepts[index] {
 				errs = append(errs, fmt.Errorf("%s concept order/title drift at position %d", objective.ID, index+1))
+			}
+			for _, anchor := range concepts[index].AnchorTerms {
+				anchoredTerms[anchor] = struct{}{}
+			}
+			signatureTerms := slices.Clone(concepts[index].AnchorTerms)
+			slices.Sort(signatureTerms)
+			signature := strings.Join(signatureTerms, "\x00")
+			if previous, duplicate := anchorSignatures[signature]; duplicate {
+				errs = append(errs, fmt.Errorf(
+					"%s concepts %s and %s have identical anchor terms",
+					objective.ID,
+					previous,
+					concepts[index].ID,
+				))
+			} else {
+				anchorSignatures[signature] = concepts[index].ID
+			}
+		}
+		for _, term := range objective.TermsFilesUtilities {
+			if _, anchored := anchoredTerms[term]; !anchored {
+				errs = append(errs, fmt.Errorf("%s official term %q is not anchored to any concept", objective.ID, term))
 			}
 		}
 	}
