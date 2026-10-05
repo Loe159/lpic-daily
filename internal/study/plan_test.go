@@ -642,3 +642,48 @@ func TestIndependentConceptSkipsUnusedLabIDInAlreadyUsedPracticeContext(t *testi
 		t.Fatalf("recommended lab = %q, want materially different practice context", got)
 	}
 }
+
+
+func TestCompletedExam101CanProgressIntoExam102(t *testing.T) {
+	curriculumBundle, contentBundle, labs := loadInputs(t)
+	now := time.Date(2026, 10, 5, 18, 0, 0, 0, time.UTC)
+	evidence := memoryEvidence{}
+
+	objectiveExam := make(map[string]string)
+	for _, objective := range curriculumBundle.Objectives.Objectives {
+		if objective.Active {
+			objectiveExam[objective.ID] = objective.Exam
+		}
+	}
+	for _, concept := range curriculumBundle.Concepts.Concepts {
+		if !concept.Active || objectiveExam[concept.ObjectiveID] != "101" {
+			continue
+		}
+		evidence[concept.ID] = []learning.EvidenceEvent{{
+			EventID:      "exam101-ready-" + concept.ID,
+			OccurredAt:   now,
+			ConceptID:    concept.ID,
+			ObjectiveIDs: []string{concept.ObjectiveID},
+			SourceItemID: "exam101-ready",
+			ActivityKind: learning.ActivityQuestion,
+			EvidenceKind: learning.EvidenceRecall,
+			Result:       learning.ResultPass,
+			Distribution: "generic",
+			AttemptIndex: 1,
+		}}
+	}
+
+	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
+		Now: now, Curriculum: curriculumBundle, Content: contentBundle, Labs: labs,
+		Evidence: evidence, Policy: learning.DefaultSessionPolicy(),
+	})
+	if err != nil {
+		t.Fatalf("BuildPlan() error = %v", err)
+	}
+	if len(plan.Items) == 0 {
+		t.Fatal("plan is empty after completing Exam 101; want an Exam 102 concept")
+	}
+	if got := objectiveExam[plan.Items[0].ObjectiveID]; got != "102" {
+		t.Fatalf("first new objective = %s (exam %s), want Exam 102", plan.Items[0].ObjectiveID, got)
+	}
+}
