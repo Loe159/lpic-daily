@@ -17,6 +17,7 @@ const (
 	conceptsPath      = "curriculum/lpic-1-v5/concepts.json"
 	phase1Path        = "curriculum/lpic-1-v5/phase1-slice.json"
 	phase3Path        = "curriculum/lpic-1-v5/phase3-exam101.json"
+	phase4Path        = "curriculum/lpic-1-v5/phase4-exam102.json"
 	schemasDir        = "schemas"
 )
 
@@ -47,6 +48,9 @@ func Load(fsys fs.FS) (*Bundle, error) {
 		return nil, err
 	}
 	if err := decodeStrictFile(fsys, phase3Path, &bundle.Phase3); err != nil {
+		return nil, err
+	}
+	if err := decodeStrictFile(fsys, phase4Path, &bundle.Phase4); err != nil {
 		return nil, err
 	}
 
