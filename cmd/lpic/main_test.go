@@ -146,8 +146,41 @@ func TestQuestionGradesNumberedChoiceAndRecordsResult(t *testing.T) {
 	); err != nil {
 		t.Fatalf("question error = %v", err)
 	}
-	if !strings.Contains(stdout.String(), "Correct.") {
-		t.Fatalf("question output = %q", stdout.String())
+	output := stdout.String()
+	for _, want := range []string{"✓ CORRECT", "`&&` exécute la commande de droite seulement si la commande de gauche retourne le statut 0.", "XP:"} {
+		if !strings.Contains(output, want) {
+			t.Fatalf("question output missing %q: %q", want, output)
+		}
+	}
+	if strings.Index(output, "✓ CORRECT") > strings.Index(output, "XP:") {
+		t.Fatalf("question result should be visible before gamification output: %q", output)
+	}
+}
+
+func TestQuestionIncorrectFeedbackIsVisuallyDistinct(t *testing.T) {
+	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
+
+	var stdout bytes.Buffer
+	if err := runWithIO(
+		[]string{"question", "lpic1.103.1.q.single-quotes"},
+		strings.NewReader("2\n"),
+		&stdout,
+		&bytes.Buffer{},
+	); err != nil {
+		t.Fatalf("question error = %v", err)
+	}
+	output := stdout.String()
+	for _, want := range []string{
+		"✗ INCORRECT",
+		"Les apostrophes simples désactivent l'expansion des paramètres dans leur contenu.",
+		"Cette notion reste à consolider.",
+	} {
+		if !strings.Contains(output, want) {
+			t.Fatalf("question output missing %q: %q", want, output)
+		}
+	}
+	if strings.Index(output, "✗ INCORRECT") > strings.Index(output, "XP:") {
+		t.Fatalf("question result should be visible before gamification output: %q", output)
 	}
 }
 
