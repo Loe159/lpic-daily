@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/Loe159/lpic-daily/internal/content"
@@ -356,7 +357,17 @@ func recommendedLab(
 		return ""
 	}
 	candidates := slices.Clone(labIDs)
-	slices.Sort(candidates)
+	slices.SortFunc(candidates, func(a, b string) int {
+		aStandalone := strings.Contains(a, ".standalone-")
+		bStandalone := strings.Contains(b, ".standalone-")
+		if aStandalone != bStandalone {
+			if aStandalone {
+				return 1
+			}
+			return -1
+		}
+		return strings.Compare(a, b)
+	})
 	if stage < learning.StageIndependent {
 		return candidates[0]
 	}
