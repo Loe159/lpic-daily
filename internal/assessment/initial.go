@@ -17,6 +17,11 @@ var InitialPhase1QuestionIDs = []string{
 	"lpic1.103.1.assess.history",
 	"lpic1.103.1.assess.type",
 	"lpic1.103.1.assess.uname-release",
+	"lpic1.103.1.set-env-et-portee-des-variables.q.autonomous-recall",
+	"lpic1.103.1.export-unset-et-processus-enfants.q.autonomous-recall",
+	"lpic1.103.1.execution-de-commandes-hors-path.q.autonomous-recall",
+	"lpic1.103.1.edition-et-persistance-de-l-historique.q.autonomous-recall",
+	"lpic1.103.1.echo-et-expansion-shell.q.autonomous-recall",
 }
 
 type EvidenceReader interface {
