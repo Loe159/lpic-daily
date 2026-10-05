@@ -803,6 +803,7 @@ var standaloneTermExplanations = map[string]string{
 	"newaliases":                 "reconstruit la base d'aliases du MTA compatible",
 	"mail":                       "client mail en ligne de commande pour courrier local selon implémentation",
 	"mailq":                      "affiche la file d'attente MTA via interface compatible",
+	"MTA":                        "Mail Transfer Agent : logiciel chargé de transférer et acheminer le courrier électronique entre files et destinations",
 	"postfix":                    "MTA courant",
 	"exim":                       "MTA courant notamment sur certains systèmes Debian",
 	"lpr":                        "soumet un job d'impression via interface compatible BSD",
