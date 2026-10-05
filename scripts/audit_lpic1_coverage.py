@@ -90,6 +90,11 @@ def main():
         objective = next(o for o in objectives if o["id"] == concept["objective_id"])
         if not concept.get("title_fr"):
             errors.append(f"{concept['id']}: empty title")
+        anchors = concept.get("anchor_terms", [])
+        if not anchors:
+            errors.append(f"{concept['id']}: no explicit anchor_terms")
+        if len(anchors) != len(set(anchors)):
+            errors.append(f"{concept['id']}: duplicate anchor_terms")
         if "lpic-required" not in concept.get("classification", []):
             errors.append(f"{concept['id']}: missing lpic-required classification")
         # Runtime coverage contract.
