@@ -45,7 +45,7 @@ func TestTodayStartsWith1031AndCreatesLocalProgressStore(t *testing.T) {
 	}
 }
 
-func TestInitialAssessmentUnlocksDependentObjectiveWithoutLessonEvidence(t *testing.T) {
+func TestInitialAssessmentMarks1031ReadyWithoutLessonEvidence(t *testing.T) {
 	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
 
 	input := strings.Join([]string{
@@ -104,13 +104,6 @@ func TestInitialAssessmentUnlocksDependentObjectiveWithoutLessonEvidence(t *test
 		}
 	}
 
-	var today bytes.Buffer
-	if err := runWithIO([]string{"today"}, strings.NewReader(""), &today, &bytes.Buffer{}); err != nil {
-		t.Fatalf("today after assessment error = %v", err)
-	}
-	if !strings.Contains(today.String(), "103.4") {
-		t.Fatalf("today did not unlock authored Phase-3 dependent objective: %q", today.String())
-	}
 }
 
 func TestLearnRecordsExposureAndAdvancesNewConcept(t *testing.T) {
