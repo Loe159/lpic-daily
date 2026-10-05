@@ -49,19 +49,6 @@ func synthesizeStandaloneContent(
 		}
 	}
 
-	dailyQuestions := make(map[string]int)
-	recallQuestions := make(map[string]bool)
-	for _, question := range bundle.Questions {
-		if question.Usage == "initial-assessment" {
-			continue
-		}
-		for _, conceptID := range question.ConceptIDs {
-			dailyQuestions[conceptID]++
-			if question.EvidenceKindOnSuccess == "recall" {
-				recallQuestions[conceptID] = true
-			}
-		}
-	}
 
 	for _, objective := range curriculumBundle.Objectives.Objectives {
 		if !objective.Active {
@@ -89,30 +76,18 @@ func synthesizeStandaloneContent(
 				return fmt.Errorf("concept %s has %d focused introductions, want exactly one", concept.ID, focusedIntroduction[concept.ID])
 			}
 
-			if !recallQuestions[concept.ID] {
-				question := generatedRecallQuestion(objective, concept, index, len(concepts))
+			for _, question := range []Question{
+				generatedRecallQuestion(objective, concept, index, len(concepts)),
+				generatedRecognitionQuestion(objective, concept, concepts, index),
+			} {
 				if err := validateQuestion(question, knownObjectives, knownConcepts); err != nil {
 					return fmt.Errorf("%s: %w", question.ID, err)
 				}
 				if previous, duplicate := seenIDs[question.ID]; duplicate {
 					return fmt.Errorf("generated question %s conflicts with %s", question.ID, previous)
 				}
-				seenIDs[question.ID] = "generated standalone recall question"
+				seenIDs[question.ID] = "generated standalone question"
 				bundle.Questions = append(bundle.Questions, question)
-				dailyQuestions[concept.ID]++
-				recallQuestions[concept.ID] = true
-			}
-			if dailyQuestions[concept.ID] < 2 {
-				question := generatedRecognitionQuestion(objective, concept, concepts, index)
-				if err := validateQuestion(question, knownObjectives, knownConcepts); err != nil {
-					return fmt.Errorf("%s: %w", question.ID, err)
-				}
-				if previous, duplicate := seenIDs[question.ID]; duplicate {
-					return fmt.Errorf("generated question %s conflicts with %s", question.ID, previous)
-				}
-				seenIDs[question.ID] = "generated standalone recognition question"
-				bundle.Questions = append(bundle.Questions, question)
-				dailyQuestions[concept.ID]++
 			}
 		}
 	}
