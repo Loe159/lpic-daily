@@ -42,13 +42,13 @@ Pipes/redirections restent prioritaires dans le cursus complet, mais les trois o
 Le slice ne crée pas une version simplifiée artificielle de ces objectifs: les concepts listés dans `concepts.json` pour 103.1, 103.5 et 104.5 doivent tous avoir au minimum une stratégie de couverture avant la sortie de Phase 1.
 
 Cela représente actuellement:
-- 103.1: 7 concepts;
+- 103.1: 12 concepts;
 - 103.5: 7 concepts;
 - 104.5: 8 concepts.
 
 Total: **27 concepts**.
 
-Le premier vertical slice peut approfondir certains concepts plus que d'autres, mais aucun des 22 ne doit être invisible dans la matrice de couverture.
+Le premier vertical slice peut approfondir certains concepts plus que d'autres, mais aucun des 27 ne doit être invisible dans la matrice de couverture.
 
 ## Trois scenarios de référence
 
