@@ -425,8 +425,9 @@ func TestRecognitionOnlyConceptPrefersLabOnDueReview(t *testing.T) {
 		if item.ConceptID != conceptID {
 			continue
 		}
-		if item.Kind != learning.SessionReview || !item.PreferLab || item.RecommendedLabID == "" {
-			t.Fatalf("recognized exposed review = %#v, want lab-preferred review", item)
+		if item.Kind != learning.SessionReview || !item.PreferLab ||
+			item.RecommendedLabID != "lpic1.103.1.shell-environment-repair" {
+			t.Fatalf("recognized exposed review = %#v, want bespoke lab-preferred review", item)
 		}
 		return
 	}
