@@ -124,6 +124,21 @@ func Validate(bundle *Bundle) error {
 			continue
 		}
 		conceptsByObjective[concept.ObjectiveID] = append(conceptsByObjective[concept.ObjectiveID], concept)
+		if concept.Active && len(concept.AnchorTerms) == 0 {
+			errs = append(errs, fmt.Errorf("active concept %s requires at least one anchor term", concept.ID))
+		}
+		seenAnchors := make(map[string]struct{}, len(concept.AnchorTerms))
+		for _, anchor := range concept.AnchorTerms {
+			anchor = strings.TrimSpace(anchor)
+			if anchor == "" {
+				errs = append(errs, fmt.Errorf("concept %s contains an empty anchor term", concept.ID))
+				continue
+			}
+			if _, duplicate := seenAnchors[anchor]; duplicate {
+				errs = append(errs, fmt.Errorf("concept %s repeats anchor term %q", concept.ID, anchor))
+			}
+			seenAnchors[anchor] = struct{}{}
+		}
 		if !slices.Equal(concept.InheritedHardObjectivePrerequisites, nodeByID[concept.ObjectiveID].HardPrerequisites) {
 			errs = append(errs, fmt.Errorf("concept %s inherited prerequisites drift", concept.ID))
 		}
