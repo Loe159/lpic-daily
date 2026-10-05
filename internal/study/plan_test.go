@@ -643,7 +643,6 @@ func TestIndependentConceptSkipsUnusedLabIDInAlreadyUsedPracticeContext(t *testi
 	}
 }
 
-
 func TestCompletedExam101CanProgressIntoExam102(t *testing.T) {
 	curriculumBundle, contentBundle, labs := loadInputs(t)
 	now := time.Date(2026, 10, 5, 18, 0, 0, 0, time.UTC)
