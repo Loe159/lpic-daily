@@ -11,9 +11,9 @@ The primary product outcome is **LPIC-1 certification readiness** for the curren
 The product should build real Linux administration skill because practical understanding improves certification readiness, but extra material must not crowd out syllabus coverage.
 
 Acceptance rules:
-- every active LPIC-1 objective is represented in the machine-readable curriculum;
-- every objective receives theory and assessment coverage;
-- practical objectives receive hands-on evidence where feasible;
+- every active LPIC-1 objective is represented in the machine-readable curriculum and decomposed finely enough to cover all independently examinable concepts;
+- every mapped concept receives all three surfaces: a focused lesson, at least one deterministic quiz question, and at least one machine-checked practical lab/rep;
+- an objective is not schedulable or complete while any mapped concept is missing one of those surfaces;
 - modern material outside the syllabus is clearly labeled and must not hide examinable legacy material.
 
 ## R-002 — Adaptive daily session
@@ -103,7 +103,7 @@ Using hints may reduce the strength of mastery evidence, but must not block lear
 ## R-014 — Strict mastery
 A concept/objective must not reach full mastery after one passive lesson or one successful quiz.
 
-High mastery requires evidence over time and, where the objective is practical, at least one successful practical task without revealing the full solution. The model should prefer demonstrated transfer over repetition of identical tasks.
+High mastery requires evidence over time and at least one successful practical task without revealing the full solution. The model should prefer demonstrated transfer over repetition of identical tasks.
 
 ## R-015 — Adaptive assessment before full exam simulation
 The initial assessment experience should prioritize adaptive short sessions and targeted checks. A faithful 60-question/90-minute exam simulator may be added later, but it is not required for the Phase-1 learning loop.
