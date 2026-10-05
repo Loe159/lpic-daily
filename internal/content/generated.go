@@ -300,15 +300,16 @@ func termsForConcept(terms []string, title string, index int, conceptCount int) 
 			matches = append(matches, term)
 		}
 	}
+	slices.SortFunc(matches, func(a, b string) int {
+		return len(normalizeSearchText(b)) - len(normalizeSearchText(a))
+	})
 	for _, hint := range conceptTermHints {
 		if !strings.Contains(normalizedTitle, hint.keyword) {
 			continue
 		}
 		for _, wanted := range hint.terms {
-			for _, term := range terms {
-				if strings.EqualFold(term, wanted) && !slices.Contains(matches, term) {
-					matches = append(matches, term)
-				}
+			if !slices.Contains(matches, wanted) {
+				matches = append(matches, wanted)
 			}
 		}
 	}
@@ -342,6 +343,7 @@ var conceptTermHints = []conceptTermHint{
 	{keyword: "boot", terms: []string{"bootloader", "kernel", "initramfs", "grub-install", "grub-mkconfig"}},
 	{keyword: "grub", terms: []string{"GRUB Legacy", "GRUB 2", "grub-install", "grub-mkconfig", "grub.cfg"}},
 	{keyword: "variable", terms: []string{"env", "export", "set", "unset", "LANG", "LC_ALL"}},
+	{keyword: "path", terms: []string{"PATH", "type", "which"}},
 	{keyword: "histor", terms: []string{"history", ".bash_history"}},
 	{keyword: "documentation", terms: []string{"man", "type", "which"}},
 	{keyword: "systeme", terms: []string{"uname", "pwd"}},
@@ -425,6 +427,7 @@ var standaloneTermUsages = map[string]string{
 	"dnf":              "dnf install <paquet> ; dnf remove <paquet> ; dnf info <paquet> ; dnf repoquery <paquet>",
 	"zypper":           "zypper repos ; zypper search <mot> ; zypper install <paquet> ; zypper remove <paquet>",
 	"bash":             "bash ; bash <script> ; bash -x <script>",
+	"PATH":             "printf '%s\\n' \"$PATH\" ; PATH=\"/opt/tools:$PATH\" ; command -v <commande>",
 	"echo":             "echo \"$VAR\" ; echo -n <texte>",
 	"env":              "env ; env VAR=valeur commande",
 	"export":           "export VAR=valeur ; export VAR",
@@ -698,6 +701,7 @@ var standaloneTermExplanations = map[string]string{
 	"dnf":                        "gestionnaire haut niveau RPM moderne sur Fedora/RHEL",
 	"zypper":                     "gestionnaire de paquets et dépôts d'openSUSE",
 	"bash":                       "shell GNU utilisé pour interprétation, scripts, expansions, variables et historique",
+	"PATH":                       "variable d'environnement contenant la liste ordonnée de répertoires où le shell recherche les commandes sans chemin explicite",
 	"echo":                       "affiche ses arguments après les expansions réalisées par le shell",
 	"env":                        "affiche l'environnement ou lance une commande avec un environnement ajusté",
 	"export":                     "marque une variable shell pour héritage par les processus enfants",
