@@ -6,7 +6,7 @@ Research baseline: 2026-09-24. Official current version at that date is 5.0/5.0.
 
 - `objectives.json` — 42 active objective IDs, exam/topic mapping, weights, broad concepts and terms.
 - `prerequisites.json` — complete objective-level pedagogical DAG with hard and recommended edges.
-- `concepts.json` — stable mastery IDs for the 309 current concept entries.
+- `concepts.json` — stable mastery IDs for the 309 current concept entries. Each active concept declares explicit `anchor_terms` consumed by lessons, quizzes and practical labs.
 - `phase1-slice.json` — accepted first implementation slice.
 - `phase1-coverage.json` — generated concept-to-artifact matrix for the slice; never edit it by hand.
 - `phase3-exam101.json` — canonical Exam-101 scope (162 concepts).
