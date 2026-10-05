@@ -1,6 +1,7 @@
 package content
 
 import (
+	"fmt"
 	"slices"
 	"strings"
 	"testing"
@@ -335,19 +336,24 @@ func TestGeneratedRecallQuestionsUseConceptAnchor(t *testing.T) {
 		if !concept.Active {
 			continue
 		}
-		questionID := concept.ID + ".q.autonomous-recall"
-		question, exists := questions[questionID]
-		if !exists {
-			t.Fatalf("missing generated recall question %s", questionID)
-		}
-		if len(question.Grading.AcceptedAnswers) != 1 ||
-			question.Grading.AcceptedAnswers[0] != concept.AnchorTerms[0] {
-			t.Errorf(
-				"%s accepted answers = %v, want primary anchor %q",
-				questionID,
-				question.Grading.AcceptedAnswers,
-				concept.AnchorTerms[0],
-			)
+		for anchorIndex, anchor := range concept.AnchorTerms {
+			questionID := concept.ID + ".q.autonomous-recall"
+			if anchorIndex > 0 {
+				questionID += fmt.Sprintf("-%02d", anchorIndex+1)
+			}
+			question, exists := questions[questionID]
+			if !exists {
+				t.Fatalf("missing generated recall question %s", questionID)
+			}
+			if len(question.Grading.AcceptedAnswers) != 1 ||
+				question.Grading.AcceptedAnswers[0] != anchor {
+				t.Errorf(
+					"%s accepted answers = %v, want anchor %q",
+					questionID,
+					question.Grading.AcceptedAnswers,
+					anchor,
+				)
+			}
 		}
 	}
 }
