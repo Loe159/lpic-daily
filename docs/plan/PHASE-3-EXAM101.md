@@ -18,9 +18,9 @@ Complete Exam 101 with original, French-first, deterministic learning content wh
 
 For every selected concept:
 - provide exactly one focused `introduce` lesson suitable for first exposure;
-- provide at least one deterministic daily question;
-- provide a path beyond recognition through recall-capable retrieval or practical evidence;
-- add practical evidence when the skill is safely observable;
+- provide at least one deterministic daily non-assessment question;
+- provide at least one machine-checked practical lab/rep;
+- keep the concept granularity fine enough that all independently examinable knowledge in the official objective is actually taught, quizzed and practised;
 - retain examinable legacy knowledge and label modern practice separately;
 - avoid exam dumps and copied/adapted LPI learning prose.
 
@@ -38,7 +38,7 @@ For every selected concept:
 
 `python3 scripts/audit_phase3_coverage.py --check` validates mappings and reports progress without requiring Phase 3 to be complete.
 
-`python3 scripts/audit_phase3_coverage.py --require-complete` is the theory/daily-question exit gate. Practical and cross-topic gates remain explicit in `PHASE-3-ACCEPTANCE.md`.
+`python3 scripts/audit_phase3_coverage.py --require-complete` is the course/daily-question/practical-lab exit gate. Cross-topic challenge gates remain explicit in `PHASE-3-ACCEPTANCE.md`.
 
 The normal foundation validation runs the non-blocking audit so incomplete curriculum work does not make every intermediate commit fail while invalid mappings still fail closed.
 
@@ -49,4 +49,4 @@ Objective **103.4** currently provides:
 - 7 progressive micro-lessons;
 - 11 deterministic daily questions.
 
-The daily scheduler exposes an objective only when every mapped concept has exactly one focused introduction, a non-assessment daily question and a recall-or-practical advancement path. Incomplete Exam-101 objectives remain unschedulable.
+The daily scheduler exposes an objective only when every mapped concept has exactly one focused introduction, a non-assessment daily question and a machine-checked practical lab. Recall-only coverage is insufficient. Incomplete Exam-101 objectives remain unschedulable.
