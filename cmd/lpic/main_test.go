@@ -1044,7 +1044,6 @@ func TestInteractiveVMLabDispatchesRebootCommand(t *testing.T) {
 	}
 }
 
-
 func TestUpdateHelpDoesNotRunUpdater(t *testing.T) {
 	var stdout bytes.Buffer
 	if err := runWithIO([]string{"update", "--help"}, strings.NewReader(""), &stdout, &bytes.Buffer{}); err != nil {
