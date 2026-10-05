@@ -171,7 +171,6 @@ func TestGradeDeterministicStrategies(t *testing.T) {
 	}
 }
 
-
 func TestBuiltinStandaloneContentCoversEveryActiveConcept(t *testing.T) {
 	bundle, err := Load(lpicdaily.BuiltinFS)
 	if err != nil {
@@ -217,7 +216,6 @@ func TestBuiltinStandaloneContentCoversEveryActiveConcept(t *testing.T) {
 		}
 	}
 }
-
 
 func TestEveryOfficialTermHasSpecificStandaloneExplanation(t *testing.T) {
 	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
