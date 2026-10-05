@@ -1065,6 +1065,9 @@ func runInteractiveLab(authored lab.Lab, stdin io.Reader, stdout, stderr io.Writ
 			stderr,
 		)
 	case "libvirt":
+		if err := requireUnprivilegedVMProcess(os.Geteuid()); err != nil {
+			return err
+		}
 		if err := bootstrap.EnsureVMLabImage(
 			ctx,
 			lpicdaily.BuiltinFS,
