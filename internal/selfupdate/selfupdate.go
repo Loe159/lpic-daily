@@ -90,6 +90,8 @@ func Update(ctx context.Context, opts Options) error {
 
 	fmt.Fprintln(opts.Stdout, "Mise à jour de LPIC Daily depuis main…")
 	env := withEnv(os.Environ(), "GOBIN", buildBin)
+	env = withEnv(env, "GONOPROXY", "github.com/Loe159/lpic-daily")
+	env = withEnv(env, "GONOSUMDB", "github.com/Loe159/lpic-daily")
 	if err := opts.Runner.Run(
 		ctx,
 		goBinary,
