@@ -30,6 +30,9 @@ func appendStandaloneLabs(fsys fs.FS, labs []Lab, seen map[string]struct{}) ([]L
 		concepts := standaloneConceptsForObjective(curriculumBundle.Concepts.Concepts, objective.ID)
 		for variant := 0; variant < 2; variant++ {
 			generated := generatedStandaloneLab(objective, concepts, guide, variant)
+			if err := validateStandaloneLab(generated); err != nil {
+				return nil, fmt.Errorf("%s semantic validation: %w", generated.Definition.ID, err)
+			}
 			if _, duplicate := seen[generated.Definition.ID]; duplicate {
 				continue
 			}
@@ -47,6 +50,69 @@ func appendStandaloneLabs(fsys fs.FS, labs []Lab, seen map[string]struct{}) ([]L
 		return strings.Compare(a.Definition.ID, b.Definition.ID)
 	})
 	return labs, nil
+}
+
+func validateStandaloneLab(authored Lab) error {
+	definition := authored.Definition
+	if definition.SchemaVersion != "1.0.0" || definition.ID == "" || strings.TrimSpace(definition.TitleFR) == "" {
+		return fmt.Errorf("schema version, id and title are required")
+	}
+	if strings.TrimSpace(definition.PracticeContext) == "" ||
+		len(strings.TrimSpace(definition.BriefFR)) < 20 ||
+		len(strings.TrimSpace(definition.DebriefFR)) < 20 {
+		return fmt.Errorf("practice context, learner brief and debrief are required")
+	}
+	if len(definition.ObjectiveIDs) != 1 || len(definition.ConceptIDs) == 0 ||
+		len(definition.Checks) == 0 || definition.ResetPolicy != "disposable" {
+		return fmt.Errorf("objective, concepts, checks and disposable reset policy are required")
+	}
+	checked := make(map[string]bool, len(definition.ConceptIDs))
+	declared := make(map[string]bool, len(definition.ConceptIDs))
+	for _, conceptID := range definition.ConceptIDs {
+		declared[conceptID] = true
+	}
+	for index, check := range definition.Checks {
+		if len(check.ConceptIDs) == 0 {
+			return fmt.Errorf("check %d has no concept mapping", index+1)
+		}
+		for _, conceptID := range check.ConceptIDs {
+			if !declared[conceptID] {
+				return fmt.Errorf("check %d maps undeclared concept %s", index+1, conceptID)
+			}
+			checked[conceptID] = true
+		}
+	}
+	for _, conceptID := range definition.ConceptIDs {
+		if !checked[conceptID] {
+			return fmt.Errorf("concept %s has no check", conceptID)
+		}
+	}
+	if len(authored.Hints) != 4 || len(definition.HintIDs) != 4 {
+		return fmt.Errorf("exactly four graduated hints are required")
+	}
+	for index, hint := range authored.Hints {
+		if hint.ID != definition.HintIDs[index] || hint.Level != index+1 {
+			return fmt.Errorf("hint ladder order mismatch at level %d", index+1)
+		}
+		if err := validateHint(definition.ID, hint); err != nil {
+			return err
+		}
+	}
+	switch definition.Environment.Backend {
+	case "podman":
+		if definition.Environment.Network != "none" || definition.Setup.ExecutionScope != "sandbox" ||
+			strings.TrimSpace(authored.SetupScript) == "" {
+			return fmt.Errorf("Podman standalone lab requires network=none and an in-memory sandbox setup")
+		}
+	case "libvirt":
+		if definition.Environment.Machine == nil || definition.Setup.ExecutionScope != "none" ||
+			len(definition.Environment.WritableGuestPaths) != 0 {
+			return fmt.Errorf("libvirt standalone lab requires machine settings, setup=none and no host writable paths")
+		}
+	default:
+		return fmt.Errorf("unsupported backend %q", definition.Environment.Backend)
+	}
+	return nil
 }
 
 func standaloneConceptsForObjective(all []curriculum.Concept, objectiveID string) []curriculum.Concept {
