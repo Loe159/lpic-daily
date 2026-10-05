@@ -423,3 +423,40 @@ func TestFailedResetCleanupRemainsRetryable(t *testing.T) {
 		t.Fatalf("cleanup retry destroyCalls=%d destroyed=%v, want 2/true", fake.destroyCalls, fake.destroyed)
 	}
 }
+
+
+func TestBuiltinLabsProvideTwoPracticeContextsPerActiveConcept(t *testing.T) {
+	labs, err := LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("LoadAll() error = %v", err)
+	}
+	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("curriculum.Load() error = %v", err)
+	}
+
+	contexts := make(map[string]map[string]struct{})
+	for _, authored := range labs {
+		evidenced := make(map[string]struct{})
+		for _, check := range authored.Definition.Checks {
+			for _, conceptID := range check.ConceptIDs {
+				evidenced[conceptID] = struct{}{}
+			}
+		}
+		for conceptID := range evidenced {
+			if contexts[conceptID] == nil {
+				contexts[conceptID] = make(map[string]struct{})
+			}
+			contexts[conceptID][authored.Definition.PracticeContext] = struct{}{}
+		}
+	}
+
+	for _, concept := range curriculumBundle.Concepts.Concepts {
+		if !concept.Active {
+			continue
+		}
+		if got := len(contexts[concept.ID]); got < 2 {
+			t.Errorf("concept %s practical contexts = %d, want at least 2", concept.ID, got)
+		}
+	}
+}
