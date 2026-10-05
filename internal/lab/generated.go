@@ -229,10 +229,10 @@ func generatedStandaloneLab(
 	hints := generatedStandaloneHints(labID, root)
 	return Lab{
 		Definition: Definition{
-			SchemaVersion:     "1.0.0",
-			ID:                labID,
-			TitleFR:           fmt.Sprintf("%s pratique %s", objective.ID, contextFR),
-			BriefFR:           brief,
+			SchemaVersion: "1.0.0",
+			ID:            labID,
+			TitleFR:       fmt.Sprintf("%s pratique %s", objective.ID, contextFR),
+			BriefFR:       brief,
 			SuccessCriteriaFR: []string{
 				"Une preuve distincte est produite pour chaque concept.",
 				"Chaque preuve couvre explicitement les termes/fichiers/utilitaires affectés au concept et décrit une commande ou action réellement effectuée.",
@@ -331,7 +331,7 @@ func generatedStandaloneHints(labID, root string) []Hint {
 			ID:            labID + ".hint-4",
 			LabID:         labID,
 			Level:         4,
-			ContentFR: "Format attendu : CONCEPT=<id exact>, TERMS=<liste exacte du brief>, COMMAND=<commande/action>, "+
+			ContentFR: "Format attendu : CONCEPT=<id exact>, TERMS=<liste exacte du brief>, COMMAND=<commande/action>, " +
 				"OBSERVATION=<résultat>, EXPLANATION=<raison>. Répète ce format pour chaque fichier indiqué dans le brief.",
 			EvidenceImpact: "solution-revealed",
 		},
@@ -425,7 +425,6 @@ var standaloneLabTermHints = []standaloneLabTermHint{
 	{keyword: "timezone", terms: []string{"TZ", "timedatectl", "tzselect", "/etc/localtime"}},
 	{keyword: "locale", terms: []string{"locale", "LANG", "LC_ALL", "LC_*"}},
 }
-
 
 func standaloneConceptFilename(concept curriculum.Concept) string {
 	prefix := "lpic1." + concept.ObjectiveID + "."
