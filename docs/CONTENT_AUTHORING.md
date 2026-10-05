@@ -7,15 +7,16 @@ Every LPIC-1 learning artifact must map to one or more IDs in `curriculum/lpic-1
 Use the official LPI objective list only as the factual syllabus reference. Do not copy, translate, closely paraphrase, remix or adapt LPI Learning Materials. Build original explanations from the objective facts plus independent primary Linux documentation/man pages.
 
 ## Required layers per concept
-A mature concept should include:
-- explanation/mental model;
-- worked example where useful;
-- deterministic retrieval question;
-- practical rep/lab when safely observable;
-- debrief/common failure modes;
-- scheduled review hooks.
+Every schedulable concept must include all three learner-facing surfaces:
+- exactly one focused `introduce` lesson with the explanation/mental model and worked examples where useful;
+- at least one deterministic non-assessment quiz question;
+- at least one machine-checked practical lab/rep that maps observable state back to that concept.
 
-An objective must not become schedulable until all mapped concepts satisfy the configured learning-surface gates.
+A concept is not considered covered when one of these three surfaces is missing. Recall-capable questions do not substitute for practical evidence.
+
+Concept IDs must also be granular enough to represent the full official objective. If one concept groups independently examinable knowledge so broadly that a course, quiz set or lab cannot meaningfully exercise all of it, split the concept before declaring the objective complete.
+
+An objective must not become schedulable until every mapped concept satisfies these course + quiz + lab gates.
 
 ## Modern versus legacy
 Use the canonical labels:
