@@ -80,19 +80,26 @@ func synthesizeStandaloneContent(
 				return fmt.Errorf("concept %s has %d focused introductions, want exactly one", concept.ID, focusedIntroduction[concept.ID])
 			}
 
-			for _, question := range []Question{
-				generatedRecallQuestion(objective, concept),
-				generatedRecognitionQuestion(objective, concept, concepts, index),
-			} {
+			for anchorIndex, anchor := range concept.AnchorTerms {
+				question := generatedRecallQuestion(objective, concept, anchor, anchorIndex)
 				if err := validateQuestion(question, knownObjectives, knownConcepts); err != nil {
 					return fmt.Errorf("%s: %w", question.ID, err)
 				}
 				if previous, duplicate := seenIDs[question.ID]; duplicate {
 					return fmt.Errorf("generated question %s conflicts with %s", question.ID, previous)
 				}
-				seenIDs[question.ID] = "generated standalone question"
+				seenIDs[question.ID] = "generated standalone recall question"
 				bundle.Questions = append(bundle.Questions, question)
 			}
+			recognition := generatedRecognitionQuestion(objective, concept, concepts, index)
+			if err := validateQuestion(recognition, knownObjectives, knownConcepts); err != nil {
+				return fmt.Errorf("%s: %w", recognition.ID, err)
+			}
+			if previous, duplicate := seenIDs[recognition.ID]; duplicate {
+				return fmt.Errorf("generated question %s conflicts with %s", recognition.ID, previous)
+			}
+			seenIDs[recognition.ID] = "generated standalone recognition question"
+			bundle.Questions = append(bundle.Questions, recognition)
 		}
 	}
 	return nil
@@ -198,13 +205,17 @@ func generatedLessonBody(
 func generatedRecallQuestion(
 	objective curriculum.Objective,
 	concept curriculum.Concept,
+	anchor string,
+	anchorIndex int,
 ) Question {
-	terms := slices.Clone(concept.AnchorTerms)
-	primary := terms[0]
-	description := standaloneTermExplanation(primary, objective.ID)
+	questionID := concept.ID + ".q.autonomous-recall"
+	if anchorIndex > 0 {
+		questionID += fmt.Sprintf("-%02d", anchorIndex+1)
+	}
+	description := standaloneTermExplanation(anchor, objective.ID)
 	return Question{
 		SchemaVersion: "1.0.0",
-		ID:            concept.ID + ".q.autonomous-recall",
+		ID:            questionID,
 		ObjectiveIDs:  []string{objective.ID},
 		ConceptIDs:    []string{concept.ID},
 		Type:          "fill-in",
@@ -216,7 +227,7 @@ func generatedRecallQuestion(
 		),
 		Grading: Grading{
 			Strategy:        "exact-text",
-			AcceptedAnswers: []string{primary},
+			AcceptedAnswers: []string{anchor},
 			CaseSensitive:   false,
 		},
 		EvidenceKindOnSuccess: "recall",
@@ -224,7 +235,7 @@ func generatedRecallQuestion(
 		Distribution:          "generic",
 		ExplanationFR: fmt.Sprintf(
 			"%s : %s",
-			primary,
+			anchor,
 			description,
 		),
 	}
