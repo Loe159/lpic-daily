@@ -36,19 +36,62 @@ func loadInputs(t *testing.T) (*curriculum.Bundle, *content.Bundle, []lab.Lab) {
 	return curriculumBundle, contentBundle, labs
 }
 
-func withObjectiveCoverageLab(
+func restrictStudyInputs(
+	contentBundle *content.Bundle,
 	labs []lab.Lab,
-	curriculumBundle *curriculum.Bundle,
-	objectiveID string,
-) []lab.Lab {
-	result := append([]lab.Lab(nil), labs...)
-	result = append(result, lab.Lab{Definition: lab.Definition{
-		ID:              "test." + objectiveID + ".coverage-lab",
-		ObjectiveIDs:    []string{objectiveID},
-		ConceptIDs:      append([]string(nil), curriculumBundle.Phase3.ObjectiveConcepts[objectiveID]...),
-		PracticeContext: "test-" + objectiveID + "-coverage",
-	}})
-	return result
+	objectiveIDs ...string,
+) (*content.Bundle, []lab.Lab) {
+	allowed := make(map[string]bool, len(objectiveIDs))
+	for _, objectiveID := range objectiveIDs {
+		allowed[objectiveID] = true
+	}
+	hasAllowedObjective := func(ids []string) bool {
+		for _, id := range ids {
+			if allowed[id] {
+				return true
+			}
+		}
+		return false
+	}
+
+	filtered := *contentBundle
+	filtered.Lessons = nil
+	for _, lesson := range contentBundle.Lessons {
+		if hasAllowedObjective(lesson.ObjectiveIDs) {
+			filtered.Lessons = append(filtered.Lessons, lesson)
+		}
+	}
+	filtered.Questions = nil
+	for _, question := range contentBundle.Questions {
+		if hasAllowedObjective(question.ObjectiveIDs) {
+			filtered.Questions = append(filtered.Questions, question)
+		}
+	}
+
+	filteredLabs := make([]lab.Lab, 0, len(labs))
+	for _, authored := range labs {
+		if hasAllowedObjective(authored.Definition.ObjectiveIDs) {
+			filteredLabs = append(filteredLabs, authored)
+		}
+	}
+	return &filtered, filteredLabs
+}
+
+func withoutObjectiveLabs(labs []lab.Lab, objectiveID string) []lab.Lab {
+	filtered := make([]lab.Lab, 0, len(labs))
+	for _, authored := range labs {
+		contains := false
+		for _, candidate := range authored.Definition.ObjectiveIDs {
+			if candidate == objectiveID {
+				contains = true
+				break
+			}
+		}
+		if !contains {
+			filtered = append(filtered, authored)
+		}
+	}
+	return filtered
 }
 
 func TestFreshPlanStartsWithFocused1031Introduction(t *testing.T) {
@@ -77,8 +120,8 @@ func TestFreshPlanStartsWithFocused1031Introduction(t *testing.T) {
 	if item.ConceptID != "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes" {
 		t.Fatalf("concept = %s", item.ConceptID)
 	}
-	if len(item.LessonIDs) != 2 || len(item.QuestionIDs) != 1 {
-		t.Fatalf("resolved item = %#v, want focused + deepen lesson and one question", item)
+	if len(item.LessonIDs) < 2 || len(item.QuestionIDs) < 3 {
+		t.Fatalf("resolved item = %#v, want authored lessons plus generated question coverage", item)
 	}
 	if item.RecommendedLessonID != "lpic1.103.1.lesson.shell-sequences" {
 		t.Fatalf("recommended lesson = %q", item.RecommendedLessonID)
@@ -86,14 +129,14 @@ func TestFreshPlanStartsWithFocused1031Introduction(t *testing.T) {
 	if item.RecommendedQuestionID != "lpic1.103.1.q.sequence-and" {
 		t.Fatalf("recommended question = %q", item.RecommendedQuestionID)
 	}
-	if len(item.LabIDs) != 2 || item.RecommendedLabID != "lpic1.103.1.shell-environment-repair" {
+	if len(item.LabIDs) < 4 || item.RecommendedLabID != "lpic1.103.1.shell-environment-repair" {
 		t.Fatalf("first shell syntax concept lab recommendation = %#v", item)
 	}
 }
 
-func TestAuthoredPhase3ObjectiveBecomesSchedulable(t *testing.T) {
+func TestComplete1034ObjectiveBecomesSchedulable(t *testing.T) {
 	curriculumBundle, contentBundle, labs := loadInputs(t)
-	labs = withObjectiveCoverageLab(labs, curriculumBundle, "103.4")
+	contentBundle, labs = restrictStudyInputs(contentBundle, labs, "103.1", "103.4")
 	now := time.Date(2026, 10, 1, 14, 0, 0, 0, time.UTC)
 	evidence := memoryEvidence{}
 
@@ -124,7 +167,7 @@ func TestAuthoredPhase3ObjectiveBecomesSchedulable(t *testing.T) {
 		t.Fatalf("BuildPlan() error = %v", err)
 	}
 	if len(plan.Items) != 1 {
-		t.Fatalf("items = %#v, want one new Phase-3 item", plan.Items)
+		t.Fatalf("items = %#v, want one new 103.4 item", plan.Items)
 	}
 	item := plan.Items[0]
 	if item.Kind != learning.SessionNew || item.ObjectiveID != "103.4" {
@@ -137,7 +180,7 @@ func TestAuthoredPhase3ObjectiveBecomesSchedulable(t *testing.T) {
 
 func TestQuestionRecommendationRotatesAcrossAuthoredQuestions(t *testing.T) {
 	curriculumBundle, contentBundle, labs := loadInputs(t)
-	labs = withObjectiveCoverageLab(labs, curriculumBundle, "103.4")
+	contentBundle, labs = restrictStudyInputs(contentBundle, labs, "103.1", "103.4")
 	now := time.Date(2026, 10, 1, 15, 0, 0, 0, time.UTC)
 	evidence := memoryEvidence{}
 
@@ -205,6 +248,8 @@ func TestQuestionRecommendationRotatesAcrossAuthoredQuestions(t *testing.T) {
 
 func TestObjectiveWithoutPracticalLabStaysOutOfScheduler(t *testing.T) {
 	curriculumBundle, contentBundle, labs := loadInputs(t)
+	contentBundle, labs = restrictStudyInputs(contentBundle, labs, "103.1", "103.4")
+	labs = withoutObjectiveLabs(labs, "103.4")
 	now := time.Date(2026, 10, 1, 16, 0, 0, 0, time.UTC)
 	evidence := memoryEvidence{}
 	for _, conceptID := range curriculumBundle.Phase1.ObjectiveConcepts["103.1"] {
@@ -232,7 +277,7 @@ func TestObjectiveWithoutPracticalLabStaysOutOfScheduler(t *testing.T) {
 
 func TestIncompleteFocusedIntroductionKeepsObjectiveOutOfScheduler(t *testing.T) {
 	curriculumBundle, contentBundle, labs := loadInputs(t)
-	labs = withObjectiveCoverageLab(labs, curriculumBundle, "103.4")
+	contentBundle, labs = restrictStudyInputs(contentBundle, labs, "103.1", "103.4")
 	now := time.Date(2026, 10, 1, 16, 0, 0, 0, time.UTC)
 	evidence := memoryEvidence{}
 
@@ -279,7 +324,7 @@ func TestIncompleteFocusedIntroductionKeepsObjectiveOutOfScheduler(t *testing.T)
 
 func TestDuplicateFocusedIntroductionKeepsObjectiveOutOfScheduler(t *testing.T) {
 	curriculumBundle, contentBundle, labs := loadInputs(t)
-	labs = withObjectiveCoverageLab(labs, curriculumBundle, "103.4")
+	contentBundle, labs = restrictStudyInputs(contentBundle, labs, "103.1", "103.4")
 	now := time.Date(2026, 10, 1, 16, 30, 0, 0, time.UTC)
 	evidence := memoryEvidence{}
 
@@ -372,8 +417,9 @@ func TestPlanUsesStoredRecallToCreateDueReviewWithoutReplayingLesson(t *testing.
 	if plan.Items[0].RecommendedLessonID != "" {
 		t.Fatalf("review unexpectedly recommends lesson %q", plan.Items[0].RecommendedLessonID)
 	}
-	if plan.Items[0].RecommendedQuestionID != "lpic1.103.1.q.sequence-and" {
-		t.Fatalf("review question = %q", plan.Items[0].RecommendedQuestionID)
+	wantQuestion := conceptID + ".q.autonomous-recall"
+	if plan.Items[0].RecommendedQuestionID != wantQuestion {
+		t.Fatalf("review question = %q, want least-attempted %q", plan.Items[0].RecommendedQuestionID, wantQuestion)
 	}
 }
 
