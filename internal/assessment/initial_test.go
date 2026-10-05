@@ -19,11 +19,15 @@ func (events evidenceMap) EvidenceForConcept(_ context.Context, conceptID string
 }
 
 func TestInitialAssessmentQuestionsAreRecallOnlyAndCover1031(t *testing.T) {
+	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("curriculum.Load() error = %v", err)
+	}
 	contentBundle, err := content.Load(lpicdaily.BuiltinFS)
 	if err != nil {
 		t.Fatalf("content.Load() error = %v", err)
 	}
-	questions, err := assessment.Questions(contentBundle)
+	questions, err := assessment.Questions(curriculumBundle, contentBundle)
 	if err != nil {
 		t.Fatalf("Questions() error = %v", err)
 	}
