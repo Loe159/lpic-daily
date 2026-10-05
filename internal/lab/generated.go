@@ -120,10 +120,11 @@ func generatedStandaloneLab(
 	var tasks strings.Builder
 	checks := make([]CheckDefinition, 0, len(concepts))
 	conceptIDs := make([]string, 0, len(concepts))
+	termAssignments := standaloneTermAssignments(objective.TermsFilesUtilities, concepts)
 	for index, concept := range concepts {
 		conceptIDs = append(conceptIDs, concept.ID)
 		filename := standaloneConceptFilename(concept)
-		terms := standaloneAssignedTerms(objective.TermsFilesUtilities, index, len(concepts))
+		terms := termAssignments[index]
 		termsLine := strings.Join(terms, ",")
 		fmt.Fprintf(
 			&tasks,
@@ -271,24 +272,94 @@ func generatedStandaloneHints(labID, root string) []Hint {
 	}
 }
 
-func standaloneAssignedTerms(terms []string, conceptIndex, conceptCount int) []string {
-	if len(terms) == 0 {
-		return []string{"Linux"}
+func standaloneTermAssignments(terms []string, concepts []curriculum.Concept) [][]string {
+	assignments := make([][]string, len(concepts))
+	if len(concepts) == 0 {
+		return assignments
 	}
-	if conceptCount <= 0 {
-		conceptCount = 1
-	}
-	assigned := make([]string, 0)
-	for termIndex, term := range terms {
-		if termIndex%conceptCount == conceptIndex {
-			assigned = append(assigned, term)
+	assignedTerms := make(map[string]bool)
+
+	for index, concept := range concepts {
+		title := strings.ToLower(concept.TitleFR)
+		for _, term := range terms {
+			if normalized := strings.ToLower(strings.Trim(term, "~/._-*()[]{}")); normalized != "" &&
+				strings.Contains(title, normalized) {
+				assignments[index] = appendUnique(assignments[index], term)
+				assignedTerms[term] = true
+			}
+		}
+		for _, hint := range standaloneLabTermHints {
+			if !strings.Contains(title, hint.keyword) {
+				continue
+			}
+			for _, wanted := range hint.terms {
+				for _, term := range terms {
+					if strings.EqualFold(term, wanted) {
+						assignments[index] = appendUnique(assignments[index], term)
+						assignedTerms[term] = true
+					}
+				}
+			}
 		}
 	}
-	if len(assigned) == 0 {
-		assigned = append(assigned, terms[conceptIndex%len(terms)])
+
+	for termIndex, term := range terms {
+		if assignedTerms[term] {
+			continue
+		}
+		index := termIndex % len(concepts)
+		assignments[index] = appendUnique(assignments[index], term)
 	}
-	return assigned
+	for index := range assignments {
+		if len(assignments[index]) == 0 && len(terms) != 0 {
+			assignments[index] = append(assignments[index], terms[index%len(terms)])
+		}
+		if len(assignments[index]) == 0 {
+			assignments[index] = []string{"Linux"}
+		}
+	}
+	return assignments
 }
+
+func appendUnique(values []string, value string) []string {
+	if !slices.Contains(values, value) {
+		return append(values, value)
+	}
+	return values
+}
+
+type standaloneLabTermHint struct {
+	keyword string
+	terms   []string
+}
+
+var standaloneLabTermHints = []standaloneLabTermHint{
+	{keyword: "module", terms: []string{"modprobe", "lsmod"}},
+	{keyword: "pci", terms: []string{"lspci"}},
+	{keyword: "usb", terms: []string{"lsusb"}},
+	{keyword: "périphériques intégrés", terms: []string{"lspci", "modprobe"}},
+	{keyword: "udev", terms: []string{"udev", "sysfs", "D-Bus"}},
+	{keyword: "grub", terms: []string{"GRUB Legacy", "GRUB 2", "grub-install", "grub-mkconfig", "grub.cfg"}},
+	{keyword: "variable", terms: []string{"env", "export", "set", "unset", "LANG", "LC_ALL"}},
+	{keyword: "export", terms: []string{"export", "unset", "env"}},
+	{keyword: "histor", terms: []string{"history", ".bash_history"}},
+	{keyword: "documentation", terms: []string{"man", "type", "which"}},
+	{keyword: "ipv6", terms: []string{"IPv6"}},
+	{keyword: "ntp", terms: []string{"ntpd", "ntpdate", "chronyc", "pool.ntp.org"}},
+	{keyword: "rsyslog", terms: []string{"/etc/rsyslog.conf", "logger"}},
+	{keyword: "journal", terms: []string{"journalctl", "/var/log/journal", "logrotate"}},
+	{keyword: "dns", terms: []string{"dig", "host", "/etc/resolv.conf", "/etc/nsswitch.conf"}},
+	{keyword: "ssh", terms: []string{"ssh", "ssh-keygen", "ssh-agent", "ssh-add"}},
+	{keyword: "gpg", terms: []string{"gpg", "gpg-agent", "~/.gnupg"}},
+	{keyword: "nice", terms: []string{"nice", "renice"}},
+	{keyword: "regex", terms: []string{"grep", "BRE", "ERE", "regex(7)"}},
+	{keyword: "sed", terms: []string{"sed"}},
+	{keyword: "symlink", terms: []string{"ln", "symbolic link"}},
+	{keyword: "inode", terms: []string{"ln", "inode"}},
+	{keyword: "timezone", terms: []string{"TZ", "timedatectl", "tzselect", "/etc/localtime"}},
+	{keyword: "locale", terms: []string{"locale", "LANG", "LC_ALL", "LC_*"}},
+}
+
 
 func standaloneConceptFilename(concept curriculum.Concept) string {
 	prefix := "lpic1." + concept.ObjectiveID + "."
