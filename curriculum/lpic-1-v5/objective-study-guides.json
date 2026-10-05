@@ -1,0 +1,258 @@
+{
+  "schema_version": "1.0.0",
+  "source": "Original LPIC Daily study guides derived from LPIC-1 v5.0 objective facts; no LPI learning-material prose is copied.",
+  "guides": [
+    {
+      "objective_id": "101.1",
+      "overview": "Le matériel Linux se découvre par plusieurs couches complémentaires : le noyau expose des informations dans /proc et /sys, udev crée et nomme les périphériques sous /dev, tandis que lspci et lsusb interrogent les bus PCI et USB. Les modules noyau se consultent avec lsmod et se chargent ou retirent avec modprobe. Il faut savoir relier un périphérique à ses ressources, à son pilote et à son nœud de périphérique, distinguer les familles de stockage et comprendre que l’activation d’un périphérique intégré peut dépendre du firmware avant même Linux.",
+      "practice": "En pratique, pars toujours de l’inventaire matériel, retrouve le pilote/module, puis vérifie les représentations sysfs et /dev. Pour l’USB, observe les identifiants vendeur/produit et les changements lors d’un branchement/retrait.",
+      "pitfalls": "Ne confonds pas /dev, qui contient des interfaces de périphériques, avec /sys, qui expose le modèle de périphériques du noyau. modprobe gère les dépendances de modules, contrairement à une insertion brute de module."
+    },
+    {
+      "objective_id": "101.2",
+      "overview": "Le démarrage va du firmware BIOS/UEFI au bootloader, puis au noyau et à l’initramfs, avant que PID 1 prenne le relais via systemd ou un autre init. Les paramètres du noyau sont visibles après démarrage dans /proc/cmdline. dmesg et journalctl permettent de reconstruire la chronologie. Il faut aussi reconnaître SysVinit et Upstart, même si systemd domine aujourd’hui.",
+      "practice": "Sache modifier temporairement une ligne de démarrage dans le bootloader, reconnaître un paramètre noyau, puis retrouver les messages correspondants dans dmesg ou journalctl -b.",
+      "pitfalls": "Une modification interactive du bootloader n’est généralement pas persistante. Ne confonds pas les paramètres du bootloader avec ceux passés au noyau."
+    },
+    {
+      "objective_id": "101.3",
+      "overview": "Les runlevels SysV et les targets systemd représentent des états de fonctionnement. systemctl isolate change de target, systemctl set-default règle la cible par défaut et shutdown orchestre un arrêt ou redémarrage propre en permettant de prévenir les utilisateurs. En environnement historique, init et telinit changent de runlevel. Un changement d’état propre doit laisser aux processus le temps de terminer et éviter la corruption de données.",
+      "practice": "Sache identifier la cible courante/par défaut, passer en rescue ou multi-user, programmer puis annuler un shutdown et avertir avec wall. Comprends le rôle d’acpid pour les événements d’alimentation.",
+      "pitfalls": "kill -9 n’est pas une manière normale de terminer un système : SIGTERM puis arrêt ordonné sont préférables. Isoler une target peut arrêter des services."
+    },
+    {
+      "objective_id": "102.1",
+      "overview": "Un bon partitionnement sépare les données selon leur croissance, leur criticité et leur besoin de montage. /, /var, /home et /boot ont des profils différents; le swap peut être dédié. Sur UEFI, une EFI System Partition est nécessaire. LVM ajoute une couche de flexibilité entre disques/partitions et filesystems, mais ne remplace pas la réflexion sur les points de montage et le boot.",
+      "practice": "À partir d’un scénario serveur/poste, propose un schéma et justifie tailles, séparation de /var ou /home, swap, /boot/ESP et éventuel LVM.",
+      "pitfalls": "Ne dimensionne pas seulement pour aujourd’hui. Une partition /var trop petite peut bloquer logs/paquets; /boot a des contraintes particulières au démarrage."
+    },
+    {
+      "objective_id": "102.2",
+      "overview": "GRUB charge le noyau et l’initramfs et permet de choisir ou modifier une entrée au démarrage. GRUB Legacy utilise notamment menu.lst/grub.conf, tandis que GRUB 2 génère généralement grub.cfg à partir de fichiers sources. grub-install installe les composants du chargeur et grub-mkconfig reconstruit la configuration. L’emplacement d’installation dépend du mode BIOS/UEFI.",
+      "practice": "Sache démarrer une entrée alternative, éditer temporairement les paramètres, reconstruire grub.cfg et expliquer la différence entre modifier une source et modifier un fichier généré.",
+      "pitfalls": "Éditer directement grub.cfg est souvent une mauvaise pratique car il sera régénéré. GRUB Legacy reste examinable même s’il est ancien."
+    },
+    {
+      "objective_id": "102.3",
+      "overview": "Un binaire dynamiquement lié dépend de bibliothèques partagées. ldd affiche les dépendances résolues. Le chargeur dynamique cherche selon sa configuration, son cache et certaines variables comme LD_LIBRARY_PATH. ldconfig reconstruit le cache à partir des emplacements connus, notamment /etc/ld.so.conf et ses inclusions.",
+      "practice": "Diagnostique un programme qui échoue avec une bibliothèque introuvable : identifie la dépendance avec ldd, vérifie les chemins, puis corrige proprement la configuration/cache.",
+      "pitfalls": "LD_LIBRARY_PATH est utile pour tester mais peut masquer un problème de configuration et modifier la résolution de bibliothèques de manière globale pour un processus."
+    },
+    {
+      "objective_id": "102.4",
+      "overview": "Sur Debian, dpkg manipule directement les paquets .deb et la base locale, tandis qu’APT résout les dépendances et travaille avec des dépôts. apt-get/apt et apt-cache permettent installation, suppression, mise à jour et recherche. dpkg -S relie un fichier installé à son paquet; dpkg -L liste les fichiers; dpkg-reconfigure relance une configuration de paquet.",
+      "practice": "Sache distinguer paquet disponible et installé, inspecter version/contenu/dépendances, retrouver le paquet propriétaire d’un fichier et réparer une installation incomplète.",
+      "pitfalls": "Ne confonds pas apt update (métadonnées) et apt upgrade (paquets). dpkg seul ne résout pas automatiquement les dépendances de dépôt."
+    },
+    {
+      "objective_id": "102.5",
+      "overview": "RPM est le format/base de paquets de Fedora/RHEL et d’autres distributions; rpm interroge, installe et vérifie directement les paquets. DNF/YUM ajoutent la résolution de dépendances et la gestion de dépôts. Zypper remplit ce rôle sur openSUSE. Les signatures et vérifications d’intégrité permettent de contrôler l’origine et l’état des fichiers installés.",
+      "practice": "Sache interroger un RPM, retrouver le paquet d’un fichier, vérifier signature/intégrité et effectuer installation/mise à jour/suppression avec dnf/yum ou zypper.",
+      "pitfalls": "rpm -i n’est pas équivalent à dnf install pour les dépendances. YUM reste au programme même si DNF est l’outil moderne sur Fedora."
+    },
+    {
+      "objective_id": "102.6",
+      "overview": "Une VM virtualise une machine complète alors qu’un conteneur partage le noyau de l’hôte. En IaaS, il faut raisonner en instances, volumes bloc et interfaces réseau. Un clone Linux doit régénérer les identités qui doivent rester uniques, notamment machine-id et clés d’hôte SSH. Les guest drivers améliorent l’intégration et cloud-init initialise automatiquement une instance.",
+      "practice": "Compare VM, conteneur système et conteneur applicatif; prépare mentalement un template clonable sans identités dupliquées et lis un exemple simple de cloud-init.",
+      "pitfalls": "Cloner bit-à-bit une machine sans régénérer les identités peut provoquer des collisions. Un conteneur n’a pas son propre noyau."
+    },
+    {
+      "objective_id": "103.1",
+      "overview": "Bash interprète commandes, expansions, variables, quoting et séquences. Les variables shell ne sont pas forcément exportées; export les transmet aux processus enfants et unset les supprime. env montre/modifie l’environnement d’une commande, set expose aussi les variables et paramètres du shell. PATH est parcouru de gauche à droite, mais une commande peut être appelée par chemin absolu ou relatif. history et ~/.bash_history concernent l’historique; type/which/man aident à identifier ou documenter une commande; echo, pwd et uname sont des outils fondamentaux.",
+      "practice": "Entraîne-toi à prédire l’effet de quotes simples/doubles, à distinguer variable shell et environnement, à modifier PATH sans casser l’existant et à invoquer explicitement un exécutable hors PATH.",
+      "pitfalls": "Les quotes simples empêchent l’expansion, les doubles la permettent sauf cas particuliers. Une variable non exportée n’est pas héritée par un processus enfant. which ne connaît pas toutes les constructions du shell; type est souvent plus pertinent."
+    },
+    {
+      "objective_id": "103.2",
+      "overview": "Les filtres Unix composent des transformations simples : cat concatène, head/tail sélectionnent des extrémités, cut extrait des champs, paste assemble, sort trie, uniq traite les doublons adjacents, tr transforme des caractères, wc compte, nl numérote, od inspecte les octets et sed édite des flux. split découpe des fichiers. md5sum/sha* produisent des empreintes. zcat/bzcat/xzcat lisent des flux compressés.",
+      "practice": "Construis des pipelines courts en choisissant le bon filtre plutôt qu’un outil surdimensionné. Teste le comportement de sort/uniq, les délimiteurs de cut et les plages de sed.",
+      "pitfalls": "uniq ne dédoublonne correctement qu’un flux déjà regroupé/trié selon le besoin. Une somme de contrôle vérifie l’intégrité, pas l’authenticité."
+    },
+    {
+      "objective_id": "103.3",
+      "overview": "La gestion de fichiers combine cp, mv, rm, mkdir, rmdir, touch et ls avec globbing et options récursives. find sélectionne selon type, taille ou temps et peut exécuter une action. tar et cpio archivent; gzip/bzip2/xz compressent; dd copie des blocs sans comprendre le filesystem; file identifie un type de contenu.",
+      "practice": "Entraîne-toi à copier/supprimer récursivement avec prudence, utiliser des globs avancés, rechercher avec find puis agir sur les résultats, et créer/restaurer des archives.",
+      "pitfalls": "Le globbing est effectué par le shell avant la commande. dd est puissant et dangereux : une inversion if/of peut détruire des données."
+    },
+    {
+      "objective_id": "103.4",
+      "overview": "Chaque processus possède stdin, stdout et stderr, typiquement des descripteurs 0, 1 et 2. < redirige l’entrée, > écrase stdout, >> ajoute, 2> traite stderr et 2>&1 duplique un descripteur selon l’ordre d’évaluation. | connecte stdout à stdin. tee duplique un flux vers écran et fichier; xargs transforme l’entrée en arguments de commande.",
+      "practice": "Pratique les redirections séparées stdout/stderr, l’ordre >file 2>&1 versus 2>&1 >file, les pipelines, tee et xargs avec des noms contenant des espaces.",
+      "pitfalls": "L’ordre des redirections compte. Un pipe transporte des octets; xargs construit des arguments et nécessite une stratégie sûre pour les séparateurs."
+    },
+    {
+      "objective_id": "103.5",
+      "overview": "Le shell distingue processus au premier plan, arrière-plan et jobs. &, jobs, bg et fg contrôlent les jobs du shell. ps donne un instantané; top observe dynamiquement; pgrep/pkill/killall sélectionnent par nom; kill envoie des signaux. nohup aide un processus à survivre au SIGHUP; screen et tmux fournissent des sessions persistantes.",
+      "practice": "Lance, suspends, reprends et termine des jobs; identifie le bon PID; utilise SIGTERM avant SIGKILL; compare nohup avec un multiplexeur.",
+      "pitfalls": "Un job du shell n’est pas un service. kill sans option envoie normalement SIGTERM, pas SIGKILL."
+    },
+    {
+      "objective_id": "103.6",
+      "overview": "La valeur nice influence la priorité d’ordonnancement CPU en espace utilisateur. Une valeur nice plus élevée signifie généralement moins de priorité. nice démarre un programme avec une valeur choisie, renice modifie un processus existant; ps et top permettent de l’observer. Les utilisateurs ordinaires ont des limites pour augmenter la priorité.",
+      "practice": "Identifie un processus gourmand, observe NI/PR, démarre une charge avec nice puis ajuste-la avec renice.",
+      "pitfalls": "Une valeur numérique de nice plus grande ne signifie pas plus prioritaire. nice ne remplace pas les mécanismes temps réel ni les cgroups."
+    },
+    {
+      "objective_id": "103.7",
+      "overview": "Les regex décrivent des motifs de texte. Les ancres ^ et $, classes [], quantificateurs et groupes construisent des expressions. Les BRE et ERE diffèrent notamment sur certains métacaractères; grep -E correspond aux ERE. grep/egrep/fgrep servent à rechercher, sed à transformer. Le globbing du shell n’est pas une regex.",
+      "practice": "Écris des motifs qui évitent les faux positifs, compare grep et grep -E, utilise sed pour substituer une occurrence ciblée.",
+      "pitfalls": "* en regex répète l’élément précédent alors qu’en glob il correspond à une suite de caractères. egrep/fgrep sont des formes historiques à reconnaître."
+    },
+    {
+      "objective_id": "103.8",
+      "overview": "vi est modal : mode normal pour naviguer/commander, insertion pour saisir, mode commande : pour certaines opérations. h/j/k/l déplacent, i/a/o insèrent, d/y/p suppriment/copient/collent, / et ? recherchent, :w et :q gèrent sauvegarde/sortie. ZZ sauvegarde et quitte. EDITOR choisit l’éditeur par défaut; vim, nano et Emacs doivent être reconnus.",
+      "practice": "Modifie un fichier uniquement au clavier : recherche, change, supprime, copie, colle, sauvegarde puis quitte; entraîne-toi aussi à sortir sans sauvegarder.",
+      "pitfalls": "La plupart des erreurs de débutant viennent du mauvais mode. :w! et :q! ont des effets différents; n’utilise pas ! sans comprendre pourquoi."
+    },
+    {
+      "objective_id": "104.1",
+      "overview": "Les tables MBR et GPT décrivent les partitions. fdisk, gdisk et parted les manipulent selon le format. mkfs.* crée les filesystems ext2/3/4, XFS, VFAT ou exFAT; mkswap initialise le swap. Btrfs apporte sous-volumes, compression et multi-device et doit être reconnu même si son administration avancée dépasse LPIC-1.",
+      "practice": "Sur un disque jetable, crée une table GPT, plusieurs partitions, un ext4 et un swap; identifie ensuite le résultat avec les outils bloc.",
+      "pitfalls": "Créer une partition ne crée pas le filesystem. Formater la mauvaise partition détruit ses données."
+    },
+    {
+      "objective_id": "104.2",
+      "overview": "df mesure l’espace d’un filesystem monté, du estime l’usage de fichiers/répertoires. Les inodes peuvent être épuisés indépendamment des blocs. fsck/e2fsck vérifient et réparent les familles ext, tune2fs ajuste certains paramètres; XFS dispose d’outils dédiés comme xfs_repair, xfs_fsr et xfs_db.",
+      "practice": "Diagnostique espace plein versus inodes pleins, puis choisis l’outil spécifique au filesystem et respecte les contraintes online/offline.",
+      "pitfalls": "N’exécute pas un fsck destructif sur un filesystem monté en écriture. Les outils ext ne s’appliquent pas à XFS."
+    },
+    {
+      "objective_id": "104.3",
+      "overview": "mount attache un filesystem à un point de montage, umount le détache. /etc/fstab décrit les montages persistants, souvent avec UUID ou LABEL obtenus via blkid/lsblk. Les options influencent sécurité et comportement. systemd peut représenter les montages sous forme d’unités .mount.",
+      "practice": "Monte manuellement, configure fstab avec UUID, teste sans redémarrer, puis diagnostique un umount refusé parce qu’un fichier est occupé.",
+      "pitfalls": "Une erreur fstab peut perturber le boot. Utilise mount -a pour tester prudemment après modification."
+    },
+    {
+      "objective_id": "104.5",
+      "overview": "Les permissions rwx ont des effets différents sur fichiers et répertoires. chmod utilise notation symbolique ou octale; chown/chgrp changent propriétaire/groupe; umask retire des bits aux permissions de création. SUID affecte l’identité effective d’un exécutable, SGID peut fixer groupe effectif ou héritage de groupe sur répertoire, sticky bit protège les suppressions dans un répertoire partagé.",
+      "practice": "Prédit les permissions finales avec umask, construis un répertoire collaboratif SGID+sticky et vérifie propriétaire/groupe.",
+      "pitfalls": "x sur un répertoire signifie traverser/rechercher, pas exécuter son contenu. SUID/SGID ont des implications de sécurité."
+    },
+    {
+      "objective_id": "104.6",
+      "overview": "Un hard link est une autre entrée de répertoire vers le même inode; un symlink contient un chemin vers une cible. Les hard links ne traversent normalement pas les filesystems et les liens de répertoires sont restreints. Supprimer un nom n’efface les données que lorsque le dernier lien dur disparaît et qu’aucun processus ne tient le fichier ouvert.",
+      "practice": "Crée hard link et symlink, compare inode avec ls -li, renomme/supprime la cible et observe les différences.",
+      "pitfalls": "Un symlink peut devenir cassé; un hard link n’est pas une copie indépendante."
+    },
+    {
+      "objective_id": "104.7",
+      "overview": "Le FHS définit les rôles attendus de /etc, /var, /usr, /home, /tmp, /boot, /opt, /srv et autres. find cherche en temps réel; locate interroge une base mise à jour par updatedb; whereis cible binaire/source/man; which et type concernent la résolution de commandes. /etc/updatedb.conf contrôle l’indexation de locate.",
+      "practice": "Pour chaque type de fichier, justifie son emplacement FHS et choisis find, locate, whereis, which ou type selon le besoin.",
+      "pitfalls": "locate peut être obsolète tant que la base n’est pas mise à jour. which ne remplace pas type pour aliases/functions/builtins."
+    },
+    {
+      "objective_id": "105.1",
+      "overview": "Bash lit des fichiers différents selon login shell et shell interactif. /etc/profile et profils utilisateur concernent le login; ~/.bashrc vise généralement les shells interactifs, avec variantes distribution. source ou . exécute un fichier dans le shell courant. Les variables, PATH, fonctions et aliases peuvent être définis globalement ou par utilisateur; /etc/skel initialise les nouveaux homes.",
+      "practice": "Trace quel fichier est lu dans plusieurs types de shell, ajoute proprement une fonction/alias et modifie PATH sans perdre les valeurs existantes.",
+      "pitfalls": "Exporter une variable ne rend pas automatiquement sa définition persistante. Évite d’ajouter plusieurs fois le même répertoire à PATH."
+    },
+    {
+      "objective_id": "105.2",
+      "overview": "Un script shell commence typiquement par un shebang qui choisit l’interpréteur. Les paramètres $1… et variables pilotent le comportement; test/[ ], if, for, while, read et seq construisent la logique. $(...) effectue une substitution de commande; && et || chaînent selon le statut de sortie. exec remplace le processus courant. Les permissions et l’emplacement du script font partie de son déploiement.",
+      "practice": "Écris un script simple idempotent, gère les codes d’erreur, les arguments et une boucle, puis teste cas normal et erreurs.",
+      "pitfalls": "Le bit SUID sur les scripts n’offre généralement pas le comportement que les débutants imaginent sur Linux. Quote les expansions de variables susceptibles de contenir espaces/globs."
+    },
+    {
+      "objective_id": "106.1",
+      "overview": "X11 est une architecture client/serveur : l’application cliente se connecte à un serveur X qui gère affichage et entrées. DISPLAY désigne le serveur; xauth et Xauthority gèrent l’autorisation, xhost est plus grossier. xorg.conf et xorg.conf.d permettent des surcharges; les display managers et window managers sont des composants distincts. Wayland utilise une architecture différente à connaître conceptuellement.",
+      "practice": "Interprète DISPLAY, inspecte l’autorisation X, identifie une section de configuration clavier et explique un affichage distant.",
+      "pitfalls": "Le 'serveur X' est du côté de l’écran/clavier, ce qui inverse l’intuition client/serveur habituelle."
+    },
+    {
+      "objective_id": "106.2",
+      "overview": "Un desktop environment regroupe shell graphique, panneaux, applications et services; un window manager gère les fenêtres; un display manager gère notamment l’écran de connexion. KDE Plasma, GNOME et Xfce sont des environnements majeurs. X11/XDMCP, VNC, SPICE et RDP représentent des technologies ou protocoles d’accès graphique distant avec modèles différents.",
+      "practice": "Associe chaque protocole à son usage et distingue bureau, window manager, display manager et protocole distant.",
+      "pitfalls": "VNC transporte souvent un bureau/framebuffer, RDP une session/protocole différent, SPICE est fréquent en virtualisation; XDMCP est historique et peu sécurisé."
+    },
+    {
+      "objective_id": "106.3",
+      "overview": "L’accessibilité couvre contraste et grandes polices, lecteurs d’écran, braille, loupe, clavier virtuel, sticky/slow/bounce/toggle keys, mouse keys, gestes et reconnaissance vocale. LPIC demande surtout de reconnaître le besoin et la fonctionnalité adaptée.",
+      "practice": "À partir de contraintes visuelles ou motrices, choisis la fonction d’accessibilité appropriée et explique son effet.",
+      "pitfalls": "Ne confonds pas sticky keys (combinaisons séquentielles) avec slow/bounce keys (filtrage temporel des frappes)."
+    },
+    {
+      "objective_id": "107.1",
+      "overview": "Les comptes utilisent /etc/passwd pour les attributs publics, /etc/shadow pour les hashes/expirations et /etc/group pour les groupes. useradd/usermod/userdel et groupadd/groupmod/groupdel gèrent le cycle de vie. passwd et chage gèrent mot de passe/expiration; getent interroge NSS plutôt que seulement les fichiers locaux. /etc/skel fournit les fichiers initiaux.",
+      "practice": "Crée un utilisateur avec groupe primaire/secondaires, expiration et home, modifie-le, verrouille-le puis supprime-le proprement.",
+      "pitfalls": "Un compte verrouillé n’est pas forcément un compte supprimé. getent est préférable pour voir des identités venant de LDAP/SSSD/NSS."
+    },
+    {
+      "objective_id": "107.2",
+      "overview": "cron exécute des tâches récurrentes selon un calendrier; crontab gère les entrées utilisateur et /etc/crontab ou /etc/cron.* les tâches système. at programme une exécution unique; atq/atrm gèrent la file. allow/deny contrôlent l’accès. Les systemd timers associent généralement une unité .timer à une .service et systemd-run peut créer des timers transitoires.",
+      "practice": "Planifie une tâche récurrente et une ponctuelle, diagnostique un job absent et compare cron avec un timer systemd.",
+      "pitfalls": "L’environnement d’un job cron est minimal : chemins et variables doivent être explicites. Un timer systemd peut rattraper des exécutions selon Persistent=."
+    },
+    {
+      "objective_id": "107.3",
+      "overview": "Les locales contrôlent langue, tri, formats et catégories LC_*. LANG donne une valeur par défaut, LC_* surcharge une catégorie et LC_ALL surcharge l’ensemble. LANG=C fournit un environnement stable et prévisible utile aux scripts. Les fuseaux utilisent /usr/share/zoneinfo, /etc/localtime, TZ, timedatectl/tzselect. iconv convertit les encodages UTF-8, ISO-8859, etc.",
+      "practice": "Compare la sortie d’une commande sous deux locales, force LANG=C dans un script, change TZ et convertis un petit fichier avec iconv.",
+      "pitfalls": "LC_ALL doit souvent rester temporaire plutôt qu’être configuré globalement. Locale et timezone sont deux concepts distincts."
+    },
+    {
+      "objective_id": "108.1",
+      "overview": "L’horloge système est maintenue par le noyau; le RTC matériel persiste hors tension. hwclock synchronise RTC et système, timedatectl expose date/timezone/état. NTP discipline l’horloge via ntpd ou chrony; chronyc inspecte chrony, ntpq inspecte ntpd. pool.ntp.org fournit des pools publics mais les labs doivent rester isolés.",
+      "practice": "Diagnostique heure incorrecte : timezone, RTC, synchronisation et source NTP. Sache lire ntpq/chronyc sans confondre leurs démons.",
+      "pitfalls": "Changer la timezone ne change pas l’instant UTC. Le RTC en UTC est la convention recommandée sur Linux."
+    },
+    {
+      "objective_id": "108.2",
+      "overview": "rsyslog route des messages selon facility, priorité et action, vers fichiers ou destinations distantes et peut recevoir des logs. journald stocke et indexe le journal systemd; journalctl filtre par unité, priorité, temps ou boot. Le stockage persistant se configure sous /var/log/journal et journald.conf; vacuum réduit l’historique. journalctl peut lire un journal depuis une autre racine/répertoire. logrotate gère rotation/compression des fichiers de logs. logger et systemd-cat injectent des messages.",
+      "practice": "Route un message test, filtre journalctl, configure persistance/taille, lis une copie de journal et écris une règle logrotate.",
+      "pitfalls": "journald et rsyslog peuvent coexister : ne les traite pas comme mutuellement exclusifs. La rotation de fichiers ne remplace pas le vacuum du journal binaire."
+    },
+    {
+      "objective_id": "108.3",
+      "overview": "Un MTA transfère le courrier. Postfix, Sendmail et Exim doivent être reconnus sans devoir configurer un serveur Internet complet. /etc/aliases avec newaliases définit des alias locaux; ~/.forward redirige le courrier d’un utilisateur. mail envoie/lit du courrier local et mailq inspecte une file; l’interface sendmail compatible est fournie par plusieurs MTA.",
+      "practice": "Crée un alias local et un forward dans un environnement de test, envoie un message local et inspecte la file.",
+      "pitfalls": "Le programme /usr/sbin/sendmail peut être une interface de compatibilité fournie par Postfix/Exim, pas forcément le MTA Sendmail."
+    },
+    {
+      "objective_id": "108.4",
+      "overview": "CUPS gère imprimantes, files et jobs. Les imprimantes locales/distantes et la configuration se trouvent notamment sous /etc/cups. lpr soumet un job, lpq affiche une file, lprm retire un job : ce sont des interfaces historiques compatibles LPD mais encore examinables.",
+      "practice": "Sur une file simulée, soumets, inspecte, annule un job et diagnostique une imprimante indisponible.",
+      "pitfalls": "Distingue imprimante (destination) et job (travail en file). Les commandes lpr/lpq/lprm restent au programme même avec CUPS."
+    },
+    {
+      "objective_id": "109.1",
+      "overview": "IPv4 utilise adresses 32 bits et masques/CIDR; IPv6 utilise 128 bits, notation hexadécimale, compression de zéros et possède notamment link-local et multicast. Les plages privées IPv4 diffèrent des adresses publiques. TCP est orienté connexion, UDP datagramme, ICMP signale/teste. Il faut connaître les ports usuels du référentiel et savoir consulter /etc/services.",
+      "practice": "Calcule réseau/broadcast pour de petits préfixes IPv4, reconnais les formes IPv6 et associe services, ports et protocoles.",
+      "pitfalls": "Un numéro de port ne suffit pas sans protocole TCP/UDP. IPv6 n’utilise pas le broadcast de la même façon qu’IPv4."
+    },
+    {
+      "objective_id": "109.2",
+      "overview": "La configuration persistante comprend hostname, adresses, préfixes, passerelle et DNS. NetworkManager se pilote avec nmcli pour Ethernet/Wi-Fi; systemd-networkd doit être reconnu. /etc/hosts, nsswitch.conf et resolv.conf influencent la résolution. ifup/ifdown sont historiques mais examinables.",
+      "practice": "Crée une connexion nmcli persistante avec IP/gateway/DNS, modifie hostname et explique l’ordre de résolution.",
+      "pitfalls": "Une modification avec ip est généralement temporaire; nmcli agit sur les profils persistants. resolv.conf peut être généré par un gestionnaire."
+    },
+    {
+      "objective_id": "109.3",
+      "overview": "iproute2 centralise interfaces, adresses et routes via ip. ss inspecte les sockets. ping/ping6 testent ICMP, traceroute/tracepath montrent le chemin, netcat teste des ports TCP/UDP. ifconfig, netstat et route sont des outils net-tools historiques à reconnaître. Un bon diagnostic sépare lien, adressage/routage, DNS et service.",
+      "practice": "Pars de ip link/address/route, teste la passerelle, une IP distante, le DNS puis le service; utilise ss/netcat pour le dernier niveau.",
+      "pitfalls": "Un ping réussi ne prouve pas qu’un service TCP fonctionne; un ping échoué ne prouve pas forcément que l’hôte est down si ICMP est filtré."
+    },
+    {
+      "objective_id": "109.4",
+      "overview": "La résolution de noms combine /etc/hosts, DNS et l’ordre NSS décrit dans /etc/nsswitch.conf. /etc/resolv.conf indique les résolveurs et options; host et dig interrogent DNS, getent passe par NSS. systemd-resolved peut fournir cache/stub et générer resolv.conf.",
+      "practice": "Diagnostique d’abord la connectivité IP, puis getent, resolv.conf et dig/host; modifie l’ordre hosts/dns dans NSS dans un lab.",
+      "pitfalls": "dig interroge DNS et ne reflète pas forcément tout NSS; getent est préférable pour tester ce que les applications libc résolvent."
+    },
+    {
+      "objective_id": "110.1",
+      "overview": "Un audit de base recherche SUID/SGID avec find, vérifie mots de passe/expiration avec passwd/chage, inspecte ports/processus via nmap/netstat (et outils modernes), fichiers ouverts avec lsof/fuser, limites via ulimit, sessions avec who/w/last et privilèges via sudo/sudoers/su. L’objectif est de comparer l’état à une politique.",
+      "practice": "Produis un audit factuel : binaires privilégiés, comptes expirants, ports ouverts, processus/fichiers associés, limites et règles sudo.",
+      "pitfalls": "Découvrir un SUID ou un port ouvert n’est pas automatiquement une vulnérabilité; il faut vérifier nécessité, propriétaire et exposition."
+    },
+    {
+      "objective_id": "110.2",
+      "overview": "Les mots de passe shadow séparent les hashes de /etc/passwd vers /etc/shadow. Le durcissement réduit les services inutiles et limite les comptes. /etc/nologin peut bloquer les connexions non-root. systemd.socket active des services à la demande; xinetd et TCP wrappers (/etc/hosts.allow,/etc/hosts.deny) sont historiques mais examinables.",
+      "practice": "Identifie un service inutile et désactive-le, vérifie un compte à shell nologin, puis reconnais une configuration xinetd/TCP wrappers.",
+      "pitfalls": "TCP wrappers et xinetd ne sont plus universellement utilisés : apprends-les pour l’examen sans les présenter comme design moderne par défaut."
+    },
+    {
+      "objective_id": "110.3",
+      "overview": "OpenSSH utilise clés utilisateur, host keys, known_hosts et authorized_keys. ssh-keygen crée des clés; ssh-agent/ssh-add gèrent les clés chargées. Les tunnels local (-L), remote (-R), dynamic (-D) et X11 forwarding transportent des flux. GnuPG gère clés, chiffrement/déchiffrement, signatures/vérification et révocation; gpg-agent assiste les opérations privées.",
+      "practice": "Établis une auth SSH par clé dans un réseau isolé, vérifie une host key, crée un tunnel, puis chiffre/signe et vérifie un fichier avec GPG.",
+      "pitfalls": "Une signature apporte intégrité/authenticité, pas confidentialité; le chiffrement ne prouve pas à lui seul l’identité de l’émetteur. Une host-key mismatch doit être investiguée, pas supprimée aveuglément."
+    }
+  ]
+}

@@ -59,9 +59,9 @@ func bootstrapAssets() fs.FS {
 		notificationService: &fstest.MapFile{Data: []byte("[Service]\nExecStart=/usr/bin/env lpic notify\n")},
 		notificationTimer:   &fstest.MapFile{Data: []byte("[Timer]\nOnCalendar=*-*-* 09:00:00\n")},
 		desktopEntry:        &fstest.MapFile{Data: []byte("[Desktop Entry]\nExec=lpic tui\n")},
-		"labs/images/fedora-phase1/Containerfile": &fstest.MapFile{Data: []byte("FROM scratch\n")},
+		"labs/images/fedora-phase1/Containerfile":          &fstest.MapFile{Data: []byte("FROM scratch\n")},
 		"labs/images/fedora-phase1/report-status-approved": &fstest.MapFile{Data: []byte("#!/bin/sh\n")},
-		"labs/images/fedora-phase1/report-status-shadow": &fstest.MapFile{Data: []byte("#!/bin/sh\n")},
+		"labs/images/fedora-phase1/report-status-shadow":   &fstest.MapFile{Data: []byte("#!/bin/sh\n")},
 	}
 }
 

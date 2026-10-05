@@ -16,6 +16,7 @@ SCRIPTS = [
     ROOT / "scripts" / "validate_vm_image_sources.py",
     ROOT / "scripts" / "generate_phase1_coverage.py",
     ROOT / "scripts" / "audit_phase3_coverage.py",
+    ROOT / "scripts" / "audit_lpic1_coverage.py",
 ]
 
 for script in SYNTAX_ONLY:

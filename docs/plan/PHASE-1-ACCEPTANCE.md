@@ -7,7 +7,7 @@ Validation baseline at acceptance:
 - Go tests, vet and formatting on Ubuntu;
 - complete Go core/content validation on Fedora 44;
 - real rootless Podman destructive host-sentinel integration test;
-- six built-in Phase-1 labs; all 22 concepts have two distinct lab contexts; generated coverage validation enforces that invariant.
+- six built-in Phase-1 labs; all 27 concepts have two distinct lab contexts; generated coverage validation enforces that invariant.
 
 Goal: prove the product loop and security model before scaling curriculum production.
 
@@ -23,7 +23,7 @@ The selected objectives are:
 
 The slice is closed over hard prerequisites: 103.5 and 104.5 require 103.1, which is included.
 
-All **22 concepts** currently mapped to these three objectives must have traceable coverage before Phase-1 exit.
+All **27 concepts** currently mapped to these three objectives must have traceable coverage before Phase-1 exit.
 
 ## Product acceptance
 - [x] Daily session can be built from curriculum metadata and progress state.
@@ -36,7 +36,7 @@ All **22 concepts** currently mapped to these three objectives must have traceab
 - [x] Objective coverage remains traceable to official LPIC IDs.
 - [x] Concept-level coverage remains traceable to stable concept IDs.
 - [x] Content can label `lpic-required`, `lpic-legacy`, and `modern-practice` where applicable.
-- [x] All 22 slice concepts appear in the coverage matrix.
+- [x] All 27 slice concepts appear in the coverage matrix.
 - [x] Every Phase-1 concept has exactly one focused `introduce` lesson and at least one deterministic daily non-assessment question; initial-assessment questions cannot satisfy daily coverage. Recognition questions remain weaker mastery evidence than free recall.
 - [x] Every Phase-1 concept has at least two labs with distinct machine-checked `practice_context` values so independent evidence can later become transfer evidence.
 

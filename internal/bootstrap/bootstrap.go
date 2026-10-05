@@ -19,16 +19,16 @@ import (
 )
 
 const (
-	Phase1Image          = "localhost/lpic-daily/fedora-phase1:1"
-	Phase1BaseImage      = "registry.fedoraproject.org/fedora:44"
-	RequiredVMImageID    = "fedora-44-x86_64-v2"
-	firstRunMarker       = "bootstrap-v1"
-	notificationService  = "packaging/systemd/lpic-daily-notify.service"
-	notificationTimer    = "packaging/systemd/lpic-daily-notify.timer"
-	desktopEntry         = "packaging/desktop/lpic-daily.desktop"
-	vmProvisionScript    = "scripts/provision_vm_storage.sh"
-	vmBuildScript        = "scripts/build_vm_image.py"
-	vmSourcesManifest    = "packaging/vm-images/sources.json"
+	Phase1Image         = "localhost/lpic-daily/fedora-phase1:1"
+	Phase1BaseImage     = "registry.fedoraproject.org/fedora:44"
+	RequiredVMImageID   = "fedora-44-x86_64-v2"
+	firstRunMarker      = "bootstrap-v1"
+	notificationService = "packaging/systemd/lpic-daily-notify.service"
+	notificationTimer   = "packaging/systemd/lpic-daily-notify.timer"
+	desktopEntry        = "packaging/desktop/lpic-daily.desktop"
+	vmProvisionScript   = "scripts/provision_vm_storage.sh"
+	vmBuildScript       = "scripts/build_vm_image.py"
+	vmSourcesManifest   = "packaging/vm-images/sources.json"
 )
 
 var ErrDeclined = errors.New("bootstrap action declined")
@@ -102,7 +102,7 @@ func Install(ctx context.Context, assets fs.FS, opts Options) error {
 		}
 	}
 	if setup.opts.PrepareVM {
-		if err := setup.ensureVM(ctx); err != nil {
+		if err := setup.ensureVM(ctx, RequiredVMImageID); err != nil {
 			if errors.Is(err, ErrDeclined) {
 				fmt.Fprintln(setup.opts.Stdout, "Labs VM: préparation ignorée; elle sera reproposée au premier lab VM.")
 			} else {
@@ -160,11 +160,18 @@ func EnsurePodmanLab(ctx context.Context, assets fs.FS, opts Options) error {
 }
 
 func EnsureVMLab(ctx context.Context, assets fs.FS, opts Options) error {
+	return EnsureVMLabImage(ctx, assets, RequiredVMImageID, opts)
+}
+
+func EnsureVMLabImage(ctx context.Context, assets fs.FS, imageID string, opts Options) error {
+	if strings.TrimSpace(imageID) == "" {
+		return errors.New("VM image ID is required")
+	}
 	setup, err := newInstaller(assets, opts)
 	if err != nil {
 		return err
 	}
-	return setup.ensureVM(ctx)
+	return setup.ensureVM(ctx, imageID)
 }
 
 func newInstaller(assets fs.FS, opts Options) (*installer, error) {
@@ -454,7 +461,7 @@ func (setup *installer) ensurePodmanRuntime(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-func (setup *installer) ensureVM(ctx context.Context) error {
+func (setup *installer) ensureVM(ctx context.Context, imageID string) error {
 	required := []struct {
 		executable string
 		packages   []string
@@ -483,8 +490,8 @@ func (setup *installer) ensureVM(ctx context.Context) error {
 		return err
 	}
 	if catalog, loadErr := libvirtrunner.LoadImageCatalog(catalogPath, imageRoot); loadErr == nil {
-		if _, resolveErr := catalog.Resolve(RequiredVMImageID, imageRoot); resolveErr == nil {
-			fmt.Fprintln(setup.opts.Stdout, "Image VM Phase 2: prête.")
+		if _, resolveErr := catalog.Resolve(imageID, imageRoot); resolveErr == nil {
+			fmt.Fprintf(setup.opts.Stdout, "Image VM %s: prête.\n", imageID)
 			return nil
 		}
 	}
@@ -493,7 +500,7 @@ func (setup *installer) ensureVM(ctx context.Context) error {
 		return err
 	}
 	if !setup.confirm(
-		"Le lab VM nécessite le téléchargement et la construction de l'image Fedora de confiance. Continuer ?",
+		fmt.Sprintf("Le lab VM nécessite le téléchargement et la construction de l'image de confiance %s. Continuer ?", imageID),
 		false,
 	) {
 		return fmt.Errorf("%w: VM image preparation was not approved", ErrDeclined)
@@ -504,7 +511,7 @@ func (setup *installer) ensureVM(ctx context.Context) error {
 		return err
 	}
 	defer cleanup()
-	fmt.Fprintln(setup.opts.Stdout, "Construction de l'image VM Fedora (téléchargement vérifié + personnalisation)…")
+	fmt.Fprintf(setup.opts.Stdout, "Construction de l'image VM %s (téléchargement vérifié + personnalisation)…\n", imageID)
 	if err := setup.opts.Runner.Interactive(
 		ctx,
 		setup.opts.Stdin,
@@ -512,7 +519,7 @@ func (setup *installer) ensureVM(ctx context.Context) error {
 		setup.opts.Stderr,
 		"python3",
 		filepath.Join(root, "scripts", "build_vm_image.py"),
-		RequiredVMImageID,
+		imageID,
 		"--image-root",
 		imageRoot,
 	); err != nil {
@@ -523,10 +530,10 @@ func (setup *installer) ensureVM(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("validate generated VM image catalog: %w", err)
 	}
-	if _, err := catalog.Resolve(RequiredVMImageID, imageRoot); err != nil {
+	if _, err := catalog.Resolve(imageID, imageRoot); err != nil {
 		return fmt.Errorf("validate generated VM image: %w", err)
 	}
-	fmt.Fprintln(setup.opts.Stdout, "Image VM Phase 2: installée et vérifiée.")
+	fmt.Fprintf(setup.opts.Stdout, "Image VM %s: installée et vérifiée.\n", imageID)
 	return nil
 }
 
@@ -632,7 +639,7 @@ func (setup *installer) confirm(question string, defaultYes bool) bool {
 
 func (setup *installer) extractPhase1Context() (string, func(), error) {
 	files := map[string]os.FileMode{
-		"labs/images/fedora-phase1/Containerfile":           0o644,
+		"labs/images/fedora-phase1/Containerfile":          0o644,
 		"labs/images/fedora-phase1/report-status-approved": 0o755,
 		"labs/images/fedora-phase1/report-status-shadow":   0o755,
 	}

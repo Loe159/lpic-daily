@@ -155,7 +155,6 @@ func TestPracticeDefaultsToQuestion(t *testing.T) {
 	}
 }
 
-
 func TestDashboardEmptyPlanShowsCompletedSession(t *testing.T) {
 	model := NewDashboard(study.Plan{}, gamification.Snapshot{XP: 198, CurrentStreakDays: 1})
 

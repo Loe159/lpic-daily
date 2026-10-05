@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/Loe159/lpic-daily/internal/checker"
@@ -163,15 +164,24 @@ func RecordLabConceptResults(
 			return fmt.Errorf("load existing lab evidence for %s: %w", conceptID, err)
 		}
 		attempt := nextAttemptFromEvents(events, authored.Definition.ID)
-		evidenceKind, err := practicalEvidenceKind(
-			conceptID,
-			events,
-			authored.Definition.PracticeContext,
-			highestHintLevel,
-			at,
-		)
-		if err != nil {
-			return err
+		var evidenceKind learning.EvidenceKind
+		if strings.Contains(authored.Definition.ID, ".standalone-") {
+			// Generated standalone labs deliberately rely on a structured learner
+			// explanation in addition to machine checks. They are valuable guided
+			// practice, but must not claim the same mastery strength as a bespoke
+			// state-verified lab.
+			evidenceKind = learning.EvidenceGuidedPractice
+		} else {
+			evidenceKind, err = practicalEvidenceKind(
+				conceptID,
+				events,
+				authored.Definition.PracticeContext,
+				highestHintLevel,
+				at,
+			)
+			if err != nil {
+				return err
+			}
 		}
 		eventID, err := newEventID()
 		if err != nil {

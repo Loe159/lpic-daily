@@ -62,6 +62,19 @@ type ConceptsFile struct {
 	Concepts        []Concept `json:"concepts"`
 }
 
+type ObjectiveStudyGuidesFile struct {
+	SchemaVersion string                `json:"schema_version"`
+	Source        string                `json:"source"`
+	Guides        []ObjectiveStudyGuide `json:"guides"`
+}
+
+type ObjectiveStudyGuide struct {
+	ObjectiveID string `json:"objective_id"`
+	Overview    string `json:"overview"`
+	Practice    string `json:"practice"`
+	Pitfalls    string `json:"pitfalls"`
+}
+
 type Concept struct {
 	ID                                  string   `json:"id"`
 	ObjectiveID                         string   `json:"objective_id"`
@@ -69,6 +82,7 @@ type Concept struct {
 	PedagogyOrder                       int      `json:"pedagogy_order"`
 	InheritedHardObjectivePrerequisites []string `json:"inherited_hard_objective_prerequisites"`
 	PrerequisiteConceptIDs              []string `json:"prerequisite_concept_ids,omitempty"`
+	AnchorTerms                         []string `json:"anchor_terms"`
 	Classification                      []string `json:"classification"`
 	Active                              bool     `json:"active"`
 }
@@ -117,8 +131,10 @@ type Bundle struct {
 	Objectives    ObjectivesFile
 	Prerequisites PrerequisitesFile
 	Concepts      ConceptsFile
+	StudyGuides   ObjectiveStudyGuidesFile
 	Phase1        Phase1Slice
 	Phase3        Phase3Scope
+	Phase4        Phase3Scope
 	Schemas       map[string]map[string]any
 }
 
@@ -131,5 +147,7 @@ type Summary struct {
 	Phase1Concepts   int
 	Phase3Objectives int
 	Phase3Concepts   int
+	Phase4Objectives int
+	Phase4Concepts   int
 	SchemaFiles      int
 }

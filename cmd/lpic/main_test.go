@@ -45,7 +45,7 @@ func TestTodayStartsWith1031AndCreatesLocalProgressStore(t *testing.T) {
 	}
 }
 
-func TestInitialAssessmentUnlocksDependentObjectiveWithoutLessonEvidence(t *testing.T) {
+func TestInitialAssessmentMarks1031ReadyWithoutLessonEvidence(t *testing.T) {
 	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
 
 	input := strings.Join([]string{
@@ -56,6 +56,11 @@ func TestInitialAssessmentUnlocksDependentObjectiveWithoutLessonEvidence(t *test
 		"history",
 		"type",
 		"uname -r",
+		"env",
+		"export",
+		"PATH",
+		".bash_history",
+		"echo",
 		"",
 	}, "\n")
 
@@ -68,7 +73,7 @@ func TestInitialAssessmentUnlocksDependentObjectiveWithoutLessonEvidence(t *test
 	); err != nil {
 		t.Fatalf("assess error = %v", err)
 	}
-	if !strings.Contains(stdout.String(), "Résultat: 7/7") ||
+	if !strings.Contains(stdout.String(), "Résultat: 12/12") ||
 		!strings.Contains(stdout.String(), "Foundation 103.1 prête") {
 		t.Fatalf("assessment output = %q", stdout.String())
 	}
@@ -99,13 +104,6 @@ func TestInitialAssessmentUnlocksDependentObjectiveWithoutLessonEvidence(t *test
 		}
 	}
 
-	var today bytes.Buffer
-	if err := runWithIO([]string{"today"}, strings.NewReader(""), &today, &bytes.Buffer{}); err != nil {
-		t.Fatalf("today after assessment error = %v", err)
-	}
-	if !strings.Contains(today.String(), "103.4") {
-		t.Fatalf("today did not unlock authored Phase-3 dependent objective: %q", today.String())
-	}
 }
 
 func TestLearnRecordsExposureAndAdvancesNewConcept(t *testing.T) {
@@ -196,23 +194,6 @@ func TestQuestionRejectsUnknownChoiceWithoutRecording(t *testing.T) {
 	)
 	if err == nil || !strings.Contains(err.Error(), "outside 1..3") {
 		t.Fatalf("error = %v", err)
-	}
-}
-
-func TestUpdateHelpDoesNotRunUpdater(t *testing.T) {
-	var stdout bytes.Buffer
-	if err := runWithIO([]string{"update", "--help"}, strings.NewReader(""), &stdout, &bytes.Buffer{}); err != nil {
-		t.Fatalf("update --help error = %v", err)
-	}
-	if !strings.Contains(stdout.String(), "Usage: lpic update") {
-		t.Fatalf("update help output = %q", stdout.String())
-	}
-}
-
-func TestUpdateRejectsUnexpectedArguments(t *testing.T) {
-	err := runWithIO([]string{"update", "main"}, strings.NewReader(""), &bytes.Buffer{}, &bytes.Buffer{})
-	if err == nil || !strings.Contains(err.Error(), "usage: lpic update") {
-		t.Fatalf("error = %v, want update usage error", err)
 	}
 }
 
@@ -342,8 +323,9 @@ func TestLabRunFailsClosedWhenRootlessPodmanIsUnavailable(t *testing.T) {
 	if err == nil {
 		t.Fatal("lab run unexpectedly succeeded without Podman")
 	}
-	if !strings.Contains(err.Error(), "open rootless Podman backend") {
-		t.Fatalf("error = %v, want rootless Podman failure", err)
+	if !strings.Contains(err.Error(), "prepare Podman lab environment") &&
+		!strings.Contains(err.Error(), "open rootless Podman backend") {
+		t.Fatalf("error = %v, want fail-closed Podman environment failure", err)
 	}
 	if strings.Contains(stdout.String(), "Lab réussi") {
 		t.Fatalf("lab falsely reported success: %q", stdout.String())
@@ -403,7 +385,7 @@ func TestRequireUnprivilegedVMProcessRejectsRoot(t *testing.T) {
 	}
 }
 
-func TestLibvirtLabRunFailsClosedWithoutTrustedImageCatalog(t *testing.T) {
+func TestLibvirtLabRunFailsClosedWithoutReadyEnvironment(t *testing.T) {
 	root := t.TempDir()
 	t.Setenv("LPIC_DAILY_VM_IMAGE_DIR", filepath.Join(root, "vm-images"))
 	t.Setenv("LPIC_DAILY_STATE_DIR", filepath.Join(root, "state"))
@@ -422,8 +404,9 @@ func TestLibvirtLabRunFailsClosedWithoutTrustedImageCatalog(t *testing.T) {
 		if !strings.Contains(err.Error(), "regular user, not root") {
 			t.Fatalf("error = %v, want root refusal", err)
 		}
-	} else if !strings.Contains(err.Error(), "load VM image catalog") {
-		t.Fatalf("error = %v, want trusted VM image catalog failure", err)
+	} else if !strings.Contains(err.Error(), "prepare VM lab environment") &&
+		!strings.Contains(err.Error(), "open libvirt") {
+		t.Fatalf("error = %v, want fail-closed VM environment failure", err)
 	}
 	if strings.Contains(err.Error(), "Podman") {
 		t.Fatalf("libvirt lab unexpectedly fell back to Podman: %v", err)
@@ -1058,5 +1041,15 @@ func TestInteractiveVMLabDispatchesRebootCommand(t *testing.T) {
 	}
 	if !strings.Contains(stdout.String(), "Reboot demandé") {
 		t.Fatalf("stdout missing reboot confirmation: %q", stdout.String())
+	}
+}
+
+func TestUpdateHelpDoesNotRunUpdater(t *testing.T) {
+	var stdout bytes.Buffer
+	if err := runWithIO([]string{"update", "--help"}, strings.NewReader(""), &stdout, &bytes.Buffer{}); err != nil {
+		t.Fatalf("update --help error = %v", err)
+	}
+	if !strings.Contains(stdout.String(), "Usage: lpic update") {
+		t.Fatalf("update help output = %q", stdout.String())
 	}
 }

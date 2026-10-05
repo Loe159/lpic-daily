@@ -15,8 +15,10 @@ const (
 	objectivesPath    = "curriculum/lpic-1-v5/objectives.json"
 	prerequisitesPath = "curriculum/lpic-1-v5/prerequisites.json"
 	conceptsPath      = "curriculum/lpic-1-v5/concepts.json"
+	studyGuidesPath   = "curriculum/lpic-1-v5/objective-study-guides.json"
 	phase1Path        = "curriculum/lpic-1-v5/phase1-slice.json"
 	phase3Path        = "curriculum/lpic-1-v5/phase3-exam101.json"
+	phase4Path        = "curriculum/lpic-1-v5/phase4-exam102.json"
 	schemasDir        = "schemas"
 )
 
@@ -43,10 +45,16 @@ func Load(fsys fs.FS) (*Bundle, error) {
 	if err := validateConceptInstances(fsys, schemaValidator); err != nil {
 		return nil, err
 	}
+	if err := decodeStrictFile(fsys, studyGuidesPath, &bundle.StudyGuides); err != nil {
+		return nil, err
+	}
 	if err := decodeStrictFile(fsys, phase1Path, &bundle.Phase1); err != nil {
 		return nil, err
 	}
 	if err := decodeStrictFile(fsys, phase3Path, &bundle.Phase3); err != nil {
+		return nil, err
+	}
+	if err := decodeStrictFile(fsys, phase4Path, &bundle.Phase4); err != nil {
 		return nil, err
 	}
 

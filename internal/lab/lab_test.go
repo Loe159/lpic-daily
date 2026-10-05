@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 
 	lpicdaily "github.com/Loe159/lpic-daily"
+	"github.com/Loe159/lpic-daily/internal/curriculum"
 	"github.com/Loe159/lpic-daily/internal/lab"
 	"github.com/Loe159/lpic-daily/internal/runner"
 )
@@ -421,5 +423,92 @@ func TestFailedResetCleanupRemainsRetryable(t *testing.T) {
 	}
 	if fake.destroyCalls != 2 || !fake.destroyed {
 		t.Fatalf("cleanup retry destroyCalls=%d destroyed=%v, want 2/true", fake.destroyCalls, fake.destroyed)
+	}
+}
+
+func TestBuiltinLabsProvideTwoPracticeContextsPerActiveConcept(t *testing.T) {
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("LoadAll() error = %v", err)
+	}
+	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("curriculum.Load() error = %v", err)
+	}
+
+	contexts := make(map[string]map[string]struct{})
+	for _, authored := range labs {
+		evidenced := make(map[string]struct{})
+		for _, check := range authored.Definition.Checks {
+			for _, conceptID := range check.ConceptIDs {
+				evidenced[conceptID] = struct{}{}
+			}
+		}
+		for conceptID := range evidenced {
+			if contexts[conceptID] == nil {
+				contexts[conceptID] = make(map[string]struct{})
+			}
+			contexts[conceptID][authored.Definition.PracticeContext] = struct{}{}
+		}
+	}
+
+	for _, concept := range curriculumBundle.Concepts.Concepts {
+		if !concept.Active {
+			continue
+		}
+		if got := len(contexts[concept.ID]); got < 2 {
+			t.Errorf("concept %s practical contexts = %d, want at least 2", concept.ID, got)
+		}
+	}
+}
+
+func TestGeneratedStandaloneLabsUseConceptAnchors(t *testing.T) {
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("LoadAll() error = %v", err)
+	}
+	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("curriculum.Load() error = %v", err)
+	}
+
+	conceptByID := make(map[string]curriculum.Concept)
+	for _, concept := range curriculumBundle.Concepts.Concepts {
+		if concept.Active {
+			conceptByID[concept.ID] = concept
+		}
+	}
+	seen := make(map[string]int)
+	for _, authored := range labs {
+		if !strings.Contains(authored.Definition.ID, ".standalone-") {
+			continue
+		}
+		for index, conceptID := range authored.Definition.ConceptIDs {
+			concept := conceptByID[conceptID]
+			if index >= len(authored.Definition.Checks) {
+				t.Fatalf("%s missing check for %s", authored.Definition.ID, conceptID)
+			}
+			wantTerms := "TERMS=" + strings.Join(concept.AnchorTerms, ",")
+			if !strings.Contains(authored.Definition.Checks[index].Pattern, regexp.QuoteMeta(wantTerms)) {
+				t.Errorf(
+					"%s check for %s does not require anchors %v: %q",
+					authored.Definition.ID,
+					conceptID,
+					concept.AnchorTerms,
+					authored.Definition.Checks[index].Pattern,
+				)
+			}
+			for _, anchor := range concept.AnchorTerms {
+				if !strings.Contains(authored.Definition.BriefFR, "`"+anchor+"`") {
+					t.Errorf("%s brief misses %s anchor %q", authored.Definition.ID, conceptID, anchor)
+				}
+			}
+			seen[conceptID]++
+		}
+	}
+	for conceptID := range conceptByID {
+		if seen[conceptID] < 2 {
+			t.Errorf("%s appears in %d generated standalone labs, want at least 2", conceptID, seen[conceptID])
+		}
 	}
 }

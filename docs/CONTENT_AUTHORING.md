@@ -7,6 +7,8 @@ Every LPIC-1 learning artifact must map to one or more IDs in `curriculum/lpic-1
 Use the official LPI objective list only as the factual syllabus reference. Do not copy, translate, closely paraphrase, remix or adapt LPI Learning Materials. Build original explanations from the objective facts plus independent primary Linux documentation/man pages.
 
 ## Required layers per concept
+Every stable concept must declare a non-empty `anchor_terms` list in `concepts.json`. These anchors are the explicit commands, files, operators, protocols or technical notions that make the concept concrete. They are the single source of truth used by generated lessons, recall questions and standalone labs; never infer or distribute anchors by position.
+
 Every schedulable concept must include all three learner-facing surfaces:
 - exactly one focused `introduce` lesson with the explanation/mental model and worked examples where useful;
 - at least one deterministic non-assessment quiz question;

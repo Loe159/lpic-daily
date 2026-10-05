@@ -8,14 +8,14 @@
     "questions": "content/lpic-1-v5/questions/**/*.json"
   },
   "summary": {
-    "concepts": 22,
-    "with_any_surface": 22,
-    "with_lab": 22,
-    "with_lesson": 22,
-    "with_question": 22,
-    "with_two_labs": 22,
-    "with_two_lab_contexts": 22,
-    "with_focused_introduction": 22
+    "concepts": 27,
+    "with_any_surface": 27,
+    "with_lab": 27,
+    "with_lesson": 27,
+    "with_question": 27,
+    "with_two_labs": 27,
+    "with_two_lab_contexts": 27,
+    "with_focused_introduction": 27
   },
   "concepts": [
     {
@@ -24,6 +24,8 @@
       "surfaces": {
         "labs": [
           "lpic1.103.1.shell-environment-repair",
+          "lpic1.103.1.standalone-diagnostic",
+          "lpic1.103.1.standalone-transfer",
           "lpic1.103.1.transfer-shell-handoff"
         ],
         "lessons": [
@@ -31,10 +33,14 @@
           "lpic1.103.1.lesson.shell-sequences"
         ],
         "questions": [
-          "lpic1.103.1.q.sequence-and"
+          "lpic1.103.1.q.sequence-and",
+          "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes.q.autonomous-recall",
+          "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes.q.autonomous-recognition"
         ]
       },
       "lab_contexts": [
+        "103-1-standalone-diagnostic",
+        "103-1-standalone-transfer",
         "shell-env-repair",
         "shell-handoff"
       ],
@@ -46,6 +52,8 @@
       "surfaces": {
         "labs": [
           "lpic1.103.1.shell-environment-repair",
+          "lpic1.103.1.standalone-diagnostic",
+          "lpic1.103.1.standalone-transfer",
           "lpic1.103.1.transfer-shell-handoff"
         ],
         "lessons": [
@@ -53,10 +61,14 @@
           "lpic1.103.1.lesson.variables-environment"
         ],
         "questions": [
-          "lpic1.103.1.q.export"
+          "lpic1.103.1.q.export",
+          "lpic1.103.1.variables-shell-environnement.q.autonomous-recall",
+          "lpic1.103.1.variables-shell-environnement.q.autonomous-recognition"
         ]
       },
       "lab_contexts": [
+        "103-1-standalone-diagnostic",
+        "103-1-standalone-transfer",
         "shell-env-repair",
         "shell-handoff"
       ],
@@ -68,6 +80,8 @@
       "surfaces": {
         "labs": [
           "lpic1.103.1.shell-environment-repair",
+          "lpic1.103.1.standalone-diagnostic",
+          "lpic1.103.1.standalone-transfer",
           "lpic1.103.1.transfer-shell-handoff"
         ],
         "lessons": [
@@ -75,10 +89,14 @@
           "lpic1.103.1.lesson.path-resolution"
         ],
         "questions": [
+          "lpic1.103.1.path-et-resolution-de-commande.q.autonomous-recall",
+          "lpic1.103.1.path-et-resolution-de-commande.q.autonomous-recognition",
           "lpic1.103.1.q.path-order"
         ]
       },
       "lab_contexts": [
+        "103-1-standalone-diagnostic",
+        "103-1-standalone-transfer",
         "shell-env-repair",
         "shell-handoff"
       ],
@@ -90,6 +108,8 @@
       "surfaces": {
         "labs": [
           "lpic1.103.1.shell-environment-repair",
+          "lpic1.103.1.standalone-diagnostic",
+          "lpic1.103.1.standalone-transfer",
           "lpic1.103.1.transfer-shell-handoff"
         ],
         "lessons": [
@@ -97,10 +117,14 @@
           "lpic1.103.1.lesson.quoting-arguments"
         ],
         "questions": [
-          "lpic1.103.1.q.single-quotes"
+          "lpic1.103.1.q.single-quotes",
+          "lpic1.103.1.quoting-escaping.q.autonomous-recall",
+          "lpic1.103.1.quoting-escaping.q.autonomous-recognition"
         ]
       },
       "lab_contexts": [
+        "103-1-standalone-diagnostic",
+        "103-1-standalone-transfer",
         "shell-env-repair",
         "shell-handoff"
       ],
@@ -112,6 +136,8 @@
       "surfaces": {
         "labs": [
           "lpic1.103.1.shell-environment-repair",
+          "lpic1.103.1.standalone-diagnostic",
+          "lpic1.103.1.standalone-transfer",
           "lpic1.103.1.transfer-shell-handoff"
         ],
         "lessons": [
@@ -119,10 +145,14 @@
           "lpic1.103.1.lesson.command-line-foundations"
         ],
         "questions": [
+          "lpic1.103.1.historique.q.autonomous-recall",
+          "lpic1.103.1.historique.q.autonomous-recognition",
           "lpic1.103.1.q.history"
         ]
       },
       "lab_contexts": [
+        "103-1-standalone-diagnostic",
+        "103-1-standalone-transfer",
         "shell-env-repair",
         "shell-handoff"
       ],
@@ -134,6 +164,8 @@
       "surfaces": {
         "labs": [
           "lpic1.103.1.shell-environment-repair",
+          "lpic1.103.1.standalone-diagnostic",
+          "lpic1.103.1.standalone-transfer",
           "lpic1.103.1.transfer-shell-handoff"
         ],
         "lessons": [
@@ -141,10 +173,14 @@
           "lpic1.103.1.lesson.identify-document-command"
         ],
         "questions": [
+          "lpic1.103.1.documentation-et-identification-d-une-commande.q.autonomous-recall",
+          "lpic1.103.1.documentation-et-identification-d-une-commande.q.autonomous-recognition",
           "lpic1.103.1.q.type"
         ]
       },
       "lab_contexts": [
+        "103-1-standalone-diagnostic",
+        "103-1-standalone-transfer",
         "shell-env-repair",
         "shell-handoff"
       ],
@@ -156,6 +192,8 @@
       "surfaces": {
         "labs": [
           "lpic1.103.1.shell-environment-repair",
+          "lpic1.103.1.standalone-diagnostic",
+          "lpic1.103.1.standalone-transfer",
           "lpic1.103.1.transfer-shell-handoff"
         ],
         "lessons": [
@@ -163,12 +201,126 @@
           "lpic1.103.1.lesson.command-line-foundations"
         ],
         "questions": [
+          "lpic1.103.1.informations-systeme-de-base.q.autonomous-recall",
+          "lpic1.103.1.informations-systeme-de-base.q.autonomous-recognition",
           "lpic1.103.1.q.uname-release"
         ]
       },
       "lab_contexts": [
+        "103-1-standalone-diagnostic",
+        "103-1-standalone-transfer",
         "shell-env-repair",
         "shell-handoff"
+      ],
+      "focused_introduction_count": 1
+    },
+    {
+      "concept_id": "lpic1.103.1.set-env-et-portee-des-variables",
+      "objective_id": "103.1",
+      "surfaces": {
+        "labs": [
+          "lpic1.103.1.standalone-diagnostic",
+          "lpic1.103.1.standalone-transfer"
+        ],
+        "lessons": [
+          "lpic1.103.1.set-env-et-portee-des-variables.lesson.autonomous"
+        ],
+        "questions": [
+          "lpic1.103.1.set-env-et-portee-des-variables.q.autonomous-recall",
+          "lpic1.103.1.set-env-et-portee-des-variables.q.autonomous-recognition"
+        ]
+      },
+      "lab_contexts": [
+        "103-1-standalone-diagnostic",
+        "103-1-standalone-transfer"
+      ],
+      "focused_introduction_count": 1
+    },
+    {
+      "concept_id": "lpic1.103.1.export-unset-et-processus-enfants",
+      "objective_id": "103.1",
+      "surfaces": {
+        "labs": [
+          "lpic1.103.1.standalone-diagnostic",
+          "lpic1.103.1.standalone-transfer"
+        ],
+        "lessons": [
+          "lpic1.103.1.export-unset-et-processus-enfants.lesson.autonomous"
+        ],
+        "questions": [
+          "lpic1.103.1.export-unset-et-processus-enfants.q.autonomous-recall",
+          "lpic1.103.1.export-unset-et-processus-enfants.q.autonomous-recognition"
+        ]
+      },
+      "lab_contexts": [
+        "103-1-standalone-diagnostic",
+        "103-1-standalone-transfer"
+      ],
+      "focused_introduction_count": 1
+    },
+    {
+      "concept_id": "lpic1.103.1.execution-de-commandes-hors-path",
+      "objective_id": "103.1",
+      "surfaces": {
+        "labs": [
+          "lpic1.103.1.standalone-diagnostic",
+          "lpic1.103.1.standalone-transfer"
+        ],
+        "lessons": [
+          "lpic1.103.1.execution-de-commandes-hors-path.lesson.autonomous"
+        ],
+        "questions": [
+          "lpic1.103.1.execution-de-commandes-hors-path.q.autonomous-recall",
+          "lpic1.103.1.execution-de-commandes-hors-path.q.autonomous-recognition"
+        ]
+      },
+      "lab_contexts": [
+        "103-1-standalone-diagnostic",
+        "103-1-standalone-transfer"
+      ],
+      "focused_introduction_count": 1
+    },
+    {
+      "concept_id": "lpic1.103.1.edition-et-persistance-de-l-historique",
+      "objective_id": "103.1",
+      "surfaces": {
+        "labs": [
+          "lpic1.103.1.standalone-diagnostic",
+          "lpic1.103.1.standalone-transfer"
+        ],
+        "lessons": [
+          "lpic1.103.1.edition-et-persistance-de-l-historique.lesson.autonomous"
+        ],
+        "questions": [
+          "lpic1.103.1.edition-et-persistance-de-l-historique.q.autonomous-recall",
+          "lpic1.103.1.edition-et-persistance-de-l-historique.q.autonomous-recognition"
+        ]
+      },
+      "lab_contexts": [
+        "103-1-standalone-diagnostic",
+        "103-1-standalone-transfer"
+      ],
+      "focused_introduction_count": 1
+    },
+    {
+      "concept_id": "lpic1.103.1.echo-et-expansion-shell",
+      "objective_id": "103.1",
+      "surfaces": {
+        "labs": [
+          "lpic1.103.1.standalone-diagnostic",
+          "lpic1.103.1.standalone-transfer"
+        ],
+        "lessons": [
+          "lpic1.103.1.echo-et-expansion-shell.lesson.autonomous"
+        ],
+        "questions": [
+          "lpic1.103.1.echo-et-expansion-shell.q.autonomous-recall",
+          "lpic1.103.1.echo-et-expansion-shell.q.autonomous-recognition"
+        ]
+      },
+      "lab_contexts": [
+        "103-1-standalone-diagnostic",
+        "103-1-standalone-transfer"
       ],
       "focused_introduction_count": 1
     },
@@ -177,6 +329,8 @@
       "objective_id": "103.5",
       "surfaces": {
         "labs": [
+          "lpic1.103.5.standalone-diagnostic",
+          "lpic1.103.5.standalone-transfer",
           "lpic1.103.5.stuck-worker",
           "lpic1.103.5.transfer-operator-session"
         ],
@@ -185,10 +339,14 @@
           "lpic1.103.5.lesson.processes-jobs-signals"
         ],
         "questions": [
+          "lpic1.103.5.processus-avant-arriere-plan.q.autonomous-recall",
+          "lpic1.103.5.processus-avant-arriere-plan.q.autonomous-recognition",
           "lpic1.103.5.q.background-ampersand"
         ]
       },
       "lab_contexts": [
+        "103-5-standalone-diagnostic",
+        "103-5-standalone-transfer",
         "operator-session",
         "process-incident"
       ],
@@ -199,6 +357,8 @@
       "objective_id": "103.5",
       "surfaces": {
         "labs": [
+          "lpic1.103.5.standalone-diagnostic",
+          "lpic1.103.5.standalone-transfer",
           "lpic1.103.5.stuck-worker",
           "lpic1.103.5.transfer-operator-session"
         ],
@@ -207,10 +367,14 @@
           "lpic1.103.5.lesson.shell-jobs"
         ],
         "questions": [
+          "lpic1.103.5.jobs-du-shell.q.autonomous-recall",
+          "lpic1.103.5.jobs-du-shell.q.autonomous-recognition",
           "lpic1.103.5.q.jobs"
         ]
       },
       "lab_contexts": [
+        "103-5-standalone-diagnostic",
+        "103-5-standalone-transfer",
         "operator-session",
         "process-incident"
       ],
@@ -221,6 +385,8 @@
       "objective_id": "103.5",
       "surfaces": {
         "labs": [
+          "lpic1.103.5.standalone-diagnostic",
+          "lpic1.103.5.standalone-transfer",
           "lpic1.103.5.stuck-worker",
           "lpic1.103.5.transfer-operator-session"
         ],
@@ -229,10 +395,14 @@
           "lpic1.103.5.lesson.processes-jobs-signals"
         ],
         "questions": [
-          "lpic1.103.5.q.default-kill-signal"
+          "lpic1.103.5.q.default-kill-signal",
+          "lpic1.103.5.signaux.q.autonomous-recall",
+          "lpic1.103.5.signaux.q.autonomous-recognition"
         ]
       },
       "lab_contexts": [
+        "103-5-standalone-diagnostic",
+        "103-5-standalone-transfer",
         "operator-session",
         "process-incident"
       ],
@@ -243,6 +413,8 @@
       "objective_id": "103.5",
       "surfaces": {
         "labs": [
+          "lpic1.103.5.standalone-diagnostic",
+          "lpic1.103.5.standalone-transfer",
           "lpic1.103.5.stuck-worker",
           "lpic1.103.5.transfer-operator-session"
         ],
@@ -251,10 +423,14 @@
           "lpic1.103.5.lesson.processes-jobs-signals"
         ],
         "questions": [
+          "lpic1.103.5.inspection-arbres-ressources.q.autonomous-recall",
+          "lpic1.103.5.inspection-arbres-ressources.q.autonomous-recognition",
           "lpic1.103.5.q.ps-snapshot"
         ]
       },
       "lab_contexts": [
+        "103-5-standalone-diagnostic",
+        "103-5-standalone-transfer",
         "operator-session",
         "process-incident"
       ],
@@ -265,6 +441,8 @@
       "objective_id": "103.5",
       "surfaces": {
         "labs": [
+          "lpic1.103.5.standalone-diagnostic",
+          "lpic1.103.5.standalone-transfer",
           "lpic1.103.5.stuck-worker",
           "lpic1.103.5.transfer-operator-session"
         ],
@@ -273,10 +451,14 @@
           "lpic1.103.5.lesson.processes-jobs-signals"
         ],
         "questions": [
+          "lpic1.103.5.processus-survivant-a-la-session.q.autonomous-recall",
+          "lpic1.103.5.processus-survivant-a-la-session.q.autonomous-recognition",
           "lpic1.103.5.q.nohup"
         ]
       },
       "lab_contexts": [
+        "103-5-standalone-diagnostic",
+        "103-5-standalone-transfer",
         "operator-session",
         "process-incident"
       ],
@@ -287,6 +469,8 @@
       "objective_id": "103.5",
       "surfaces": {
         "labs": [
+          "lpic1.103.5.standalone-diagnostic",
+          "lpic1.103.5.standalone-transfer",
           "lpic1.103.5.stuck-worker",
           "lpic1.103.5.transfer-operator-session"
         ],
@@ -295,10 +479,14 @@
           "lpic1.103.5.lesson.select-process"
         ],
         "questions": [
-          "lpic1.103.5.q.pgrep"
+          "lpic1.103.5.q.pgrep",
+          "lpic1.103.5.selection-par-nom-pid.q.autonomous-recall",
+          "lpic1.103.5.selection-par-nom-pid.q.autonomous-recognition"
         ]
       },
       "lab_contexts": [
+        "103-5-standalone-diagnostic",
+        "103-5-standalone-transfer",
         "operator-session",
         "process-incident"
       ],
@@ -309,6 +497,8 @@
       "objective_id": "103.5",
       "surfaces": {
         "labs": [
+          "lpic1.103.5.standalone-diagnostic",
+          "lpic1.103.5.standalone-transfer",
           "lpic1.103.5.stuck-worker",
           "lpic1.103.5.transfer-operator-session"
         ],
@@ -317,10 +507,14 @@
           "lpic1.103.5.lesson.terminal-multiplexers"
         ],
         "questions": [
+          "lpic1.103.5.multiplexeurs-de-terminal.q.autonomous-recall",
+          "lpic1.103.5.multiplexeurs-de-terminal.q.autonomous-recognition",
           "lpic1.103.5.q.multiplexer"
         ]
       },
       "lab_contexts": [
+        "103-5-standalone-diagnostic",
+        "103-5-standalone-transfer",
         "operator-session",
         "process-incident"
       ],
@@ -332,6 +526,8 @@
       "surfaces": {
         "labs": [
           "lpic1.104.5.shared-dropbox",
+          "lpic1.104.5.standalone-diagnostic",
+          "lpic1.104.5.standalone-transfer",
           "lpic1.104.5.transfer-team-share-audit"
         ],
         "lessons": [
@@ -339,10 +535,14 @@
           "lpic1.104.5.lesson.rwx-files-directories"
         ],
         "questions": [
+          "lpic1.104.5.permissions-rwx-fichier-dossier.q.autonomous-recall",
+          "lpic1.104.5.permissions-rwx-fichier-dossier.q.autonomous-recognition",
           "lpic1.104.5.q.directory-x"
         ]
       },
       "lab_contexts": [
+        "104-5-standalone-diagnostic",
+        "104-5-standalone-transfer",
         "shared-dropbox-policy",
         "team-share-audit"
       ],
@@ -354,6 +554,8 @@
       "surfaces": {
         "labs": [
           "lpic1.104.5.shared-dropbox",
+          "lpic1.104.5.standalone-diagnostic",
+          "lpic1.104.5.standalone-transfer",
           "lpic1.104.5.transfer-team-share-audit"
         ],
         "lessons": [
@@ -361,10 +563,14 @@
           "lpic1.104.5.lesson.permissions-special-bits"
         ],
         "questions": [
+          "lpic1.104.5.notation-symbolique-octale.q.autonomous-recall",
+          "lpic1.104.5.notation-symbolique-octale.q.autonomous-recognition",
           "lpic1.104.5.q.octal-750"
         ]
       },
       "lab_contexts": [
+        "104-5-standalone-diagnostic",
+        "104-5-standalone-transfer",
         "shared-dropbox-policy",
         "team-share-audit"
       ],
@@ -376,6 +582,8 @@
       "surfaces": {
         "labs": [
           "lpic1.104.5.shared-dropbox",
+          "lpic1.104.5.standalone-diagnostic",
+          "lpic1.104.5.standalone-transfer",
           "lpic1.104.5.transfer-team-share-audit"
         ],
         "lessons": [
@@ -383,10 +591,14 @@
           "lpic1.104.5.lesson.permissions-special-bits"
         ],
         "questions": [
+          "lpic1.104.5.proprietaire-groupe.q.autonomous-recall",
+          "lpic1.104.5.proprietaire-groupe.q.autonomous-recognition",
           "lpic1.104.5.q.chown-owner-group"
         ]
       },
       "lab_contexts": [
+        "104-5-standalone-diagnostic",
+        "104-5-standalone-transfer",
         "shared-dropbox-policy",
         "team-share-audit"
       ],
@@ -398,6 +610,8 @@
       "surfaces": {
         "labs": [
           "lpic1.104.5.shared-dropbox",
+          "lpic1.104.5.standalone-diagnostic",
+          "lpic1.104.5.standalone-transfer",
           "lpic1.104.5.transfer-team-share-audit"
         ],
         "lessons": [
@@ -405,10 +619,14 @@
           "lpic1.104.5.lesson.umask"
         ],
         "questions": [
-          "lpic1.104.5.q.umask-027"
+          "lpic1.104.5.q.umask-027",
+          "lpic1.104.5.umask.q.autonomous-recall",
+          "lpic1.104.5.umask.q.autonomous-recognition"
         ]
       },
       "lab_contexts": [
+        "104-5-standalone-diagnostic",
+        "104-5-standalone-transfer",
         "shared-dropbox-policy",
         "team-share-audit"
       ],
@@ -420,6 +638,8 @@
       "surfaces": {
         "labs": [
           "lpic1.104.5.shared-dropbox",
+          "lpic1.104.5.standalone-diagnostic",
+          "lpic1.104.5.standalone-transfer",
           "lpic1.104.5.transfer-team-share-audit"
         ],
         "lessons": [
@@ -427,10 +647,14 @@
           "lpic1.104.5.lesson.suid"
         ],
         "questions": [
-          "lpic1.104.5.q.suid-effective-uid"
+          "lpic1.104.5.q.suid-effective-uid",
+          "lpic1.104.5.suid.q.autonomous-recall",
+          "lpic1.104.5.suid.q.autonomous-recognition"
         ]
       },
       "lab_contexts": [
+        "104-5-standalone-diagnostic",
+        "104-5-standalone-transfer",
         "shared-dropbox-policy",
         "team-share-audit"
       ],
@@ -442,6 +666,8 @@
       "surfaces": {
         "labs": [
           "lpic1.104.5.shared-dropbox",
+          "lpic1.104.5.standalone-diagnostic",
+          "lpic1.104.5.standalone-transfer",
           "lpic1.104.5.transfer-team-share-audit"
         ],
         "lessons": [
@@ -449,10 +675,14 @@
           "lpic1.104.5.lesson.sgid"
         ],
         "questions": [
-          "lpic1.104.5.q.sgid-directory"
+          "lpic1.104.5.q.sgid-directory",
+          "lpic1.104.5.sgid.q.autonomous-recall",
+          "lpic1.104.5.sgid.q.autonomous-recognition"
         ]
       },
       "lab_contexts": [
+        "104-5-standalone-diagnostic",
+        "104-5-standalone-transfer",
         "shared-dropbox-policy",
         "team-share-audit"
       ],
@@ -464,6 +694,8 @@
       "surfaces": {
         "labs": [
           "lpic1.104.5.shared-dropbox",
+          "lpic1.104.5.standalone-diagnostic",
+          "lpic1.104.5.standalone-transfer",
           "lpic1.104.5.transfer-team-share-audit"
         ],
         "lessons": [
@@ -471,10 +703,14 @@
           "lpic1.104.5.lesson.sticky-bit"
         ],
         "questions": [
-          "lpic1.104.5.q.sticky-directory"
+          "lpic1.104.5.q.sticky-directory",
+          "lpic1.104.5.sticky-bit.q.autonomous-recall",
+          "lpic1.104.5.sticky-bit.q.autonomous-recognition"
         ]
       },
       "lab_contexts": [
+        "104-5-standalone-diagnostic",
+        "104-5-standalone-transfer",
         "shared-dropbox-policy",
         "team-share-audit"
       ],
@@ -486,6 +722,8 @@
       "surfaces": {
         "labs": [
           "lpic1.104.5.shared-dropbox",
+          "lpic1.104.5.standalone-diagnostic",
+          "lpic1.104.5.standalone-transfer",
           "lpic1.104.5.transfer-team-share-audit"
         ],
         "lessons": [
@@ -493,10 +731,14 @@
           "lpic1.104.5.lesson.special-bits-directories"
         ],
         "questions": [
+          "lpic1.104.5.effets-speciaux-sur-repertoires.q.autonomous-recall",
+          "lpic1.104.5.effets-speciaux-sur-repertoires.q.autonomous-recognition",
           "lpic1.104.5.q.special-directory-combination"
         ]
       },
       "lab_contexts": [
+        "104-5-standalone-diagnostic",
+        "104-5-standalone-transfer",
         "shared-dropbox-policy",
         "team-share-audit"
       ],

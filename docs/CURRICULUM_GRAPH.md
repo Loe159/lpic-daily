@@ -6,7 +6,7 @@ Source machine-readable: `curriculum/lpic-1-v5/prerequisites.json`.
 
 Les numéros LPIC décrivent le syllabus, pas un ordre pédagogique optimal. Le graphe permet au scheduler de choisir du nouveau contenu dont les fondations sont disponibles, puis d'intercaler révisions et objectifs connexes.
 
-Le graphe couvre les **42 objectifs actifs LPIC-1 v5.0**. Les notions internes sont décomposées en **295 concept IDs stables** dans `curriculum/lpic-1-v5/concepts.json`.
+Le graphe couvre les **42 objectifs actifs LPIC-1 v5.0**. Les notions internes sont décomposées en **309 concept IDs stables** dans `curriculum/lpic-1-v5/concepts.json`.
 
 ## Deux types d'arêtes
 

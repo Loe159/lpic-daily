@@ -43,7 +43,9 @@
       "lpic1.101.1.modules-du-noyau-lies-au-materiel",
       "lpic1.101.1.bus-pci-et-usb",
       "lpic1.101.1.sysfs-udev-et-d-bus-comme-couches-de-decouverte-gestion",
-      "lpic1.101.1.differences-entre-grandes-familles-de-stockage"
+      "lpic1.101.1.differences-entre-grandes-familles-de-stockage",
+      "lpic1.101.1.activation-desactivation-peripheriques-integres",
+      "lpic1.101.1.manipulation-des-peripheriques-usb"
     ],
     "101.2": [
       "lpic1.101.2.sequence-firmware-bootloader-kernel-initramfs-init-systemd",
@@ -51,7 +53,8 @@
       "lpic1.101.2.parametres-noyau-au-boot",
       "lpic1.101.2.role-de-initramfs",
       "lpic1.101.2.sysvinit-systemd-et-connaissance-historique-d-upstart",
-      "lpic1.101.2.diagnostic-des-evenements-de-boot"
+      "lpic1.101.2.diagnostic-des-evenements-de-boot",
+      "lpic1.101.2.commandes-du-chargeur-de-demarrage"
     ],
     "101.3": [
       "lpic1.101.3.runlevels-sysv-et-targets-systemd",
@@ -60,7 +63,8 @@
       "lpic1.101.3.arret-redemarrage-propre",
       "lpic1.101.3.notification-aux-utilisateurs",
       "lpic1.101.3.services-et-dependances-de-demarrage",
-      "lpic1.101.3.notion-d-evenements-acpi"
+      "lpic1.101.3.notion-d-evenements-acpi",
+      "lpic1.101.3.terminaison-propre-des-processus"
     ],
     "102.1": [
       "lpic1.102.1.separer-var-home-et-boot-selon-usage",
@@ -118,7 +122,12 @@
       "lpic1.103.1.quoting-escaping",
       "lpic1.103.1.historique",
       "lpic1.103.1.documentation-et-identification-d-une-commande",
-      "lpic1.103.1.informations-systeme-de-base"
+      "lpic1.103.1.informations-systeme-de-base",
+      "lpic1.103.1.set-env-et-portee-des-variables",
+      "lpic1.103.1.export-unset-et-processus-enfants",
+      "lpic1.103.1.execution-de-commandes-hors-path",
+      "lpic1.103.1.edition-et-persistance-de-l-historique",
+      "lpic1.103.1.echo-et-expansion-shell"
     ],
     "103.2": [
       "lpic1.103.2.flux-texte-ligne-octet",
@@ -237,7 +246,7 @@
       "lpic1.104.7.resolution-de-commande-shell"
     ]
   },
-  "concept_count": 153,
+  "concept_count": 162,
   "scope_source": "https://www.lpi.org/fr/exam-101-102-objectives/",
   "scope_verified_on": "2026-10-01"
 }

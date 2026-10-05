@@ -1,7 +1,9 @@
 package content
 
 import (
+	"fmt"
 	"slices"
+	"strings"
 	"testing"
 	"testing/fstest"
 
@@ -39,8 +41,8 @@ func TestBuiltinPhase1ContentCoversEveryConcept(t *testing.T) {
 		t.Fatalf("curriculum.Load() error = %v", err)
 	}
 
-	phase1Concepts := make([]string, 0, 22)
-	phase1Set := make(map[string]struct{}, 22)
+	phase1Concepts := make([]string, 0, 27)
+	phase1Set := make(map[string]struct{}, 27)
 	for _, objectiveID := range curriculumBundle.Phase1.SelectedObjectives {
 		for _, conceptID := range curriculumBundle.Phase1.ObjectiveConcepts[objectiveID] {
 			phase1Concepts = append(phase1Concepts, conceptID)
@@ -167,5 +169,191 @@ func TestGradeDeterministicStrategies(t *testing.T) {
 	pass, err = ordering.Grade(Answer{ChoiceIDs: []string{"second", "first"}})
 	if err != nil || pass {
 		t.Fatalf("ordering Grade() = %v, %v, want false", pass, err)
+	}
+}
+
+func TestBuiltinStandaloneContentCoversEveryActiveConcept(t *testing.T) {
+	bundle, err := Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("curriculum.Load() error = %v", err)
+	}
+
+	introductions := make(map[string]int)
+	dailyQuestions := make(map[string]int)
+	recallQuestions := make(map[string]int)
+	for _, lesson := range bundle.Lessons {
+		if lesson.Stage == "introduce" && len(lesson.ConceptIDs) == 1 {
+			introductions[lesson.ConceptIDs[0]]++
+		}
+	}
+	for _, question := range bundle.Questions {
+		if question.Usage == "initial-assessment" {
+			continue
+		}
+		for _, conceptID := range question.ConceptIDs {
+			dailyQuestions[conceptID]++
+			if question.EvidenceKindOnSuccess == "recall" {
+				recallQuestions[conceptID]++
+			}
+		}
+	}
+
+	for _, concept := range curriculumBundle.Concepts.Concepts {
+		if !concept.Active {
+			continue
+		}
+		if introductions[concept.ID] != 1 {
+			t.Errorf("concept %s focused introductions = %d, want exactly 1", concept.ID, introductions[concept.ID])
+		}
+		if dailyQuestions[concept.ID] < 2 {
+			t.Errorf("concept %s daily questions = %d, want at least 2", concept.ID, dailyQuestions[concept.ID])
+		}
+		if recallQuestions[concept.ID] < 1 {
+			t.Errorf("concept %s has no recall-capable daily question", concept.ID)
+		}
+	}
+}
+
+func TestEveryOfficialTermHasSpecificStandaloneExplanation(t *testing.T) {
+	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("curriculum.Load() error = %v", err)
+	}
+	for _, objective := range curriculumBundle.Objectives.Objectives {
+		if !objective.Active {
+			continue
+		}
+		for _, term := range objective.TermsFilesUtilities {
+			if _, ok := standaloneTermExplanations[term]; ok {
+				continue
+			}
+			if _, ok := standalonePortServices[term]; ok && objective.ID == "109.1" {
+				continue
+			}
+			t.Errorf("%s term %q has no specific standalone explanation", objective.ID, term)
+		}
+	}
+}
+
+func TestEveryOfficialTermAppearsInLearnerLessons(t *testing.T) {
+	bundle, err := Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("curriculum.Load() error = %v", err)
+	}
+
+	bodiesByObjective := make(map[string]string)
+	for _, lesson := range bundle.Lessons {
+		for _, objectiveID := range lesson.ObjectiveIDs {
+			bodiesByObjective[objectiveID] += "\n" + lesson.BodyMarkdown
+		}
+	}
+	for _, objective := range curriculumBundle.Objectives.Objectives {
+		if !objective.Active {
+			continue
+		}
+		body := bodiesByObjective[objective.ID]
+		for _, term := range objective.TermsFilesUtilities {
+			if !strings.Contains(body, "`"+term+"`") {
+				t.Errorf("%s term %q never appears in learner lesson content", objective.ID, term)
+			}
+		}
+	}
+}
+
+func TestEveryConceptAnchorHasSpecificStandaloneExplanation(t *testing.T) {
+	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("curriculum.Load() error = %v", err)
+	}
+	for _, concept := range curriculumBundle.Concepts.Concepts {
+		if !concept.Active {
+			continue
+		}
+		for _, anchor := range concept.AnchorTerms {
+			if !hasSpecificStandaloneTermExplanation(anchor, concept.ObjectiveID) {
+				t.Errorf("%s anchor %q has no specific standalone explanation", concept.ID, anchor)
+			}
+		}
+	}
+}
+
+func TestEveryConceptAnchorAppearsInFocusedLesson(t *testing.T) {
+	bundle, err := Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("curriculum.Load() error = %v", err)
+	}
+
+	focusedBodies := make(map[string]string)
+	for _, lesson := range bundle.Lessons {
+		if lesson.Stage == "introduce" && len(lesson.ConceptIDs) == 1 {
+			focusedBodies[lesson.ConceptIDs[0]] = lesson.BodyMarkdown
+		}
+	}
+	for _, concept := range curriculumBundle.Concepts.Concepts {
+		if !concept.Active {
+			continue
+		}
+		body := focusedBodies[concept.ID]
+		for _, anchor := range concept.AnchorTerms {
+			if !strings.Contains(body, "`"+anchor+"`") {
+				t.Errorf("%s anchor %q missing from focused lesson", concept.ID, anchor)
+			}
+			explanation := standaloneTermExplanation(anchor, concept.ObjectiveID)
+			if !strings.Contains(body, explanation) {
+				t.Errorf("%s anchor %q explanation missing from focused lesson", concept.ID, anchor)
+			}
+		}
+	}
+}
+
+func TestGeneratedRecallQuestionsUseConceptAnchor(t *testing.T) {
+	bundle, err := Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("curriculum.Load() error = %v", err)
+	}
+
+	questions := make(map[string]Question)
+	for _, question := range bundle.Questions {
+		questions[question.ID] = question
+	}
+	for _, concept := range curriculumBundle.Concepts.Concepts {
+		if !concept.Active {
+			continue
+		}
+		for anchorIndex, anchor := range concept.AnchorTerms {
+			questionID := concept.ID + ".q.autonomous-recall"
+			if anchorIndex > 0 {
+				questionID += fmt.Sprintf("-%02d", anchorIndex+1)
+			}
+			question, exists := questions[questionID]
+			if !exists {
+				t.Fatalf("missing generated recall question %s", questionID)
+			}
+			if len(question.Grading.AcceptedAnswers) != 1 ||
+				question.Grading.AcceptedAnswers[0] != anchor {
+				t.Errorf(
+					"%s accepted answers = %v, want anchor %q",
+					questionID,
+					question.Grading.AcceptedAnswers,
+					anchor,
+				)
+			}
+		}
 	}
 }

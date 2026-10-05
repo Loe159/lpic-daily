@@ -4,7 +4,7 @@ Status: **In progress — updated 2026-10-04**
 
 Canonical scope: `curriculum/lpic-1-v5/phase3-exam101.json`.
 
-Phase 3 covers all 23 active Exam-101 objectives across topics 101–104 and all 153 stable concepts mapped to them.
+Phase 3 covers all 23 active Exam-101 objectives across topics 101–104 and all 162 stable concepts mapped to them.
 
 Phase 2 is already accepted on a real KVM/libvirt host (2026-10-04); it is now a regression dependency, not a deferred gate.
 

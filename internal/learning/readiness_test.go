@@ -23,12 +23,12 @@ func TestObjectiveReadinessUsesConceptFractionNotCompletion(t *testing.T) {
 			shellConcepts = append(shellConcepts, concept)
 		}
 	}
-	if len(shellConcepts) != 7 {
-		t.Fatalf("103.1 concepts = %d, want 7", len(shellConcepts))
+	if len(shellConcepts) != 12 {
+		t.Fatalf("103.1 concepts = %d, want 12", len(shellConcepts))
 	}
 
 	projections := map[string]learning.MasteryProjection{}
-	for _, concept := range shellConcepts[:5] {
+	for _, concept := range shellConcepts[:9] {
 		projections[concept.ID] = learning.MasteryProjection{
 			ConceptID: concept.ID,
 			Stage:     learning.StageRecall,
@@ -40,11 +40,11 @@ func TestObjectiveReadinessUsesConceptFractionNotCompletion(t *testing.T) {
 		t.Fatalf("ObjectiveReadiness() error = %v", err)
 	}
 	if !got["103.1"] {
-		t.Fatal("103.1 should be ready with 5/7 concepts at recall")
+		t.Fatal("103.1 should be ready with 9/12 concepts at recall")
 	}
 
-	projections[shellConcepts[4].ID] = learning.MasteryProjection{
-		ConceptID: shellConcepts[4].ID,
+	projections[shellConcepts[8].ID] = learning.MasteryProjection{
+		ConceptID: shellConcepts[8].ID,
 		Stage:     learning.StageExposed,
 	}
 	got, err = learning.ObjectiveReadiness(bundle, projections, learning.DefaultReadinessPolicy())
@@ -52,7 +52,7 @@ func TestObjectiveReadinessUsesConceptFractionNotCompletion(t *testing.T) {
 		t.Fatalf("ObjectiveReadiness() error = %v", err)
 	}
 	if got["103.1"] {
-		t.Fatal("103.1 should not be ready with only 4/7 concepts at recall")
+		t.Fatal("103.1 should not be ready with only 8/12 concepts at recall")
 	}
 }
 
@@ -68,13 +68,13 @@ func TestInitialAssessmentCanUnlockPrerequisiteWithoutLessonEvidence(t *testing.
 			shellConcepts = append(shellConcepts, concept)
 		}
 	}
-	if len(shellConcepts) != 7 {
-		t.Fatalf("103.1 concepts = %d, want 7", len(shellConcepts))
+	if len(shellConcepts) != 12 {
+		t.Fatalf("103.1 concepts = %d, want 12", len(shellConcepts))
 	}
 
 	at := time.Date(2026, 9, 27, 3, 0, 0, 0, time.UTC)
 	projections := make(map[string]learning.MasteryProjection)
-	for index, concept := range shellConcepts[:5] {
+	for index, concept := range shellConcepts[:9] {
 		event := learning.EvidenceEvent{
 			EventID:          fmt.Sprintf("assessment-%d", index+1),
 			OccurredAt:       at.Add(time.Duration(index) * time.Minute),

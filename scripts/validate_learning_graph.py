@@ -59,6 +59,7 @@ def main():
     concepts = load("concepts.json")
     phase1 = load("phase1-slice.json")
     phase3 = load("phase3-exam101.json")
+    phase4 = load("phase4-exam102.json")
 
     errors = []
     active = [o for o in objectives["objectives"] if o.get("active")]
@@ -205,11 +206,56 @@ def main():
             f"Phase 3 concept_count={phase3.get('concept_count')}, mapped={mapped_phase3_concepts}"
         )
 
+
+    expected_phase4_objectives = [o["id"] for o in active if o["exam"] == "102"]
+    if phase4.get("selected_objectives") != expected_phase4_objectives:
+        errors.append(
+            "Phase 4 objective scope drift: "
+            f"expected={expected_phase4_objectives}, got={phase4.get('selected_objectives')}"
+        )
+    if phase4.get("exam") != "102" or phase4.get("exam_code") != "102-500":
+        errors.append("Phase 4 must describe Exam 102 / 102-500")
+    if phase4.get("topics") != ["105", "106", "107", "108", "109", "110"]:
+        errors.append(f"Phase 4 topics drift: {phase4.get('topics')}")
+    if phase4.get("scope_source") != objectives.get("canonical_scope_source"):
+        errors.append("Phase 4 scope source differs from objectives.json canonical source")
+
+    phase4_selected = phase4.get("selected_objectives", [])
+    phase4_selected_set = set(phase4_selected)
+    phase4_concepts = phase4.get("objective_concepts", {})
+    if set(phase4_concepts) != phase4_selected_set:
+        errors.append(
+            "Phase 4 objective_concepts keys differ from selected objectives: "
+            f"missing={sorted(phase4_selected_set-set(phase4_concepts))}, "
+            f"extra={sorted(set(phase4_concepts)-phase4_selected_set)}"
+        )
+
+    mapped_phase4_concepts = 0
+    for objective_id in phase4_selected:
+        if objective_id not in active_set:
+            errors.append(f"Phase 4 references unknown objective {objective_id}")
+            continue
+        if next(o for o in active if o["id"] == objective_id)["exam"] != "102":
+            errors.append(f"Phase 4 references non-Exam-102 objective {objective_id}")
+        expected = [c["id"] for c in sorted(concepts_by_objective[objective_id], key=lambda x: x["pedagogy_order"])]
+        actual = phase4_concepts.get(objective_id, [])
+        mapped_phase4_concepts += len(actual)
+        if actual != expected:
+            errors.append(
+                f"Phase 4 concept set drift for {objective_id}: expected={expected}, got={actual}"
+            )
+
+    if phase4.get("concept_count") != mapped_phase4_concepts:
+        errors.append(
+            f"Phase 4 concept_count={phase4.get('concept_count')}, mapped={mapped_phase4_concepts}"
+        )
+
     fail(errors)
     print(
         "Learning graph validation OK: "
         f"{len(active_ids)} objectives; {len(concept_rows)} concepts; "
-        f"Phase 1 objectives={','.join(selected)}; Phase 3 Exam-101 concepts={mapped_phase3_concepts}"
+        f"Phase 1 objectives={','.join(selected)}; "
+        f"Exam-101 concepts={mapped_phase3_concepts}; Exam-102 concepts={mapped_phase4_concepts}"
     )
 
 

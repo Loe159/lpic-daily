@@ -13,7 +13,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "/sys",
+        "/proc",
+        "/dev"
+      ]
     },
     {
       "id": "lpic1.101.1.ressources-et-identification-du-materiel",
@@ -24,7 +29,13 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "lspci",
+        "lsusb",
+        "/proc",
+        "/sys"
+      ]
     },
     {
       "id": "lpic1.101.1.modules-du-noyau-lies-au-materiel",
@@ -35,7 +46,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "modprobe",
+        "lsmod"
+      ]
     },
     {
       "id": "lpic1.101.1.bus-pci-et-usb",
@@ -46,7 +61,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "lspci",
+        "lsusb"
+      ]
     },
     {
       "id": "lpic1.101.1.sysfs-udev-et-d-bus-comme-couches-de-decouverte-gestion",
@@ -57,7 +76,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "sysfs",
+        "udev",
+        "D-Bus"
+      ]
     },
     {
       "id": "lpic1.101.1.differences-entre-grandes-familles-de-stockage",
@@ -68,7 +92,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "/dev"
+      ]
     },
     {
       "id": "lpic1.101.2.sequence-firmware-bootloader-kernel-initramfs-init-systemd",
@@ -79,7 +106,14 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "bootloader",
+        "kernel",
+        "initramfs",
+        "init",
+        "systemd"
+      ]
     },
     {
       "id": "lpic1.101.2.bios-versus-uefi",
@@ -90,7 +124,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "BIOS",
+        "UEFI"
+      ]
     },
     {
       "id": "lpic1.101.2.parametres-noyau-au-boot",
@@ -101,7 +139,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "kernel",
+        "bootloader"
+      ]
     },
     {
       "id": "lpic1.101.2.role-de-initramfs",
@@ -112,7 +154,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "initramfs"
+      ]
     },
     {
       "id": "lpic1.101.2.sysvinit-systemd-et-connaissance-historique-d-upstart",
@@ -121,9 +166,15 @@
       "pedagogy_order": 5,
       "inherited_hard_objective_prerequisites": [],
       "classification": [
-        "lpic-required"
+        "lpic-required",
+        "lpic-legacy"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "SysVinit",
+        "systemd",
+        "Upstart"
+      ]
     },
     {
       "id": "lpic1.101.2.diagnostic-des-evenements-de-boot",
@@ -134,7 +185,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "dmesg",
+        "journalctl"
+      ]
     },
     {
       "id": "lpic1.101.3.runlevels-sysv-et-targets-systemd",
@@ -147,7 +202,13 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "systemctl",
+        "init",
+        "telinit",
+        "/etc/inittab"
+      ]
     },
     {
       "id": "lpic1.101.3.mode-mono-utilisateur-recuperation",
@@ -160,7 +221,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "systemctl",
+        "init"
+      ]
     },
     {
       "id": "lpic1.101.3.target-par-defaut",
@@ -173,7 +238,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "systemctl"
+      ]
     },
     {
       "id": "lpic1.101.3.arret-redemarrage-propre",
@@ -186,7 +254,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "shutdown"
+      ]
     },
     {
       "id": "lpic1.101.3.notification-aux-utilisateurs",
@@ -199,7 +270,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "wall"
+      ]
     },
     {
       "id": "lpic1.101.3.services-et-dependances-de-demarrage",
@@ -212,7 +286,13 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "systemctl",
+        "/etc/init.d",
+        "/etc/systemd",
+        "/usr/lib/systemd"
+      ]
     },
     {
       "id": "lpic1.101.3.notion-d-evenements-acpi",
@@ -225,7 +305,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "acpid"
+      ]
     },
     {
       "id": "lpic1.102.1.separer-var-home-et-boot-selon-usage",
@@ -238,7 +321,13 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "/var",
+        "/home",
+        "/boot",
+        "/"
+      ]
     },
     {
       "id": "lpic1.102.1.swap-et-dimensionnement-conceptuel",
@@ -251,7 +340,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "swap",
+        "mkswap"
+      ]
     },
     {
       "id": "lpic1.102.1.contraintes-boot-et-architecture",
@@ -264,7 +357,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "/boot"
+      ]
     },
     {
       "id": "lpic1.102.1.efi-system-partition",
@@ -277,7 +373,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "ESP",
+        "/boot"
+      ]
     },
     {
       "id": "lpic1.102.1.partitions-et-points-de-montage",
@@ -290,7 +390,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "partitions",
+        "mount points"
+      ]
     },
     {
       "id": "lpic1.102.1.principes-de-base-lvm",
@@ -303,7 +407,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "LVM"
+      ]
     },
     {
       "id": "lpic1.102.2.grub-legacy-versus-grub-2",
@@ -316,9 +423,15 @@
         "104.3"
       ],
       "classification": [
-        "lpic-required"
+        "lpic-required",
+        "lpic-legacy"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "GRUB Legacy",
+        "GRUB 2",
+        "menu.lst"
+      ]
     },
     {
       "id": "lpic1.102.2.emplacement-configuration-du-bootloader",
@@ -333,7 +446,13 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "grub.cfg",
+        "grub.conf",
+        "grub-install",
+        "grub-mkconfig"
+      ]
     },
     {
       "id": "lpic1.102.2.entrees-alternatives-et-recuperation",
@@ -348,7 +467,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "GRUB 2",
+        "grub.cfg"
+      ]
     },
     {
       "id": "lpic1.102.2.mbr-et-relation-avec-schema-de-boot",
@@ -363,7 +486,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "MBR"
+      ]
     },
     {
       "id": "lpic1.102.2.generation-de-configuration-grub-2",
@@ -378,7 +504,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "GRUB 2"
+      ]
     },
     {
       "id": "lpic1.102.2.interaction-au-menu-console-grub",
@@ -393,7 +522,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "GRUB 2",
+        "GRUB Legacy"
+      ]
     },
     {
       "id": "lpic1.102.3.resolution-des-dependances-dynamiques",
@@ -406,7 +539,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "ldd"
+      ]
     },
     {
       "id": "lpic1.102.3.chemins-de-recherche-du-chargeur-dynamique",
@@ -419,7 +555,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "ldconfig",
+        "/etc/ld.so.conf",
+        "LD_LIBRARY_PATH"
+      ]
     },
     {
       "id": "lpic1.102.3.cache-ldconfig",
@@ -432,7 +573,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "ldconfig"
+      ]
     },
     {
       "id": "lpic1.102.3.override-via-variables-d-environnement",
@@ -445,7 +589,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "LD_LIBRARY_PATH"
+      ]
     },
     {
       "id": "lpic1.102.3.diagnostic-d-une-bibliotheque-manquante",
@@ -458,7 +605,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "shared libraries",
+        "ldd"
+      ]
     },
     {
       "id": "lpic1.102.4.roles-respectifs-dpkg-et-apt",
@@ -471,7 +622,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "dpkg",
+        "apt"
+      ]
     },
     {
       "id": "lpic1.102.4.installation-mise-a-jour-suppression",
@@ -484,7 +639,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "dpkg",
+        "apt",
+        "apt-get"
+      ]
     },
     {
       "id": "lpic1.102.4.sources-et-metadonnees",
@@ -497,7 +657,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "/etc/apt/sources.list",
+        "apt"
+      ]
     },
     {
       "id": "lpic1.102.4.dependances",
@@ -510,7 +674,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "apt",
+        "apt-cache"
+      ]
     },
     {
       "id": "lpic1.102.4.inspection-d-un-paquet-et-de-ses-fichiers",
@@ -523,7 +691,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "dpkg",
+        "apt-cache"
+      ]
     },
     {
       "id": "lpic1.102.4.reconfiguration",
@@ -536,7 +708,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "dpkg-reconfigure"
+      ]
     },
     {
       "id": "lpic1.102.4.identifier-quel-paquet-fournit-possede-un-fichier",
@@ -549,7 +724,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "dpkg"
+      ]
     },
     {
       "id": "lpic1.102.5.format-base-rpm",
@@ -562,7 +740,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "rpm"
+      ]
     },
     {
       "id": "lpic1.102.5.installation-et-requetes-rpm",
@@ -575,7 +756,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "rpm -q",
+        "rpm -i",
+        "rpm2cpio"
+      ]
     },
     {
       "id": "lpic1.102.5.signature-integrite",
@@ -588,7 +774,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "rpm -K",
+        "rpm -V"
+      ]
     },
     {
       "id": "lpic1.102.5.resolution-des-dependances-via-gestionnaire-haut-niveau",
@@ -601,7 +791,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "dnf",
+        "yum",
+        "zypper"
+      ]
     },
     {
       "id": "lpic1.102.5.repositories-yum-dnf",
@@ -614,7 +809,13 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "yum",
+        "dnf",
+        "/etc/yum.repos.d",
+        "/etc/yum.conf"
+      ]
     },
     {
       "id": "lpic1.102.5.workflow-zypper-opensuse",
@@ -627,7 +828,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "zypper"
+      ]
     },
     {
       "id": "lpic1.102.5.identifier-fichier-paquet",
@@ -640,7 +844,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "rpm -qf"
+      ]
     },
     {
       "id": "lpic1.102.6.vm-versus-conteneur-applicatif-systeme",
@@ -653,7 +860,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "virtual machine",
+        "Linux container",
+        "application container"
+      ]
     },
     {
       "id": "lpic1.102.6.ressources-virtuelles-block-network",
@@ -666,7 +878,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "IaaS",
+        "virtual machine"
+      ]
     },
     {
       "id": "lpic1.102.6.images-clones-et-templates",
@@ -679,7 +895,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "cloud-init",
+        "virtual machine"
+      ]
     },
     {
       "id": "lpic1.102.6.identites-devant-etre-regenerees-lors-d-un-clonage",
@@ -692,7 +912,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "SSH host keys",
+        "D-Bus machine-id"
+      ]
     },
     {
       "id": "lpic1.102.6.guest-drivers",
@@ -705,7 +929,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "guest drivers"
+      ]
     },
     {
       "id": "lpic1.102.6.principes-cloud-init-iaas",
@@ -718,7 +945,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "cloud-init",
+        "IaaS"
+      ]
     },
     {
       "id": "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes",
@@ -729,7 +960,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "bash",
+        "&&",
+        "||"
+      ]
     },
     {
       "id": "lpic1.103.1.variables-shell-environnement",
@@ -740,7 +976,13 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "env",
+        "export",
+        "set",
+        "unset"
+      ]
     },
     {
       "id": "lpic1.103.1.path-et-resolution-de-commande",
@@ -751,7 +993,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "PATH",
+        "type",
+        "which"
+      ]
     },
     {
       "id": "lpic1.103.1.quoting-escaping",
@@ -762,7 +1009,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "quoting"
+      ]
     },
     {
       "id": "lpic1.103.1.historique",
@@ -771,9 +1021,13 @@
       "pedagogy_order": 5,
       "inherited_hard_objective_prerequisites": [],
       "classification": [
-        "lpic-required"
+        "lpic-required",
+        "lpic-legacy"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "history"
+      ]
     },
     {
       "id": "lpic1.103.1.documentation-et-identification-d-une-commande",
@@ -784,7 +1038,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "man",
+        "type",
+        "which"
+      ]
     },
     {
       "id": "lpic1.103.1.informations-systeme-de-base",
@@ -795,7 +1054,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "uname",
+        "pwd"
+      ]
     },
     {
       "id": "lpic1.103.2.flux-texte-ligne-octet",
@@ -809,7 +1072,13 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "cat",
+        "wc",
+        "od",
+        "less"
+      ]
     },
     {
       "id": "lpic1.103.2.selection-de-colonnes-lignes",
@@ -823,7 +1092,13 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "cut",
+        "head",
+        "tail",
+        "nl"
+      ]
     },
     {
       "id": "lpic1.103.2.tri-dedoublonnage",
@@ -837,7 +1112,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "sort",
+        "uniq"
+      ]
     },
     {
       "id": "lpic1.103.2.assemblage-et-decoupage",
@@ -851,7 +1130,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "paste",
+        "split"
+      ]
     },
     {
       "id": "lpic1.103.2.transformations-simples",
@@ -865,7 +1148,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "tr",
+        "sed"
+      ]
     },
     {
       "id": "lpic1.103.2.checksums",
@@ -879,7 +1166,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "md5sum",
+        "sha256sum",
+        "sha512sum"
+      ]
     },
     {
       "id": "lpic1.103.2.lecture-compression-en-flux",
@@ -893,7 +1185,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "zcat",
+        "bzcat",
+        "xzcat"
+      ]
     },
     {
       "id": "lpic1.103.3.creation-copie-deplacement-suppression",
@@ -906,7 +1203,16 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "cp",
+        "mv",
+        "rm",
+        "mkdir",
+        "touch",
+        "ls",
+        "rmdir"
+      ]
     },
     {
       "id": "lpic1.103.3.recursivite-et-globbing",
@@ -919,7 +1225,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "globbing"
+      ]
     },
     {
       "id": "lpic1.103.3.recherche-par-metadonnees",
@@ -932,7 +1241,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "find",
+        "globbing"
+      ]
     },
     {
       "id": "lpic1.103.3.actions-find",
@@ -945,7 +1258,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "find"
+      ]
     },
     {
       "id": "lpic1.103.3.archives-tar-cpio",
@@ -958,7 +1274,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "tar",
+        "cpio"
+      ]
     },
     {
       "id": "lpic1.103.3.copie-bas-niveau-dd",
@@ -971,7 +1291,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "dd"
+      ]
     },
     {
       "id": "lpic1.103.3.compression-gzip-bzip2-xz",
@@ -984,7 +1307,15 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "gzip",
+        "bzip2",
+        "xz",
+        "gunzip",
+        "bunzip2",
+        "unxz"
+      ]
     },
     {
       "id": "lpic1.103.3.detection-de-type",
@@ -997,7 +1328,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "file"
+      ]
     },
     {
       "id": "lpic1.103.4.stdin-stdout-stderr-et-descripteurs",
@@ -1010,7 +1344,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "stdin",
+        "stdout",
+        "stderr"
+      ]
     },
     {
       "id": "lpic1.103.4.redirections-ecrasement-append",
@@ -1023,7 +1362,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "<",
+        ">",
+        ">>"
+      ]
     },
     {
       "id": "lpic1.103.4.redirection-stderr",
@@ -1036,7 +1380,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "stderr",
+        "2>"
+      ]
     },
     {
       "id": "lpic1.103.4.pipelines",
@@ -1049,7 +1397,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "|"
+      ]
     },
     {
       "id": "lpic1.103.4.dupliquer-sortie-avec-tee",
@@ -1062,7 +1413,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "tee"
+      ]
     },
     {
       "id": "lpic1.103.4.transformer-stdin-en-arguments-via-xargs",
@@ -1075,7 +1429,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "xargs",
+        "stdin"
+      ]
     },
     {
       "id": "lpic1.103.4.ordre-des-redirections",
@@ -1088,7 +1446,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "2>&1",
+        "2>"
+      ]
     },
     {
       "id": "lpic1.103.5.processus-avant-arriere-plan",
@@ -1101,7 +1463,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "&",
+        "bg",
+        "fg"
+      ]
     },
     {
       "id": "lpic1.103.5.jobs-du-shell",
@@ -1114,7 +1481,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "jobs"
+      ]
     },
     {
       "id": "lpic1.103.5.signaux",
@@ -1127,7 +1497,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "kill",
+        "pkill",
+        "killall"
+      ]
     },
     {
       "id": "lpic1.103.5.inspection-arbres-ressources",
@@ -1140,7 +1515,14 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "ps",
+        "top",
+        "free",
+        "uptime",
+        "watch"
+      ]
     },
     {
       "id": "lpic1.103.5.processus-survivant-a-la-session",
@@ -1153,7 +1535,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "nohup"
+      ]
     },
     {
       "id": "lpic1.103.5.selection-par-nom-pid",
@@ -1166,7 +1551,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "pgrep",
+        "pkill",
+        "killall"
+      ]
     },
     {
       "id": "lpic1.103.5.multiplexeurs-de-terminal",
@@ -1179,7 +1569,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "screen",
+        "tmux"
+      ]
     },
     {
       "id": "lpic1.103.6.nice-value-et-ordonnancement-utilisateur",
@@ -1192,7 +1586,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "nice"
+      ]
     },
     {
       "id": "lpic1.103.6.priorite-par-defaut",
@@ -1205,7 +1602,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "nice default"
+      ]
     },
     {
       "id": "lpic1.103.6.demarrer-avec-une-priorite",
@@ -1218,7 +1618,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "nice -n"
+      ]
     },
     {
       "id": "lpic1.103.6.modifier-priorite-existante",
@@ -1231,7 +1634,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "renice"
+      ]
     },
     {
       "id": "lpic1.103.6.observer-priorite",
@@ -1244,7 +1650,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "ps",
+        "top"
+      ]
     },
     {
       "id": "lpic1.103.7.regex-basiques-etendues",
@@ -1257,7 +1667,14 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "BRE",
+        "ERE",
+        "grep",
+        "egrep",
+        "fgrep"
+      ]
     },
     {
       "id": "lpic1.103.7.classes-de-caracteres",
@@ -1270,7 +1687,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "grep",
+        "BRE",
+        "ERE"
+      ]
     },
     {
       "id": "lpic1.103.7.quantificateurs-et-ancres",
@@ -1283,7 +1705,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "ERE quantifiers",
+        "ERE anchors"
+      ]
     },
     {
       "id": "lpic1.103.7.groupes-alternatives",
@@ -1296,7 +1722,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "ERE groups",
+        "ERE alternation"
+      ]
     },
     {
       "id": "lpic1.103.7.recherche-de-lignes",
@@ -1309,7 +1739,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "grep"
+      ]
     },
     {
       "id": "lpic1.103.7.substitution-transformation-avec-sed",
@@ -1322,7 +1755,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "sed"
+      ]
     },
     {
       "id": "lpic1.103.7.difference-glob-vs-regex",
@@ -1335,7 +1771,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "globbing",
+        "regex(7)",
+        "grep"
+      ]
     },
     {
       "id": "lpic1.103.8.modes-normal-insertion-commande",
@@ -1348,7 +1789,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "vi"
+      ]
     },
     {
       "id": "lpic1.103.8.navigation",
@@ -1361,7 +1805,13 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "h",
+        "j",
+        "k",
+        "l"
+      ]
     },
     {
       "id": "lpic1.103.8.insertion-remplacement",
@@ -1374,7 +1824,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "i",
+        "a",
+        "o"
+      ]
     },
     {
       "id": "lpic1.103.8.suppression-copie-collage",
@@ -1387,7 +1842,14 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "d",
+        "dd",
+        "y",
+        "p",
+        "yy"
+      ]
     },
     {
       "id": "lpic1.103.8.recherche",
@@ -1400,7 +1862,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "/",
+        "?"
+      ]
     },
     {
       "id": "lpic1.103.8.sauvegarde-quitter",
@@ -1413,7 +1879,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        ":w!",
+        ":q!",
+        "ZZ"
+      ]
     },
     {
       "id": "lpic1.103.8.editeur-par-defaut",
@@ -1426,7 +1897,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "EDITOR"
+      ]
     },
     {
       "id": "lpic1.103.8.connaissance-nano-emacs-vim",
@@ -1439,7 +1913,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "vim",
+        "nano",
+        "emacs"
+      ]
     },
     {
       "id": "lpic1.104.1.mbr-versus-gpt",
@@ -1452,7 +1931,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "MBR",
+        "GPT"
+      ]
     },
     {
       "id": "lpic1.104.1.creation-modification-de-partitions",
@@ -1465,7 +1948,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "fdisk",
+        "gdisk",
+        "parted"
+      ]
     },
     {
       "id": "lpic1.104.1.ext2-ext3-ext4",
@@ -1478,7 +1966,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "ext2",
+        "ext3",
+        "ext4"
+      ]
     },
     {
       "id": "lpic1.104.1.xfs",
@@ -1491,7 +1984,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "XFS"
+      ]
     },
     {
       "id": "lpic1.104.1.vfat-exfat",
@@ -1504,7 +2000,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "VFAT",
+        "exFAT"
+      ]
     },
     {
       "id": "lpic1.104.1.swap",
@@ -1517,7 +2017,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "mkswap"
+      ]
     },
     {
       "id": "lpic1.104.1.principes-btrfs-multi-device-compression-subvolumes",
@@ -1530,7 +2033,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "Btrfs"
+      ]
     },
     {
       "id": "lpic1.104.1.creation-de-filesystem",
@@ -1543,7 +2049,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "mkfs",
+        "mke2fs"
+      ]
     },
     {
       "id": "lpic1.104.2.occupation-blocs-inodes",
@@ -1556,7 +2066,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "df",
+        "du",
+        "inode"
+      ]
     },
     {
       "id": "lpic1.104.2.verification-ext",
@@ -1569,7 +2084,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "fsck",
+        "e2fsck"
+      ]
     },
     {
       "id": "lpic1.104.2.reparation",
@@ -1582,7 +2101,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "fsck",
+        "e2fsck",
+        "xfs_repair"
+      ]
     },
     {
       "id": "lpic1.104.2.tuning-ext",
@@ -1595,7 +2119,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "tune2fs",
+        "mke2fs"
+      ]
     },
     {
       "id": "lpic1.104.2.outils-xfs",
@@ -1608,7 +2136,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "xfs_repair",
+        "xfs_db",
+        "xfs_fsr"
+      ]
     },
     {
       "id": "lpic1.104.2.difference-outils-online-offline-selon-fs",
@@ -1621,7 +2154,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "fsck",
+        "xfs_repair"
+      ]
     },
     {
       "id": "lpic1.104.2.symptomes-de-corruption-espace-epuise",
@@ -1634,7 +2171,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "df",
+        "du",
+        "fsck"
+      ]
     },
     {
       "id": "lpic1.104.3.montage-manuel",
@@ -1647,7 +2189,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "mount"
+      ]
     },
     {
       "id": "lpic1.104.3.fstab-persistant",
@@ -1660,7 +2205,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "/etc/fstab"
+      ]
     },
     {
       "id": "lpic1.104.3.uuid-labels",
@@ -1673,7 +2221,13 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "UUID",
+        "labels",
+        "blkid",
+        "lsblk"
+      ]
     },
     {
       "id": "lpic1.104.3.options-de-montage",
@@ -1686,7 +2240,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "mount -o"
+      ]
     },
     {
       "id": "lpic1.104.3.demontage-et-fichiers-occupes",
@@ -1699,7 +2256,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "umount"
+      ]
     },
     {
       "id": "lpic1.104.3.unites-mount-systemd",
@@ -1712,7 +2272,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "systemd mount units"
+      ]
     },
     {
       "id": "lpic1.104.3.peripheriques-amovibles",
@@ -1725,7 +2288,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "/media",
+        "UUID"
+      ]
     },
     {
       "id": "lpic1.104.5.permissions-rwx-fichier-dossier",
@@ -1738,7 +2305,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "chmod"
+      ]
     },
     {
       "id": "lpic1.104.5.notation-symbolique-octale",
@@ -1751,7 +2321,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "chmod symbolic",
+        "chmod octal"
+      ]
     },
     {
       "id": "lpic1.104.5.proprietaire-groupe",
@@ -1764,7 +2338,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "chown",
+        "chgrp"
+      ]
     },
     {
       "id": "lpic1.104.5.umask",
@@ -1777,7 +2355,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "umask"
+      ]
     },
     {
       "id": "lpic1.104.5.suid",
@@ -1790,7 +2371,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "SUID"
+      ]
     },
     {
       "id": "lpic1.104.5.sgid",
@@ -1803,7 +2387,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "SGID"
+      ]
     },
     {
       "id": "lpic1.104.5.sticky-bit",
@@ -1816,7 +2403,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "sticky bit"
+      ]
     },
     {
       "id": "lpic1.104.5.effets-speciaux-sur-repertoires",
@@ -1829,7 +2419,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "SUID",
+        "SGID",
+        "sticky bit"
+      ]
     },
     {
       "id": "lpic1.104.6.inode-et-hard-link",
@@ -1842,7 +2437,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "inode",
+        "hard link",
+        "ls"
+      ]
     },
     {
       "id": "lpic1.104.6.symlink-et-cible",
@@ -1855,7 +2455,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "symbolic link",
+        "ln"
+      ]
     },
     {
       "id": "lpic1.104.6.limites-filesystem-directory-des-hard-links",
@@ -1868,7 +2472,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "hard link",
+        "inode"
+      ]
     },
     {
       "id": "lpic1.104.6.liens-casses",
@@ -1881,7 +2489,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "symbolic link"
+      ]
     },
     {
       "id": "lpic1.104.6.difference-copie-lien",
@@ -1894,7 +2505,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "ln",
+        "hard link",
+        "symbolic link"
+      ]
     },
     {
       "id": "lpic1.104.6.usages-administratifs",
@@ -1907,7 +2523,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "ln"
+      ]
     },
     {
       "id": "lpic1.104.7.role-des-principaux-repertoires-fhs",
@@ -1920,7 +2539,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "FHS"
+      ]
     },
     {
       "id": "lpic1.104.7.recherche-temps-reel-vs-base-locate",
@@ -1933,7 +2555,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "find",
+        "locate",
+        "updatedb"
+      ]
     },
     {
       "id": "lpic1.104.7.mise-a-jour-base-locate",
@@ -1946,7 +2573,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "locate",
+        "/etc/updatedb.conf"
+      ]
     },
     {
       "id": "lpic1.104.7.localiser-binaire-source-man",
@@ -1959,7 +2590,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "whereis"
+      ]
     },
     {
       "id": "lpic1.104.7.resolution-de-commande-shell",
@@ -1972,7 +2606,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "type",
+        "which"
+      ]
     },
     {
       "id": "lpic1.105.1.login-shell-vs-shell-interactif",
@@ -1985,7 +2623,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "/etc/profile",
+        "~/.bash_profile",
+        "~/.bashrc"
+      ]
     },
     {
       "id": "lpic1.105.1.ordre-finalite-fichiers-de-profil",
@@ -1998,7 +2641,17 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "/etc/profile",
+        "~/.bash_profile",
+        "~/.profile",
+        "~/.bashrc",
+        ".",
+        "source",
+        "~/.bash_login",
+        "~/.bash_logout"
+      ]
     },
     {
       "id": "lpic1.105.1.variables-environnement",
@@ -2011,7 +2664,13 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "env",
+        "export",
+        "set",
+        "unset"
+      ]
     },
     {
       "id": "lpic1.105.1.fonctions-aliases",
@@ -2024,7 +2683,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "function",
+        "alias"
+      ]
     },
     {
       "id": "lpic1.105.1.path",
@@ -2037,7 +2700,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "PATH"
+      ]
     },
     {
       "id": "lpic1.105.1.etc-skel",
@@ -2050,7 +2716,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "/etc/skel"
+      ]
     },
     {
       "id": "lpic1.105.1.configuration-globale-vs-utilisateur",
@@ -2063,7 +2732,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "/etc/profile",
+        "/etc/bash.bashrc",
+        "~/.bashrc"
+      ]
     },
     {
       "id": "lpic1.105.2.shebang-et-execution",
@@ -2077,7 +2751,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "shebang"
+      ]
     },
     {
       "id": "lpic1.105.2.variables-arguments",
@@ -2091,7 +2768,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "$1",
+        "$@",
+        "$#"
+      ]
     },
     {
       "id": "lpic1.105.2.tests-et-statuts-de-sortie",
@@ -2105,7 +2787,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "test",
+        "exit status"
+      ]
     },
     {
       "id": "lpic1.105.2.if",
@@ -2119,7 +2805,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "if"
+      ]
     },
     {
       "id": "lpic1.105.2.boucles-for-while",
@@ -2133,7 +2822,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "for",
+        "while",
+        "seq"
+      ]
     },
     {
       "id": "lpic1.105.2.lecture-entree",
@@ -2147,7 +2841,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "read"
+      ]
     },
     {
       "id": "lpic1.105.2.substitution-de-commande",
@@ -2161,7 +2858,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "$()"
+      ]
     },
     {
       "id": "lpic1.105.2.chainage",
@@ -2175,7 +2875,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "&&",
+        "||"
+      ]
     },
     {
       "id": "lpic1.105.2.exec",
@@ -2189,7 +2893,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "exec"
+      ]
     },
     {
       "id": "lpic1.105.2.emplacement-permissions-de-scripts",
@@ -2203,7 +2910,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "chmod +x",
+        "shebang"
+      ]
     },
     {
       "id": "lpic1.105.2.actions-conditionnelles-comme-mail",
@@ -2217,7 +2928,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "if",
+        "&&",
+        "||"
+      ]
     },
     {
       "id": "lpic1.106.1.client-serveur-x11",
@@ -2230,7 +2946,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "X11"
+      ]
     },
     {
       "id": "lpic1.106.1.display",
@@ -2243,7 +2962,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "DISPLAY"
+      ]
     },
     {
       "id": "lpic1.106.1.xauthority-et-acces",
@@ -2256,7 +2978,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "xauth",
+        "xhost"
+      ]
     },
     {
       "id": "lpic1.106.1.configuration-xorg",
@@ -2269,7 +2995,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "/etc/X11/xorg.conf",
+        "/etc/X11/xorg.conf.d"
+      ]
     },
     {
       "id": "lpic1.106.1.clavier-affichage",
@@ -2282,7 +3012,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "X11",
+        "/etc/X11/xorg.conf.d"
+      ]
     },
     {
       "id": "lpic1.106.1.display-manager-window-manager",
@@ -2295,7 +3029,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "display manager",
+        "window manager",
+        "~/.xsession-errors"
+      ]
     },
     {
       "id": "lpic1.106.1.x-distant",
@@ -2308,7 +3047,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "X11 remote display",
+        "DISPLAY",
+        "xauth"
+      ]
     },
     {
       "id": "lpic1.106.1.concepts-de-base-wayland",
@@ -2321,7 +3065,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "Wayland"
+      ]
     },
     {
       "id": "lpic1.106.2.roles-desktop-environment-window-manager-display-manager",
@@ -2335,7 +3082,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "desktop environment",
+        "window manager",
+        "display manager"
+      ]
     },
     {
       "id": "lpic1.106.2.caracteristiques-generales-kde-gnome-xfce",
@@ -2349,7 +3101,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "KDE",
+        "GNOME",
+        "Xfce"
+      ]
     },
     {
       "id": "lpic1.106.2.protocoles-d-acces-graphique-distant",
@@ -2363,7 +3120,14 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "VNC",
+        "RDP",
+        "SPICE",
+        "XDMCP",
+        "X11"
+      ]
     },
     {
       "id": "lpic1.106.2.differences-vnc-rdp-spice-xdmcp",
@@ -2377,7 +3141,13 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "XDMCP",
+        "VNC",
+        "SPICE",
+        "RDP"
+      ]
     },
     {
       "id": "lpic1.106.3.contraste-themes",
@@ -2388,7 +3158,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "high contrast",
+        "large fonts"
+      ]
     },
     {
       "id": "lpic1.106.3.lecteur-d-ecran",
@@ -2399,7 +3173,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "screen reader"
+      ]
     },
     {
       "id": "lpic1.106.3.braille",
@@ -2410,7 +3187,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "Braille display"
+      ]
     },
     {
       "id": "lpic1.106.3.magnification",
@@ -2421,7 +3201,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "screen magnifier"
+      ]
     },
     {
       "id": "lpic1.106.3.clavier-virtuel",
@@ -2432,7 +3215,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "on-screen keyboard"
+      ]
     },
     {
       "id": "lpic1.106.3.sticky-slow-bounce-toggle-keys",
@@ -2443,7 +3229,14 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "toggle keys",
+        "sticky keys",
+        "repeat keys",
+        "slow keys",
+        "bounce keys"
+      ]
     },
     {
       "id": "lpic1.106.3.controle-souris-au-clavier",
@@ -2454,7 +3247,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "mouse keys"
+      ]
     },
     {
       "id": "lpic1.106.3.gestes",
@@ -2465,7 +3261,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "gestures"
+      ]
     },
     {
       "id": "lpic1.106.3.reconnaissance-vocale",
@@ -2476,7 +3275,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "speech recognition"
+      ]
     },
     {
       "id": "lpic1.107.1.bases-passwd-shadow-group",
@@ -2490,7 +3292,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "passwd",
+        "/etc/shadow"
+      ]
     },
     {
       "id": "lpic1.107.1.creation-modification-suppression-comptes",
@@ -2504,7 +3310,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "useradd",
+        "usermod",
+        "userdel"
+      ]
     },
     {
       "id": "lpic1.107.1.verrouillage-et-expiration",
@@ -2518,7 +3329,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "passwd",
+        "chage"
+      ]
     },
     {
       "id": "lpic1.107.1.groupes-primaires-secondaires",
@@ -2532,7 +3347,13 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "/etc/group",
+        "groupadd",
+        "groupmod",
+        "groupdel"
+      ]
     },
     {
       "id": "lpic1.107.1.comptes-systeme-a-usage-limite",
@@ -2546,7 +3367,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "/etc/passwd"
+      ]
     },
     {
       "id": "lpic1.107.1.squelettes",
@@ -2560,7 +3384,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "/etc/skel"
+      ]
     },
     {
       "id": "lpic1.107.1.lookup-via-nss-getent",
@@ -2574,7 +3401,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "getent"
+      ]
     },
     {
       "id": "lpic1.107.2.crontab-utilisateur-systeme",
@@ -2587,7 +3417,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "crontab",
+        "/etc/cron.*"
+      ]
     },
     {
       "id": "lpic1.107.2.syntaxe-calendrier-cron",
@@ -2600,7 +3434,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "crontab",
+        "cron expression"
+      ]
     },
     {
       "id": "lpic1.107.2.at-taches-ponctuelles",
@@ -2613,7 +3451,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "at",
+        "atq",
+        "atrm"
+      ]
     },
     {
       "id": "lpic1.107.2.allow-deny",
@@ -2626,7 +3469,13 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "at.allow",
+        "at.deny",
+        "cron.allow",
+        "cron.deny"
+      ]
     },
     {
       "id": "lpic1.107.2.spool-concept",
@@ -2639,7 +3488,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "cron",
+        "at"
+      ]
     },
     {
       "id": "lpic1.107.2.systemd-timers-et-transient-timers",
@@ -2652,7 +3505,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "systemd timers",
+        "systemctl",
+        "systemd-run"
+      ]
     },
     {
       "id": "lpic1.107.2.choix-cron-vs-timer",
@@ -2665,7 +3523,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "cron",
+        "systemd timers"
+      ]
     },
     {
       "id": "lpic1.107.3.locale-et-categories-lc",
@@ -2678,7 +3540,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "LC_*",
+        "locale"
+      ]
     },
     {
       "id": "lpic1.107.3.lang-lc-all-priorite",
@@ -2691,7 +3557,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "LC_*",
+        "LC_ALL",
+        "LANG"
+      ]
     },
     {
       "id": "lpic1.107.3.timezone-systeme-utilisateur",
@@ -2704,7 +3575,14 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "TZ",
+        "/etc/localtime",
+        "timedatectl",
+        "/etc/timezone",
+        "/usr/share/zoneinfo"
+      ]
     },
     {
       "id": "lpic1.107.3.utc-vs-heure-locale",
@@ -2717,7 +3595,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "locale",
+        "timedatectl",
+        "date"
+      ]
     },
     {
       "id": "lpic1.107.3.utf-8-unicode-ascii-iso-8859",
@@ -2730,7 +3613,13 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "UTF-8",
+        "ISO-8859",
+        "ASCII",
+        "Unicode"
+      ]
     },
     {
       "id": "lpic1.107.3.conversion-encodage",
@@ -2743,7 +3632,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "iconv",
+        "UTF-8",
+        "ISO-8859"
+      ]
     },
     {
       "id": "lpic1.107.3.configuration-timezone-avec-timedatectl-tzselect",
@@ -2756,7 +3650,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "tzselect",
+        "timedatectl"
+      ]
     },
     {
       "id": "lpic1.108.1.horloge-systeme-vs-rtc",
@@ -2769,7 +3667,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "hwclock"
+      ]
     },
     {
       "id": "lpic1.108.1.utc",
@@ -2782,7 +3683,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "timedatectl",
+        "date"
+      ]
     },
     {
       "id": "lpic1.108.1.timezone",
@@ -2795,7 +3700,13 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "timedatectl",
+        "/etc/localtime",
+        "/usr/share/zoneinfo",
+        "/etc/timezone"
+      ]
     },
     {
       "id": "lpic1.108.1.ntp",
@@ -2808,7 +3719,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "ntpd",
+        "chronyc",
+        "ntpdate"
+      ]
     },
     {
       "id": "lpic1.108.1.chrony",
@@ -2821,7 +3737,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "chronyc",
+        "/etc/chrony.conf"
+      ]
     },
     {
       "id": "lpic1.108.1.sources-pools",
@@ -2834,7 +3754,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "pool.ntp.org"
+      ]
     },
     {
       "id": "lpic1.108.1.inspection-etat-synchronisation",
@@ -2847,7 +3770,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "chronyc",
+        "ntpq"
+      ]
     },
     {
       "id": "lpic1.108.1.configuration-de-base",
@@ -2860,7 +3787,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "/etc/chrony.conf",
+        "/etc/ntp.conf"
+      ]
     },
     {
       "id": "lpic1.108.2.syslog-facilities-priorities-actions",
@@ -2873,7 +3804,13 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "syslog facility",
+        "syslog priority",
+        "/etc/rsyslog.conf",
+        "/var/log"
+      ]
     },
     {
       "id": "lpic1.108.2.rsyslog-configuration",
@@ -2886,7 +3823,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "/etc/rsyslog.conf"
+      ]
     },
     {
       "id": "lpic1.108.2.journald-requetes-filtres",
@@ -2899,7 +3839,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "journalctl"
+      ]
     },
     {
       "id": "lpic1.108.2.persistance-taille-vacuum-journal",
@@ -2912,7 +3855,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "journalctl",
+        "/var/log/journal",
+        "/etc/systemd/journald.conf"
+      ]
     },
     {
       "id": "lpic1.108.2.interaction-journald-rsyslog",
@@ -2925,7 +3873,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "journalctl",
+        "/etc/rsyslog.conf"
+      ]
     },
     {
       "id": "lpic1.108.2.rotation-logs",
@@ -2938,7 +3890,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "logrotate",
+        "/etc/logrotate.conf",
+        "/etc/logrotate.d"
+      ]
     },
     {
       "id": "lpic1.108.2.logger-systemd-cat",
@@ -2951,7 +3908,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "logger",
+        "systemd-cat"
+      ]
     },
     {
       "id": "lpic1.108.2.connaissance-syslog-ng",
@@ -2964,7 +3925,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "syslog-ng"
+      ]
     },
     {
       "id": "lpic1.108.3.role-mta",
@@ -2977,7 +3941,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "MTA"
+      ]
     },
     {
       "id": "lpic1.108.3.aliases",
@@ -2990,7 +3957,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "/etc/aliases",
+        "newaliases"
+      ]
     },
     {
       "id": "lpic1.108.3.forward-utilisateur",
@@ -3003,7 +3974,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "~/.forward"
+      ]
     },
     {
       "id": "lpic1.108.3.file-d-attente",
@@ -3016,7 +3990,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "mailq"
+      ]
     },
     {
       "id": "lpic1.108.3.interface-sendmail-compatible",
@@ -3029,7 +4006,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "sendmail"
+      ]
     },
     {
       "id": "lpic1.108.3.connaissance-postfix-sendmail-exim",
@@ -3042,7 +4022,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "postfix",
+        "exim",
+        "sendmail"
+      ]
     },
     {
       "id": "lpic1.108.3.mail-local-de-scripts",
@@ -3055,7 +4040,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "mail"
+      ]
     },
     {
       "id": "lpic1.108.4.architecture-client-serveur-cups",
@@ -3068,7 +4056,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "CUPS"
+      ]
     },
     {
       "id": "lpic1.108.4.queues-imprimantes-locales-et-distantes",
@@ -3081,7 +4072,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "CUPS",
+        "lpq"
+      ]
     },
     {
       "id": "lpic1.108.4.jobs-impression",
@@ -3094,7 +4089,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "lpq",
+        "lprm"
+      ]
     },
     {
       "id": "lpic1.108.4.configuration-de-base",
@@ -3107,7 +4106,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "CUPS",
+        "/etc/cups"
+      ]
     },
     {
       "id": "lpic1.108.4.diagnostic-queue",
@@ -3120,7 +4123,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "lpq"
+      ]
     },
     {
       "id": "lpic1.108.4.compatibilite-commandes-bsd-system-v-de-base",
@@ -3133,7 +4139,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "lpr",
+        "lpq",
+        "lprm"
+      ]
     },
     {
       "id": "lpic1.109.1.ipv4-et-ipv6",
@@ -3144,7 +4155,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "IPv4",
+        "IPv6"
+      ]
     },
     {
       "id": "lpic1.109.1.cidr-masques-sous-reseaux",
@@ -3155,7 +4170,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "CIDR"
+      ]
     },
     {
       "id": "lpic1.109.1.adresses-privees-publiques",
@@ -3166,7 +4184,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "IPv4",
+        "subnet"
+      ]
     },
     {
       "id": "lpic1.109.1.tcp-vs-udp-vs-icmp",
@@ -3177,7 +4199,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "TCP",
+        "UDP",
+        "ICMP"
+      ]
     },
     {
       "id": "lpic1.109.1.ports-et-services-courants",
@@ -3188,7 +4215,30 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "22",
+        "53",
+        "80",
+        "443",
+        "/etc/services",
+        "20",
+        "21",
+        "23",
+        "25",
+        "110",
+        "123",
+        "139",
+        "143",
+        "161",
+        "162",
+        "389",
+        "465",
+        "514",
+        "636",
+        "993",
+        "995"
+      ]
     },
     {
       "id": "lpic1.109.1.boucle-locale-et-routes-conceptuelles",
@@ -3199,7 +4249,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "IPv4",
+        "IPv6",
+        "subnet"
+      ]
     },
     {
       "id": "lpic1.109.1.lecture-etc-services",
@@ -3210,7 +4265,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "/etc/services"
+      ]
     },
     {
       "id": "lpic1.109.2.hostname",
@@ -3224,7 +4282,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "/etc/hostname",
+        "hostnamectl"
+      ]
     },
     {
       "id": "lpic1.109.2.hosts-nss-resolv-conf",
@@ -3238,7 +4300,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "/etc/hosts",
+        "/etc/nsswitch.conf",
+        "/etc/resolv.conf"
+      ]
     },
     {
       "id": "lpic1.109.2.configuration-ip-gateway-dns",
@@ -3252,7 +4319,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "nmcli",
+        "/etc/resolv.conf"
+      ]
     },
     {
       "id": "lpic1.109.2.networkmanager-nmcli",
@@ -3266,7 +4337,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "NetworkManager",
+        "nmcli"
+      ]
     },
     {
       "id": "lpic1.109.2.interfaces-ethernet-wi-fi",
@@ -3280,7 +4355,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "nmcli"
+      ]
     },
     {
       "id": "lpic1.109.2.connaissance-systemd-networkd",
@@ -3294,7 +4372,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "systemd-networkd"
+      ]
     },
     {
       "id": "lpic1.109.2.ifup-ifdown-historique",
@@ -3306,9 +4387,14 @@
         "103.1"
       ],
       "classification": [
-        "lpic-required"
+        "lpic-required",
+        "lpic-legacy"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "ifup",
+        "ifdown"
+      ]
     },
     {
       "id": "lpic1.109.2.persistance-et-ordre-resolution",
@@ -3322,7 +4408,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "NetworkManager",
+        "/etc/nsswitch.conf"
+      ]
     },
     {
       "id": "lpic1.109.3.interfaces-adresses-routes-via-iproute2",
@@ -3336,7 +4426,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "ip",
+        "hostname"
+      ]
     },
     {
       "id": "lpic1.109.3.default-gateway",
@@ -3350,7 +4444,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "ip route"
+      ]
     },
     {
       "id": "lpic1.109.3.sockets-via-ss",
@@ -3364,7 +4461,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "ss"
+      ]
     },
     {
       "id": "lpic1.109.3.connectivite-icmp",
@@ -3378,7 +4478,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "ping",
+        "ping6"
+      ]
     },
     {
       "id": "lpic1.109.3.chemin-reseau",
@@ -3392,7 +4496,13 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "traceroute",
+        "tracepath",
+        "traceroute6",
+        "tracepath6"
+      ]
     },
     {
       "id": "lpic1.109.3.tests-tcp-udp-avec-netcat",
@@ -3406,7 +4516,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "netcat"
+      ]
     },
     {
       "id": "lpic1.109.3.legacy-net-tools",
@@ -3418,9 +4531,15 @@
         "103.1"
       ],
       "classification": [
-        "lpic-required"
+        "lpic-required",
+        "lpic-legacy"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "ifconfig",
+        "netstat",
+        "route"
+      ]
     },
     {
       "id": "lpic1.109.3.distinction-panne-l2-l3-dns-service",
@@ -3434,7 +4553,13 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "ip",
+        "ping",
+        "ss",
+        "netcat"
+      ]
     },
     {
       "id": "lpic1.109.4.ordre-de-resolution-nss",
@@ -3448,7 +4573,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "/etc/nsswitch.conf",
+        "getent"
+      ]
     },
     {
       "id": "lpic1.109.4.hosts-vs-dns",
@@ -3462,7 +4591,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "/etc/hosts",
+        "dig",
+        "getent"
+      ]
     },
     {
       "id": "lpic1.109.4.resolver-configuration",
@@ -3476,7 +4610,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "/etc/resolv.conf"
+      ]
     },
     {
       "id": "lpic1.109.4.requetes-a-aaaa-mx-ns-courantes",
@@ -3490,7 +4627,14 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "DNS A",
+        "DNS AAAA",
+        "DNS MX",
+        "DNS NS",
+        "dig"
+      ]
     },
     {
       "id": "lpic1.109.4.diagnostic-dns",
@@ -3504,7 +4648,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "dig",
+        "host"
+      ]
     },
     {
       "id": "lpic1.109.4.systemd-resolved-awareness",
@@ -3518,7 +4666,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "systemd-resolved"
+      ]
     },
     {
       "id": "lpic1.109.4.difference-resolution-locale-et-serveur-dns",
@@ -3532,7 +4683,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "getent",
+        "dig",
+        "/etc/nsswitch.conf"
+      ]
     },
     {
       "id": "lpic1.110.1.audit-suid-sgid",
@@ -3547,7 +4703,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "find"
+      ]
     },
     {
       "id": "lpic1.110.1.politiques-mot-de-passe-expiration",
@@ -3562,7 +4721,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "passwd",
+        "chage",
+        "usermod"
+      ]
     },
     {
       "id": "lpic1.110.1.ports-processus-ouverts",
@@ -3577,7 +4741,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "netstat",
+        "nmap",
+        "ss"
+      ]
     },
     {
       "id": "lpic1.110.1.fichiers-ouverts",
@@ -3592,7 +4761,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "lsof",
+        "fuser"
+      ]
     },
     {
       "id": "lpic1.110.1.limites-ressources",
@@ -3607,7 +4780,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "ulimit"
+      ]
     },
     {
       "id": "lpic1.110.1.sessions-historique-login",
@@ -3620,9 +4796,15 @@
         "107.1"
       ],
       "classification": [
-        "lpic-required"
+        "lpic-required",
+        "lpic-legacy"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "who",
+        "w",
+        "last"
+      ]
     },
     {
       "id": "lpic1.110.1.sudo-de-base",
@@ -3637,7 +4819,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "sudo",
+        "su"
+      ]
     },
     {
       "id": "lpic1.110.1.recherche-d-exposition",
@@ -3652,7 +4838,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "sudo",
+        "/etc/sudoers",
+        "find"
+      ]
     },
     {
       "id": "lpic1.110.2.shadow-passwords",
@@ -3666,7 +4857,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "/etc/shadow",
+        "/etc/passwd"
+      ]
     },
     {
       "id": "lpic1.110.2.desactivation-services-inutiles",
@@ -3680,7 +4875,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "systemctl",
+        "/etc/inittab",
+        "/etc/init.d"
+      ]
     },
     {
       "id": "lpic1.110.2.login-interdit-via-nologin",
@@ -3694,7 +4894,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "/etc/nologin"
+      ]
     },
     {
       "id": "lpic1.110.2.socket-activation-systemd",
@@ -3708,7 +4911,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "systemd.socket"
+      ]
     },
     {
       "id": "lpic1.110.2.xinetd-historique",
@@ -3720,9 +4926,14 @@
         "101.3"
       ],
       "classification": [
-        "lpic-required"
+        "lpic-required",
+        "lpic-legacy"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "/etc/xinetd.conf",
+        "/etc/xinetd.d"
+      ]
     },
     {
       "id": "lpic1.110.2.tcp-wrappers-historique",
@@ -3734,9 +4945,14 @@
         "101.3"
       ],
       "classification": [
-        "lpic-required"
+        "lpic-required",
+        "lpic-legacy"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "/etc/hosts.allow",
+        "/etc/hosts.deny"
+      ]
     },
     {
       "id": "lpic1.110.2.principe-surface-d-attaque-minimale",
@@ -3750,7 +4966,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "systemctl",
+        "/etc/nologin"
+      ]
     },
     {
       "id": "lpic1.110.3.ssh-client-serveur-concepts",
@@ -3764,7 +4984,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "ssh"
+      ]
     },
     {
       "id": "lpic1.110.3.cles-utilisateur-et-host-keys",
@@ -3778,7 +5001,16 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "ssh-keygen",
+        "SSH host keys",
+        "~/.ssh/id_rsa",
+        "~/.ssh/id_dsa",
+        "~/.ssh/id_ecdsa",
+        "~/.ssh/id_ed25519",
+        "/etc/ssh/ssh_host_*"
+      ]
     },
     {
       "id": "lpic1.110.3.known-hosts-authorized-keys",
@@ -3792,7 +5024,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "ssh_known_hosts",
+        "~/.ssh/authorized_keys"
+      ]
     },
     {
       "id": "lpic1.110.3.ssh-agent",
@@ -3806,7 +5042,11 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "ssh-agent",
+        "ssh-add"
+      ]
     },
     {
       "id": "lpic1.110.3.tunnels-local-remote-dynamic-et-x11-forwarding",
@@ -3820,7 +5060,13 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "ssh -L",
+        "ssh -R",
+        "ssh -D",
+        "ssh -X"
+      ]
     },
     {
       "id": "lpic1.110.3.gpg-cles-signatures-chiffrement",
@@ -3834,7 +5080,12 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "gpg",
+        "gpg-agent",
+        "~/.gnupg"
+      ]
     },
     {
       "id": "lpic1.110.3.revocation",
@@ -3848,7 +5099,10 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "gpg --gen-revoke"
+      ]
     },
     {
       "id": "lpic1.110.3.verification-identite-integrite",
@@ -3862,7 +5116,242 @@
       "classification": [
         "lpic-required"
       ],
-      "active": true
+      "active": true,
+      "anchor_terms": [
+        "gpg",
+        "ssh"
+      ]
+    },
+    {
+      "id": "lpic1.101.1.activation-desactivation-peripheriques-integres",
+      "objective_id": "101.1",
+      "title_fr": "activation et désactivation des périphériques intégrés",
+      "pedagogy_order": 7,
+      "inherited_hard_objective_prerequisites": [],
+      "prerequisite_concept_ids": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true,
+      "anchor_terms": [
+        "lspci",
+        "modprobe"
+      ]
+    },
+    {
+      "id": "lpic1.101.1.manipulation-des-peripheriques-usb",
+      "objective_id": "101.1",
+      "title_fr": "manipulation des périphériques USB",
+      "pedagogy_order": 8,
+      "inherited_hard_objective_prerequisites": [],
+      "prerequisite_concept_ids": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true,
+      "anchor_terms": [
+        "lsusb",
+        "udev",
+        "/sys"
+      ]
+    },
+    {
+      "id": "lpic1.101.2.commandes-du-chargeur-de-demarrage",
+      "objective_id": "101.2",
+      "title_fr": "commandes interactives du chargeur de démarrage",
+      "pedagogy_order": 7,
+      "inherited_hard_objective_prerequisites": [],
+      "prerequisite_concept_ids": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true,
+      "anchor_terms": [
+        "bootloader",
+        "GRUB 2"
+      ]
+    },
+    {
+      "id": "lpic1.101.3.terminaison-propre-des-processus",
+      "objective_id": "101.3",
+      "title_fr": "terminaison correcte des processus avant changement d’état système",
+      "pedagogy_order": 8,
+      "inherited_hard_objective_prerequisites": [
+        "101.2"
+      ],
+      "prerequisite_concept_ids": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true,
+      "anchor_terms": [
+        "shutdown",
+        "systemctl"
+      ]
+    },
+    {
+      "id": "lpic1.103.1.set-env-et-portee-des-variables",
+      "objective_id": "103.1",
+      "title_fr": "distinction variables shell/environnement avec set et env",
+      "pedagogy_order": 8,
+      "inherited_hard_objective_prerequisites": [],
+      "prerequisite_concept_ids": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true,
+      "anchor_terms": [
+        "env",
+        "set"
+      ]
+    },
+    {
+      "id": "lpic1.103.1.export-unset-et-processus-enfants",
+      "objective_id": "103.1",
+      "title_fr": "export, unset et propagation aux processus enfants",
+      "pedagogy_order": 9,
+      "inherited_hard_objective_prerequisites": [],
+      "prerequisite_concept_ids": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true,
+      "anchor_terms": [
+        "export",
+        "unset"
+      ]
+    },
+    {
+      "id": "lpic1.103.1.execution-de-commandes-hors-path",
+      "objective_id": "103.1",
+      "title_fr": "exécution de commandes en dehors du PATH",
+      "pedagogy_order": 10,
+      "inherited_hard_objective_prerequisites": [],
+      "prerequisite_concept_ids": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true,
+      "anchor_terms": [
+        "PATH"
+      ]
+    },
+    {
+      "id": "lpic1.103.1.edition-et-persistance-de-l-historique",
+      "objective_id": "103.1",
+      "title_fr": "édition et persistance de l’historique avec history et .bash_history",
+      "pedagogy_order": 11,
+      "inherited_hard_objective_prerequisites": [],
+      "prerequisite_concept_ids": [],
+      "classification": [
+        "lpic-required",
+        "lpic-legacy"
+      ],
+      "active": true,
+      "anchor_terms": [
+        ".bash_history",
+        "history"
+      ]
+    },
+    {
+      "id": "lpic1.103.1.echo-et-expansion-shell",
+      "objective_id": "103.1",
+      "title_fr": "affichage et expansion shell avec echo",
+      "pedagogy_order": 12,
+      "inherited_hard_objective_prerequisites": [],
+      "prerequisite_concept_ids": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true,
+      "anchor_terms": [
+        "echo"
+      ]
+    },
+    {
+      "id": "lpic1.107.3.lang-c-et-scripts-reproductibles",
+      "objective_id": "107.3",
+      "title_fr": "LANG=C et comportement reproductible des scripts",
+      "pedagogy_order": 8,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "prerequisite_concept_ids": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true,
+      "anchor_terms": [
+        "LANG"
+      ]
+    },
+    {
+      "id": "lpic1.108.1.inspection-ntp-avec-ntpq",
+      "objective_id": "108.1",
+      "title_fr": "inspection NTP avec ntpq",
+      "pedagogy_order": 9,
+      "inherited_hard_objective_prerequisites": [
+        "107.3"
+      ],
+      "prerequisite_concept_ids": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true,
+      "anchor_terms": [
+        "ntpq"
+      ]
+    },
+    {
+      "id": "lpic1.108.2.journalisation-distante-rsyslog",
+      "objective_id": "108.2",
+      "title_fr": "envoi et réception de journaux distants avec rsyslog",
+      "pedagogy_order": 9,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "prerequisite_concept_ids": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true,
+      "anchor_terms": [
+        "rsyslog remote",
+        "/etc/rsyslog.conf"
+      ]
+    },
+    {
+      "id": "lpic1.108.2.recuperation-journal-systemd",
+      "objective_id": "108.2",
+      "title_fr": "consultation d’un journal systemd depuis une sauvegarde ou une copie",
+      "pedagogy_order": 10,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "prerequisite_concept_ids": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true,
+      "anchor_terms": [
+        "journalctl",
+        "/var/log/journal"
+      ]
+    },
+    {
+      "id": "lpic1.109.1.caracteristiques-ipv6",
+      "objective_id": "109.1",
+      "title_fr": "caractéristiques fondamentales d’IPv6",
+      "pedagogy_order": 8,
+      "inherited_hard_objective_prerequisites": [],
+      "prerequisite_concept_ids": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true,
+      "anchor_terms": [
+        "IPv6"
+      ]
     }
   ]
 }

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/Loe159/lpic-daily/internal/content"
@@ -234,12 +235,22 @@ func schedulableScope(
 		}
 	}
 
-	objectives := make([]string, 0, len(curriculumBundle.Phase3.SelectedObjectives))
+	conceptsByObjective := make(map[string][]string)
+	for _, concept := range curriculumBundle.Concepts.Concepts {
+		if concept.Active {
+			conceptsByObjective[concept.ObjectiveID] = append(conceptsByObjective[concept.ObjectiveID], concept.ID)
+		}
+	}
+	objectives := make([]string, 0, len(curriculumBundle.Objectives.Objectives))
 	concepts := make(map[string]struct{})
-	for _, objectiveID := range curriculumBundle.Phase3.SelectedObjectives {
-		conceptIDs := curriculumBundle.Phase3.ObjectiveConcepts[objectiveID]
+	for _, objective := range curriculumBundle.Objectives.Objectives {
+		if !objective.Active {
+			continue
+		}
+		objectiveID := objective.ID
+		conceptIDs := conceptsByObjective[objectiveID]
 		if len(conceptIDs) == 0 {
-			return nil, nil, fmt.Errorf("phase3 objective %s has no concepts", objectiveID)
+			return nil, nil, fmt.Errorf("active objective %s has no concepts", objectiveID)
 		}
 		complete := true
 		for _, conceptID := range conceptIDs {
@@ -346,7 +357,17 @@ func recommendedLab(
 		return ""
 	}
 	candidates := slices.Clone(labIDs)
-	slices.Sort(candidates)
+	slices.SortFunc(candidates, func(a, b string) int {
+		aStandalone := strings.Contains(a, ".standalone-")
+		bStandalone := strings.Contains(b, ".standalone-")
+		if aStandalone != bStandalone {
+			if aStandalone {
+				return 1
+			}
+			return -1
+		}
+		return strings.Compare(a, b)
+	})
 	if stage < learning.StageIndependent {
 		return candidates[0]
 	}

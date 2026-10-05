@@ -47,7 +47,6 @@ func main() {
 	}
 }
 
-
 func runWithIO(args []string, stdin io.Reader, stdout, stderr io.Writer) error {
 	if len(args) == 0 {
 		if inputFile, inputOK := stdin.(*os.File); inputOK && terminal.IsTerminal(inputFile) {
@@ -245,7 +244,6 @@ func runUpdate(args []string, stdout, stderr io.Writer) error {
 		Stderr: stderr,
 	})
 }
-
 func runNotify(args []string, stdout io.Writer) error {
 	force := false
 	switch {
@@ -615,7 +613,7 @@ func runAssessment(args []string, stdin io.Reader, stdout io.Writer) error {
 	if err != nil {
 		return fmt.Errorf("load content: %w", err)
 	}
-	questions, err := assessment.Questions(contentBundle)
+	questions, err := assessment.Questions(curriculumBundle, contentBundle)
 	if err != nil {
 		return err
 	}
@@ -1067,11 +1065,19 @@ func runInteractiveLab(authored lab.Lab, stdin io.Reader, stdout, stderr io.Writ
 			stderr,
 		)
 	case "libvirt":
-		if err := bootstrap.EnsureVMLab(ctx, lpicdaily.BuiltinFS, bootstrap.Options{
-			Stdin:  stdin,
-			Stdout: stdout,
-			Stderr: stderr,
-		}); err != nil {
+		if err := requireUnprivilegedVMProcess(os.Geteuid()); err != nil {
+			return err
+		}
+		if err := bootstrap.EnsureVMLabImage(
+			ctx,
+			lpicdaily.BuiltinFS,
+			authored.Definition.Environment.ImageRef,
+			bootstrap.Options{
+				Stdin:  stdin,
+				Stdout: stdout,
+				Stderr: stderr,
+			},
+		); err != nil {
 			return fmt.Errorf("prepare VM lab environment: %w", err)
 		}
 		backend, err := openLibvirtBackend()
@@ -1855,7 +1861,6 @@ func printUsage(out io.Writer) {
 
 Usage:
   lpic install [--yes] [--no-vm] configure notifications and lab dependencies
-  lpic update                    update the user binary from GitHub main
   lpic tui                       open the interactive daily dashboard
   lpic notify [--force]           send today's desktop notification once
   lpic assess                     run the Phase-1 initial recall assessment
