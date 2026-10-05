@@ -251,6 +251,9 @@ def main():
     missing_question = [
         item["concept_id"] for item in concepts if not item["surfaces"]["questions"]
     ]
+    missing_lab = [
+        item["concept_id"] for item in concepts if not item["surfaces"]["labs"]
+    ]
     if missing_lesson:
         print(
             "Phase-3 acceptance FAILED: concepts without lesson: "
@@ -274,18 +277,28 @@ def main():
             "Phase-3 acceptance FAILED: concepts without deterministic daily question: "
             + ", ".join(missing_question)
         )
+    if missing_lab:
+        print(
+            "Phase-3 acceptance FAILED: concepts without machine-checked practical lab evidence: "
+            + ", ".join(missing_lab)
+        )
     if missing_advancement:
         print(
             "Phase-3 acceptance FAILED: concepts without recall or practical advancement path: "
             + ", ".join(missing_advancement)
         )
-    if missing_lesson or missing_introduction or missing_question or missing_advancement:
+    if (
+        missing_lesson
+        or missing_introduction
+        or missing_question
+        or missing_lab
+        or missing_advancement
+    ):
         return 1
 
     print(
-        "Phase-3 theory/daily-question/advancement coverage complete. "
-        "Practical-objective and cross-topic challenge gates remain documented in "
-        "docs/plan/PHASE-3-ACCEPTANCE.md."
+        "Phase-3 course/daily-question/practical-lab coverage complete. "
+        "Cross-topic challenge gates remain documented in docs/plan/PHASE-3-ACCEPTANCE.md."
     )
     return 0
 

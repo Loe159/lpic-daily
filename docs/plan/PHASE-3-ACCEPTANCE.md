@@ -11,7 +11,8 @@ Phase 2 is already accepted on a real KVM/libvirt host (2026-10-04); it is now a
 ## Curriculum coverage
 - [ ] Every selected concept has at least one original French-first lesson and exactly one focused `introduce` lesson.
 - [ ] Every selected concept has at least one deterministic daily non-assessment question.
-- [ ] Every concept has a path beyond recognition through recall-capable retrieval or practical evidence.
+- [ ] Every selected concept has at least one machine-checked practical lab/rep; recall questions do not substitute for a lab.
+- [ ] Stable concepts are granular enough to cover the complete official objective without hiding independently examinable sub-concepts inside an over-broad bucket.
 - [ ] `python3 scripts/audit_phase3_coverage.py --require-complete` passes.
 - [x] Go and Python curriculum validation reject drift in `phase3-exam101.json`.
 - [ ] Every artifact maps to the correct objective ID and stable concept ID.
@@ -19,7 +20,7 @@ Phase 2 is already accepted on a real KVM/libvirt host (2026-10-04); it is now a
 - [ ] Objective weights and scope match LPIC-1 v5.0 Exam 101.
 
 ## Practical coverage
-- [ ] Every safely observable practical objective has a lab/rep or a documented reason why it should not.
+- [ ] Every selected concept has practical evidence in at least one appropriate sandboxed lab/rep.
 - [x] Full-system boot/storage tasks use libvirt/KVM.
 - [x] Container-suitable tasks use rootless Podman.
 - [x] Lab success is based on observable state rather than exact command transcripts.
@@ -27,7 +28,7 @@ Phase 2 is already accepted on a real KVM/libvirt host (2026-10-04); it is now a
 
 ## Progressive learning
 - [ ] New concepts are introduced incrementally.
-- [x] An objective is schedulable only when its mapped concepts satisfy introduction, daily-question and advancement-path gates.
+- [x] An objective is schedulable only when all mapped concepts satisfy the course + quiz + practical-lab gates.
 - [x] Incomplete Phase-3 objectives are not scheduled merely because they exist in the Exam-101 scope.
 - [x] Multiple daily questions rotate toward the least-attempted option.
 - [ ] Higher-weight objectives receive proportionally deeper practice without eliminating lower-weight coverage.
