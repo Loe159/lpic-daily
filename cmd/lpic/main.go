@@ -598,7 +598,7 @@ func runAssessment(args []string, stdin io.Reader, stdout io.Writer) error {
 	if err != nil {
 		return fmt.Errorf("load content: %w", err)
 	}
-	questions, err := assessment.Questions(contentBundle)
+	questions, err := assessment.Questions(curriculumBundle, contentBundle)
 	if err != nil {
 		return err
 	}
