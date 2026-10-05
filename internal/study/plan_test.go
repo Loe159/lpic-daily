@@ -36,6 +36,21 @@ func loadInputs(t *testing.T) (*curriculum.Bundle, *content.Bundle, []lab.Lab) {
 	return curriculumBundle, contentBundle, labs
 }
 
+func withObjectiveCoverageLab(
+	labs []lab.Lab,
+	curriculumBundle *curriculum.Bundle,
+	objectiveID string,
+) []lab.Lab {
+	result := append([]lab.Lab(nil), labs...)
+	result = append(result, lab.Lab{Definition: lab.Definition{
+		ID:              "test." + objectiveID + ".coverage-lab",
+		ObjectiveIDs:    []string{objectiveID},
+		ConceptIDs:      append([]string(nil), curriculumBundle.Phase3.ObjectiveConcepts[objectiveID]...),
+		PracticeContext: "test-" + objectiveID + "-coverage",
+	}})
+	return result
+}
+
 func TestFreshPlanStartsWithFocused1031Introduction(t *testing.T) {
 	curriculumBundle, contentBundle, labs := loadInputs(t)
 	now := time.Date(2026, 9, 26, 20, 0, 0, 0, time.UTC)
@@ -78,6 +93,7 @@ func TestFreshPlanStartsWithFocused1031Introduction(t *testing.T) {
 
 func TestAuthoredPhase3ObjectiveBecomesSchedulable(t *testing.T) {
 	curriculumBundle, contentBundle, labs := loadInputs(t)
+	labs = withObjectiveCoverageLab(labs, curriculumBundle, "103.4")
 	now := time.Date(2026, 10, 1, 14, 0, 0, 0, time.UTC)
 	evidence := memoryEvidence{}
 
@@ -114,13 +130,14 @@ func TestAuthoredPhase3ObjectiveBecomesSchedulable(t *testing.T) {
 	if item.Kind != learning.SessionNew || item.ObjectiveID != "103.4" {
 		t.Fatalf("item = %#v, want new 103.4 concept after 103.1 readiness", item)
 	}
-	if item.RecommendedLessonID == "" || item.RecommendedQuestionID == "" {
-		t.Fatalf("103.4 item is not runnable: %#v", item)
+	if item.RecommendedLessonID == "" || item.RecommendedQuestionID == "" || item.RecommendedLabID == "" {
+		t.Fatalf("103.4 item is not runnable through course, quiz, and lab: %#v", item)
 	}
 }
 
 func TestQuestionRecommendationRotatesAcrossAuthoredQuestions(t *testing.T) {
 	curriculumBundle, contentBundle, labs := loadInputs(t)
+	labs = withObjectiveCoverageLab(labs, curriculumBundle, "103.4")
 	now := time.Date(2026, 10, 1, 15, 0, 0, 0, time.UTC)
 	evidence := memoryEvidence{}
 
@@ -186,7 +203,7 @@ func TestQuestionRecommendationRotatesAcrossAuthoredQuestions(t *testing.T) {
 	}
 }
 
-func TestObjectiveWithoutRecallOrPracticalPathStaysOutOfScheduler(t *testing.T) {
+func TestObjectiveWithoutPracticalLabStaysOutOfScheduler(t *testing.T) {
 	curriculumBundle, contentBundle, labs := loadInputs(t)
 	now := time.Date(2026, 10, 1, 16, 0, 0, 0, time.UTC)
 	evidence := memoryEvidence{}
@@ -198,16 +215,9 @@ func TestObjectiveWithoutRecallOrPracticalPathStaysOutOfScheduler(t *testing.T) 
 			Result: learning.ResultPass, Distribution: "generic", AttemptIndex: 1,
 		}}
 	}
-	mutated := *contentBundle
-	mutated.Questions = append([]content.Question(nil), contentBundle.Questions...)
-	for index := range mutated.Questions {
-		if mutated.Questions[index].ID == "lpic1.103.4.q.pipeline-stdout-recall" {
-			mutated.Questions = append(mutated.Questions[:index], mutated.Questions[index+1:]...)
-			break
-		}
-	}
+
 	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
-		Now: now, Curriculum: curriculumBundle, Content: &mutated, Labs: labs,
+		Now: now, Curriculum: curriculumBundle, Content: contentBundle, Labs: labs,
 		Evidence: evidence, Policy: learning.DefaultSessionPolicy(),
 	})
 	if err != nil {
@@ -215,13 +225,14 @@ func TestObjectiveWithoutRecallOrPracticalPathStaysOutOfScheduler(t *testing.T) 
 	}
 	for _, item := range plan.Items {
 		if item.ObjectiveID == "103.4" {
-			t.Fatalf("103.4 scheduled without recall/practical path: %#v", plan.Items)
+			t.Fatalf("103.4 scheduled without practical lab coverage: %#v", plan.Items)
 		}
 	}
 }
 
 func TestIncompleteFocusedIntroductionKeepsObjectiveOutOfScheduler(t *testing.T) {
 	curriculumBundle, contentBundle, labs := loadInputs(t)
+	labs = withObjectiveCoverageLab(labs, curriculumBundle, "103.4")
 	now := time.Date(2026, 10, 1, 16, 0, 0, 0, time.UTC)
 	evidence := memoryEvidence{}
 
@@ -268,6 +279,7 @@ func TestIncompleteFocusedIntroductionKeepsObjectiveOutOfScheduler(t *testing.T)
 
 func TestDuplicateFocusedIntroductionKeepsObjectiveOutOfScheduler(t *testing.T) {
 	curriculumBundle, contentBundle, labs := loadInputs(t)
+	labs = withObjectiveCoverageLab(labs, curriculumBundle, "103.4")
 	now := time.Date(2026, 10, 1, 16, 30, 0, 0, time.UTC)
 	evidence := memoryEvidence{}
 
