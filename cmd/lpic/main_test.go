@@ -1043,3 +1043,14 @@ func TestInteractiveVMLabDispatchesRebootCommand(t *testing.T) {
 		t.Fatalf("stdout missing reboot confirmation: %q", stdout.String())
 	}
 }
+
+
+func TestUpdateHelpDoesNotRunUpdater(t *testing.T) {
+	var stdout bytes.Buffer
+	if err := runWithIO([]string{"update", "--help"}, strings.NewReader(""), &stdout, &bytes.Buffer{}); err != nil {
+		t.Fatalf("update --help error = %v", err)
+	}
+	if !strings.Contains(stdout.String(), "Usage: lpic update") {
+		t.Fatalf("update help output = %q", stdout.String())
+	}
+}
