@@ -3,13 +3,53 @@
 FROM registry.fedoraproject.org/fedora:44
 
 RUN dnf -y install \
+        at \
         bash \
+        bind-utils \
+        btrfs-progs \
+        bzip2 \
+        chrony \
         coreutils \
+        cpio \
+        cronie \
+        cups-client \
+        diffutils \
+        dnf \
+        dosfstools \
+        e2fsprogs \
+        file \
         findutils \
+        gawk \
+        gnupg2 \
+        grep \
+        gzip \
+        hostname \
+        iproute \
+        iputils \
+        less \
+        logrotate \
+        lsof \
+        man-db \
+        nano \
+        net-tools \
+        nmap-ncat \
+        openssh-clients \
+        parted \
         procps-ng \
+        rpm \
+        rsyslog \
+        screen \
+        sed \
         shadow-utils \
+        s-nail \
+        sudo \
+        tar \
         tmux \
         util-linux \
+        vim-minimal \
+        which \
+        xfsprogs \
+        xz \
     && groupadd --gid 2000 project \
     && useradd --create-home --uid 1101 --groups project alice \
     && useradd --create-home --uid 1102 --groups project bob \
