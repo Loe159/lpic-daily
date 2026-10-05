@@ -266,3 +266,84 @@ func TestEveryOfficialTermAppearsInLearnerLessons(t *testing.T) {
 		}
 	}
 }
+
+func TestEveryConceptAnchorHasSpecificStandaloneExplanation(t *testing.T) {
+	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("curriculum.Load() error = %v", err)
+	}
+	for _, concept := range curriculumBundle.Concepts.Concepts {
+		if !concept.Active {
+			continue
+		}
+		for _, anchor := range concept.AnchorTerms {
+			if !hasSpecificStandaloneTermExplanation(anchor, concept.ObjectiveID) {
+				t.Errorf("%s anchor %q has no specific standalone explanation", concept.ID, anchor)
+			}
+		}
+	}
+}
+
+func TestEveryConceptAnchorAppearsInFocusedLesson(t *testing.T) {
+	bundle, err := Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("curriculum.Load() error = %v", err)
+	}
+
+	focusedBodies := make(map[string]string)
+	for _, lesson := range bundle.Lessons {
+		if lesson.Stage == "introduce" && len(lesson.ConceptIDs) == 1 {
+			focusedBodies[lesson.ConceptIDs[0]] = lesson.BodyMarkdown
+		}
+	}
+	for _, concept := range curriculumBundle.Concepts.Concepts {
+		if !concept.Active {
+			continue
+		}
+		body := focusedBodies[concept.ID]
+		for _, anchor := range concept.AnchorTerms {
+			if !strings.Contains(body, "`"+anchor+"`") {
+				t.Errorf("%s anchor %q missing from focused lesson", concept.ID, anchor)
+			}
+		}
+	}
+}
+
+func TestGeneratedRecallQuestionsUseConceptAnchor(t *testing.T) {
+	bundle, err := Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("curriculum.Load() error = %v", err)
+	}
+
+	questions := make(map[string]Question)
+	for _, question := range bundle.Questions {
+		questions[question.ID] = question
+	}
+	for _, concept := range curriculumBundle.Concepts.Concepts {
+		if !concept.Active {
+			continue
+		}
+		questionID := concept.ID + ".q.autonomous-recall"
+		question, exists := questions[questionID]
+		if !exists {
+			t.Fatalf("missing generated recall question %s", questionID)
+		}
+		if len(question.Grading.AcceptedAnswers) != 1 ||
+			question.Grading.AcceptedAnswers[0] != concept.AnchorTerms[0] {
+			t.Errorf(
+				"%s accepted answers = %v, want primary anchor %q",
+				questionID,
+				question.Grading.AcceptedAnswers,
+				concept.AnchorTerms[0],
+			)
+		}
+	}
+}
