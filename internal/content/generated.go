@@ -54,6 +54,11 @@ func synthesizeStandaloneContent(
 		if !objective.Active {
 			continue
 		}
+		for _, term := range objective.TermsFilesUtilities {
+			if !hasSpecificStandaloneTermExplanation(term, objective.ID) {
+				return fmt.Errorf("objective %s term %q has no specific standalone explanation", objective.ID, term)
+			}
+		}
 		guide, exists := guideByObjective[objective.ID]
 		if !exists {
 			return fmt.Errorf("objective %s has no study guide", objective.ID)
@@ -381,6 +386,17 @@ func inlineCodeList(values []string) string {
 		quoted = append(quoted, "`"+value+"`")
 	}
 	return strings.Join(quoted, ", ")
+}
+
+func hasSpecificStandaloneTermExplanation(term, objectiveID string) bool {
+	if _, exists := standaloneTermExplanations[term]; exists {
+		return true
+	}
+	if objectiveID == "109.1" {
+		_, exists := standalonePortServices[term]
+		return exists
+	}
+	return false
 }
 
 func standaloneTermExplanation(term, objectiveID string) string {
