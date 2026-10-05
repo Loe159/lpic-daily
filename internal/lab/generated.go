@@ -107,7 +107,7 @@ func generatedStandaloneLab(
 			Distribution:      distribution,
 			Network:           network,
 			CapabilityProfile: "full-machine",
-			Machine:           &Machine{Firmware: "uefi"},
+			Machine:           standaloneMachineForObjective(objective),
 		}
 		resources = Resources{
 			MemoryMB:       1024,
@@ -201,6 +201,13 @@ func standaloneLabEnvironment(objective curriculum.Objective, variant int) (back
 	if objective.ID == "102.5" && variant == 1 {
 		return "libvirt", "opensuse-leap-16.0-x86_64-v2", "opensuse"
 	}
+	if strings.Contains(objective.RecommendedBackend, "podman") &&
+		strings.Contains(objective.RecommendedBackend, "libvirt") {
+		if variant == 0 {
+			return "podman", "localhost/lpic-daily/fedora-phase1:1", "fedora"
+		}
+		return "libvirt", "fedora-44-x86_64-v2", "fedora"
+	}
 	if strings.HasPrefix(objective.ID, "101.") ||
 		strings.HasPrefix(objective.ID, "109.") ||
 		objective.ID == "110.3" ||
@@ -208,6 +215,22 @@ func standaloneLabEnvironment(objective curriculum.Objective, variant int) (back
 		return "libvirt", "fedora-44-x86_64-v2", "fedora"
 	}
 	return "podman", "localhost/lpic-daily/fedora-phase1:1", "fedora"
+}
+
+func standaloneMachineForObjective(objective curriculum.Objective) *Machine {
+	machine := &Machine{Firmware: "uefi"}
+	switch objective.ID {
+	case "102.1", "104.1":
+		machine.ExtraDisks = []MachineDisk{
+			{ID: "practice-a", SizeMB: 1024},
+			{ID: "practice-b", SizeMB: 1024},
+		}
+	case "104.2", "104.3":
+		machine.ExtraDisks = []MachineDisk{
+			{ID: "practice", SizeMB: 1024},
+		}
+	}
+	return machine
 }
 
 func generatedStandaloneHints(labID, root string) []Hint {
