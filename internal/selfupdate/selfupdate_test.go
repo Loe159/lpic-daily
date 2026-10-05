@@ -87,6 +87,21 @@ func TestUpdateBuildsMainAndAtomicallyInstallsUserBinary(t *testing.T) {
 	if len(runner.args) != 2 || runner.args[0] != "install" || runner.args[1] != mainPackage {
 		t.Fatalf("go args = %#v", runner.args)
 	}
+	for _, want := range []string{
+		"GONOPROXY=github.com/Loe159/lpic-daily",
+		"GONOSUMDB=github.com/Loe159/lpic-daily",
+	} {
+		found := false
+		for _, item := range runner.env {
+			if item == want {
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Fatalf("update env missing %q: %#v", want, runner.env)
+		}
+	}
 	if !strings.Contains(stdout.String(), "mis à jour depuis main") {
 		t.Fatalf("stdout = %q", stdout.String())
 	}
