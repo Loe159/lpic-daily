@@ -107,6 +107,10 @@ func Load(fsys fs.FS) (*Bundle, error) {
 		bundle.Questions = append(bundle.Questions, question)
 	}
 
+	if err := synthesizeStandaloneContent(curriculumBundle, bundle, knownObjectives, knownConcepts, seenIDs); err != nil {
+		return nil, fmt.Errorf("synthesize standalone LPIC content: %w", err)
+	}
+
 	return bundle, nil
 }
 
