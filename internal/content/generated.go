@@ -65,7 +65,7 @@ func synthesizeStandaloneContent(
 		concepts := conceptsForObjective(curriculumBundle.Concepts.Concepts, objective.ID)
 		for index, concept := range concepts {
 			if focusedIntroduction[concept.ID] == 0 {
-				lesson := generatedIntroduction(objective, concept, guide, index, len(concepts))
+				lesson := generatedIntroduction(objective, concept, guide)
 				if err := validateLesson(lesson, knownObjectives, knownConcepts); err != nil {
 					return fmt.Errorf("%s: %w", lesson.ID, err)
 				}
@@ -81,7 +81,7 @@ func synthesizeStandaloneContent(
 			}
 
 			for _, question := range []Question{
-				generatedRecallQuestion(objective, concept, index, len(concepts)),
+				generatedRecallQuestion(objective, concept),
 				generatedRecognitionQuestion(objective, concept, concepts, index),
 			} {
 				if err := validateQuestion(question, knownObjectives, knownConcepts); err != nil {
@@ -115,8 +115,6 @@ func generatedIntroduction(
 	objective curriculum.Objective,
 	concept curriculum.Concept,
 	guide curriculum.ObjectiveStudyGuide,
-	index int,
-	conceptCount int,
 ) Lesson {
 	return Lesson{
 		SchemaVersion:          "1.0.0",
@@ -127,7 +125,7 @@ func generatedIntroduction(
 		PrerequisiteConceptIDs: slices.Clone(concept.PrerequisiteConceptIDs),
 		Stage:                  "introduce",
 		EstimatedMinutes:       8,
-		BodyMarkdown:           generatedLessonBody(objective, concept, guide, index, conceptCount),
+		BodyMarkdown:           generatedLessonBody(objective, concept, guide),
 		Labels:                 conceptLabels(concept),
 		Distribution:           "generic",
 		SourceRefs: []SourceRef{{
@@ -142,19 +140,16 @@ func standaloneSupplement(
 	concept curriculum.Concept,
 	guide curriculum.ObjectiveStudyGuide,
 ) string {
-	concepts := []curriculum.Concept{concept}
 	return standaloneSupplementHeading + "\n\n" +
-		generatedLessonBody(objective, concept, guide, 0, len(concepts))
+		generatedLessonBody(objective, concept, guide)
 }
 
 func generatedLessonBody(
 	objective curriculum.Objective,
 	concept curriculum.Concept,
 	guide curriculum.ObjectiveStudyGuide,
-	index int,
-	conceptCount int,
 ) string {
-	terms := termsForConcept(objective.TermsFilesUtilities, concept.TitleFR, index, conceptCount)
+	terms := slices.Clone(concept.AnchorTerms)
 	var termList strings.Builder
 	for _, term := range objective.TermsFilesUtilities {
 		fmt.Fprintf(&termList, "- `%s` — %s", term, standaloneTermExplanation(term, objective.ID))
@@ -195,10 +190,8 @@ func generatedLessonBody(
 func generatedRecallQuestion(
 	objective curriculum.Objective,
 	concept curriculum.Concept,
-	index int,
-	conceptCount int,
 ) Question {
-	terms := termsForConcept(objective.TermsFilesUtilities, concept.TitleFR, index, conceptCount)
+	terms := slices.Clone(concept.AnchorTerms)
 	primary := terms[0]
 	description := standaloneTermExplanation(primary, objective.ID)
 	return Question{
@@ -235,7 +228,7 @@ func generatedRecognitionQuestion(
 	concepts []curriculum.Concept,
 	index int,
 ) Question {
-	terms := termsForConcept(objective.TermsFilesUtilities, concept.TitleFR, index, len(concepts))
+	terms := slices.Clone(concept.AnchorTerms)
 	primary := terms[0]
 	correctDescription := standaloneTermExplanation(primary, objective.ID)
 
@@ -286,102 +279,6 @@ func generatedRecognitionQuestion(
 			correctDescription,
 		),
 	}
-}
-
-func termsForConcept(terms []string, title string, index int, conceptCount int) []string {
-	if len(terms) == 0 {
-		return []string{"Linux"}
-	}
-	normalizedTitle := normalizeSearchText(title)
-	var matches []string
-	for _, term := range terms {
-		normalizedTerm := normalizeSearchText(term)
-		if normalizedTerm != "" && normalizedTextContainsTerm(normalizedTitle, normalizedTerm) {
-			matches = append(matches, term)
-		}
-	}
-	slices.SortFunc(matches, func(a, b string) int {
-		return len(normalizeSearchText(b)) - len(normalizeSearchText(a))
-	})
-	for _, hint := range conceptTermHints {
-		if !strings.Contains(normalizedTitle, hint.keyword) {
-			continue
-		}
-		for _, wanted := range hint.terms {
-			if !slices.Contains(matches, wanted) {
-				matches = append(matches, wanted)
-			}
-		}
-	}
-	if len(matches) != 0 {
-		return matches
-	}
-	if conceptCount <= 0 {
-		conceptCount = 1
-	}
-	for termIndex, term := range terms {
-		if termIndex%conceptCount == index {
-			matches = append(matches, term)
-		}
-	}
-	if len(matches) == 0 {
-		matches = append(matches, terms[index%len(terms)])
-	}
-	return matches
-}
-
-type conceptTermHint struct {
-	keyword string
-	terms   []string
-}
-
-var conceptTermHints = []conceptTermHint{
-	{keyword: "module", terms: []string{"modprobe", "lsmod"}},
-	{keyword: "pci", terms: []string{"lspci"}},
-	{keyword: "usb", terms: []string{"lsusb"}},
-	{keyword: "udev", terms: []string{"udev", "sysfs", "D-Bus"}},
-	{keyword: "boot", terms: []string{"bootloader", "kernel", "initramfs", "grub-install", "grub-mkconfig"}},
-	{keyword: "grub", terms: []string{"GRUB Legacy", "GRUB 2", "grub-install", "grub-mkconfig", "grub.cfg"}},
-	{keyword: "variable", terms: []string{"env", "export", "set", "unset", "LANG", "LC_ALL"}},
-	{keyword: "path", terms: []string{"PATH", "type", "which"}},
-	{keyword: "histor", terms: []string{"history", ".bash_history"}},
-	{keyword: "documentation", terms: []string{"man", "type", "which"}},
-	{keyword: "systeme", terms: []string{"uname", "pwd"}},
-	{keyword: "compression", terms: []string{"gzip", "bzip2", "xz", "zcat", "bzcat", "xzcat"}},
-	{keyword: "archive", terms: []string{"tar", "cpio"}},
-	{keyword: "checksum", terms: []string{"md5sum", "sha256sum", "sha512sum"}},
-	{keyword: "stderr", terms: []string{"stderr", "2>", "2>&1"}},
-	{keyword: "pipeline", terms: []string{"|"}},
-	{keyword: "tee", terms: []string{"tee"}},
-	{keyword: "xargs", terms: []string{"xargs"}},
-	{keyword: "signaux", terms: []string{"kill", "pkill", "killall"}},
-	{keyword: "multiplex", terms: []string{"screen", "tmux"}},
-	{keyword: "priorite", terms: []string{"nice", "renice"}},
-	{keyword: "regex", terms: []string{"grep", "regex(7)", "BRE", "ERE"}},
-	{keyword: "sed", terms: []string{"sed"}},
-	{keyword: "inode", terms: []string{"ln", "inode"}},
-	{keyword: "symlink", terms: []string{"ln", "symbolic link"}},
-	{keyword: "locale", terms: []string{"locale", "LANG", "LC_ALL", "LC_*"}},
-	{keyword: "timezone", terms: []string{"TZ", "timedatectl", "tzselect", "/etc/localtime"}},
-	{keyword: "ntp", terms: []string{"ntpd", "ntpdate", "chronyc", "pool.ntp.org"}},
-	{keyword: "journal", terms: []string{"journalctl", "/var/log/journal", "rsyslog", "logrotate"}},
-	{keyword: "rsyslog", terms: []string{"/etc/rsyslog.conf", "logger"}},
-	{keyword: "ipv6", terms: []string{"IPv6"}},
-	{keyword: "cidr", terms: []string{"CIDR", "subnet"}},
-	{keyword: "dns", terms: []string{"dig", "host", "/etc/resolv.conf", "/etc/nsswitch.conf"}},
-	{keyword: "ssh", terms: []string{"ssh", "ssh-keygen", "ssh-agent", "ssh-add"}},
-	{keyword: "gpg", terms: []string{"gpg", "gpg-agent", "~/.gnupg"}},
-}
-
-func normalizedTextContainsTerm(normalizedText, normalizedTerm string) bool {
-	termWords := strings.Fields(normalizedTerm)
-	if len(termWords) == 0 {
-		return false
-	}
-	if len(termWords) == 1 {
-		return slices.Contains(strings.Fields(normalizedText), termWords[0])
-	}
-	return strings.Contains(" "+normalizedText+" ", " "+strings.Join(termWords, " ")+" ")
 }
 
 func normalizeSearchText(value string) string {
@@ -623,6 +520,26 @@ var standaloneTermUsages = map[string]string{
 	"ssh-add":          "ssh-add <clé> ; ssh-add -l",
 	"gpg":              "gpg --gen-key ; gpg --encrypt -r destinataire fichier ; gpg --decrypt fichier.gpg ; gpg --detach-sign fichier ; gpg --verify fichier.sig fichier",
 	"gpg-agent":        "gpgconf --launch gpg-agent",
+	"$1":               "printf '%s\\n' \"$1\"",
+	"$@":               "for arg in \"$@\"; do printf '%s\\n' \"$arg\"; done",
+	"$#":               "[ \"$#\" -ge 1 ]",
+	"$()":              "kernel=$(uname -r)",
+	"/etc/aliases":     "grep -v '^#' /etc/aliases ; newaliases",
+	"ntpq":             "ntpq -p",
+	"rpm -q":           "rpm -q <paquet>",
+	"rpm -i":           "rpm -i <paquet.rpm>",
+	"rpm -K":           "rpm -K <paquet.rpm>",
+	"rpm -V":           "rpm -V <paquet>",
+	"rpm -qf":          "rpm -qf <fichier>",
+	"nice -n":          "nice -n 10 commande",
+	"mount -o":         "mount -o ro,noexec <source> <cible>",
+	"chmod +x":         "chmod +x script.sh",
+	"ip route":         "ip route ; ip route show default",
+	"ssh -L":           "ssh -L 8080:127.0.0.1:80 hote",
+	"ssh -R":           "ssh -R 8080:127.0.0.1:80 hote",
+	"ssh -D":           "ssh -D 1080 hote",
+	"ssh -X":           "ssh -X hote",
+	"gpg --gen-revoke": "gpg --output revoke.asc --gen-revoke <cle>",
 }
 
 func hasSpecificStandaloneTermExplanation(term, objectiveID string) bool {
@@ -1072,6 +989,48 @@ var standaloneTermExplanations = map[string]string{
 	"~/.ssh/authorized_keys":     "clés publiques autorisées à authentifier un utilisateur",
 	"ssh_known_hosts":            "base système ou concept de clés d'hôtes SSH connues; complète ~/.ssh/known_hosts",
 	"~/.gnupg":                   "répertoire utilisateur GnuPG contenant keybox, trust/configuration et sockets selon version",
+	"$1":                         "premier paramètre positionnel reçu par un script ou une fonction shell",
+	"$@":                         "ensemble des paramètres positionnels; entre doubles quotes, préserve la séparation des arguments",
+	"$#":                         "nombre de paramètres positionnels reçus par le shell ou la fonction",
+	"$()":                        "substitution de commande : exécute une commande et remplace l'expression par sa sortie standard",
+	"/etc/aliases":               "source des alias de courrier locaux; la base correspondante est reconstruite avec newaliases",
+	"ntpq":                       "client historique d'interrogation de ntpd, notamment pour inspecter les pairs et l'état de synchronisation",
+	"DNS A":                      "type d'enregistrement DNS associant un nom à une adresse IPv4",
+	"DNS AAAA":                   "type d'enregistrement DNS associant un nom à une adresse IPv6",
+	"DNS MX":                     "type d'enregistrement DNS indiquant les serveurs de messagerie d'un domaine",
+	"DNS NS":                     "type d'enregistrement DNS indiquant les serveurs faisant autorité pour une zone",
+	"ERE alternation":            "opérateur | des expressions régulières étendues permettant de choisir entre plusieurs motifs",
+	"ERE anchors":                "ancres ^ et $ positionnant un motif au début ou à la fin d'une ligne",
+	"ERE groups":                 "parenthèses des expressions régulières étendues regroupant des sous-expressions",
+	"ERE quantifiers":            "quantificateurs ERE comme *, +, ?, {m,n} contrôlant le nombre de répétitions",
+	"GPT":                        "GUID Partition Table, schéma de partitionnement moderne associé notamment à UEFI et aux disques de grande taille",
+	"X11 remote display":         "utilisation du protocole réseau X11 pour afficher une application sur un serveur X distant autorisé",
+	"chmod +x":                   "forme symbolique ajoutant le bit exécutable à un fichier ou script",
+	"chmod octal":                "notation numérique des permissions avec chiffres représentant rwx pour user/group/other",
+	"chmod symbolic":             "notation chmod utilisant u/g/o/a et +, -, = pour modifier des permissions",
+	"cron expression":            "cinq champs calendrier de crontab : minute, heure, jour du mois, mois et jour de semaine",
+	"desktop environment":        "ensemble intégré de composants graphiques, services et applications constituant un bureau utilisateur",
+	"display manager":            "programme gérant l'écran de connexion graphique et le lancement d'une session",
+	"gpg --gen-revoke":           "commande générant un certificat de révocation pour une clé OpenPGP",
+	"high contrast":              "réglage d'accessibilité augmentant la distinction visuelle entre éléments de l'interface",
+	"ip route":                   "sous-commande iproute2 affichant ou modifiant la table de routage, dont la route par défaut",
+	"large fonts":                "réglage d'accessibilité augmentant la taille du texte pour améliorer la lisibilité",
+	"mount -o":                   "forme de mount permettant de sélectionner explicitement des options comme ro, noexec ou nosuid",
+	"nice -n":                    "forme de nice choisissant explicitement la valeur nice au démarrage d'une commande",
+	"nice default":               "valeur nice héritée/par défaut d'un processus avant ajustement explicite",
+	"rpm -K":                     "vérifie les signatures et sommes de contrôle d'un paquet RPM",
+	"rpm -V":                     "compare les fichiers installés d'un paquet RPM à ses métadonnées enregistrées",
+	"rpm -i":                     "installe directement un paquet RPM sans résolution haut niveau des dépendances de dépôt",
+	"rpm -q":                     "interroge la base RPM sur un paquet installé",
+	"rpm -qf":                    "identifie le paquet RPM propriétaire d'un fichier installé",
+	"rsyslog remote":             "configuration rsyslog envoyant ou recevant des messages via une destination/source réseau",
+	"ssh -D":                     "crée un proxy SOCKS dynamique via SSH",
+	"ssh -L":                     "crée une redirection de port locale SSH vers une destination accessible depuis le serveur",
+	"ssh -R":                     "crée une redirection de port distante SSH vers une destination accessible depuis le client",
+	"ssh -X":                     "active le forwarding X11 via SSH lorsque la configuration l'autorise",
+	"syslog facility":            "catégorie d'origine d'un message syslog, utilisée dans les sélecteurs de routage",
+	"syslog priority":            "niveau de sévérité syslog utilisé avec la facility pour filtrer ou router les messages",
+	"window manager":             "composant graphique gérant placement, décoration et comportement des fenêtres",
 }
 
 func conceptLabels(concept curriculum.Concept) []string {
