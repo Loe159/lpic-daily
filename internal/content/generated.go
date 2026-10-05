@@ -200,6 +200,7 @@ func generatedRecallQuestion(
 ) Question {
 	terms := termsForConcept(objective.TermsFilesUtilities, concept.TitleFR, index, conceptCount)
 	primary := terms[0]
+	description := standaloneTermExplanation(primary, objective.ID)
 	return Question{
 		SchemaVersion: "1.0.0",
 		ID:            concept.ID + ".q.autonomous-recall",
@@ -208,8 +209,9 @@ func generatedRecallQuestion(
 		Type:          "fill-in",
 		Usage:         "daily",
 		PromptFR: fmt.Sprintf(
-			"Pour « %s », donne le terme, fichier ou utilitaire canonique mis en avant dans le cours comme premier repère pratique.",
-			concept.TitleFR,
+			"Dans %s, quel terme, fichier ou utilitaire correspond à cette description : %s ?",
+			objective.ID,
+			description,
 		),
 		Grading: Grading{
 			Strategy:        "exact-text",
@@ -220,8 +222,9 @@ func generatedRecallQuestion(
 		Labels:                conceptLabels(concept),
 		Distribution:          "generic",
 		ExplanationFR: fmt.Sprintf(
-			"Le premier repère de ce module est %s. Il faut également comprendre le concept, pas seulement mémoriser ce nom.",
+			"%s : %s",
 			primary,
+			description,
 		),
 	}
 }
