@@ -296,7 +296,7 @@ func termsForConcept(terms []string, title string, index int, conceptCount int) 
 	var matches []string
 	for _, term := range terms {
 		normalizedTerm := normalizeSearchText(term)
-		if normalizedTerm != "" && strings.Contains(normalizedTitle, normalizedTerm) {
+		if normalizedTerm != "" && normalizedTextContainsTerm(normalizedTitle, normalizedTerm) {
 			matches = append(matches, term)
 		}
 	}
@@ -371,6 +371,17 @@ var conceptTermHints = []conceptTermHint{
 	{keyword: "dns", terms: []string{"dig", "host", "/etc/resolv.conf", "/etc/nsswitch.conf"}},
 	{keyword: "ssh", terms: []string{"ssh", "ssh-keygen", "ssh-agent", "ssh-add"}},
 	{keyword: "gpg", terms: []string{"gpg", "gpg-agent", "~/.gnupg"}},
+}
+
+func normalizedTextContainsTerm(normalizedText, normalizedTerm string) bool {
+	termWords := strings.Fields(normalizedTerm)
+	if len(termWords) == 0 {
+		return false
+	}
+	if len(termWords) == 1 {
+		return slices.Contains(strings.Fields(normalizedText), termWords[0])
+	}
+	return strings.Contains(" "+normalizedText+" ", " "+strings.Join(termWords, " ")+" ")
 }
 
 func normalizeSearchText(value string) string {
