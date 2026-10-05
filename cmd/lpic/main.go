@@ -47,7 +47,6 @@ func main() {
 	}
 }
 
-
 func runWithIO(args []string, stdin io.Reader, stdout, stderr io.Writer) error {
 	if len(args) == 0 {
 		if inputFile, inputOK := stdin.(*os.File); inputOK && terminal.IsTerminal(inputFile) {
@@ -231,7 +230,6 @@ func runInstall(args []string, stdin io.Reader, stdout, stderr io.Writer) error 
 		FirstRun:  true,
 	})
 }
-
 
 func runUpdate(args []string, stdout, stderr io.Writer) error {
 	if len(args) == 1 && (args[0] == "help" || args[0] == "-h" || args[0] == "--help") {
