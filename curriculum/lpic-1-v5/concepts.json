@@ -289,7 +289,9 @@
       "active": true,
       "anchor_terms": [
         "systemctl",
-        "/etc/init.d"
+        "/etc/init.d",
+        "/etc/systemd",
+        "/usr/lib/systemd"
       ]
     },
     {
@@ -323,7 +325,8 @@
       "anchor_terms": [
         "/var",
         "/home",
-        "/boot"
+        "/boot",
+        "/"
       ]
     },
     {
@@ -389,7 +392,8 @@
       ],
       "active": true,
       "anchor_terms": [
-        "partitions"
+        "partitions",
+        "mount points"
       ]
     },
     {
@@ -425,7 +429,8 @@
       "active": true,
       "anchor_terms": [
         "GRUB Legacy",
-        "GRUB 2"
+        "GRUB 2",
+        "menu.lst"
       ]
     },
     {
@@ -536,8 +541,7 @@
       ],
       "active": true,
       "anchor_terms": [
-        "ldd",
-        "shared libraries"
+        "ldd"
       ]
     },
     {
@@ -755,7 +759,8 @@
       "active": true,
       "anchor_terms": [
         "rpm -q",
-        "rpm -i"
+        "rpm -i",
+        "rpm2cpio"
       ]
     },
     {
@@ -808,7 +813,8 @@
       "anchor_terms": [
         "yum",
         "dnf",
-        "/etc/yum.repos.d"
+        "/etc/yum.repos.d",
+        "/etc/yum.conf"
       ]
     },
     {
@@ -1070,7 +1076,8 @@
       "anchor_terms": [
         "cat",
         "wc",
-        "od"
+        "od",
+        "less"
       ]
     },
     {
@@ -1089,7 +1096,8 @@
       "anchor_terms": [
         "cut",
         "head",
-        "tail"
+        "tail",
+        "nl"
       ]
     },
     {
@@ -1201,7 +1209,9 @@
         "mv",
         "rm",
         "mkdir",
-        "touch"
+        "touch",
+        "ls",
+        "rmdir"
       ]
     },
     {
@@ -1301,7 +1311,10 @@
       "anchor_terms": [
         "gzip",
         "bzip2",
-        "xz"
+        "xz",
+        "gunzip",
+        "bunzip2",
+        "unxz"
       ]
     },
     {
@@ -1507,7 +1520,8 @@
         "ps",
         "top",
         "free",
-        "uptime"
+        "uptime",
+        "watch"
       ]
     },
     {
@@ -1657,7 +1671,9 @@
       "anchor_terms": [
         "BRE",
         "ERE",
-        "grep"
+        "grep",
+        "egrep",
+        "fgrep"
       ]
     },
     {
@@ -1831,7 +1847,8 @@
         "d",
         "dd",
         "y",
-        "p"
+        "p",
+        "yy"
       ]
     },
     {
@@ -2104,7 +2121,8 @@
       ],
       "active": true,
       "anchor_terms": [
-        "tune2fs"
+        "tune2fs",
+        "mke2fs"
       ]
     },
     {
@@ -2206,7 +2224,9 @@
       "active": true,
       "anchor_terms": [
         "UUID",
-        "labels"
+        "labels",
+        "blkid",
+        "lsblk"
       ]
     },
     {
@@ -2420,7 +2440,8 @@
       "active": true,
       "anchor_terms": [
         "inode",
-        "hard link"
+        "hard link",
+        "ls"
       ]
     },
     {
@@ -2554,7 +2575,8 @@
       ],
       "active": true,
       "anchor_terms": [
-        "locate"
+        "locate",
+        "/etc/updatedb.conf"
       ]
     },
     {
@@ -2624,7 +2646,11 @@
         "/etc/profile",
         "~/.bash_profile",
         "~/.profile",
-        "~/.bashrc"
+        "~/.bashrc",
+        ".",
+        "source",
+        "~/.bash_login",
+        "~/.bash_logout"
       ]
     },
     {
@@ -2660,9 +2686,7 @@
       "active": true,
       "anchor_terms": [
         "function",
-        "alias",
-        "/etc/aliases",
-        "newaliases"
+        "alias"
       ]
     },
     {
@@ -2801,7 +2825,8 @@
       "active": true,
       "anchor_terms": [
         "for",
-        "while"
+        "while",
+        "seq"
       ]
     },
     {
@@ -2955,7 +2980,8 @@
       ],
       "active": true,
       "anchor_terms": [
-        "xauth"
+        "xauth",
+        "xhost"
       ]
     },
     {
@@ -3006,7 +3032,8 @@
       "active": true,
       "anchor_terms": [
         "display manager",
-        "window manager"
+        "window manager",
+        "~/.xsession-errors"
       ]
     },
     {
@@ -3098,7 +3125,8 @@
         "VNC",
         "RDP",
         "SPICE",
-        "XDMCP"
+        "XDMCP",
+        "X11"
       ]
     },
     {
@@ -3203,7 +3231,11 @@
       ],
       "active": true,
       "anchor_terms": [
-        "toggle keys"
+        "toggle keys",
+        "sticky keys",
+        "repeat keys",
+        "slow keys",
+        "bounce keys"
       ]
     },
     {
@@ -3262,7 +3294,8 @@
       ],
       "active": true,
       "anchor_terms": [
-        "passwd"
+        "passwd",
+        "/etc/shadow"
       ]
     },
     {
@@ -3318,7 +3351,8 @@
       "anchor_terms": [
         "/etc/group",
         "groupadd",
-        "groupmod"
+        "groupmod",
+        "groupdel"
       ]
     },
     {
@@ -3385,7 +3419,8 @@
       ],
       "active": true,
       "anchor_terms": [
-        "crontab"
+        "crontab",
+        "/etc/cron.*"
       ]
     },
     {
@@ -3418,7 +3453,9 @@
       ],
       "active": true,
       "anchor_terms": [
-        "at"
+        "at",
+        "atq",
+        "atrm"
       ]
     },
     {
@@ -3470,7 +3507,9 @@
       ],
       "active": true,
       "anchor_terms": [
-        "systemd timers"
+        "systemd timers",
+        "systemctl",
+        "systemd-run"
       ]
     },
     {
@@ -3540,7 +3579,9 @@
       "anchor_terms": [
         "TZ",
         "/etc/localtime",
-        "timedatectl"
+        "timedatectl",
+        "/etc/timezone",
+        "/usr/share/zoneinfo"
       ]
     },
     {
@@ -3557,7 +3598,8 @@
       "active": true,
       "anchor_terms": [
         "locale",
-        "timedatectl"
+        "timedatectl",
+        "date"
       ]
     },
     {
@@ -3643,7 +3685,8 @@
       ],
       "active": true,
       "anchor_terms": [
-        "timedatectl"
+        "timedatectl",
+        "date"
       ]
     },
     {
@@ -3660,7 +3703,9 @@
       "active": true,
       "anchor_terms": [
         "timedatectl",
-        "/etc/localtime"
+        "/etc/localtime",
+        "/usr/share/zoneinfo",
+        "/etc/timezone"
       ]
     },
     {
@@ -3677,7 +3722,8 @@
       "active": true,
       "anchor_terms": [
         "ntpd",
-        "chronyc"
+        "chronyc",
+        "ntpdate"
       ]
     },
     {
@@ -3762,7 +3808,8 @@
       "anchor_terms": [
         "syslog facility",
         "syslog priority",
-        "/etc/rsyslog.conf"
+        "/etc/rsyslog.conf",
+        "/var/log"
       ]
     },
     {
@@ -3846,7 +3893,8 @@
       "active": true,
       "anchor_terms": [
         "logrotate",
-        "/etc/logrotate.conf"
+        "/etc/logrotate.conf",
+        "/etc/logrotate.d"
       ]
     },
     {
@@ -3895,9 +3943,7 @@
       ],
       "active": true,
       "anchor_terms": [
-        "postfix",
-        "exim",
-        "sendmail"
+        "MTA"
       ]
     },
     {
@@ -3978,9 +4024,9 @@
       ],
       "active": true,
       "anchor_terms": [
-        "sendmail",
         "postfix",
-        "exim"
+        "exim",
+        "sendmail"
       ]
     },
     {
@@ -4175,7 +4221,23 @@
         "53",
         "80",
         "443",
-        "/etc/services"
+        "/etc/services",
+        "20",
+        "21",
+        "23",
+        "25",
+        "110",
+        "123",
+        "139",
+        "143",
+        "161",
+        "162",
+        "389",
+        "465",
+        "514",
+        "636",
+        "993",
+        "995"
       ]
     },
     {
@@ -4366,7 +4428,8 @@
       ],
       "active": true,
       "anchor_terms": [
-        "ip"
+        "ip",
+        "hostname"
       ]
     },
     {
@@ -4436,7 +4499,9 @@
       "active": true,
       "anchor_terms": [
         "traceroute",
-        "tracepath"
+        "tracepath",
+        "traceroute6",
+        "tracepath6"
       ]
     },
     {
@@ -4659,7 +4724,8 @@
       "active": true,
       "anchor_terms": [
         "passwd",
-        "chage"
+        "chage",
+        "usermod"
       ]
     },
     {
@@ -4755,7 +4821,8 @@
       ],
       "active": true,
       "anchor_terms": [
-        "sudo"
+        "sudo",
+        "su"
       ]
     },
     {
@@ -4792,7 +4859,8 @@
       ],
       "active": true,
       "anchor_terms": [
-        "/etc/shadow"
+        "/etc/shadow",
+        "/etc/passwd"
       ]
     },
     {
@@ -4809,7 +4877,9 @@
       ],
       "active": true,
       "anchor_terms": [
-        "systemctl"
+        "systemctl",
+        "/etc/inittab",
+        "/etc/init.d"
       ]
     },
     {
@@ -4934,7 +5004,12 @@
       "active": true,
       "anchor_terms": [
         "ssh-keygen",
-        "SSH host keys"
+        "SSH host keys",
+        "~/.ssh/id_rsa",
+        "~/.ssh/id_dsa",
+        "~/.ssh/id_ecdsa",
+        "~/.ssh/id_ed25519",
+        "/etc/ssh/ssh_host_*"
       ]
     },
     {
@@ -5007,7 +5082,9 @@
       ],
       "active": true,
       "anchor_terms": [
-        "gpg"
+        "gpg",
+        "gpg-agent",
+        "~/.gnupg"
       ]
     },
     {
