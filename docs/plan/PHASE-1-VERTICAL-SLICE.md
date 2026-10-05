@@ -46,7 +46,7 @@ Cela représente actuellement:
 - 103.5: 7 concepts;
 - 104.5: 8 concepts.
 
-Total: **22 concepts**.
+Total: **27 concepts**.
 
 Le premier vertical slice peut approfondir certains concepts plus que d'autres, mais aucun des 22 ne doit être invisible dans la matrice de couverture.
 
@@ -92,7 +92,7 @@ Chaque objectif du slice dispose aussi d'un second lab couvrant les mêmes conce
 - transfer-operator-session pour 103.5;
 - transfer-team-share-audit pour 104.5.
 
-La matrice de couverture impose au moins deux lab IDs distincts pour chacun des 22 concepts. Après une preuve independent assez ancienne, le planificateur recommande prioritairement le contexte encore inutilisé afin que transfer soit atteignable dans le produit réel.
+La matrice de couverture impose au moins deux lab IDs distincts pour chacun des 27 concepts. Après une preuve independent assez ancienne, le planificateur recommande prioritairement le contexte encore inutilisé afin que transfer soit atteignable dans le produit réel.
 
 ## Storyboard d'une séance
 
@@ -139,4 +139,4 @@ lpic today
 
 ## Sortie
 
-La Phase 1 n'est terminée que lorsque les critères de `PHASE-1-ACCEPTANCE.md` passent et que les 22 concepts ont une couverture traçable. Aucun travail libvirt n'est requis pour cette sortie.
+La Phase 1 n'est terminée que lorsque les critères de `PHASE-1-ACCEPTANCE.md` passent et que les 27 concepts ont une couverture traçable. Aucun travail libvirt n'est requis pour cette sortie.
