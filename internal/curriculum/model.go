@@ -119,6 +119,7 @@ type Bundle struct {
 	Concepts      ConceptsFile
 	Phase1        Phase1Slice
 	Phase3        Phase3Scope
+	Phase4        Phase3Scope
 	Schemas       map[string]map[string]any
 }
 
@@ -131,5 +132,7 @@ type Summary struct {
 	Phase1Concepts   int
 	Phase3Objectives int
 	Phase3Concepts   int
+	Phase4Objectives int
+	Phase4Concepts   int
 	SchemaFiles      int
 }
