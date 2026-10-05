@@ -3863,6 +3863,184 @@
         "lpic-required"
       ],
       "active": true
+    },
+    {
+      "id": "lpic1.101.1.activation-desactivation-peripheriques-integres",
+      "objective_id": "101.1",
+      "title_fr": "activation et désactivation des périphériques intégrés",
+      "pedagogy_order": 7,
+      "inherited_hard_objective_prerequisites": [],
+      "prerequisite_concept_ids": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.101.1.manipulation-des-peripheriques-usb",
+      "objective_id": "101.1",
+      "title_fr": "manipulation des périphériques USB",
+      "pedagogy_order": 8,
+      "inherited_hard_objective_prerequisites": [],
+      "prerequisite_concept_ids": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.101.2.commandes-du-chargeur-de-demarrage",
+      "objective_id": "101.2",
+      "title_fr": "commandes interactives du chargeur de démarrage",
+      "pedagogy_order": 7,
+      "inherited_hard_objective_prerequisites": [],
+      "prerequisite_concept_ids": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.101.3.terminaison-propre-des-processus",
+      "objective_id": "101.3",
+      "title_fr": "terminaison correcte des processus avant changement d’état système",
+      "pedagogy_order": 8,
+      "inherited_hard_objective_prerequisites": [
+        "101.2"
+      ],
+      "prerequisite_concept_ids": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.1.set-env-et-portee-des-variables",
+      "objective_id": "103.1",
+      "title_fr": "distinction variables shell/environnement avec set et env",
+      "pedagogy_order": 8,
+      "inherited_hard_objective_prerequisites": [],
+      "prerequisite_concept_ids": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.1.export-unset-et-processus-enfants",
+      "objective_id": "103.1",
+      "title_fr": "export, unset et propagation aux processus enfants",
+      "pedagogy_order": 9,
+      "inherited_hard_objective_prerequisites": [],
+      "prerequisite_concept_ids": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.1.execution-de-commandes-hors-path",
+      "objective_id": "103.1",
+      "title_fr": "exécution de commandes en dehors du PATH",
+      "pedagogy_order": 10,
+      "inherited_hard_objective_prerequisites": [],
+      "prerequisite_concept_ids": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.1.edition-et-persistance-de-l-historique",
+      "objective_id": "103.1",
+      "title_fr": "édition et persistance de l’historique avec history et .bash_history",
+      "pedagogy_order": 11,
+      "inherited_hard_objective_prerequisites": [],
+      "prerequisite_concept_ids": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.103.1.echo-et-expansion-shell",
+      "objective_id": "103.1",
+      "title_fr": "affichage et expansion shell avec echo",
+      "pedagogy_order": 12,
+      "inherited_hard_objective_prerequisites": [],
+      "prerequisite_concept_ids": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.107.3.lang-c-et-scripts-reproductibles",
+      "objective_id": "107.3",
+      "title_fr": "LANG=C et comportement reproductible des scripts",
+      "pedagogy_order": 8,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "prerequisite_concept_ids": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.108.1.inspection-ntp-avec-ntpq",
+      "objective_id": "108.1",
+      "title_fr": "inspection NTP avec ntpq",
+      "pedagogy_order": 9,
+      "inherited_hard_objective_prerequisites": [
+        "107.3"
+      ],
+      "prerequisite_concept_ids": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.108.2.journalisation-distante-rsyslog",
+      "objective_id": "108.2",
+      "title_fr": "envoi et réception de journaux distants avec rsyslog",
+      "pedagogy_order": 9,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "prerequisite_concept_ids": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.108.2.recuperation-journal-systemd",
+      "objective_id": "108.2",
+      "title_fr": "consultation d’un journal systemd depuis une sauvegarde ou une copie",
+      "pedagogy_order": 10,
+      "inherited_hard_objective_prerequisites": [
+        "103.1"
+      ],
+      "prerequisite_concept_ids": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
+    },
+    {
+      "id": "lpic1.109.1.caracteristiques-ipv6",
+      "objective_id": "109.1",
+      "title_fr": "caractéristiques fondamentales d’IPv6",
+      "pedagogy_order": 8,
+      "inherited_hard_objective_prerequisites": [],
+      "prerequisite_concept_ids": [],
+      "classification": [
+        "lpic-required"
+      ],
+      "active": true
     }
   ]
 }
