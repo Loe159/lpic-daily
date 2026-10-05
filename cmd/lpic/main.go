@@ -1050,11 +1050,16 @@ func runInteractiveLab(authored lab.Lab, stdin io.Reader, stdout, stderr io.Writ
 			stderr,
 		)
 	case "libvirt":
-		if err := bootstrap.EnsureVMLab(ctx, lpicdaily.BuiltinFS, bootstrap.Options{
-			Stdin:  stdin,
-			Stdout: stdout,
-			Stderr: stderr,
-		}); err != nil {
+		if err := bootstrap.EnsureVMLabImage(
+			ctx,
+			lpicdaily.BuiltinFS,
+			authored.Definition.Environment.ImageRef,
+			bootstrap.Options{
+				Stdin:  stdin,
+				Stdout: stdout,
+				Stderr: stderr,
+			},
+		); err != nil {
 			return fmt.Errorf("prepare VM lab environment: %w", err)
 		}
 		backend, err := openLibvirtBackend()
