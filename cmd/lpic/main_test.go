@@ -56,6 +56,11 @@ func TestInitialAssessmentUnlocksDependentObjectiveWithoutLessonEvidence(t *test
 		"history",
 		"type",
 		"uname -r",
+		"env",
+		"export",
+		"PATH",
+		"history",
+		"echo",
 		"",
 	}, "\n")
 
@@ -68,7 +73,7 @@ func TestInitialAssessmentUnlocksDependentObjectiveWithoutLessonEvidence(t *test
 	); err != nil {
 		t.Fatalf("assess error = %v", err)
 	}
-	if !strings.Contains(stdout.String(), "Résultat: 7/7") ||
+	if !strings.Contains(stdout.String(), "Résultat: 12/12") ||
 		!strings.Contains(stdout.String(), "Foundation 103.1 prête") {
 		t.Fatalf("assessment output = %q", stdout.String())
 	}
@@ -325,8 +330,9 @@ func TestLabRunFailsClosedWhenRootlessPodmanIsUnavailable(t *testing.T) {
 	if err == nil {
 		t.Fatal("lab run unexpectedly succeeded without Podman")
 	}
-	if !strings.Contains(err.Error(), "open rootless Podman backend") {
-		t.Fatalf("error = %v, want rootless Podman failure", err)
+	if !strings.Contains(err.Error(), "prepare Podman lab environment") &&
+		!strings.Contains(err.Error(), "open rootless Podman backend") {
+		t.Fatalf("error = %v, want fail-closed Podman environment failure", err)
 	}
 	if strings.Contains(stdout.String(), "Lab réussi") {
 		t.Fatalf("lab falsely reported success: %q", stdout.String())
@@ -386,7 +392,7 @@ func TestRequireUnprivilegedVMProcessRejectsRoot(t *testing.T) {
 	}
 }
 
-func TestLibvirtLabRunFailsClosedWithoutTrustedImageCatalog(t *testing.T) {
+func TestLibvirtLabRunFailsClosedWithoutReadyEnvironment(t *testing.T) {
 	root := t.TempDir()
 	t.Setenv("LPIC_DAILY_VM_IMAGE_DIR", filepath.Join(root, "vm-images"))
 	t.Setenv("LPIC_DAILY_STATE_DIR", filepath.Join(root, "state"))
@@ -405,8 +411,9 @@ func TestLibvirtLabRunFailsClosedWithoutTrustedImageCatalog(t *testing.T) {
 		if !strings.Contains(err.Error(), "regular user, not root") {
 			t.Fatalf("error = %v, want root refusal", err)
 		}
-	} else if !strings.Contains(err.Error(), "load VM image catalog") {
-		t.Fatalf("error = %v, want trusted VM image catalog failure", err)
+	} else if !strings.Contains(err.Error(), "prepare VM lab environment") &&
+		!strings.Contains(err.Error(), "open libvirt") {
+		t.Fatalf("error = %v, want fail-closed VM environment failure", err)
 	}
 	if strings.Contains(err.Error(), "Podman") {
 		t.Fatalf("libvirt lab unexpectedly fell back to Podman: %v", err)
