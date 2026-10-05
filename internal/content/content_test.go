@@ -2,6 +2,7 @@ package content
 
 import (
 	"slices"
+	"strings"
 	"testing"
 	"testing/fstest"
 
@@ -213,6 +214,57 @@ func TestBuiltinStandaloneContentCoversEveryActiveConcept(t *testing.T) {
 		}
 		if recallQuestions[concept.ID] < 1 {
 			t.Errorf("concept %s has no recall-capable daily question", concept.ID)
+		}
+	}
+}
+
+
+func TestEveryOfficialTermHasSpecificStandaloneExplanation(t *testing.T) {
+	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("curriculum.Load() error = %v", err)
+	}
+	for _, objective := range curriculumBundle.Objectives.Objectives {
+		if !objective.Active {
+			continue
+		}
+		for _, term := range objective.TermsFilesUtilities {
+			if _, ok := standaloneTermExplanations[term]; ok {
+				continue
+			}
+			if _, ok := standalonePortServices[term]; ok && objective.ID == "109.1" {
+				continue
+			}
+			t.Errorf("%s term %q has no specific standalone explanation", objective.ID, term)
+		}
+	}
+}
+
+func TestEveryOfficialTermAppearsInLearnerLessons(t *testing.T) {
+	bundle, err := Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("curriculum.Load() error = %v", err)
+	}
+
+	bodiesByObjective := make(map[string]string)
+	for _, lesson := range bundle.Lessons {
+		for _, objectiveID := range lesson.ObjectiveIDs {
+			bodiesByObjective[objectiveID] += "\n" + lesson.BodyMarkdown
+		}
+	}
+	for _, objective := range curriculumBundle.Objectives.Objectives {
+		if !objective.Active {
+			continue
+		}
+		body := bodiesByObjective[objective.ID]
+		for _, term := range objective.TermsFilesUtilities {
+			if !strings.Contains(body, "`"+term+"`") {
+				t.Errorf("%s term %q never appears in learner lesson content", objective.ID, term)
+			}
 		}
 	}
 }
