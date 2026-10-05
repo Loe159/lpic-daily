@@ -224,28 +224,31 @@ func generatedRecognitionQuestion(
 	concepts []curriculum.Concept,
 	index int,
 ) Question {
-	choices := []Choice{{ID: "correct", LabelFR: concept.TitleFR}}
-	for offset := 1; len(choices) < 4 && offset < len(concepts)+1; offset++ {
-		candidate := concepts[(index+offset)%len(concepts)]
-		if candidate.ID == concept.ID {
+	terms := termsForConcept(objective.TermsFilesUtilities, concept.TitleFR, index, len(concepts))
+	primary := terms[0]
+	correctDescription := standaloneTermExplanation(primary, objective.ID)
+
+	distractorTerms := make([]string, 0, 3)
+	for offset := 1; len(distractorTerms) < 3 && offset <= len(objective.TermsFilesUtilities); offset++ {
+		candidate := objective.TermsFilesUtilities[(index+offset)%len(objective.TermsFilesUtilities)]
+		if candidate == primary || slices.Contains(distractorTerms, candidate) {
 			continue
 		}
-		choices = append(choices, Choice{
-			ID:      fmt.Sprintf("other-%d", len(choices)),
-			LabelFR: candidate.TitleFR,
-		})
+		distractorTerms = append(distractorTerms, candidate)
 	}
-	for len(choices) < 4 {
-		choices = append(choices, Choice{
-			ID:      fmt.Sprintf("other-%d", len(choices)),
-			LabelFR: "une autre compétence de l'objectif",
-		})
+	for len(distractorTerms) < 3 {
+		distractorTerms = append(distractorTerms, "Linux")
+	}
+
+	choices := []Choice{
+		{ID: "correct", LabelFR: correctDescription},
+		{ID: "other-1", LabelFR: standaloneTermExplanation(distractorTerms[0], objective.ID)},
+		{ID: "other-2", LabelFR: standaloneTermExplanation(distractorTerms[1], objective.ID)},
+		{ID: "other-3", LabelFR: standaloneTermExplanation(distractorTerms[2], objective.ID)},
 	}
 	rotation := index % len(choices)
 	choices[0], choices[rotation] = choices[rotation], choices[0]
-	correctID := "correct"
 
-	terms := termsForConcept(objective.TermsFilesUtilities, concept.TitleFR, index, len(concepts))
 	return Question{
 		SchemaVersion: "1.0.0",
 		ID:            concept.ID + ".q.autonomous-recognition",
@@ -254,21 +257,22 @@ func generatedRecognitionQuestion(
 		Type:          "multiple-choice",
 		Usage:         "daily",
 		PromptFR: fmt.Sprintf(
-			"Le repère technique %s apparaît dans ce module. Quelle compétence faut-il lui associer en priorité ?",
-			inlineCodeList(terms),
+			"Dans %s, quelle description correspond correctement à %s ?",
+			objective.ID,
+			inlineCodeList([]string{primary}),
 		),
 		Choices: choices,
 		Grading: Grading{
 			Strategy:          "choice-ids",
-			AcceptedChoiceIDs: []string{correctID},
+			AcceptedChoiceIDs: []string{"correct"},
 		},
 		EvidenceKindOnSuccess: "recognition",
 		Labels:                conceptLabels(concept),
 		Distribution:          "generic",
 		ExplanationFR: fmt.Sprintf(
-			"%s est travaillé ici dans le cadre de « %s ».",
-			inlineCodeList(terms),
-			concept.TitleFR,
+			"%s : %s",
+			primary,
+			correctDescription,
 		),
 	}
 }
