@@ -19,16 +19,16 @@ import (
 )
 
 const (
-	Phase1Image          = "localhost/lpic-daily/fedora-phase1:1"
-	Phase1BaseImage      = "registry.fedoraproject.org/fedora:44"
-	RequiredVMImageID    = "fedora-44-x86_64-v2"
-	firstRunMarker       = "bootstrap-v1"
-	notificationService  = "packaging/systemd/lpic-daily-notify.service"
-	notificationTimer    = "packaging/systemd/lpic-daily-notify.timer"
-	desktopEntry         = "packaging/desktop/lpic-daily.desktop"
-	vmProvisionScript    = "scripts/provision_vm_storage.sh"
-	vmBuildScript        = "scripts/build_vm_image.py"
-	vmSourcesManifest    = "packaging/vm-images/sources.json"
+	Phase1Image         = "localhost/lpic-daily/fedora-phase1:1"
+	Phase1BaseImage     = "registry.fedoraproject.org/fedora:44"
+	RequiredVMImageID   = "fedora-44-x86_64-v2"
+	firstRunMarker      = "bootstrap-v1"
+	notificationService = "packaging/systemd/lpic-daily-notify.service"
+	notificationTimer   = "packaging/systemd/lpic-daily-notify.timer"
+	desktopEntry        = "packaging/desktop/lpic-daily.desktop"
+	vmProvisionScript   = "scripts/provision_vm_storage.sh"
+	vmBuildScript       = "scripts/build_vm_image.py"
+	vmSourcesManifest   = "packaging/vm-images/sources.json"
 )
 
 var ErrDeclined = errors.New("bootstrap action declined")
@@ -639,7 +639,7 @@ func (setup *installer) confirm(question string, defaultYes bool) bool {
 
 func (setup *installer) extractPhase1Context() (string, func(), error) {
 	files := map[string]os.FileMode{
-		"labs/images/fedora-phase1/Containerfile":           0o644,
+		"labs/images/fedora-phase1/Containerfile":          0o644,
 		"labs/images/fedora-phase1/report-status-approved": 0o755,
 		"labs/images/fedora-phase1/report-status-shadow":   0o755,
 	}
