@@ -26,7 +26,7 @@ The Phase-1 default readiness baseline is:
 - concept stage threshold: `recall`;
 - at least 70% of an objective's concepts meet that threshold.
 
-For 103.1 (7 concepts), this currently means 5 concepts at recall or stronger.
+For 103.1 (12 concepts), this currently means 9 concepts at recall or stronger.
 
 This is deliberately a **tunable Phase-1 policy**, not a scientific claim or permanent requirement. Fine-grained concept prerequisites should replace coarse objective fractions where authored content demonstrates a real dependency.
 
