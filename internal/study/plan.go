@@ -219,16 +219,12 @@ func schedulableScope(
 		introductionCounts[lesson.ConceptIDs[0]]++
 	}
 	questions := make(map[string]bool)
-	recallQuestions := make(map[string]bool)
 	for _, question := range contentBundle.Questions {
 		if question.Usage == "initial-assessment" {
 			continue
 		}
 		for _, conceptID := range question.ConceptIDs {
 			questions[conceptID] = true
-			if question.EvidenceKindOnSuccess == "recall" {
-				recallQuestions[conceptID] = true
-			}
 		}
 	}
 	practical := make(map[string]bool)
@@ -247,8 +243,7 @@ func schedulableScope(
 		}
 		complete := true
 		for _, conceptID := range conceptIDs {
-			if introductionCounts[conceptID] != 1 || !questions[conceptID] ||
-				(!recallQuestions[conceptID] && !practical[conceptID]) {
+			if introductionCounts[conceptID] != 1 || !questions[conceptID] || !practical[conceptID] {
 				complete = false
 				break
 			}
@@ -262,7 +257,7 @@ func schedulableScope(
 		}
 	}
 	if len(objectives) == 0 {
-		return nil, nil, errors.New("no objectives have complete introduction, daily-question, and mastery-advancement coverage")
+		return nil, nil, errors.New("no objectives have complete introduction, daily-question, and practical-lab coverage")
 	}
 	return objectives, concepts, nil
 }
