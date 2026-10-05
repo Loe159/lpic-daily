@@ -60,6 +60,29 @@ def main():
         errors.append("Exam 101 + 102 scopes do not cover every active concept exactly once")
 
     for objective in objectives:
+        objective_concepts = concepts_by_objective.get(objective["id"], [])
+        anchored_terms = {
+            anchor
+            for concept in objective_concepts
+            for anchor in concept.get("anchor_terms", [])
+        }
+        for term in objective.get("terms_files_utilities", []):
+            if term not in anchored_terms:
+                errors.append(
+                    f"{objective['id']}: official term {term!r} is not anchored to any concept"
+                )
+        signatures = {}
+        for concept in objective_concepts:
+            signature = tuple(sorted(concept.get("anchor_terms", [])))
+            previous = signatures.get(signature)
+            if previous is not None:
+                errors.append(
+                    f"{objective['id']}: concepts {previous} and {concept['id']} "
+                    "have identical anchor_terms"
+                )
+            else:
+                signatures[signature] = concept["id"]
+
         guide = guides.get(objective["id"])
         if guide is None:
             errors.append(f"{objective['id']}: missing standalone study guide")
