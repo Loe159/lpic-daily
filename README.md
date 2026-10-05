@@ -8,7 +8,7 @@
 
 LPIC Daily transforme l’apprentissage de Linux en une routine courte et progressive : cours ciblés, questions de rappel, exercices pratiques et labs jetables directement depuis le terminal.
 
-Au lieu de simplement mémoriser des commandes, tu manipules de vrais environnements Linux et LPIC Daily vérifie l’état final obtenu.
+Au lieu de simplement mémoriser des commandes, tu manipules de vrais environnements Linux. Les labs spécialisés vérifient directement l’état obtenu ; les ateliers de couverture générale valident une preuve structurée de pratique et restent volontairement classés comme pratique guidée.
 
 ## Ce que tu peux faire
 
@@ -20,6 +20,8 @@ Au lieu de simplement mémoriser des commandes, tu manipules de vrais environnem
 - **Travailler hors ligne** : les cours, questions, résultats et progrès restent locaux.
 
 Le contenu est en français, avec les termes Linux conservés en anglais lorsqu’ils sont utilisés ainsi dans la pratique et dans LPIC.
+
+Le parcours embarqué couvre les **42 objectifs actifs de LPIC-1 v5.0**, soit les examens **101-500 et 102-500**. Chaque concept possède un cours ciblé, plusieurs questions dont du rappel libre, et au moins deux contextes de pratique. Les commandes, fichiers, opérateurs et ports explicitement examinables sont expliqués dans les cours et réutilisés dans les exercices.
 
 ## Installation
 
@@ -76,7 +78,10 @@ lpic doctor             # vérifier l'environnement
 Les exercices s’exécutent dans des environnements jetables :
 
 - **Podman rootless** pour les exercices de shell, fichiers, permissions et processus ;
-- **QEMU/KVM + libvirt** lorsqu’une vraie machine est nécessaire, par exemple pour le boot ou le stockage.
+- **QEMU/KVM + libvirt** lorsqu’une vraie machine est nécessaire, par exemple pour le boot, le stockage, les services ou le réseau ;
+- **Fedora, Debian et openSUSE** lorsque la compétence dépend d’un écosystème de distribution (DNF/RPM, APT/dpkg, Zypper/RPM).
+
+Les images VM sont préparées à la demande : LPIC Daily indique le téléchargement ou la construction nécessaire et demande confirmation avant de le lancer.
 
 Dans un lab :
 
