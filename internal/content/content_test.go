@@ -169,3 +169,50 @@ func TestGradeDeterministicStrategies(t *testing.T) {
 		t.Fatalf("ordering Grade() = %v, %v, want false", pass, err)
 	}
 }
+
+
+func TestBuiltinStandaloneContentCoversEveryActiveConcept(t *testing.T) {
+	bundle, err := Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("curriculum.Load() error = %v", err)
+	}
+
+	introductions := make(map[string]int)
+	dailyQuestions := make(map[string]int)
+	recallQuestions := make(map[string]int)
+	for _, lesson := range bundle.Lessons {
+		if lesson.Stage == "introduce" && len(lesson.ConceptIDs) == 1 {
+			introductions[lesson.ConceptIDs[0]]++
+		}
+	}
+	for _, question := range bundle.Questions {
+		if question.Usage == "initial-assessment" {
+			continue
+		}
+		for _, conceptID := range question.ConceptIDs {
+			dailyQuestions[conceptID]++
+			if question.EvidenceKindOnSuccess == "recall" {
+				recallQuestions[conceptID]++
+			}
+		}
+	}
+
+	for _, concept := range curriculumBundle.Concepts.Concepts {
+		if !concept.Active {
+			continue
+		}
+		if introductions[concept.ID] != 1 {
+			t.Errorf("concept %s focused introductions = %d, want exactly 1", concept.ID, introductions[concept.ID])
+		}
+		if dailyQuestions[concept.ID] < 2 {
+			t.Errorf("concept %s daily questions = %d, want at least 2", concept.ID, dailyQuestions[concept.ID])
+		}
+		if recallQuestions[concept.ID] < 1 {
+			t.Errorf("concept %s has no recall-capable daily question", concept.ID)
+		}
+	}
+}
