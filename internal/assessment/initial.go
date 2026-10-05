@@ -3,42 +3,65 @@ package assessment
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	"github.com/Loe159/lpic-daily/internal/content"
 	"github.com/Loe159/lpic-daily/internal/curriculum"
 	"github.com/Loe159/lpic-daily/internal/learning"
 )
 
-var InitialPhase1QuestionIDs = []string{
-	"lpic1.103.1.assess.shell-sequence",
-	"lpic1.103.1.assess.export-variable",
-	"lpic1.103.1.assess.path-resolution",
-	"lpic1.103.1.assess.quoting",
-	"lpic1.103.1.assess.history",
-	"lpic1.103.1.assess.type",
-	"lpic1.103.1.assess.uname-release",
-	"lpic1.103.1.set-env-et-portee-des-variables.q.autonomous-recall",
-	"lpic1.103.1.export-unset-et-processus-enfants.q.autonomous-recall",
-	"lpic1.103.1.execution-de-commandes-hors-path.q.autonomous-recall",
-	"lpic1.103.1.edition-et-persistance-de-l-historique.q.autonomous-recall",
-	"lpic1.103.1.echo-et-expansion-shell.q.autonomous-recall",
-}
-
 type EvidenceReader interface {
 	EvidenceForConcept(context.Context, string) ([]learning.EvidenceEvent, error)
 }
 
-func Questions(bundle *content.Bundle) ([]content.Question, error) {
-	if bundle == nil {
+func Questions(
+	curriculumBundle *curriculum.Bundle,
+	contentBundle *content.Bundle,
+) ([]content.Question, error) {
+	if curriculumBundle == nil {
+		return nil, fmt.Errorf("curriculum bundle is required")
+	}
+	if contentBundle == nil {
 		return nil, fmt.Errorf("content bundle is required")
 	}
-	result := make([]content.Question, 0, len(InitialPhase1QuestionIDs))
-	for _, id := range InitialPhase1QuestionIDs {
-		question, ok := bundle.QuestionByID(id)
-		if !ok {
-			return nil, fmt.Errorf("missing initial assessment question %s", id)
+
+	questionsByConcept := make(map[string][]content.Question)
+	for _, question := range contentBundle.Questions {
+		if question.EvidenceKindOnSuccess != "recall" || len(question.ConceptIDs) != 1 {
+			continue
 		}
-		result = append(result, question)
+		conceptID := question.ConceptIDs[0]
+		questionsByConcept[conceptID] = append(questionsByConcept[conceptID], question)
+	}
+	for conceptID := range questionsByConcept {
+		slices.SortFunc(questionsByConcept[conceptID], func(a, b content.Question) int {
+			aAssessment := a.Usage == "initial-assessment"
+			bAssessment := b.Usage == "initial-assessment"
+			if aAssessment != bAssessment {
+				if aAssessment {
+					return -1
+				}
+				return 1
+			}
+			switch {
+			case a.ID < b.ID:
+				return -1
+			case a.ID > b.ID:
+				return 1
+			default:
+				return 0
+			}
+		})
+	}
+
+	conceptIDs := curriculumBundle.Phase1.ObjectiveConcepts["103.1"]
+	result := make([]content.Question, 0, len(conceptIDs))
+	for _, conceptID := range conceptIDs {
+		candidates := questionsByConcept[conceptID]
+		if len(candidates) == 0 {
+			return nil, fmt.Errorf("missing recall-capable initial assessment question for concept %s", conceptID)
+		}
+		result = append(result, candidates[0])
 	}
 	return result, nil
 }
