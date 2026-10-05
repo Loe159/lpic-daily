@@ -141,6 +141,35 @@ def generate():
                 if surface == "labs":
                     lab_contexts[concept_id].add(practice_context)
 
+    # Runtime-synthesized standalone surfaces are part of the shipped product.
+    # Mirror their deterministic IDs here so the committed matrix remains an
+    # independent, reviewable representation of what the learner can access.
+    for concept_id in ordered_concepts:
+        objective_id = concept_to_objective[concept_id]
+        if focused_introductions[concept_id] == 0:
+            lesson_id = concept_id + ".lesson.autonomous"
+            mapped[concept_id]["lessons"].append(lesson_id)
+            focused_introductions[concept_id] = 1
+
+        mapped[concept_id]["questions"].extend([
+            concept_id + ".q.autonomous-recall",
+            concept_id + ".q.autonomous-recognition",
+        ])
+
+        objective_slug = objective_id.replace(".", "-")
+        generated_labs = [
+            f"lpic1.{objective_id}.standalone-diagnostic",
+            f"lpic1.{objective_id}.standalone-transfer",
+        ]
+        generated_contexts = [
+            f"{objective_slug}-standalone-diagnostic",
+            f"{objective_slug}-standalone-transfer",
+        ]
+        for lab_id, context in zip(generated_labs, generated_contexts):
+            if lab_id not in mapped[concept_id]["labs"]:
+                mapped[concept_id]["labs"].append(lab_id)
+            lab_contexts[concept_id].add(context)
+
     concepts = []
     for concept_id in ordered_concepts:
         objective_id = concept_to_objective[concept_id]
