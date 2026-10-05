@@ -16,7 +16,12 @@
       "lpic1.103.1.quoting-escaping",
       "lpic1.103.1.historique",
       "lpic1.103.1.documentation-et-identification-d-une-commande",
-      "lpic1.103.1.informations-systeme-de-base"
+      "lpic1.103.1.informations-systeme-de-base",
+      "lpic1.103.1.set-env-et-portee-des-variables",
+      "lpic1.103.1.export-unset-et-processus-enfants",
+      "lpic1.103.1.execution-de-commandes-hors-path",
+      "lpic1.103.1.edition-et-persistance-de-l-historique",
+      "lpic1.103.1.echo-et-expansion-shell"
     ],
     "103.5": [
       "lpic1.103.5.processus-avant-arriere-plan",
