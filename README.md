@@ -48,6 +48,14 @@ Si tu ne veux pas installer la partie KVM/libvirt tout de suite :
 lpic install --no-vm
 ```
 
+Pour mettre ensuite LPIC Daily à jour directement depuis la branche `main` :
+
+```bash
+lpic update
+```
+
+La commande compile la dernière version de `main` dans un emplacement temporaire puis remplace le binaire utilisateur dans `~/.local/bin/lpic`. Ta progression et tes données locales sont conservées.
+
 > Les labs VM nécessitent également Python 3, QEMU/KVM et libvirt. Sur Fedora, LPIC Daily peut proposer d’installer les dépendances manquantes.
 
 ## Utilisation
@@ -69,6 +77,7 @@ lpic assess             # évaluation initiale
 lpic lab list           # voir les labs disponibles
 lpic lab run <lab-id>   # lancer un lab
 lpic doctor             # vérifier l'environnement
+lpic update             # mettre à jour depuis main
 ```
 
 ## Les labs
