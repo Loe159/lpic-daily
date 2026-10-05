@@ -40,8 +40,8 @@ func TestBuiltinPhase1ContentCoversEveryConcept(t *testing.T) {
 		t.Fatalf("curriculum.Load() error = %v", err)
 	}
 
-	phase1Concepts := make([]string, 0, 22)
-	phase1Set := make(map[string]struct{}, 22)
+	phase1Concepts := make([]string, 0, 27)
+	phase1Set := make(map[string]struct{}, 27)
 	for _, objectiveID := range curriculumBundle.Phase1.SelectedObjectives {
 		for _, conceptID := range curriculumBundle.Phase1.ObjectiveConcepts[objectiveID] {
 			phase1Concepts = append(phase1Concepts, conceptID)
