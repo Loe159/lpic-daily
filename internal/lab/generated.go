@@ -79,11 +79,15 @@ func generatedStandaloneLab(
 	root := "/workspace/lpic-daily-evidence"
 	setup := Setup{ExecutionScope: "sandbox", ScriptRef: "generated-setup.sh"}
 	setupScript := "set -eu\ninstall -d -m 0777 /workspace/lpic-daily-evidence\n"
+	network := "none"
+	if strings.HasPrefix(objective.ID, "109.") || objective.ID == "110.3" {
+		network = "isolated"
+	}
 	environment := Environment{
 		Backend:            "podman",
 		ImageRef:           imageRef,
 		Distribution:       distribution,
-		Network:            "none",
+		Network:            network,
 		CapabilityProfile:  "baseline",
 		WritableGuestPaths: []string{"/workspace"},
 	}
@@ -101,7 +105,7 @@ func generatedStandaloneLab(
 			Backend:           "libvirt",
 			ImageRef:          imageRef,
 			Distribution:      distribution,
-			Network:           "none",
+			Network:           network,
 			CapabilityProfile: "full-machine",
 			Machine:           &Machine{Firmware: "uefi"},
 		}
@@ -116,13 +120,16 @@ func generatedStandaloneLab(
 	var tasks strings.Builder
 	checks := make([]CheckDefinition, 0, len(concepts))
 	conceptIDs := make([]string, 0, len(concepts))
-	for _, concept := range concepts {
+	for index, concept := range concepts {
 		conceptIDs = append(conceptIDs, concept.ID)
 		filename := standaloneConceptFilename(concept)
+		terms := standaloneAssignedTerms(objective.TermsFilesUtilities, index, len(concepts))
+		termsLine := strings.Join(terms, ",")
 		fmt.Fprintf(
 			&tasks,
-			"- **%s** : réalise une commande, une inspection ou une configuration pertinente, puis écris `%s/%s.txt`.\n",
+			"- **%s** : travaille les repères `%s`, réalise une commande, une inspection ou une configuration pertinente, puis écris `%s/%s.txt`.\n",
 			concept.TitleFR,
+			strings.Join(terms, "`, `"),
 			root,
 			filename,
 		)
@@ -130,6 +137,7 @@ func generatedStandaloneLab(
 			Type: "file-content-regex",
 			Path: root + "/" + filename + ".txt",
 			Pattern: "(?m)^CONCEPT=" + regexEscape(concept.ID) +
+				"\\nTERMS=" + regexEscape(termsLine) +
 				"\\nCOMMAND=.+\\nOBSERVATION=.+\\nEXPLANATION=.+\\n?$",
 			ConceptIDs: []string{concept.ID},
 		})
@@ -137,9 +145,10 @@ func generatedStandaloneLab(
 
 	brief := fmt.Sprintf(
 		"Contexte de %s pour %s — %s. %s\n\n%s\n"+
-			"Pour chaque fichier, utilise exactement quatre lignes : "+
-			"CONCEPT=<id>, COMMAND=<commande/action réellement utilisée>, "+
-			"OBSERVATION=<résultat constaté>, EXPLANATION=<pourquoi ce résultat démontre le concept>. "+
+			"Pour chaque fichier, utilise exactement cinq lignes : "+
+			"CONCEPT=<id>, TERMS=<repères demandés séparés par des virgules>, "+
+			"COMMAND=<commande/action réellement utilisée>, OBSERVATION=<résultat constaté>, "+
+			"EXPLANATION=<pourquoi ce résultat démontre le concept>. "+
 			"Crée d'abord %s si le répertoire n'existe pas. Le but n'est pas de recopier le cours : "+
 			"fais la manipulation dans le sandbox, puis explique l'état observé.",
 		contextFR,
@@ -159,7 +168,7 @@ func generatedStandaloneLab(
 			BriefFR:           brief,
 			SuccessCriteriaFR: []string{
 				"Une preuve distincte est produite pour chaque concept.",
-				"Chaque preuve décrit une commande ou action réellement effectuée et son observation.",
+				"Chaque preuve couvre explicitement les termes/fichiers/utilitaires affectés au concept et décrit une commande ou action réellement effectuée.",
 				"Chaque preuve explique le lien entre le résultat observé et le concept LPIC.",
 			},
 			DebriefFR: fmt.Sprintf(
@@ -194,6 +203,7 @@ func standaloneLabEnvironment(objective curriculum.Objective, variant int) (back
 	}
 	if strings.HasPrefix(objective.ID, "101.") ||
 		strings.HasPrefix(objective.ID, "109.") ||
+		objective.ID == "110.3" ||
 		strings.Contains(objective.RecommendedBackend, "libvirt") {
 		return "libvirt", "fedora-44-x86_64-v2", "fedora"
 	}
@@ -223,7 +233,7 @@ func generatedStandaloneHints(labID, root string) []Hint {
 			ID:             labID + ".hint-3",
 			LabID:          labID,
 			Level:          3,
-			ContentFR:      "Chaque preuve doit contenir CONCEPT, COMMAND, OBSERVATION et EXPLANATION. L'explication doit relier le résultat au comportement Linux attendu.",
+			ContentFR:      "Chaque preuve doit contenir CONCEPT, TERMS, COMMAND, OBSERVATION et EXPLANATION. Recopie exactement TERMS depuis le brief puis relie le résultat au comportement Linux attendu.",
 			EvidenceImpact: "material",
 		},
 		{
@@ -231,11 +241,30 @@ func generatedStandaloneHints(labID, root string) []Hint {
 			ID:            labID + ".hint-4",
 			LabID:         labID,
 			Level:         4,
-			ContentFR: "Format attendu : CONCEPT=<id exact> puis COMMAND=<commande/action>, "+
-				"OBSERVATION=<résultat> et EXPLANATION=<raison>. Répète ce format pour chaque fichier indiqué dans le brief.",
+			ContentFR: "Format attendu : CONCEPT=<id exact>, TERMS=<liste exacte du brief>, COMMAND=<commande/action>, "+
+				"OBSERVATION=<résultat>, EXPLANATION=<raison>. Répète ce format pour chaque fichier indiqué dans le brief.",
 			EvidenceImpact: "solution-revealed",
 		},
 	}
+}
+
+func standaloneAssignedTerms(terms []string, conceptIndex, conceptCount int) []string {
+	if len(terms) == 0 {
+		return []string{"Linux"}
+	}
+	if conceptCount <= 0 {
+		conceptCount = 1
+	}
+	assigned := make([]string, 0)
+	for termIndex, term := range terms {
+		if termIndex%conceptCount == conceptIndex {
+			assigned = append(assigned, term)
+		}
+	}
+	if len(assigned) == 0 {
+		assigned = append(assigned, terms[conceptIndex%len(terms)])
+	}
+	return assigned
 }
 
 func standaloneConceptFilename(concept curriculum.Concept) string {
