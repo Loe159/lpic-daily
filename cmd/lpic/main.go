@@ -28,6 +28,7 @@ import (
 	"github.com/Loe159/lpic-daily/internal/runner"
 	libvirtrunner "github.com/Loe159/lpic-daily/internal/runner/libvirt"
 	podmanrunner "github.com/Loe159/lpic-daily/internal/runner/podman"
+	"github.com/Loe159/lpic-daily/internal/selfupdate"
 	"github.com/Loe159/lpic-daily/internal/study"
 	"github.com/Loe159/lpic-daily/internal/terminal"
 	lpicui "github.com/Loe159/lpic-daily/internal/tui"
@@ -61,6 +62,8 @@ func runWithIO(args []string, stdin io.Reader, stdout, stderr io.Writer) error {
 	switch args[0] {
 	case "install":
 		return runInstall(args[1:], stdin, stdout, stderr)
+	case "update":
+		return runUpdate(args[1:], stdout, stderr)
 	case "validate":
 		bundle, err := curriculum.Load(lpicdaily.BuiltinFS)
 		if err != nil {
@@ -226,6 +229,20 @@ func runInstall(args []string, stdin io.Reader, stdout, stderr io.Writer) error 
 		PrepareVM: prepareVM,
 		AssumeYes: assumeYes,
 		FirstRun:  true,
+	})
+}
+
+func runUpdate(args []string, stdout, stderr io.Writer) error {
+	if len(args) == 1 && (args[0] == "help" || args[0] == "-h" || args[0] == "--help") {
+		fmt.Fprintln(stdout, "Usage: lpic update")
+		return nil
+	}
+	if len(args) != 0 {
+		return fmt.Errorf("usage: lpic update")
+	}
+	return selfupdate.Update(context.Background(), selfupdate.Options{
+		Stdout: stdout,
+		Stderr: stderr,
 	})
 }
 
@@ -1838,6 +1855,7 @@ func printUsage(out io.Writer) {
 
 Usage:
   lpic install [--yes] [--no-vm] configure notifications and lab dependencies
+  lpic update                    update the user binary from GitHub main
   lpic tui                       open the interactive daily dashboard
   lpic notify [--force]           send today's desktop notification once
   lpic assess                     run the Phase-1 initial recall assessment

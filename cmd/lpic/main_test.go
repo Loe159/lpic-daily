@@ -199,6 +199,23 @@ func TestQuestionRejectsUnknownChoiceWithoutRecording(t *testing.T) {
 	}
 }
 
+func TestUpdateHelpDoesNotRunUpdater(t *testing.T) {
+	var stdout bytes.Buffer
+	if err := runWithIO([]string{"update", "--help"}, strings.NewReader(""), &stdout, &bytes.Buffer{}); err != nil {
+		t.Fatalf("update --help error = %v", err)
+	}
+	if !strings.Contains(stdout.String(), "Usage: lpic update") {
+		t.Fatalf("update help output = %q", stdout.String())
+	}
+}
+
+func TestUpdateRejectsUnexpectedArguments(t *testing.T) {
+	err := runWithIO([]string{"update", "main"}, strings.NewReader(""), &bytes.Buffer{}, &bytes.Buffer{})
+	if err == nil || !strings.Contains(err.Error(), "usage: lpic update") {
+		t.Fatalf("error = %v, want update usage error", err)
+	}
+}
+
 func TestTodayRejectsUnknownOption(t *testing.T) {
 	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
 	var stdout bytes.Buffer
