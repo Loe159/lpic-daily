@@ -163,7 +163,9 @@ func (model Dashboard) render() string {
 	output.WriteString("\n")
 
 	if len(model.plan.Items) == 0 {
-		output.WriteString("\nAucune activité due dans le périmètre de contenu actuellement disponible.\n")
+		output.WriteString("\n✓ Séance du jour terminée\n")
+		output.WriteString("Aucune révision n'est due pour le moment.\n")
+		output.WriteString("LPIC Daily te proposera automatiquement les prochaines révisions et activités pratiques lorsqu'elles seront dues.\n")
 		output.WriteString("\nq quitter\n")
 		return output.String()
 	}

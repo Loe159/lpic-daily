@@ -154,3 +154,22 @@ func TestPracticeDefaultsToQuestion(t *testing.T) {
 		t.Fatalf("render = %q", model.render())
 	}
 }
+
+
+func TestDashboardEmptyPlanShowsCompletedSession(t *testing.T) {
+	model := NewDashboard(study.Plan{}, gamification.Snapshot{XP: 198, CurrentStreakDays: 1})
+
+	rendered := model.render()
+	for _, want := range []string{
+		"✓ Séance du jour terminée",
+		"Aucune révision n'est due pour le moment.",
+		"prochaines révisions et activités pratiques",
+	} {
+		if !strings.Contains(rendered, want) {
+			t.Fatalf("empty dashboard missing %q: %q", want, rendered)
+		}
+	}
+	if strings.Contains(rendered, "Aucune activité due dans le périmètre") {
+		t.Fatalf("empty dashboard still exposes implementation wording: %q", rendered)
+	}
+}
