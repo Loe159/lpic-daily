@@ -42,6 +42,30 @@ func Validate(bundle *Bundle) error {
 		errs = append(errs, errors.New("104.4 must not be active in LPIC-1 v5"))
 	}
 
+	if bundle.StudyGuides.SchemaVersion != "1.0.0" {
+		errs = append(errs, fmt.Errorf("study guides schema version: expected 1.0.0, got %q", bundle.StudyGuides.SchemaVersion))
+	}
+	guideByObjective := make(map[string]ObjectiveStudyGuide, len(bundle.StudyGuides.Guides))
+	for _, guide := range bundle.StudyGuides.Guides {
+		if _, duplicate := guideByObjective[guide.ObjectiveID]; duplicate {
+			errs = append(errs, fmt.Errorf("duplicate study guide for objective %s", guide.ObjectiveID))
+			continue
+		}
+		if _, exists := objectiveByID[guide.ObjectiveID]; !exists {
+			errs = append(errs, fmt.Errorf("study guide references unknown objective %s", guide.ObjectiveID))
+			continue
+		}
+		if strings.TrimSpace(guide.Overview) == "" || strings.TrimSpace(guide.Practice) == "" || strings.TrimSpace(guide.Pitfalls) == "" {
+			errs = append(errs, fmt.Errorf("study guide %s requires overview, practice, and pitfalls", guide.ObjectiveID))
+		}
+		guideByObjective[guide.ObjectiveID] = guide
+	}
+	for objectiveID := range objectiveByID {
+		if _, exists := guideByObjective[objectiveID]; !exists {
+			errs = append(errs, fmt.Errorf("active objective %s has no standalone study guide", objectiveID))
+		}
+	}
+
 	nodeByID := make(map[string]ObjectiveNode)
 	for _, node := range bundle.Prerequisites.Nodes {
 		if _, exists := nodeByID[node.ObjectiveID]; exists {
