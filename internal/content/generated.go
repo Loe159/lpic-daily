@@ -149,7 +149,14 @@ func generatedLessonBody(
 	concept curriculum.Concept,
 	guide curriculum.ObjectiveStudyGuide,
 ) string {
-	terms := slices.Clone(concept.AnchorTerms)
+	var anchorList strings.Builder
+	for _, anchor := range concept.AnchorTerms {
+		fmt.Fprintf(&anchorList, "- `%s` — %s", anchor, standaloneTermExplanation(anchor, objective.ID))
+		if usage := standaloneTermUsage(anchor); usage != "" {
+			fmt.Fprintf(&anchorList, "  \n  **À savoir pratiquer :** `%s`", usage)
+		}
+		anchorList.WriteByte('\n')
+	}
 	var termList strings.Builder
 	for _, term := range objective.TermsFilesUtilities {
 		fmt.Fprintf(&termList, "- `%s` — %s", term, standaloneTermExplanation(term, objective.ID))
@@ -167,7 +174,8 @@ func generatedLessonBody(
 			"Ce concept appartient à **%s — %s**. L'objectif est de savoir l'expliquer, le reconnaître dans un scénario d'examen et l'utiliser ou le diagnostiquer sur un système Linux.\n\n"+
 			"## Modèle mental\n\n%s\n\n"+
 			"## Focus sur ce concept\n\n"+
-			"Travaille particulièrement **%s**. Les repères techniques associés à ce module sont %s. Pour chacun, sache ce qu'il observe ou modifie, quand l'utiliser et comment vérifier le résultat.\n\n"+
+			"Travaille particulièrement **%s**. Ces repères techniques sont propres à ce concept :\n\n%s\n"+
+			"Pour chacun, sache expliquer son rôle, l'utiliser ou l'inspecter et vérifier le résultat obtenu.\n\n"+
 			"## Mise en pratique\n\n%s\n\n"+
 			"## Pièges et distinctions\n\n%s\n\n"+
 			"## Termes, fichiers et utilitaires à connaître pour %s\n\n%s\n"+
@@ -178,7 +186,7 @@ func generatedLessonBody(
 		objective.TitleFR,
 		guide.Overview,
 		concept.TitleFR,
-		inlineCodeList(terms),
+		anchorList.String(),
 		guide.Practice,
 		guide.Pitfalls,
 		objective.ID,
