@@ -640,9 +640,9 @@ func runAssessment(args []string, stdin io.Reader, stdout io.Writer) error {
 		if pass {
 			correct++
 			eventType = gamification.EventQuestionPassed
-			fmt.Fprintln(stdout, "Correct.")
+			fmt.Fprintln(stdout, "✓ CORRECT")
 		} else {
-			fmt.Fprintln(stdout, "Incorrect.")
+			fmt.Fprintln(stdout, "✗ INCORRECT")
 		}
 		recordGamificationBestEffort(
 			ctx,
@@ -770,6 +770,21 @@ func runQuestion(args []string, stdin io.Reader, stdout io.Writer) error {
 	if pass {
 		eventType = gamification.EventQuestionPassed
 	}
+
+	fmt.Fprintln(stdout)
+	if pass {
+		fmt.Fprintln(stdout, "✓ CORRECT")
+	} else {
+		fmt.Fprintln(stdout, "✗ INCORRECT")
+	}
+	if question.ExplanationFR != "" {
+		fmt.Fprintln(stdout, question.ExplanationFR)
+	}
+	if !pass {
+		fmt.Fprintln(stdout, "Cette notion reste à consolider.")
+	}
+	fmt.Fprintln(stdout)
+
 	recordGamificationBestEffort(
 		ctx,
 		store,
@@ -778,15 +793,6 @@ func runQuestion(args []string, stdin io.Reader, stdout io.Writer) error {
 		map[string]string{"source_item_id": question.ID},
 		stdout,
 	)
-
-	if pass {
-		fmt.Fprintln(stdout, "Correct.")
-	} else {
-		fmt.Fprintln(stdout, "Incorrect.")
-	}
-	if question.ExplanationFR != "" {
-		fmt.Fprintln(stdout, question.ExplanationFR)
-	}
 	return nil
 }
 
