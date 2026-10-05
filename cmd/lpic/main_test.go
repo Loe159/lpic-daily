@@ -59,7 +59,7 @@ func TestInitialAssessmentUnlocksDependentObjectiveWithoutLessonEvidence(t *test
 		"env",
 		"export",
 		"PATH",
-		"history",
+		".bash_history",
 		"echo",
 		"",
 	}, "\n")
