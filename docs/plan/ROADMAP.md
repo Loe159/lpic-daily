@@ -11,7 +11,7 @@
 
 ## Phase 0.5 — pedagogical contracts (complete)
 - full 42-objective prerequisite DAG;
-- 295 stable concept IDs;
+- 309 stable concept IDs;
 - versioned JSON Schemas for concepts, lessons, questions, labs, hints, evidence and achievements;
 - append-only mastery evidence model;
 - formal Phase-1 selection: 103.1 + 103.5 + 104.5;
