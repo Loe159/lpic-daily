@@ -156,14 +156,14 @@ def generate():
             concept_id + ".q.autonomous-recognition",
         ])
 
-        objective_slug = objective_id.replace(".", "-")
+        concept_slug = concept_id.removeprefix("lpic1.").replace(".", "-")
         generated_labs = [
-            f"lpic1.{objective_id}.standalone-diagnostic",
-            f"lpic1.{objective_id}.standalone-transfer",
+            concept_id + ".standalone-diagnostic",
+            concept_id + ".standalone-transfer",
         ]
         generated_contexts = [
-            f"{objective_slug}-standalone-diagnostic",
-            f"{objective_slug}-standalone-transfer",
+            f"{concept_slug}-standalone-diagnostic",
+            f"{concept_slug}-standalone-transfer",
         ]
         for lab_id, context in zip(generated_labs, generated_contexts):
             if lab_id not in mapped[concept_id]["labs"]:
