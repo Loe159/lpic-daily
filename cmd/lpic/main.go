@@ -1872,9 +1872,11 @@ func runPersistentShell(
 		}
 	}()
 
-	env := map[string]string{}
-	if value := os.Getenv("TERM"); value != "" {
-		env["TERM"] = value
+	env := map[string]string{
+		// Use a portable terminal description inside the sandbox. Host-specific
+		// values such as xterm-kitty may not exist in minimal lab images and
+		// make ncurses applications fail to initialize.
+		"TERM": "xterm-256color",
 	}
 
 	shellInput := io.Reader(stdinFile)
