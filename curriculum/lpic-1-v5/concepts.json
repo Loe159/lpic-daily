@@ -205,6 +205,7 @@
       "active": true,
       "anchor_terms": [
         "systemctl",
+        "systemd",
         "init",
         "telinit",
         "/etc/inittab"

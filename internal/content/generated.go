@@ -294,7 +294,12 @@ func generatedRecallQuestion(
 		ConceptIDs:    []string{concept.ID},
 		Type:          "fill-in",
 		Usage:         "daily",
-		PromptFR: fmt.Sprintf(\n\t\t\t"Pour le concept « %s » (%s), quel terme, fichier ou utilitaire correspond à cette description : %s ?",\n\t\t\tconcept.TitleFR,\n\t\t\tobjective.ID,\n\t\t\tdescription,\n\t\t),
+		PromptFR: fmt.Sprintf(
+			"Pour le concept « %s » (%s), quel terme, fichier ou utilitaire correspond à cette description : %s ?",
+			concept.TitleFR,
+			objective.ID,
+			description,
+		),
 		Grading: Grading{
 			Strategy:        "exact-text",
 			AcceptedAnswers: []string{anchor},
