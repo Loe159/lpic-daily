@@ -263,8 +263,13 @@ func deterministicPriorityExercise(concept curriculum.Concept, root, result stri
 		script := fmt.Sprintf("test -s %q && test \"$(ps -o ni= -p \"$(cat %q)\" | tr -d ' ')\" = %d", pidPath, pidPath, target)
 		return fmt.Sprintf("Démarre sleep 600 avec une nice value de %d et écris son PID dans %s.", target, pidPath), []CheckDefinition{deterministicCommandCheck(concept.ID, script)}, ""
 	case 2:
-		script := fmt.Sprintf("test -s %q && test \"$(ps -o ni= -p \"$(cat %q)\" | tr -d ' ')\" = 0", pidPath, pidPath)
-		return fmt.Sprintf("Démarre sleep 600 à priorité normale et écris son PID dans %s.", pidPath), []CheckDefinition{deterministicCommandCheck(concept.ID, script)}, ""
+		if variant == 0 {
+			script := fmt.Sprintf("test -s %q && test \"$(ps -o ni= -p \"$(cat %q)\" | tr -d ' ')\" = 0", pidPath, pidPath)
+			return fmt.Sprintf("Démarre sleep 600 à priorité normale et écris son PID dans %s.", pidPath), []CheckDefinition{deterministicCommandCheck(concept.ID, script)}, ""
+		}
+		setup := fmt.Sprintf("sleep 900 & echo $! > %q\n", pidPath)
+		script := fmt.Sprintf("test -s %q && kill -0 \"$(cat %q)\" 2>/dev/null && test \"$(tr -d '[:space:]' < %q)\" = 0 && test \"$(ps -o ni= -p \"$(cat %q)\" | tr -d ' ')\" = 0", pidPath, pidPath, result, pidPath)
+		return fmt.Sprintf("Un processus à priorité par défaut est préparé dans %s. Observe sa nice value avec ps/top et écris uniquement la valeur dans %s.", pidPath, result), []CheckDefinition{deterministicCommandCheck(concept.ID, script)}, setup
 	case 4:
 		setup := fmt.Sprintf("sleep 600 & echo $! > %q\\n", pidPath)
 		script := fmt.Sprintf("test \"$(ps -o ni= -p \"$(cat %q)\" | tr -d ' ')\" = %d", pidPath, target)
@@ -359,7 +364,10 @@ func deterministicStorageExercise(objectiveID string, concept curriculum.Concept
 			}
 			return fmt.Sprintf("Crée sur /dev/vdb une table de partitions %s.", table), check(fmt.Sprintf("parted -sm /dev/vdb print 2>/dev/null | head -1 | grep -q ':%s:'", table)), ""
 		case 2:
-			return "Crée une table GPT puis une première partition /dev/vdb1.", check("test -b /dev/vdb1 && parted -sm /dev/vdb print 2>/dev/null | grep -q '^1:'"), ""
+			if variant == 0 {
+				return "Crée une table GPT puis une première partition /dev/vdb1.", check("test -b /dev/vdb1 && test ! -b /dev/vdb2 && parted -sm /dev/vdb print 2>/dev/null | grep -q '^1:'"), ""
+			}
+			return "Crée une table GPT puis deux partitions utilisables /dev/vdb1 et /dev/vdb2.", check("test -b /dev/vdb1 && test -b /dev/vdb2 && parted -sm /dev/vdb print 2>/dev/null | grep -q '^2:'"), ""
 		case 3:
 			fs := "ext4"
 			if variant == 1 {
@@ -429,7 +437,11 @@ func deterministicStorageExercise(objectiveID string, concept curriculum.Concept
 			}
 			return fmt.Sprintf("Crée un ext4 sur /dev/vdb puis règle son label à %s.", label), check(fmt.Sprintf("test \"$(blkid -s LABEL -o value /dev/vdb 2>/dev/null)\" = %s", label)), ""
 		default:
-			return "Crée un XFS sur /dev/vdb puis exécute xfs_repair -n.", check("test \"$(blkid -s TYPE -o value /dev/vdb 2>/dev/null)\" = xfs && xfs_repair -n /dev/vdb >/dev/null 2>&1"), ""
+			if variant == 0 {
+				return "Crée un XFS sur /dev/vdb puis exécute xfs_repair -n.", check("test \"$(blkid -s TYPE -o value /dev/vdb 2>/dev/null)\" = xfs && xfs_repair -n /dev/vdb >/dev/null 2>&1"), ""
+			}
+			script := fmt.Sprintf("test \"$(blkid -s TYPE -o value /dev/vdb 2>/dev/null)\" = xfs && xfs_db -r -c 'sb 0' -c 'p uuid' /dev/vdb 2>/dev/null | cmp -s - %q", result)
+			return fmt.Sprintf("Crée un XFS sur /dev/vdb, inspecte son superbloc avec xfs_db et écris la ligne UUID canonique dans %s.", result), check(script), ""
 		}
 	}
 	mountpoint := root + "/mnt"
