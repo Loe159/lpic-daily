@@ -254,10 +254,10 @@ func generatedStandaloneLab(
 	hints := generatedStandaloneHints(labID, root, objective.Exam == "101")
 	return Lab{
 		Definition: Definition{
-			SchemaVersion: "1.0.0",
-			ID:            labID,
-			TitleFR:       fmt.Sprintf("%s — %s — pratique %s", objective.ID, concept.TitleFR, contextFR),
-			BriefFR:       brief,
+			SchemaVersion:     "1.0.0",
+			ID:                labID,
+			TitleFR:           fmt.Sprintf("%s — %s — pratique %s", objective.ID, concept.TitleFR, contextFR),
+			BriefFR:           brief,
 			SuccessCriteriaFR: successCriteria,
 			DebriefFR: fmt.Sprintf(
 				"%s %s Le contexte %s oblige à reformuler et vérifier chaque sous-concept au lieu de valider l'objectif par une seule commande.",
@@ -288,6 +288,9 @@ func generatedStandaloneLab(
 }
 
 func standaloneLabEnvironment(objective curriculum.Objective, variant int) (backend, imageRef, distribution string) {
+	if strings.HasPrefix(objective.ID, "103.") {
+		return "podman", "localhost/lpic-daily/fedora-phase1:1", "fedora"
+	}
 	if objective.ID == "102.1" || objective.ID == "104.1" || objective.ID == "104.2" || objective.ID == "104.3" {
 		return "libvirt", "fedora-44-x86_64-v2", "fedora"
 	}
