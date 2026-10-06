@@ -176,6 +176,7 @@ def audit():
         generated_questions = [
             concept_id + ".q.autonomous-recall",
             concept_id + ".q.autonomous-recognition",
+            concept_id + ".q.autonomous-application",
         ]
         mapped[concept_id]["questions"].extend(generated_questions)
         mapped[concept_id]["recall_questions"].append(generated_questions[0])
@@ -245,7 +246,7 @@ def main():
         f"{summary['with_exactly_one_introduction']} with exactly one focused introduction; "
         f"{summary['with_question']} with daily question; "
         f"{summary['with_advancement_path']} with recall/practical advancement path; "
-        f"{summary['with_lab']} with practical lab evidence; "
+        f"{summary['with_lab']} with practical exercise coverage; "
         f"{summary['objectives_with_lab']} objectives with at least one lab"
     )
     duplicate_introductions = [
@@ -300,7 +301,7 @@ def main():
         )
     if missing_lab:
         print(
-            "Phase-3 acceptance FAILED: concepts without machine-checked practical lab evidence: "
+            "Phase-3 acceptance FAILED: concepts without practical exercise coverage: "
             + ", ".join(missing_lab)
         )
     if missing_advancement:
@@ -318,7 +319,7 @@ def main():
         return 1
 
     print(
-        "Phase-3 course/daily-question/practical-lab coverage complete. "
+        "Phase-3 course/daily-question/practical-exercise coverage complete. "
         "Cross-topic challenge gates remain documented in docs/plan/PHASE-3-ACCEPTANCE.md."
     )
     return 0
