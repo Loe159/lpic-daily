@@ -12,7 +12,6 @@ import (
 	"testing"
 
 	lpicdaily "github.com/Loe159/lpic-daily"
-	"github.com/Loe159/lpic-daily/internal/content"
 	"github.com/Loe159/lpic-daily/internal/curriculum"
 	"github.com/Loe159/lpic-daily/internal/lab"
 	"github.com/Loe159/lpic-daily/internal/runner"
