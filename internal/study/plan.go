@@ -194,7 +194,7 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 		hasPracticalSuccess := projection.SuccessfulGuided > 0 ||
 			projection.SuccessfulIndependent > 0 ||
 			projection.SuccessfulTransfer > 0
-		if scheduled.Kind == learning.SessionPractice && !hasQuestionSuccess {
+		if projection.SuccessfulExposure > 0 && !hasQuestionSuccess {
 			item.RecommendedLabID = ""
 		}
 		item.PreferLab = scheduled.Kind != learning.SessionNew &&
