@@ -126,7 +126,7 @@ func TestFreshPlanStartsWithFocused1031Introduction(t *testing.T) {
 	if item.RecommendedLessonID != "lpic1.103.1.lesson.shell-sequences" {
 		t.Fatalf("recommended lesson = %q", item.RecommendedLessonID)
 	}
-	if item.RecommendedQuestionID != "lpic1.103.1.q.sequence-and" {
+	if item.RecommendedQuestionID != "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes.q.autonomous-recall" {
 		t.Fatalf("recommended question = %q", item.RecommendedQuestionID)
 	}
 	if len(item.LabIDs) < 4 || item.RecommendedLabID != "lpic1.103.1.shell-environment-repair" {
@@ -141,18 +141,33 @@ func TestComplete1034ObjectiveBecomesSchedulable(t *testing.T) {
 	evidence := memoryEvidence{}
 
 	for _, conceptID := range curriculumBundle.Phase1.ObjectiveConcepts["103.1"] {
-		evidence[conceptID] = []learning.EvidenceEvent{{
-			EventID:      "ready-" + conceptID,
-			OccurredAt:   now,
-			ConceptID:    conceptID,
-			ObjectiveIDs: []string{"103.1"},
-			SourceItemID: "test-recall",
-			ActivityKind: learning.ActivityQuestion,
-			EvidenceKind: learning.EvidenceRecall,
-			Result:       learning.ResultPass,
-			Distribution: "generic",
-			AttemptIndex: 1,
-		}}
+		evidence[conceptID] = []learning.EvidenceEvent{
+			{
+				EventID:      "ready-" + conceptID,
+				OccurredAt:   now.Add(-time.Minute),
+				ConceptID:    conceptID,
+				ObjectiveIDs: []string{"103.1"},
+				SourceItemID: "test-recall",
+				ActivityKind: learning.ActivityQuestion,
+				EvidenceKind: learning.EvidenceRecall,
+				Result:       learning.ResultPass,
+				Distribution: "generic",
+				AttemptIndex: 1,
+			},
+			{
+				EventID:         "practice-" + conceptID,
+				OccurredAt:      now,
+				ConceptID:       conceptID,
+				ObjectiveIDs:    []string{"103.1"},
+				SourceItemID:    "test-practice",
+				ActivityKind:    learning.ActivityLab,
+				EvidenceKind:    learning.EvidenceGuidedPractice,
+				Result:          learning.ResultPass,
+				Distribution:    "generic",
+				PracticeContext: "test-practice",
+				AttemptIndex:    1,
+			},
+		}
 	}
 
 	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
@@ -178,25 +193,40 @@ func TestComplete1034ObjectiveBecomesSchedulable(t *testing.T) {
 	}
 }
 
-func TestQuestionRecommendationRotatesAcrossAuthoredQuestions(t *testing.T) {
+func TestQuestionRecommendationPrefersRecallBeforeOtherQuestions(t *testing.T) {
 	curriculumBundle, contentBundle, labs := loadInputs(t)
 	contentBundle, labs = restrictStudyInputs(contentBundle, labs, "103.1", "103.4")
 	now := time.Date(2026, 10, 1, 15, 0, 0, 0, time.UTC)
 	evidence := memoryEvidence{}
 
 	for _, conceptID := range curriculumBundle.Phase1.ObjectiveConcepts["103.1"] {
-		evidence[conceptID] = []learning.EvidenceEvent{{
-			EventID:      "ready-" + conceptID,
-			OccurredAt:   now,
-			ConceptID:    conceptID,
-			ObjectiveIDs: []string{"103.1"},
-			SourceItemID: "test-recall",
-			ActivityKind: learning.ActivityQuestion,
-			EvidenceKind: learning.EvidenceRecall,
-			Result:       learning.ResultPass,
-			Distribution: "generic",
-			AttemptIndex: 1,
-		}}
+		evidence[conceptID] = []learning.EvidenceEvent{
+			{
+				EventID:      "ready-" + conceptID,
+				OccurredAt:   now.Add(-time.Minute),
+				ConceptID:    conceptID,
+				ObjectiveIDs: []string{"103.1"},
+				SourceItemID: "test-recall",
+				ActivityKind: learning.ActivityQuestion,
+				EvidenceKind: learning.EvidenceRecall,
+				Result:       learning.ResultPass,
+				Distribution: "generic",
+				AttemptIndex: 1,
+			},
+			{
+				EventID:         "practice-" + conceptID,
+				OccurredAt:      now,
+				ConceptID:       conceptID,
+				ObjectiveIDs:    []string{"103.1"},
+				SourceItemID:    "test-practice",
+				ActivityKind:    learning.ActivityLab,
+				EvidenceKind:    learning.EvidenceGuidedPractice,
+				Result:          learning.ResultPass,
+				Distribution:    "generic",
+				PracticeContext: "test-practice",
+				AttemptIndex:    1,
+			},
+		}
 	}
 
 	conceptID := "lpic1.103.4.stdin-stdout-stderr-et-descripteurs"
@@ -241,8 +271,9 @@ func TestQuestionRecommendationRotatesAcrossAuthoredQuestions(t *testing.T) {
 	if len(plan.Items) != 1 || plan.Items[0].ConceptID != conceptID {
 		t.Fatalf("items = %#v, want immediate practice for %s", plan.Items, conceptID)
 	}
-	if got := plan.Items[0].RecommendedQuestionID; got != "lpic1.103.4.q.stdin-redirection" {
-		t.Fatalf("recommended question = %q, want least-attempted stdin question", got)
+	want := conceptID + ".q.autonomous-recall"
+	if got := plan.Items[0].RecommendedQuestionID; got != want {
+		t.Fatalf("recommended question = %q, want recall-first %q", got, want)
 	}
 }
 
@@ -282,18 +313,33 @@ func TestIncompleteFocusedIntroductionKeepsObjectiveOutOfScheduler(t *testing.T)
 	evidence := memoryEvidence{}
 
 	for _, conceptID := range curriculumBundle.Phase1.ObjectiveConcepts["103.1"] {
-		evidence[conceptID] = []learning.EvidenceEvent{{
-			EventID:      "ready-" + conceptID,
-			OccurredAt:   now,
-			ConceptID:    conceptID,
-			ObjectiveIDs: []string{"103.1"},
-			SourceItemID: "test-recall",
-			ActivityKind: learning.ActivityQuestion,
-			EvidenceKind: learning.EvidenceRecall,
-			Result:       learning.ResultPass,
-			Distribution: "generic",
-			AttemptIndex: 1,
-		}}
+		evidence[conceptID] = []learning.EvidenceEvent{
+			{
+				EventID:      "ready-" + conceptID,
+				OccurredAt:   now.Add(-time.Minute),
+				ConceptID:    conceptID,
+				ObjectiveIDs: []string{"103.1"},
+				SourceItemID: "test-recall",
+				ActivityKind: learning.ActivityQuestion,
+				EvidenceKind: learning.EvidenceRecall,
+				Result:       learning.ResultPass,
+				Distribution: "generic",
+				AttemptIndex: 1,
+			},
+			{
+				EventID:         "practice-" + conceptID,
+				OccurredAt:      now,
+				ConceptID:       conceptID,
+				ObjectiveIDs:    []string{"103.1"},
+				SourceItemID:    "test-practice",
+				ActivityKind:    learning.ActivityLab,
+				EvidenceKind:    learning.EvidenceGuidedPractice,
+				Result:          learning.ResultPass,
+				Distribution:    "generic",
+				PracticeContext: "test-practice",
+				AttemptIndex:    1,
+			},
+		}
 	}
 
 	mutated := *contentBundle
@@ -329,18 +375,33 @@ func TestDuplicateFocusedIntroductionKeepsObjectiveOutOfScheduler(t *testing.T) 
 	evidence := memoryEvidence{}
 
 	for _, conceptID := range curriculumBundle.Phase1.ObjectiveConcepts["103.1"] {
-		evidence[conceptID] = []learning.EvidenceEvent{{
-			EventID:      "ready-" + conceptID,
-			OccurredAt:   now,
-			ConceptID:    conceptID,
-			ObjectiveIDs: []string{"103.1"},
-			SourceItemID: "test-recall",
-			ActivityKind: learning.ActivityQuestion,
-			EvidenceKind: learning.EvidenceRecall,
-			Result:       learning.ResultPass,
-			Distribution: "generic",
-			AttemptIndex: 1,
-		}}
+		evidence[conceptID] = []learning.EvidenceEvent{
+			{
+				EventID:      "ready-" + conceptID,
+				OccurredAt:   now.Add(-time.Minute),
+				ConceptID:    conceptID,
+				ObjectiveIDs: []string{"103.1"},
+				SourceItemID: "test-recall",
+				ActivityKind: learning.ActivityQuestion,
+				EvidenceKind: learning.EvidenceRecall,
+				Result:       learning.ResultPass,
+				Distribution: "generic",
+				AttemptIndex: 1,
+			},
+			{
+				EventID:         "practice-" + conceptID,
+				OccurredAt:      now,
+				ConceptID:       conceptID,
+				ObjectiveIDs:    []string{"103.1"},
+				SourceItemID:    "test-practice",
+				ActivityKind:    learning.ActivityLab,
+				EvidenceKind:    learning.EvidenceGuidedPractice,
+				Result:          learning.ResultPass,
+				Distribution:    "generic",
+				PracticeContext: "test-practice",
+				AttemptIndex:    1,
+			},
+		}
 	}
 
 	mutated := *contentBundle
@@ -486,20 +547,35 @@ func TestQuickPolicyLimitsReviews(t *testing.T) {
 	evidence := memoryEvidence{}
 
 	for _, conceptID := range curriculumBundle.Phase1.ObjectiveConcepts["103.1"][:3] {
-		evidence[conceptID] = []learning.EvidenceEvent{{
-			EventID:          "event-" + conceptID,
-			OccurredAt:       now.Add(-10 * 24 * time.Hour),
-			ConceptID:        conceptID,
-			ObjectiveIDs:     []string{"103.1"},
-			SourceItemID:     "test-question",
-			ActivityKind:     learning.ActivityQuestion,
-			EvidenceKind:     learning.EvidenceRecall,
-			Result:           learning.ResultPass,
-			HighestHintLevel: 0,
-			SolutionRevealed: false,
-			Distribution:     "generic",
-			AttemptIndex:     1,
-		}}
+		evidence[conceptID] = []learning.EvidenceEvent{
+			{
+				EventID:          "event-" + conceptID,
+				OccurredAt:       now.Add(-10 * 24 * time.Hour),
+				ConceptID:        conceptID,
+				ObjectiveIDs:     []string{"103.1"},
+				SourceItemID:     "test-question",
+				ActivityKind:     learning.ActivityQuestion,
+				EvidenceKind:     learning.EvidenceRecall,
+				Result:           learning.ResultPass,
+				HighestHintLevel: 0,
+				SolutionRevealed: false,
+				Distribution:     "generic",
+				AttemptIndex:     1,
+			},
+			{
+				EventID:         "practice-" + conceptID,
+				OccurredAt:      now.Add(-9 * 24 * time.Hour),
+				ConceptID:       conceptID,
+				ObjectiveIDs:    []string{"103.1"},
+				SourceItemID:    "test-practice",
+				ActivityKind:    learning.ActivityLab,
+				EvidenceKind:    learning.EvidenceGuidedPractice,
+				Result:          learning.ResultPass,
+				Distribution:    "generic",
+				PracticeContext: "test-practice",
+				AttemptIndex:    1,
+			},
+		}
 	}
 
 	policy := learning.DefaultSessionPolicy()
@@ -560,8 +636,9 @@ func TestExposedConceptRecommendsQuestionNotLesson(t *testing.T) {
 	if plan.Items[0].RecommendedLessonID != "" {
 		t.Fatalf("practice unexpectedly recommends lesson %q", plan.Items[0].RecommendedLessonID)
 	}
-	if plan.Items[0].RecommendedQuestionID != "lpic1.103.1.q.sequence-and" {
-		t.Fatalf("practice question = %q", plan.Items[0].RecommendedQuestionID)
+	wantQuestion := conceptID + ".q.autonomous-recall"
+	if plan.Items[0].RecommendedQuestionID != wantQuestion {
+		t.Fatalf("practice question = %q, want %q", plan.Items[0].RecommendedQuestionID, wantQuestion)
 	}
 }
 
@@ -607,20 +684,35 @@ func TestBuildPlanDefaultsIntervalsWithoutOverwritingCustomLimits(t *testing.T) 
 	evidence := memoryEvidence{}
 
 	for _, conceptID := range curriculumBundle.Phase1.ObjectiveConcepts["103.1"][:3] {
-		evidence[conceptID] = []learning.EvidenceEvent{{
-			EventID:          "event-" + conceptID,
-			OccurredAt:       now.Add(-10 * 24 * time.Hour),
-			ConceptID:        conceptID,
-			ObjectiveIDs:     []string{"103.1"},
-			SourceItemID:     "test-question",
-			ActivityKind:     learning.ActivityQuestion,
-			EvidenceKind:     learning.EvidenceRecall,
-			Result:           learning.ResultPass,
-			HighestHintLevel: 0,
-			SolutionRevealed: false,
-			Distribution:     "generic",
-			AttemptIndex:     1,
-		}}
+		evidence[conceptID] = []learning.EvidenceEvent{
+			{
+				EventID:          "event-" + conceptID,
+				OccurredAt:       now.Add(-10 * 24 * time.Hour),
+				ConceptID:        conceptID,
+				ObjectiveIDs:     []string{"103.1"},
+				SourceItemID:     "test-question",
+				ActivityKind:     learning.ActivityQuestion,
+				EvidenceKind:     learning.EvidenceRecall,
+				Result:           learning.ResultPass,
+				HighestHintLevel: 0,
+				SolutionRevealed: false,
+				Distribution:     "generic",
+				AttemptIndex:     1,
+			},
+			{
+				EventID:         "practice-" + conceptID,
+				OccurredAt:      now.Add(-9 * 24 * time.Hour),
+				ConceptID:       conceptID,
+				ObjectiveIDs:    []string{"103.1"},
+				SourceItemID:    "test-practice",
+				ActivityKind:    learning.ActivityLab,
+				EvidenceKind:    learning.EvidenceGuidedPractice,
+				Result:          learning.ResultPass,
+				Distribution:    "generic",
+				PracticeContext: "test-practice",
+				AttemptIndex:    1,
+			},
+		}
 	}
 
 	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
@@ -704,18 +796,33 @@ func TestCompletedExam101CanProgressIntoExam102(t *testing.T) {
 		if !concept.Active || objectiveExam[concept.ObjectiveID] != "101" {
 			continue
 		}
-		evidence[concept.ID] = []learning.EvidenceEvent{{
-			EventID:      "exam101-ready-" + concept.ID,
-			OccurredAt:   now,
-			ConceptID:    concept.ID,
-			ObjectiveIDs: []string{concept.ObjectiveID},
-			SourceItemID: "exam101-ready",
-			ActivityKind: learning.ActivityQuestion,
-			EvidenceKind: learning.EvidenceRecall,
-			Result:       learning.ResultPass,
-			Distribution: "generic",
-			AttemptIndex: 1,
-		}}
+		evidence[concept.ID] = []learning.EvidenceEvent{
+			{
+				EventID:      "exam101-ready-" + concept.ID,
+				OccurredAt:   now.Add(-time.Minute),
+				ConceptID:    concept.ID,
+				ObjectiveIDs: []string{concept.ObjectiveID},
+				SourceItemID: "exam101-ready",
+				ActivityKind: learning.ActivityQuestion,
+				EvidenceKind: learning.EvidenceRecall,
+				Result:       learning.ResultPass,
+				Distribution: "generic",
+				AttemptIndex: 1,
+			},
+			{
+				EventID:         "exam101-practice-" + concept.ID,
+				OccurredAt:      now,
+				ConceptID:       concept.ID,
+				ObjectiveIDs:    []string{concept.ObjectiveID},
+				SourceItemID:    "exam101-practice",
+				ActivityKind:    learning.ActivityLab,
+				EvidenceKind:    learning.EvidenceGuidedPractice,
+				Result:          learning.ResultPass,
+				Distribution:    "generic",
+				PracticeContext: "exam101-complete",
+				AttemptIndex:    1,
+			},
+		}
 	}
 
 	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
