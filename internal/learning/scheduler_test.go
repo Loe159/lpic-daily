@@ -254,6 +254,8 @@ func TestStartedObjectiveKeepsFocusUntilComplete(t *testing.T) {
 			first: {
 				ConceptID:           first,
 				Stage:               learning.StageGuided,
+				SuccessfulExposure:  1,
+				SuccessfulRecall:    1,
 				SuccessfulGuided:    1,
 				LastEvidenceAt:      now,
 				LastStageEvidenceAt: now,
