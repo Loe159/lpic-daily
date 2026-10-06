@@ -733,7 +733,69 @@ func deterministicStorageExercise(objectiveID string, concept curriculum.Concept
 		return fmt.Sprintf("Monte /dev/vdb sur %s puis démonte-le ; il doit être démonté au moment de valider.", mountpoint), check(fmt.Sprintf("! findmnt -n %q >/dev/null 2>&1", mountpoint)), ""
 	case 6:
 		unit := "/etc/systemd/system/lpic-data.mount"
-		return fmt.Sprintf("Crée l'unité systemd %s montant /dev/vdb sur /mnt/lpic-data.", unit), check(fmt.Sprintf("grep -q '^\\[Mount\\]concept curriculum.Concept, root, result string, variant int) (string, []CheckDefinition, string) {
+		options := "ro"
+		if variant == 1 {
+			options = "noexec"
+		}
+		script := fmt.Sprintf(
+			"grep -q '^\\[Mount\\]$' %q && grep -q '^What=/dev/vdb$' %q && grep -q '^Where=/mnt/lpic-data$' %q && grep -q '^Options=%s$' %q",
+			unit, unit, unit, options, unit,
+		)
+		return fmt.Sprintf("Crée l'unité systemd %s montant /dev/vdb sur /mnt/lpic-data avec Options=%s.", unit, options), check(script), ""
+	default:
+		probe := "find /media /run/media -mindepth 1 -maxdepth 2 -type d 2>/dev/null | sort | head -12; lsblk -o NAME,UUID,LABEL,MOUNTPOINTS 2>/dev/null"
+		return deterministicSnapshotTask(concept, result, probe, variant)
+	}
+}
+
+func deterministicSnapshotTask(concept curriculum.Concept, result, probe string, variant int) (string, []CheckDefinition, string) {
+	if variant == 0 {
+		script := fmt.Sprintf("a=$(mktemp); trap 'rm -f \"$a\"' EXIT; ( %s ) >\"$a\"; test -f %q; cmp -s %q \"$a\"", probe, result, result)
+		return fmt.Sprintf("Inspecte %s et écris le relevé canonique dans %s.", concept.TitleFR, result), []CheckDefinition{deterministicCommandCheck(concept.ID, script)}, ""
+	}
+	script := fmt.Sprintf("expected=$( ( %s ) | sha256sum | awk '{print $1}'); test -f %q; test \"$(tr -d '[:space:]' < %q)\" = \"$expected\"", probe, result, result)
+	return fmt.Sprintf("Dans ce contexte de transfert, réinspecte %s et écris dans %s le SHA-256 du relevé canonique.", concept.TitleFR, result), []CheckDefinition{deterministicCommandCheck(concept.ID, script)}, ""
+}
+
+func deterministicProcessExercise(concept curriculum.Concept, root, result string, variant int) (string, []CheckDefinition, string) {
+	pidPath := root + "/process.pid"
+	sleepSeconds := 600
+	if variant == 1 {
+		sleepSeconds = 900
+	}
+	switch concept.PedagogyOrder {
+	case 1:
+		script := fmt.Sprintf("test -s %q && kill -0 \"$(cat %q)\" 2>/dev/null && ps -o args= -p \"$(cat %q)\" | grep -q 'sleep %d'", pidPath, pidPath, pidPath, sleepSeconds)
+		return fmt.Sprintf("Démarre sleep %d en arrière-plan et écris son PID dans %s.", sleepSeconds, pidPath), []CheckDefinition{deterministicCommandCheck(concept.ID, script)}, ""
+	case 2:
+		script := fmt.Sprintf("test -s %q && kill -0 \"$(cat %q)\" 2>/dev/null", pidPath, pidPath)
+		return fmt.Sprintf("Crée un job shell sleep %d en arrière-plan, inspecte-le avec jobs, puis conserve son PID dans %s.", sleepSeconds, pidPath), []CheckDefinition{deterministicCommandCheck(concept.ID, script)}, ""
+	case 3:
+		setup := fmt.Sprintf("sleep %d & echo $! > %q\n", sleepSeconds, pidPath)
+		script := fmt.Sprintf("test -s %q && ! kill -0 \"$(cat %q)\" 2>/dev/null", pidPath, pidPath)
+		return fmt.Sprintf("Le PID dans %s correspond à un sleep actif. Termine-le avec un signal adapté.", pidPath), []CheckDefinition{deterministicCommandCheck(concept.ID, script)}, setup
+	case 4:
+		setup := fmt.Sprintf("sleep %d & echo $! > %q\n", sleepSeconds, pidPath)
+		script := fmt.Sprintf("test \"$(tr -d '[:space:]' < %q)\" = \"$(cat %q)\" && kill -0 \"$(cat %q)\" 2>/dev/null", result, pidPath, pidPath)
+		return fmt.Sprintf("Retrouve avec ps/top le processus sleep préparé et écris uniquement son PID dans %s.", result), []CheckDefinition{deterministicCommandCheck(concept.ID, script)}, setup
+	case 5:
+		script := fmt.Sprintf("test -s %q && kill -0 \"$(cat %q)\" 2>/dev/null", pidPath, pidPath)
+		return fmt.Sprintf("Lance sleep %d via nohup, détache-le de la session et écris son PID dans %s.", sleepSeconds, pidPath), []CheckDefinition{deterministicCommandCheck(concept.ID, script)}, ""
+	case 6:
+		setup := fmt.Sprintf("sh -c 'exec -a lpic-daily-probe-%d sleep %d' & echo $! > %q\n", variant+1, sleepSeconds, pidPath)
+		script := fmt.Sprintf("test -s %q && ! kill -0 \"$(cat %q)\" 2>/dev/null", pidPath, pidPath)
+		return fmt.Sprintf("Sélectionne par nom le processus lpic-daily-probe-%d avec pgrep/pkill/killall et termine-le.", variant+1), []CheckDefinition{deterministicCommandCheck(concept.ID, script)}, setup
+	default:
+		session := "lpicdaily-diagnostic"
+		if variant == 1 {
+			session = "lpicdaily-transfer"
+		}
+		script := fmt.Sprintf("(tmux has-session -t %q 2>/dev/null) || (screen -ls 2>/dev/null | grep -Fq %q)", session, session)
+		return fmt.Sprintf("Crée une session détachée persistante nommée %s avec tmux ou screen.", session), []CheckDefinition{deterministicCommandCheck(concept.ID, script)}, ""
+	}
+}
+
+func deterministicPriorityExercise(concept curriculum.Concept, root, result string, variant int) (string, []CheckDefinition, string) {
 	pidPath := root + "/priority.pid"
 	target := 7
 	if variant == 1 {
@@ -747,13 +809,13 @@ func deterministicStorageExercise(objectiveID string, concept curriculum.Concept
 		script := fmt.Sprintf("test -s %q && test \"$(ps -o ni= -p \"$(cat %q)\" | tr -d ' ')\" = 0", pidPath, pidPath)
 		return fmt.Sprintf("Démarre sleep 600 avec la priorité par défaut et écris son PID dans %s.", pidPath), []CheckDefinition{deterministicCommandCheck(concept.ID, script)}, ""
 	case 4:
-		setup := fmt.Sprintf("sleep 600 & echo $! > %q\\n", pidPath)
+		setup := fmt.Sprintf("sleep 600 & echo $! > %q\n", pidPath)
 		script := fmt.Sprintf("test \"$(ps -o ni= -p \"$(cat %q)\" | tr -d ' ')\" = %d", pidPath, target)
 		return fmt.Sprintf("Change avec renice la nice value du PID contenu dans %s vers %d.", pidPath, target), []CheckDefinition{deterministicCommandCheck(concept.ID, script)}, setup
 	default:
-		setup := fmt.Sprintf("nice -n %d sleep 600 & echo $! > %q\\n", target, pidPath)
+		setup := fmt.Sprintf("nice -n %d sleep 600 & echo $! > %q\n", target, pidPath)
 		script := fmt.Sprintf("test \"$(tr -d '[:space:]' < %q)\" = \"$(ps -o ni= -p \"$(cat %q)\" | tr -d ' ')\"", result, pidPath)
-		return fmt.Sprintf("Observe avec ps ou top la nice value du PID dans %s et écris uniquement la valeur dans %s.", pidPath, result), []CheckDefinition{deterministicCommandCheck(concept.ID, script)}, setup
+		return fmt.Sprintf("Observe avec ps ou top la nice value du PID dans %s et écris uniquement cette valeur dans %s.", pidPath, result), []CheckDefinition{deterministicCommandCheck(concept.ID, script)}, setup
 	}
 }
 
