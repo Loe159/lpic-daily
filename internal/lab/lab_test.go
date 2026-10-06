@@ -534,12 +534,13 @@ func TestGeneratedStandaloneLabsUseConceptAnchors(t *testing.T) {
 		}
 		hasCommandAnchor := false
 		for _, anchor := range concept.AnchorTerms {
-			if content.PedagogicalTermUsage(anchor) != "" {
-				switch anchor {
-				case "vi", "vim", "screen", "tmux", "shutdown", "init", "telinit",
-					"grub-install", "grub-mkconfig", "dpkg-reconfigure":
-					continue
-				}
+			switch anchor {
+			case "vi", "vim", "screen", "tmux", "shutdown", "init", "telinit",
+				"grub-install", "grub-mkconfig", "dpkg-reconfigure":
+				continue
+			}
+			usage := strings.TrimSpace(content.PedagogicalTermUsage(anchor))
+			if usage == anchor || strings.HasPrefix(usage, anchor+" ") || strings.HasPrefix(usage, anchor+" ;") {
 				hasCommandAnchor = true
 				break
 			}
@@ -550,3 +551,32 @@ func TestGeneratedStandaloneLabsUseConceptAnchors(t *testing.T) {
 	}
 }
 
+func TestGeneratedStandaloneCommandEvidenceRequiresCommandPosition(t *testing.T) {
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("lab.LoadAll() error = %v", err)
+	}
+	for _, authored := range labs {
+		if !strings.Contains(authored.Definition.ID, "lpic1.103.5.standalone-") {
+			continue
+		}
+		historyPath, ok := lab.StandaloneCommandHistoryPath(authored.Definition)
+		if !ok {
+			continue
+		}
+		for _, check := range authored.Definition.Checks {
+			if check.Path != historyPath || !slices.Contains(check.ConceptIDs, "lpic1.103.5.inspection-arbres-ressources") {
+				continue
+			}
+			re := regexp.MustCompile(check.Pattern)
+			if re.MatchString("EXIT=0\tCOMMAND=echo ps") {
+				t.Fatalf("%s accepts a mere textual mention of ps: %q", authored.Definition.ID, check.Pattern)
+			}
+			if !re.MatchString("EXIT=0\tCOMMAND=ps aux") {
+				t.Fatalf("%s rejects actual ps execution: %q", authored.Definition.ID, check.Pattern)
+			}
+			return
+		}
+	}
+	t.Fatal("no generated ps command-evidence check found")
+}
