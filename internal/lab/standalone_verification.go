@@ -16,6 +16,16 @@ func deterministicStandaloneExercise(
 	result := root + "/" + standaloneConceptFilename(concept) + ".result"
 	source := root + "/" + standaloneConceptFilename(concept) + ".source"
 
+	if objective.ID == "101.3" {
+		switch concept.PedagogyOrder {
+		case 3, 5, 8:
+			return deterministicSystemControlExercise(concept, root, variant)
+		}
+	}
+	if objective.ID == "102.2" && concept.PedagogyOrder == 5 {
+		return deterministicGRUBGenerationExercise(concept, root, variant)
+	}
+
 	switch objective.ID {
 	case "102.1", "104.1", "104.2", "104.3":
 		return deterministicStorageExercise(objective.ID, concept, root, result, variant)
@@ -93,6 +103,9 @@ func deterministicSnapshotTask(
 }
 
 func deterministicInspectionProbes(objectiveID string, concept curriculum.Concept) (string, string) {
+	if diagnostic, transfer, ok := specificInspectionProbes(objectiveID, concept.PedagogyOrder); ok {
+		return diagnostic, transfer
+	}
 	var diagnostic []string
 	var transfer []string
 	for _, anchor := range concept.AnchorTerms {
