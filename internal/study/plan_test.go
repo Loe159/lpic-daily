@@ -173,7 +173,7 @@ func TestComplete1034ObjectiveBecomesSchedulable(t *testing.T) {
 				ObjectiveIDs:    []string{"103.1"},
 				SourceItemID:    "test-practice",
 				ActivityKind:    learning.ActivityLab,
-				EvidenceKind:    learning.EvidenceGuidedPractice,
+				EvidenceKind:    learning.EvidenceIndependentPractice,
 				Result:          learning.ResultPass,
 				Distribution:    "generic",
 				PracticeContext: "test-practice",
@@ -244,7 +244,7 @@ func TestQuestionRecommendationPrefersRecallBeforeOtherQuestions(t *testing.T) {
 				ObjectiveIDs:    []string{"103.1"},
 				SourceItemID:    "test-practice",
 				ActivityKind:    learning.ActivityLab,
-				EvidenceKind:    learning.EvidenceGuidedPractice,
+				EvidenceKind:    learning.EvidenceIndependentPractice,
 				Result:          learning.ResultPass,
 				Distribution:    "generic",
 				PracticeContext: "test-practice",
@@ -947,7 +947,7 @@ func TestCompletedExam101CanProgressIntoExam102(t *testing.T) {
 		evidence[concept.ID] = []learning.EvidenceEvent{
 			{
 				EventID:      "exam101-lesson-" + concept.ID,
-				OccurredAt:   now.Add(-2 * time.Minute),
+				OccurredAt:   now.Add(-5 * 24 * time.Hour),
 				ConceptID:    concept.ID,
 				ObjectiveIDs: []string{concept.ObjectiveID},
 				SourceItemID: "exam101-lesson",
@@ -958,16 +958,28 @@ func TestCompletedExam101CanProgressIntoExam102(t *testing.T) {
 				AttemptIndex: 1,
 			},
 			{
-				EventID:      "exam101-ready-" + concept.ID,
-				OccurredAt:   now.Add(-time.Minute),
+				EventID:      "exam101-recall-1-" + concept.ID,
+				OccurredAt:   now.Add(-4 * 24 * time.Hour),
 				ConceptID:    concept.ID,
 				ObjectiveIDs: []string{concept.ObjectiveID},
-				SourceItemID: "exam101-ready",
+				SourceItemID: "exam101-recall-1",
 				ActivityKind: learning.ActivityQuestion,
 				EvidenceKind: learning.EvidenceRecall,
 				Result:       learning.ResultPass,
 				Distribution: "generic",
 				AttemptIndex: 1,
+			},
+			{
+				EventID:      "exam101-recall-2-" + concept.ID,
+				OccurredAt:   now.Add(-12 * time.Hour),
+				ConceptID:    concept.ID,
+				ObjectiveIDs: []string{concept.ObjectiveID},
+				SourceItemID: "exam101-recall-2",
+				ActivityKind: learning.ActivityQuestion,
+				EvidenceKind: learning.EvidenceRecall,
+				Result:       learning.ResultPass,
+				Distribution: "generic",
+				AttemptIndex: 2,
 			},
 			{
 				EventID:         "exam101-practice-" + concept.ID,
@@ -976,7 +988,7 @@ func TestCompletedExam101CanProgressIntoExam102(t *testing.T) {
 				ObjectiveIDs:    []string{concept.ObjectiveID},
 				SourceItemID:    "exam101-practice",
 				ActivityKind:    learning.ActivityLab,
-				EvidenceKind:    learning.EvidenceGuidedPractice,
+				EvidenceKind:    learning.EvidenceIndependentPractice,
 				Result:          learning.ResultPass,
 				Distribution:    "generic",
 				PracticeContext: "exam101-complete",
@@ -988,6 +1000,7 @@ func TestCompletedExam101CanProgressIntoExam102(t *testing.T) {
 	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
 		Now: now, Curriculum: curriculumBundle, Content: contentBundle, Labs: labs,
 		Evidence: evidence, Policy: learning.DefaultSessionPolicy(),
+		Exam101AssessmentPassed: true,
 	})
 	if err != nil {
 		t.Fatalf("BuildPlan() error = %v", err)
@@ -997,6 +1010,69 @@ func TestCompletedExam101CanProgressIntoExam102(t *testing.T) {
 	}
 	if got := objectiveExam[plan.Items[0].ObjectiveID]; got != "102" {
 		t.Fatalf("first new objective = %s (exam %s), want Exam 102", plan.Items[0].ObjectiveID, got)
+	}
+}
+
+func TestExam102StaysLockedWhenAnyActiveExam101ConceptIsMissingFromStudyScope(t *testing.T) {
+	curriculumBundle, contentBundle, labs := loadInputs(t)
+	labs = withoutObjectiveLabs(labs, "101.1")
+	now := time.Date(2026, 10, 6, 18, 0, 0, 0, time.UTC)
+
+	objectiveExam := make(map[string]string)
+	for _, objective := range curriculumBundle.Objectives.Objectives {
+		if objective.Active {
+			objectiveExam[objective.ID] = objective.Exam
+		}
+	}
+	evidence := memoryEvidence{}
+	for _, concept := range curriculumBundle.Concepts.Concepts {
+		if !concept.Active || objectiveExam[concept.ObjectiveID] != "101" {
+			continue
+		}
+		evidence[concept.ID] = []learning.EvidenceEvent{
+			{
+				EventID: "lesson-" + concept.ID, OccurredAt: now.Add(-5 * 24 * time.Hour),
+				ConceptID: concept.ID, ObjectiveIDs: []string{concept.ObjectiveID},
+				SourceItemID: "lesson", ActivityKind: learning.ActivityLesson,
+				EvidenceKind: learning.EvidenceExposure, Result: learning.ResultPass,
+				Distribution: "generic", AttemptIndex: 1,
+			},
+			{
+				EventID: "recall-1-" + concept.ID, OccurredAt: now.Add(-4 * 24 * time.Hour),
+				ConceptID: concept.ID, ObjectiveIDs: []string{concept.ObjectiveID},
+				SourceItemID: "recall-1", ActivityKind: learning.ActivityQuestion,
+				EvidenceKind: learning.EvidenceRecall, Result: learning.ResultPass,
+				Distribution: "generic", AttemptIndex: 1,
+			},
+			{
+				EventID: "recall-2-" + concept.ID, OccurredAt: now.Add(-12 * time.Hour),
+				ConceptID: concept.ID, ObjectiveIDs: []string{concept.ObjectiveID},
+				SourceItemID: "recall-2", ActivityKind: learning.ActivityQuestion,
+				EvidenceKind: learning.EvidenceRecall, Result: learning.ResultPass,
+				Distribution: "generic", AttemptIndex: 2,
+			},
+			{
+				EventID: "practice-" + concept.ID, OccurredAt: now.Add(-time.Hour),
+				ConceptID: concept.ID, ObjectiveIDs: []string{concept.ObjectiveID},
+				SourceItemID: "practice", ActivityKind: learning.ActivityLab,
+				EvidenceKind: learning.EvidenceIndependentPractice, Result: learning.ResultPass,
+				Distribution: "generic", PracticeContext: "independent", AttemptIndex: 1,
+			},
+		}
+	}
+
+	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
+		Now: now, Curriculum: curriculumBundle, Content: contentBundle, Labs: labs,
+		Evidence: evidence, Policy: learning.DefaultSessionPolicy(),
+		Exam101AssessmentPassed: true,
+	})
+	if err != nil {
+		t.Fatalf("BuildPlan() error = %v", err)
+	}
+	for _, item := range plan.Items {
+		if objectiveExam[item.ObjectiveID] == "102" {
+			t.Fatalf("Exam 102 scheduled despite missing active Exam-101 scope: %#v", item)
+		}
 	}
 }
 

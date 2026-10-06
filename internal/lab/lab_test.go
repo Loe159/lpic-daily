@@ -12,7 +12,6 @@ import (
 	"testing"
 
 	lpicdaily "github.com/Loe159/lpic-daily"
-	"github.com/Loe159/lpic-daily/internal/content"
 	"github.com/Loe159/lpic-daily/internal/curriculum"
 	"github.com/Loe159/lpic-daily/internal/lab"
 	"github.com/Loe159/lpic-daily/internal/runner"
@@ -464,7 +463,7 @@ func TestBuiltinLabsProvideTwoPracticeContextsPerActiveConcept(t *testing.T) {
 	}
 }
 
-func TestGeneratedStandaloneLabsUseConceptAnchors(t *testing.T) {
+func TestGeneratedStandaloneLabsUseDeterministicExam101Contract(t *testing.T) {
 	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
 	if err != nil {
 		t.Fatalf("LoadAll() error = %v", err)
@@ -474,8 +473,8 @@ func TestGeneratedStandaloneLabsUseConceptAnchors(t *testing.T) {
 		t.Fatalf("curriculum.Load() error = %v", err)
 	}
 
-	conceptByID := make(map[string]curriculum.Concept)
 	objectiveExam := make(map[string]string)
+	conceptObjective := make(map[string]string)
 	for _, objective := range curriculumBundle.Objectives.Objectives {
 		if objective.Active {
 			objectiveExam[objective.ID] = objective.Exam
@@ -483,73 +482,57 @@ func TestGeneratedStandaloneLabsUseConceptAnchors(t *testing.T) {
 	}
 	for _, concept := range curriculumBundle.Concepts.Concepts {
 		if concept.Active {
-			conceptByID[concept.ID] = concept
+			conceptObjective[concept.ID] = concept.ObjectiveID
 		}
 	}
+
 	seen := make(map[string]int)
-	commandEvidence := make(map[string]int)
+	deterministicSignatures := make(map[string]map[string]struct{})
 	for _, authored := range labs {
 		if !strings.Contains(authored.Definition.ID, ".standalone-") {
 			continue
 		}
 		if len(authored.Definition.ConceptIDs) != 1 {
-			t.Fatalf("%s generated fallback spans %d concepts, want exactly 1", authored.Definition.ID, len(authored.Definition.ConceptIDs))
+			t.Fatalf("%s spans %d concepts, want exactly 1", authored.Definition.ID, len(authored.Definition.ConceptIDs))
 		}
-		historyPath, _ := lab.StandaloneCommandHistoryPath(authored.Definition)
-		for _, conceptID := range authored.Definition.ConceptIDs {
-			concept := conceptByID[conceptID]
-			wantTerms := "TERMS=" + strings.Join(concept.AnchorTerms, ",")
-			foundStructuredEvidence := false
-			foundRuntimeCommand := false
-			for _, check := range authored.Definition.Checks {
-				if !slices.Contains(check.ConceptIDs, conceptID) {
-					continue
-				}
-				if check.Path == historyPath {
-					foundRuntimeCommand = true
-					continue
-				}
-				if check.Type == "file-content-regex" &&
-					strings.Contains(check.Pattern, regexp.QuoteMeta(wantTerms)) {
-					foundStructuredEvidence = true
-				}
-			}
-			if !foundStructuredEvidence {
-				t.Errorf("%s has no structured evidence check for %s anchors %v", authored.Definition.ID, conceptID, concept.AnchorTerms)
-			}
-			for _, anchor := range concept.AnchorTerms {
-				if !strings.Contains(authored.Definition.BriefFR, "`"+anchor+"`") {
-					t.Errorf("%s brief misses %s anchor %q", authored.Definition.ID, conceptID, anchor)
-				}
-			}
-			if foundRuntimeCommand {
-				commandEvidence[conceptID]++
-			}
-			seen[conceptID]++
-		}
-	}
-	for conceptID, concept := range conceptByID {
-		if seen[conceptID] < 2 {
-			t.Errorf("%s appears in %d generated standalone labs, want at least 2", conceptID, seen[conceptID])
-		}
-		if objectiveExam[concept.ObjectiveID] != "101" {
+		conceptID := authored.Definition.ConceptIDs[0]
+		seen[conceptID]++
+		if objectiveExam[conceptObjective[conceptID]] != "101" {
 			continue
 		}
-		hasCommandAnchor := false
-		for _, anchor := range concept.AnchorTerms {
-			switch anchor {
-			case "vi", "vim", "screen", "tmux", "shutdown", "init", "telinit",
-				"grub-install", "grub-mkconfig", "dpkg-reconfigure":
+		if !slices.Contains(authored.Definition.Labels, "deterministic-state") {
+			t.Errorf("%s lacks deterministic-state label", authored.Definition.ID)
+		}
+		historyPath, _ := lab.StandaloneCommandHistoryPath(authored.Definition)
+		var stateChecks []lab.CheckDefinition
+		for _, check := range authored.Definition.Checks {
+			if !slices.Contains(check.ConceptIDs, conceptID) {
 				continue
 			}
-			usage := strings.TrimSpace(content.PedagogicalTermUsage(anchor))
-			if usage == anchor || strings.HasPrefix(usage, anchor+" ") || strings.HasPrefix(usage, anchor+" ;") {
-				hasCommandAnchor = true
-				break
+			if check.Path == historyPath {
+				continue
+			}
+			stateChecks = append(stateChecks, check)
+			if check.Type == "file-content-regex" && strings.Contains(check.Pattern, "CONCEPT=") {
+				t.Errorf("%s still uses declarative fallback evidence", authored.Definition.ID)
 			}
 		}
-		if hasCommandAnchor && commandEvidence[conceptID] < 2 {
-			t.Errorf("%s runtime command-evidence contexts = %d, want at least 2", conceptID, commandEvidence[conceptID])
+		if len(stateChecks) == 0 {
+			t.Errorf("%s has no direct state/result check", authored.Definition.ID)
+		}
+		if deterministicSignatures[conceptID] == nil {
+			deterministicSignatures[conceptID] = make(map[string]struct{})
+		}
+		signature := fmt.Sprintf("%#v|setup=%s", stateChecks, authored.SetupScript)
+		deterministicSignatures[conceptID][signature] = struct{}{}
+	}
+
+	for conceptID, objectiveID := range conceptObjective {
+		if got := seen[conceptID]; got < 2 {
+			t.Errorf("%s generated contexts = %d, want at least 2", conceptID, got)
+		}
+		if objectiveExam[objectiveID] == "101" && len(deterministicSignatures[conceptID]) < 2 {
+			t.Errorf("%s diagnostic/transfer reuse the same deterministic state contract", conceptID)
 		}
 	}
 }

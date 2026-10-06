@@ -126,9 +126,8 @@ func defaultAction(item *study.Item) Action {
 	if item.PreferLab && item.RecommendedLabID != "" {
 		return Action{Kind: ActionLab, ID: item.RecommendedLabID}
 	}
-	if item.MasteryStage >= learning.StageGuided && item.RecommendedLabID != "" {
-		return Action{Kind: ActionLab, ID: item.RecommendedLabID}
-	}
+	// Reviews should exercise retrieval before repeating practical work. PreferLab
+	// remains the explicit bridge from successful recall to the first required lab.
 	if item.RecommendedQuestionID != "" {
 		return Action{Kind: ActionQuestion, ID: item.RecommendedQuestionID}
 	}

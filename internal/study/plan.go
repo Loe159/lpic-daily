@@ -19,12 +19,14 @@ type EvidenceReader interface {
 }
 
 type PlanInput struct {
-	Now        time.Time
-	Curriculum *curriculum.Bundle
-	Content    *content.Bundle
-	Labs       []lab.Lab
-	Evidence   EvidenceReader
-	Policy     learning.SessionPolicy
+	Now                     time.Time
+	Curriculum              *curriculum.Bundle
+	Content                 *content.Bundle
+	Labs                    []lab.Lab
+	Evidence                EvidenceReader
+	Policy                  learning.SessionPolicy
+	Exam101Only             bool
+	Exam101AssessmentPassed bool
 }
 
 type Item struct {
@@ -96,7 +98,14 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 	}
 
 	readiness := completeObjectiveReadiness(input.Curriculum, scopeConcepts, evidenceByConcept)
-	activeScopeObjectives := examProgressionScope(input.Curriculum, scopeObjectives, readiness)
+	activeScopeObjectives := examProgressionScope(
+		input.Curriculum,
+		scopeObjectives,
+		scopeConcepts,
+		evidenceByConcept,
+		input.Exam101Only,
+		input.Exam101AssessmentPassed,
+	)
 
 	session, err := learning.BuildSession(learning.SessionInput{
 		Now:                input.Now,
@@ -223,7 +232,7 @@ func completeObjectiveReadiness(
 			continue
 		}
 		total[concept.ObjectiveID]++
-		lesson, question, practical := false, false, false
+		lesson, recall, practical := false, false, false
 		for _, event := range evidenceByConcept[concept.ID] {
 			if event.Result != learning.ResultPass {
 				continue
@@ -232,12 +241,15 @@ func completeObjectiveReadiness(
 			case learning.ActivityLesson:
 				lesson = true
 			case learning.ActivityQuestion:
-				question = true
+				recall = recall || learning.EffectiveEvidenceKind(event) == learning.EvidenceRecall
 			case learning.ActivityLab:
-				practical = true
+				effective := learning.EffectiveEvidenceKind(event)
+				practical = practical ||
+					effective == learning.EvidenceIndependentPractice ||
+					effective == learning.EvidenceTransfer
 			}
 		}
-		if lesson && question && practical {
+		if lesson && recall && practical {
 			complete[concept.ObjectiveID]++
 		}
 	}
@@ -251,22 +263,82 @@ func completeObjectiveReadiness(
 func examProgressionScope(
 	bundle *curriculum.Bundle,
 	scopeObjectives []string,
-	readiness map[string]bool,
+	scopeConcepts map[string]struct{},
+	evidenceByConcept map[string][]learning.EvidenceEvent,
+	exam101Only bool,
+	exam101AssessmentPassed bool,
 ) []string {
-	exam101Complete := true
+	if exam101Only || !exam101AssessmentPassed || !exam101MasteryComplete(bundle, scopeConcepts, evidenceByConcept) {
+		return filterExam101Objectives(bundle, scopeObjectives)
+	}
+	return slices.Clone(scopeObjectives)
+}
+
+func exam101MasteryComplete(
+	bundle *curriculum.Bundle,
+	scopeConcepts map[string]struct{},
+	evidenceByConcept map[string][]learning.EvidenceEvent,
+) bool {
+	const retentionGap = 72 * time.Hour
+	examByObjective := make(map[string]string, len(bundle.Objectives.Objectives))
 	for _, objective := range bundle.Objectives.Objectives {
-		if !objective.Active || objective.Exam != "101" {
+		if objective.Active {
+			examByObjective[objective.ID] = objective.Exam
+		}
+	}
+	for _, concept := range bundle.Concepts.Concepts {
+		if !concept.Active || examByObjective[concept.ObjectiveID] != "101" {
 			continue
 		}
-		if !readiness[objective.ID] {
-			exam101Complete = false
-			break
+		if _, inScope := scopeConcepts[concept.ID]; !inScope {
+			return false
+		}
+		if !exam101ConceptMastered(evidenceByConcept[concept.ID], retentionGap) {
+			return false
 		}
 	}
-	if exam101Complete {
-		return slices.Clone(scopeObjectives)
-	}
+	return true
+}
 
+func exam101ConceptMastered(events []learning.EvidenceEvent, retentionGap time.Duration) bool {
+	lesson := false
+	independentPractice := false
+	var recalls []time.Time
+	for _, event := range events {
+		if event.Result != learning.ResultPass {
+			continue
+		}
+		effective := learning.EffectiveEvidenceKind(event)
+		switch event.ActivityKind {
+		case learning.ActivityLesson:
+			lesson = true
+		case learning.ActivityQuestion:
+			if effective == learning.EvidenceRecall {
+				recalls = append(recalls, event.OccurredAt)
+			}
+		case learning.ActivityLab:
+			if effective == learning.EvidenceIndependentPractice || effective == learning.EvidenceTransfer {
+				independentPractice = true
+			}
+		}
+	}
+	if !lesson || !independentPractice || len(recalls) < 2 {
+		return false
+	}
+	slices.SortFunc(recalls, func(a, b time.Time) int {
+		switch {
+		case a.Before(b):
+			return -1
+		case a.After(b):
+			return 1
+		default:
+			return 0
+		}
+	})
+	return recalls[len(recalls)-1].Sub(recalls[0]) >= retentionGap
+}
+
+func filterExam101Objectives(bundle *curriculum.Bundle, scopeObjectives []string) []string {
 	examByObjective := make(map[string]string, len(bundle.Objectives.Objectives))
 	for _, objective := range bundle.Objectives.Objectives {
 		if objective.Active {
@@ -470,9 +542,9 @@ func recommendedLab(
 		usedContexts[event.PracticeContext] = true
 	}
 
-	// Generated fallback labs intentionally remain guided evidence. Rotate to a
-	// second authored practice context after the first successful lab instead of
-	// waiting for independent mastery, which those labs can never claim.
+	// Rotate practical contexts after a successful lab. Deterministic generated
+	// Exam-101 labs can now earn independent/transfer evidence; legacy generated
+	// fallbacks remain guided and therefore never satisfy final mastery.
 	if stage < learning.StageIndependent && len(usedContexts) > 0 {
 		for _, labID := range candidates {
 			practiceContext := labContexts[labID]

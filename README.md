@@ -8,7 +8,7 @@
 
 LPIC Daily transforme l’apprentissage de Linux en une routine courte et progressive : cours ciblés, questions de rappel, exercices pratiques et labs jetables directement depuis le terminal.
 
-Au lieu de simplement mémoriser des commandes, tu manipules de vrais environnements Linux. Les labs spécialisés vérifient directement l’état obtenu ; les ateliers de couverture générale valident une preuve structurée de pratique et restent volontairement classés comme pratique guidée.
+Au lieu de simplement mémoriser des commandes, tu manipules de vrais environnements Linux. Pour l’examen 101, les exercices vérifient directement l’état Linux obtenu ou recalculent le résultat attendu : une simple déclaration de pratique ne suffit pas à valider la compétence.
 
 ## Ce que tu peux faire
 
@@ -76,6 +76,9 @@ Quelques commandes utiles :
 lpic today              # afficher la séance du jour
 lpic today --quick      # séance plus courte
 lpic assess             # évaluation initiale
+lpic assess --exam 101  # simulation cumulative 101 pondérée (60 questions)
+lpic focus 101          # rester uniquement sur la préparation 101 (défaut)
+lpic focus all          # autoriser la 102 une fois la readiness 101 acquise
 lpic lab list           # voir les labs disponibles
 lpic lab run <lab-id>   # lancer un lab
 lpic doctor             # vérifier l'environnement
@@ -108,7 +111,7 @@ Les commandes du lab ne sont jamais exécutées directement sur ton système hô
 
 Ta progression est stockée localement dans SQLite. Aucun compte ni service cloud n’est nécessaire pour utiliser le cœur de LPIC Daily.
 
-La maîtrise et la gamification sont séparées : gagner de l’XP ou maintenir un streak ne suffit pas à valider une compétence. Les concepts progressent selon les preuves réellement obtenues dans les cours, questions et exercices.
+La maîtrise et la gamification sont séparées : gagner de l’XP ou maintenir un streak ne suffit pas à valider une compétence. Pour considérer l’examen 101 prêt, LPIC Daily exige notamment de la pratique indépendante, plusieurs rappels réussis espacés dans le temps et une simulation cumulative réussie. La préparation reste focalisée sur la 101 par défaut.
 
 ## À propos de LPIC-1
 

@@ -12,7 +12,9 @@ The Go curriculum/content loaders independently validate embedded authored JSON 
 
 `python3 scripts/audit_phase3_coverage.py --check` remains available for mapping diagnostics. Normal foundation CI runs `--require-complete`, which is the Exam-101 course/daily-question/practical-lab exit gate. The audit reads the canonical `phase3-exam101.json` manifest and mirrors deterministic runtime synthesis while Go tests independently validate the generated learner surfaces.
 
-The study planner only schedules objectives whose mapped concepts all have exactly one focused `introduce` lesson, at least one daily non-assessment question, and at least one machine-checked practical lab. Runtime prerequisite readiness is stricter: every concept in the prerequisite objective must have successful course + quiz + practical evidence. Exam 102 remains locked until that same three-surface completion rule is satisfied for all 162 Exam-101 concepts. Generated fallback labs are concept-scoped and rotate between diagnostic and transfer contexts; recall alone never substitutes for practice.
+The study planner only schedules objectives whose mapped concepts all have exactly one focused `introduce` lesson, at least one daily non-assessment question, and at least one machine-checked practical path. Runtime prerequisite readiness is stricter: every prerequisite concept needs successful lesson exposure, successful recall, and independent/transfer practical evidence. Guided practice cannot unlock prerequisites.
+
+Exam 102 is gated independently from structural coverage. All 162 Exam-101 concepts need a passed lesson, independent/transfer practical evidence and at least two successful recall events separated by 72 hours or more, plus a passed weighted cumulative Exam-101 simulation. Generated Exam-101 diagnostic/transfer labs must use distinct deterministic state/result contracts; CI rejects pairs that differ only by context name.
 
 ### Go unit and domain tests
 
@@ -34,7 +36,7 @@ Raw PTY passthrough is reserved for explicit interactive terminal surfaces where
 
 ### Lab conformance
 
-Authored labs are validated against their schemas and runtime contracts. Loading a built-in lab also validates the derived runner definition and compiles checker configuration (including Go regex syntax), so invalid authored execution settings fail before the lab is advertised as runnable. Phase-1 coverage generation requires all 27 selected concepts to remain traceable, to have exactly one focused `introduce` lesson, at least one daily non-assessment question, and two distinct machine-checked practical contexts. Runtime-generated fallback labs use one concept per lab so attempts cannot grant or penalize evidence for concepts the learner has not yet studied.
+Authored labs are validated against their schemas and runtime contracts. Loading a built-in lab also validates the derived runner definition and compiles checker configuration (including Go regex syntax), so invalid authored execution settings fail before the lab is advertised as runnable. Phase-1 coverage generation requires all 27 selected concepts to remain traceable, to have exactly one focused `introduce` lesson, at least one daily non-assessment question, and two distinct machine-checked practical contexts. Runtime-generated labs use one concept per lab so attempts cannot grant or penalize evidence for concepts the learner has not yet studied. Exam-101 generated labs are state/result checked; generic declarative fallback proof remains available outside the accepted Exam-101 scope but does not count toward Exam-101 deterministic practical coverage.
 
 State-based grading must accept equivalent valid end states rather than depending on an exact learner command transcript.
 

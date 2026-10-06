@@ -2,6 +2,7 @@ package content
 
 import (
 	"fmt"
+	"regexp"
 	"slices"
 	"strings"
 	"unicode"
@@ -481,12 +482,8 @@ func generatedApplicationQuestion(
 		ConceptIDs:    []string{concept.ID},
 		Type:          "multiple-choice",
 		Usage:         "daily",
-		PromptFR: fmt.Sprintf(
-			"Scénario opérationnel : %s Problème ciblé : « %s ». Quel outil, fichier, commande ou repère utiliserais-tu en premier pour confirmer le diagnostic ou agir directement ?",
-			exam101ApplicationScenario(objective.ID),
-			concept.TitleFR,
-		),
-		Choices: choices,
+		PromptFR:      exam101ApplicationPrompt(objective, concept),
+		Choices:       choices,
 		Grading: Grading{
 			Strategy:          "choice-ids",
 			AcceptedChoiceIDs: []string{"correct"},
@@ -496,6 +493,37 @@ func generatedApplicationQuestion(
 		Distribution:          "generic",
 		ExplanationFR:         explanation,
 	}
+}
+
+func exam101ApplicationPrompt(objective curriculum.Objective, concept curriculum.Concept) string {
+	scenario := exam101ApplicationScenario(objective.ID)
+	clue := standaloneTermExplanation(concept.AnchorTerms[0], objective.ID)
+	scenario = redactApplicationTerm(scenario, concept.TitleFR)
+	clue = redactApplicationTerm(clue, concept.TitleFR)
+	for _, anchor := range concept.AnchorTerms {
+		scenario = redactApplicationTerm(scenario, anchor)
+		clue = redactApplicationTerm(clue, anchor)
+	}
+	scenario = strings.Join(strings.Fields(scenario), " ")
+	clue = strings.Trim(strings.Join(strings.Fields(clue), " "), " —:;,.()[]")
+	if len([]rune(clue)) < 12 {
+		clue = "il faut identifier le mécanisme pertinent à partir de l'état observé"
+	}
+	return fmt.Sprintf(
+		"Scénario opérationnel : %s Cas %02d : %s. Quel outil, fichier, commande ou repère utiliserais-tu en premier pour confirmer le diagnostic ou agir directement ?",
+		scenario,
+		concept.PedagogyOrder,
+		clue,
+	)
+}
+
+func redactApplicationTerm(text, term string) string {
+	term = strings.TrimSpace(term)
+	if term == "" {
+		return text
+	}
+	pattern := regexp.MustCompile("(?i)(^|[^[:alnum:]_])" + regexp.QuoteMeta(term) + "([^[:alnum:]_]|$)")
+	return pattern.ReplaceAllString(text, "$1[repère masqué]$2")
 }
 
 func exam101ApplicationScenario(objectiveID string) string {

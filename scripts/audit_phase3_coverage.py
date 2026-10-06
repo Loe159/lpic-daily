@@ -133,6 +133,8 @@ def audit():
     mapped = {
         concept_id: {
             "labs": [],
+            "generated_state_labs": [],
+            "guided_fallback_labs": [],
             "lessons": [],
             "questions": [],
             "introductions": [],
@@ -181,7 +183,7 @@ def audit():
         mapped[concept_id]["questions"].extend(generated_questions)
         mapped[concept_id]["recall_questions"].append(generated_questions[0])
 
-        mapped[concept_id]["labs"].extend([
+        mapped[concept_id]["generated_state_labs"].extend([
             concept_id + ".standalone-diagnostic",
             concept_id + ".standalone-transfer",
         ])
@@ -193,6 +195,8 @@ def audit():
             surface: sorted(mapped[concept_id][surface])
             for surface in (
                 "labs",
+                "generated_state_labs",
+                "guided_fallback_labs",
                 "lessons",
                 "questions",
                 "introductions",
@@ -203,7 +207,8 @@ def audit():
 
     objective_with_lab = {
         objective_id: any(
-            item["objective_id"] == objective_id and item["surfaces"]["labs"]
+            item["objective_id"] == objective_id
+            and (item["surfaces"]["labs"] or item["surfaces"]["generated_state_labs"])
             for item in concepts
         )
         for objective_id in selected_objectives
@@ -217,10 +222,15 @@ def audit():
         ),
         "with_question": sum(bool(item["surfaces"]["questions"]) for item in concepts),
         "with_advancement_path": sum(
-            bool(item["surfaces"]["recall_questions"] and item["surfaces"]["labs"])
+            bool(item["surfaces"]["recall_questions"]
+            and (item["surfaces"]["labs"] or item["surfaces"]["generated_state_labs"]))
             for item in concepts
         ),
-        "with_lab": sum(bool(item["surfaces"]["labs"]) for item in concepts),
+        "with_deterministic_lab": sum(
+            bool(item["surfaces"]["labs"] or item["surfaces"]["generated_state_labs"])
+            for item in concepts
+        ),
+        "with_guided_fallback": sum(bool(item["surfaces"]["guided_fallback_labs"]) for item in concepts),
         "objectives_with_lab": sum(objective_with_lab.values()),
     }
     return summary, concepts
@@ -246,7 +256,8 @@ def main():
         f"{summary['with_exactly_one_introduction']} with exactly one focused introduction; "
         f"{summary['with_question']} with daily question; "
         f"{summary['with_advancement_path']} with recall/practical advancement path; "
-        f"{summary['with_lab']} with practical exercise coverage; "
+        f"{summary['with_deterministic_lab']} with deterministic practical coverage; "
+        f"{summary['with_guided_fallback']} with guided fallback practice; "
         f"{summary['objectives_with_lab']} objectives with at least one lab"
     )
     duplicate_introductions = [
@@ -274,7 +285,9 @@ def main():
         item["concept_id"] for item in concepts if not item["surfaces"]["questions"]
     ]
     missing_lab = [
-        item["concept_id"] for item in concepts if not item["surfaces"]["labs"]
+        item["concept_id"]
+        for item in concepts
+        if not (item["surfaces"]["labs"] or item["surfaces"]["generated_state_labs"])
     ]
     if missing_lesson:
         print(
@@ -291,7 +304,7 @@ def main():
         for item in concepts
         if not (
             item["surfaces"]["recall_questions"]
-            and item["surfaces"]["labs"]
+            and (item["surfaces"]["labs"] or item["surfaces"]["generated_state_labs"])
         )
     ]
     if missing_question:
@@ -301,7 +314,7 @@ def main():
         )
     if missing_lab:
         print(
-            "Phase-3 acceptance FAILED: concepts without practical exercise coverage: "
+            "Phase-3 acceptance FAILED: concepts without deterministic state-checked practical coverage: "
             + ", ".join(missing_lab)
         )
     if missing_advancement:
@@ -319,8 +332,8 @@ def main():
         return 1
 
     print(
-        "Phase-3 Exam-101 course/daily-question/practical-exercise coverage complete; "
-        "every concept has both recall and practical advancement paths."
+        "Phase-3 Exam-101 course/recall/deterministic-practical coverage complete; "
+        "guided generated fallbacks are reported separately and never satisfy the practical gate."
     )
     return 0
 

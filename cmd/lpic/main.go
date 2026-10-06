@@ -97,6 +97,8 @@ func runWithIO(args []string, stdin io.Reader, stdout, stderr io.Writer) error {
 		return nil
 	case "today":
 		return runToday(args[1:], stdout)
+	case "focus":
+		return runFocus(args[1:], stdout)
 	case "tui":
 		if len(args) != 1 {
 			return fmt.Errorf("usage: lpic tui")
@@ -160,13 +162,25 @@ func runDashboard(stdin io.Reader, stdout, stderr io.Writer) error {
 			return err
 		}
 		now := time.Now()
+		focus, err := appstate.LoadStudyFocus()
+		if err != nil {
+			_ = store.Close()
+			return fmt.Errorf("load study focus: %w", err)
+		}
+		assessmentPassed, err := appstate.Exam101AssessmentPassed()
+		if err != nil {
+			_ = store.Close()
+			return fmt.Errorf("load Exam 101 assessment state: %w", err)
+		}
 		plan, planErr := study.BuildPlan(ctx, study.PlanInput{
-			Now:        now,
-			Curriculum: curriculumBundle,
-			Content:    contentBundle,
-			Labs:       labs,
-			Evidence:   store,
-			Policy:     learning.DefaultSessionPolicy(),
+			Now:                     now,
+			Curriculum:              curriculumBundle,
+			Content:                 contentBundle,
+			Labs:                    labs,
+			Evidence:                store,
+			Policy:                  learning.DefaultSessionPolicy(),
+			Exam101Only:             focus == appstate.StudyFocusExam101,
+			Exam101AssessmentPassed: assessmentPassed,
 		})
 		gameSnapshot, gameErr := loadGamificationSnapshot(ctx, store, now)
 		closeErr := store.Close()
@@ -290,13 +304,23 @@ func runNotifyWithExecutor(
 
 	localDay := now.In(time.Local).Format("2006-01-02")
 
+	focus, err := appstate.LoadStudyFocus()
+	if err != nil {
+		return fmt.Errorf("load study focus: %w", err)
+	}
+	assessmentPassed, err := appstate.Exam101AssessmentPassed()
+	if err != nil {
+		return fmt.Errorf("load Exam 101 assessment state: %w", err)
+	}
 	plan, err := study.BuildPlan(ctx, study.PlanInput{
-		Now:        now,
-		Curriculum: curriculumBundle,
-		Content:    contentBundle,
-		Labs:       labs,
-		Evidence:   store,
-		Policy:     learning.DefaultSessionPolicy(),
+		Now:                     now,
+		Curriculum:              curriculumBundle,
+		Content:                 contentBundle,
+		Labs:                    labs,
+		Evidence:                store,
+		Policy:                  learning.DefaultSessionPolicy(),
+		Exam101Only:             focus == appstate.StudyFocusExam101,
+		Exam101AssessmentPassed: assessmentPassed,
 	})
 	if err != nil {
 		return err
@@ -458,6 +482,29 @@ func sendDailyWithClaimRefresh(
 	}
 }
 
+func runFocus(args []string, stdout io.Writer) error {
+	if len(args) == 0 {
+		focus, err := appstate.LoadStudyFocus()
+		if err != nil {
+			return err
+		}
+		fmt.Fprintf(stdout, "Focus actuel: %s\n", focus)
+		return nil
+	}
+	if len(args) != 1 || (args[0] != appstate.StudyFocusExam101 && args[0] != appstate.StudyFocusAll) {
+		return fmt.Errorf("usage: lpic focus [101|all]")
+	}
+	if err := appstate.SaveStudyFocus(args[0]); err != nil {
+		return err
+	}
+	if args[0] == appstate.StudyFocusExam101 {
+		fmt.Fprintln(stdout, "Focus 101 activé : l'examen 102 ne sera pas planifié.")
+	} else {
+		fmt.Fprintln(stdout, "Focus global activé : la 102 pourra être planifiée après maîtrise complète de la 101.")
+	}
+	return nil
+}
+
 func runToday(args []string, stdout io.Writer) error {
 	policy := learning.DefaultSessionPolicy()
 	switch {
@@ -488,13 +535,23 @@ func runToday(args []string, stdout io.Writer) error {
 	}
 	defer store.Close()
 
+	focus, err := appstate.LoadStudyFocus()
+	if err != nil {
+		return fmt.Errorf("load study focus: %w", err)
+	}
+	assessmentPassed, err := appstate.Exam101AssessmentPassed()
+	if err != nil {
+		return fmt.Errorf("load Exam 101 assessment state: %w", err)
+	}
 	plan, err := study.BuildPlan(ctx, study.PlanInput{
-		Now:        time.Now(),
-		Curriculum: curriculumBundle,
-		Content:    contentBundle,
-		Labs:       labs,
-		Evidence:   store,
-		Policy:     policy,
+		Now:                     time.Now(),
+		Curriculum:              curriculumBundle,
+		Content:                 contentBundle,
+		Labs:                    labs,
+		Evidence:                store,
+		Policy:                  policy,
+		Exam101Only:             focus == appstate.StudyFocusExam101,
+		Exam101AssessmentPassed: assessmentPassed,
 	})
 	if err != nil {
 		return err
@@ -601,8 +658,11 @@ func nextHintIndex(hints []lab.Hint, highestHintLevel int) int {
 }
 
 func runAssessment(args []string, stdin io.Reader, stdout io.Writer) error {
+	if len(args) == 2 && args[0] == "--exam" && args[1] == "101" {
+		return runExam101Assessment(stdin, stdout)
+	}
 	if len(args) != 0 {
-		return fmt.Errorf("usage: lpic assess")
+		return fmt.Errorf("usage: lpic assess [--exam 101]")
 	}
 
 	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
@@ -682,6 +742,95 @@ func runAssessment(args []string, stdin io.Reader, stdout io.Writer) error {
 		fmt.Fprintln(stdout, "Rappel 103.1 solide : ces réponses sont conservées comme preuve de quiz. Les cours et pratiques manquants restent obligatoires avant de débloquer les objectifs dépendants.")
 	} else {
 		fmt.Fprintln(stdout, "Rappel 103.1 à consolider : LPIC Daily proposera les concepts, cours, quiz et pratiques manquants.")
+	}
+	return nil
+}
+
+func runExam101Assessment(stdin io.Reader, stdout io.Writer) error {
+	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		return fmt.Errorf("load curriculum: %w", err)
+	}
+	contentBundle, err := content.Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		return fmt.Errorf("load content: %w", err)
+	}
+	questions, err := assessment.ExamQuestions(curriculumBundle, contentBundle, "101")
+	if err != nil {
+		return err
+	}
+
+	ctx := context.Background()
+	store, err := openProgressStore(ctx)
+	if err != nil {
+		return err
+	}
+	defer store.Close()
+
+	fmt.Fprintf(stdout, "Simulation cumulative LPIC-1 101 · %d questions pondérées par objectifs\n", len(questions))
+	fmt.Fprintln(stdout, "Réponds sans cours ni aide. Ce score est un indicateur interne, pas un score officiel LPI.")
+	fmt.Fprintln(stdout)
+
+	reader := bufio.NewReader(stdin)
+	correct := 0
+	correctByObjective := make(map[string]int)
+	totalByObjective := make(map[string]int)
+	for index, question := range questions {
+		objectiveID := question.ObjectiveIDs[0]
+		totalByObjective[objectiveID]++
+		fmt.Fprintf(stdout, "%d/%d · %s · %s\n", index+1, len(questions), objectiveID, question.PromptFR)
+		for choiceIndex, choice := range question.Choices {
+			fmt.Fprintf(stdout, "  %d) %s\n", choiceIndex+1, choice.LabelFR)
+		}
+		fmt.Fprint(stdout, "Réponse: ")
+		line, err := readLine(reader)
+		if err != nil {
+			return fmt.Errorf("read Exam 101 answer %d: %w", index+1, err)
+		}
+		answer, err := parseAnswer(question, strings.TrimSpace(line))
+		if err != nil {
+			return fmt.Errorf("Exam 101 question %d: %w", index+1, err)
+		}
+		pass, err := question.Grade(answer)
+		if err != nil {
+			return fmt.Errorf("grade Exam 101 question %d: %w", index+1, err)
+		}
+		now := time.Now()
+		if err := study.RecordQuestion(ctx, store, question, pass, now); err != nil {
+			return err
+		}
+		if pass {
+			correct++
+			correctByObjective[objectiveID]++
+			fmt.Fprintln(stdout, "✓ CORRECT")
+		} else {
+			fmt.Fprintln(stdout, "✗ INCORRECT")
+		}
+		fmt.Fprintln(stdout)
+	}
+
+	percent := 100 * correct / len(questions)
+	fmt.Fprintf(stdout, "Résultat simulation 101: %d/%d (%d%%)\n", correct, len(questions), percent)
+	weakObjective := false
+	for _, objective := range curriculumBundle.Objectives.Objectives {
+		if !objective.Active || objective.Exam != "101" {
+			continue
+		}
+		got := correctByObjective[objective.ID]
+		total := totalByObjective[objective.ID]
+		fmt.Fprintf(stdout, "  %s: %d/%d\n", objective.ID, got, total)
+		if got*2 < total {
+			weakObjective = true
+		}
+	}
+	passed := percent >= 80 && !weakObjective
+	if err := appstate.SaveExam101AssessmentPassed(passed); err != nil {
+		return fmt.Errorf("save Exam 101 assessment result: %w", err)
+	}
+	if passed {
+		fmt.Fprintln(stdout, "Simulation validée. La 102 reste bloquée tant que la maîtrise pratique indépendante et la rétention espacée de chaque concept ne sont pas acquises.")
+	} else {
+		fmt.Fprintln(stdout, "Simulation non validée. Reprends les objectifs faibles avant de considérer la 101 prête.")
 	}
 	return nil
 }
@@ -1941,6 +2090,8 @@ Usage:
   lpic tui                       open the interactive daily dashboard
   lpic notify [--force]           send today's desktop notification once
   lpic assess                     run the Phase-1 initial recall assessment
+  lpic assess --exam 101          run the 60-question cumulative Exam 101 simulation
+  lpic focus [101|all]            keep study on Exam 101 (default) or allow Exam 102 after readiness
   lpic today [--quick]           build today's adaptive session from local progress
   lpic learn <lesson-id>          read a lesson and record exposure when confirmed
   lpic question <question-id>     answer a deterministic question and record evidence

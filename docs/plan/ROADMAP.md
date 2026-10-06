@@ -38,14 +38,14 @@ Exit criteria are canonical in `docs/plan/PHASE-1-ACCEPTANCE.md` and were accept
 ## Phase 2 — VM runner (complete)
 Add libvirt/QEMU/KVM images and cover one boot objective + one storage objective end to end. Establish Fedora, Debian and openSUSE guest-image pipeline and isolated multi-machine lab networking. Real-host KVM/libvirt acceptance passed on 2026-10-04.
 
-## Phase 3 — Exam 101 curriculum (core complete; acceptance hardening)
-Topics 101–104 are covered across all 23 objectives / 162 concepts with automated scope checks, focused lessons, quizzes and concept-scoped practical reps. Final hardening enforces course + quiz + lab completion before prerequisite or Exam-102 progression; see `docs/plan/PHASE-3-EXAM101.md`.
+## Phase 3 — Exam 101 curriculum (complete)
+Topics 101–104 are accepted across all 23 objectives / 162 concepts. Every concept has focused teaching, recall/application questions and deterministic state-verified practical contexts. Exam-101 readiness additionally requires independent practice, spaced recall over at least 72 hours and the weighted cumulative 60-question simulation. Exam 102 stays locked by default behind the Exam-101 focus/readiness gates; see `docs/plan/PHASE-3-EXAM101.md`.
 
 ## Phase 4 — Exam 102 curriculum
 Complete topics 105–110, including networking, services and crypto. Ensure modern-versus-legacy labeling remains accurate.
 
 ## Phase 5 — adaptive practice depth
-Strengthen spaced retrieval, concept prerequisites where demonstrated, distribution transfer, cross-topic incidents, achievement system and mastery explainability. Add adaptive short assessments.
+Extend the accepted spaced-retrieval/readiness model with deeper adaptive scheduling, demonstrated concept prerequisites, distribution transfer, cross-topic incidents, achievement system and mastery explainability. Add adaptive short assessments.
 
-## Phase 6 — exam simulation and packaging
-Add original weighted exam simulation, including full-length mode if still desired. Harden RPM packaging first, then additional distro packaging; add update/signing, accessibility, backup/export and final security review.
+## Phase 6 — exam simulation hardening and packaging
+Extend the existing weighted Exam-101 simulation with additional/full-length variants if useful, then harden RPM packaging first and additional distro packaging afterward. Add update/signing, accessibility, backup/export and final security review.

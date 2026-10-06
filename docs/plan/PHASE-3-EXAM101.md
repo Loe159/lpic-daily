@@ -1,51 +1,57 @@
 # Phase 3 — Exam 101 curriculum
 
-Status: **Core curriculum complete — final acceptance hardening 2026-10-06**
+Status: **Complete / accepted — 2026-10-06**
 
 Machine-readable scope: `curriculum/lpic-1-v5/phase3-exam101.json`.
 
-Official scope was rechecked against LPIC-1 v5.0:
+Official LPIC-1 v5.0 scope:
 - exam code: **101-500**;
 - topics: **101–104**;
-- active objectives in scope: **23**;
-- stable concepts in scope: **162**.
+- active objectives: **23**;
+- stable concepts: **162**;
+- total official objective weight: **60**.
 
-Phase 2 real-host KVM/libvirt acceptance passed on **2026-10-04**. Phase 3 can therefore build on both validated execution backends: rootless Podman for container-suitable tasks and libvirt/KVM for full-system behavior.
+Phase 2 real-host KVM/libvirt acceptance passed on **2026-10-04**. Exam-101 practice therefore uses rootless Podman for container-suitable tasks and libvirt/KVM for full-system boot/storage behavior.
 
-## Goal
+## Accepted learning contract
 
-Complete Exam 101 with original, French-first, deterministic learning content while preserving objective/concept traceability and the existing isolation model.
+Every Exam-101 concept has:
+- exactly one focused `introduce` lesson;
+- deterministic daily questions, including free recall;
+- an operational application question whose prompt must not reveal the exact concept title or answer-bearing anchor terms;
+- two generated concept-scoped practical contexts plus any bespoke authored labs;
+- deterministic state/result verification for generated Exam-101 practice.
 
-For every selected concept:
-- provide exactly one focused `introduce` lesson suitable for first exposure;
-- provide at least one deterministic daily non-assessment question;
-- provide at least one machine-checked practical lab/rep;
-- keep the concept granularity fine enough that all independently examinable knowledge in the official objective is actually taught, quizzed and practised;
-- retain examinable legacy knowledge and label modern practice separately;
-- avoid exam dumps and copied/adapted LPI learning prose.
+Generated practical exercises no longer count as mastery merely because the learner writes a proof file or because one command returned zero. Checks inspect resulting Linux state or recompute the exact expected transformation/observation. CI also requires diagnostic and transfer contexts to have different deterministic contracts.
 
-## Implementation order
+## Progression and readiness
 
-1. **103.4 — streams, pipes and redirections**: first post-slice objective, authored and schedulable.
-2. Remaining command-line objectives: 103.2, 103.3, 103.6, 103.7 and 103.8.
-3. Filesystem/storage coverage for topic 104, using the validated VM backend where needed.
-4. Package/library objectives 102.3–102.6 and complete 102.1/102.2 theory coverage.
-5. System-architecture objectives 101.1–101.3.
-6. Final learner-path hardening: concept-scoped fallback labs, strict course + quiz + practice completion, and Exam-102 gating.
-7. Full Phase-3 acceptance audit and regression suite.
+The normal learner path is **lesson → recall → practical work**. Once a concept is in review, pressing Enter prefers retrieval practice before another lab.
 
-Cross-topic incidents and adaptive extra depth are intentionally tracked in Phase 5; they are enrichment beyond the complete Exam-101 course/quiz/practice path, not Phase-3 exit gates.
+Prerequisite readiness requires all mapped concepts to have:
+1. successful lesson exposure;
+2. successful recall evidence;
+3. independent/transfer practical evidence.
+
+Exam 102 is stricter still. It remains locked until every Exam-101 concept has:
+- a passed lesson;
+- independent/transfer practical evidence;
+- at least two successful recall events separated by **72 hours or more**.
+
+A passed cumulative Exam-101 simulation is also required. Guided practice or one recognition question can no longer mark Exam 101 ready.
+
+Study focus defaults to Exam 101. `lpic focus 101` keeps the scheduler on 101; `lpic focus all` permits Exam-102 scheduling only after the readiness gates above pass.
+
+## Cumulative simulation
+
+`lpic assess --exam 101` builds a deterministic **60-question** simulation. The number of questions from each objective equals that objective's official weight. Questions are interleaved across topics and mix free recall with operational application.
+
+LPIC Daily currently treats the simulation as passed at **80% overall with no objective below 50%**. This is an internal readiness threshold, not an official LPI scoring rule.
 
 ## Coverage audit
 
-`python3 scripts/audit_phase3_coverage.py --check` validates mappings and reports progress without requiring Phase 3 to be complete.
+`python3 scripts/audit_phase3_coverage.py --check` reports mappings and coverage.
 
-`python3 scripts/audit_phase3_coverage.py --require-complete` is the course/daily-question/practical-lab exit gate. It requires both recall and practical advancement paths for every Exam-101 concept.
+`python3 scripts/audit_phase3_coverage.py --require-complete` is the structural exit gate. It requires lesson, daily-question, recall advancement and deterministic practical coverage for all 162 concepts. Generated guided/declarative fallbacks are reported separately and cannot satisfy the deterministic-practice gate.
 
-The normal foundation validation now runs `audit_phase3_coverage.py --require-complete`; any regression that removes a required Exam-101 lesson, quiz, recall path or practical path fails CI.
-
-## Current state
-
-Exam 101 now covers all **23 objectives / 162 concepts**. Every concept receives one focused introduction, deterministic recall/recognition coverage, an applied scenario question, and two concept-scoped fallback practice contexts in addition to any bespoke lab.
-
-The daily planner keeps Exam 102 locked until every Exam-101 concept has successful **course + quiz + practical** evidence. Objective prerequisites use the same complete-surface rule, so partial recall coverage cannot skip the remaining concepts of a section. Generated fallback labs remain guided evidence and rotate from diagnostic to transfer context after a successful first practice.
+The normal foundation validation invokes this complete gate, while Go tests independently validate generated learner surfaces, distinct transfer contracts, question leakage protection, scheduling/readiness behavior and weighted exam construction.

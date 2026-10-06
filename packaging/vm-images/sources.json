@@ -64,7 +64,14 @@
         "screen",
         "tmux",
         "hostname",
-        "sudo"
+        "sudo",
+        "pciutils",
+        "usbutils",
+        "kmod",
+        "systemd-udev",
+        "dbus-tools",
+        "acpid",
+        "cloud-init"
       ],
       "recipe": "fedora-cloud-v2"
     },

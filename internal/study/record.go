@@ -165,11 +165,8 @@ func RecordLabConceptResults(
 		}
 		attempt := nextAttemptFromEvents(events, authored.Definition.ID)
 		var evidenceKind learning.EvidenceKind
-		if strings.Contains(authored.Definition.ID, ".standalone-") {
-			// Generated standalone exercises validate useful practice, but their
-			// generic checks do not prove the same independent system state as a
-			// bespoke lab. Keep their mastery evidence guided even when runtime
-			// command evidence is also required.
+		if strings.Contains(authored.Definition.ID, ".standalone-") && !hasLabel(authored.Definition.Labels, "deterministic-state") {
+			// Legacy/generated fallbacks without direct state verification stay guided.
 			evidenceKind = learning.EvidenceGuidedPractice
 		} else {
 			evidenceKind, err = practicalEvidenceKind(
@@ -254,6 +251,15 @@ func LabConceptResults(authored lab.Lab, checkResults []checker.Result) (map[str
 		}
 	}
 	return results, nil
+}
+
+func hasLabel(labels []string, wanted string) bool {
+	for _, label := range labels {
+		if label == wanted {
+			return true
+		}
+	}
+	return false
 }
 
 func practicalEvidenceKind(

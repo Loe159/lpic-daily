@@ -191,23 +191,23 @@ func generatedStandaloneLab(
 	filename := standaloneConceptFilename(concept)
 	terms := slices.Clone(concept.AnchorTerms)
 	termsLine := strings.Join(terms, ",")
-	fmt.Fprintf(
-		&tasks,
-		"- **%s** : travaille les repères `%s`, réalise une commande, une inspection ou une configuration pertinente, puis écris `%s/%s.txt`.\n",
-		concept.TitleFR,
-		strings.Join(terms, "`, `"),
-		root,
-		filename,
-	)
-	checks := []CheckDefinition{{
-		Type: "file-content-regex",
-		Path: root + "/" + filename + ".txt",
-		Pattern: "(?m)^CONCEPT=" + regexEscape(concept.ID) +
-			"\\nTERMS=" + regexEscape(termsLine) +
-			"\\nCOMMAND=.+\\nOBSERVATION=.+\\nEXPLANATION=.+\\n?$",
-		ConceptIDs: []string{concept.ID},
-	}}
+	labels := []string{"lpic-required"}
+	checks := []CheckDefinition(nil)
+	successCriteria := []string(nil)
+
 	if objective.Exam == "101" {
+		task, stateChecks, extraSetup := deterministicStandaloneExercise(objective, concept, root, variant)
+		fmt.Fprintf(&tasks, "- %s\n", task)
+		checks = stateChecks
+		labels = append(labels, "deterministic-state")
+		successCriteria = []string{
+			"Le checker recalcule ou inspecte directement l'état Linux attendu.",
+			"Une simple auto-déclaration ou le seul code de sortie d'une commande ne suffit pas.",
+			"Les contextes diagnostic et transfert exigent des productions distinctes.",
+		}
+		if setup.ExecutionScope == "sandbox" && extraSetup != "" {
+			setupScript += extraSetup
+		}
 		if pattern := standaloneCommandEvidencePattern(concept); pattern != "" {
 			checks = append(checks, CheckDefinition{
 				Type:       "file-content-regex",
@@ -216,17 +216,33 @@ func generatedStandaloneLab(
 				ConceptIDs: []string{concept.ID},
 			})
 		}
+	} else {
+		fmt.Fprintf(
+			&tasks,
+			"- **%s** : travaille les repères `%s`, réalise une commande, une inspection ou une configuration pertinente, puis écris `%s/%s.txt`.\n",
+			concept.TitleFR,
+			strings.Join(terms, "`, `"),
+			root,
+			filename,
+		)
+		checks = []CheckDefinition{{
+			Type: "file-content-regex",
+			Path: root + "/" + filename + ".txt",
+			Pattern: "(?m)^CONCEPT=" + regexEscape(concept.ID) +
+				"\\nTERMS=" + regexEscape(termsLine) +
+				"\\nCOMMAND=.+\\nOBSERVATION=.+\\nEXPLANATION=.+\\n?$",
+			ConceptIDs: []string{concept.ID},
+		}}
+		successCriteria = []string{
+			"Une preuve distincte est produite pour chaque concept.",
+			"Chaque preuve couvre explicitement les termes/fichiers/utilitaires affectés au concept.",
+			"Chaque preuve explique le lien entre le résultat observé et le concept LPIC.",
+		}
 	}
 
 	brief := fmt.Sprintf(
 		"Contexte de %s pour %s — %s, concept **%s**. Travaille uniquement ce concept ; les autres notions de l'objectif seront proposées séparément.\n\n%s\n"+
-			"Utilise exactement cinq lignes dans le fichier de preuve : "+
-			"CONCEPT=<id>, TERMS=<repères demandés séparés par des virgules>, "+
-			"COMMAND=<commande/action réellement utilisée>, OBSERVATION=<résultat constaté>, "+
-			"EXPLANATION=<pourquoi ce résultat démontre le concept>. "+
-			"Crée d'abord %s si le répertoire n'existe pas. Le but n'est pas de recopier le cours : "+
-			"fais la manipulation dans le sandbox, puis explique l'état observé. "+
-			"Pour les concepts qui demandent une commande réelle, exécute-la directement à l'invite lpic> : LPIC Daily journalise automatiquement la commande et son code de sortie dans une preuve séparée que le lab vérifie.",
+			"Crée %s si nécessaire. Exécute réellement les inspections ou manipulations demandées : le checker vérifie l'état du sandbox/VM et non une auto-déclaration.",
 		contextFR,
 		objective.ID,
 		objective.TitleFR,
@@ -235,18 +251,14 @@ func generatedStandaloneLab(
 		root,
 	)
 
-	hints := generatedStandaloneHints(labID, root)
+	hints := generatedStandaloneHints(labID, root, objective.Exam == "101")
 	return Lab{
 		Definition: Definition{
-			SchemaVersion: "1.0.0",
-			ID:            labID,
-			TitleFR:       fmt.Sprintf("%s — %s — pratique %s", objective.ID, concept.TitleFR, contextFR),
-			BriefFR:       brief,
-			SuccessCriteriaFR: []string{
-				"Une preuve distincte est produite pour chaque concept.",
-				"Chaque preuve couvre explicitement les termes/fichiers/utilitaires affectés au concept et décrit une commande ou action réellement effectuée.",
-				"Chaque preuve explique le lien entre le résultat observé et le concept LPIC.",
-			},
+			SchemaVersion:     "1.0.0",
+			ID:                labID,
+			TitleFR:           fmt.Sprintf("%s — %s — pratique %s", objective.ID, concept.TitleFR, contextFR),
+			BriefFR:           brief,
+			SuccessCriteriaFR: successCriteria,
 			DebriefFR: fmt.Sprintf(
 				"%s %s Le contexte %s oblige à reformuler et vérifier chaque sous-concept au lieu de valider l'objectif par une seule commande.",
 				guide.Overview,
@@ -255,7 +267,7 @@ func generatedStandaloneLab(
 			),
 			ObjectiveIDs:     []string{objective.ID},
 			ConceptIDs:       []string{concept.ID},
-			Labels:           []string{"lpic-required"},
+			Labels:           labels,
 			EstimatedMinutes: 15,
 			PracticeContext: fmt.Sprintf(
 				"%s-c%02d-standalone-%s",
@@ -276,6 +288,12 @@ func generatedStandaloneLab(
 }
 
 func standaloneLabEnvironment(objective curriculum.Objective, variant int) (backend, imageRef, distribution string) {
+	if strings.HasPrefix(objective.ID, "103.") {
+		return "podman", "localhost/lpic-daily/fedora-phase1:1", "fedora"
+	}
+	if objective.ID == "102.1" || objective.ID == "104.1" || objective.ID == "104.2" || objective.ID == "104.3" {
+		return "libvirt", "fedora-44-x86_64-v2", "fedora"
+	}
 	if objective.ID == "102.4" {
 		return "libvirt", "debian-13-x86_64-v2", "debian"
 	}
@@ -314,41 +332,20 @@ func standaloneMachineForObjective(objective curriculum.Objective) *Machine {
 	return machine
 }
 
-func generatedStandaloneHints(labID, root string) []Hint {
+func generatedStandaloneHints(labID, root string, deterministic bool) []Hint {
+	if deterministic {
+		return []Hint{
+			{SchemaVersion: "1.0.0", ID: labID + ".hint-1", LabID: labID, Level: 1, ContentFR: "Observe d'abord l'état courant et reformule précisément l'état final ou le relevé attendu.", EvidenceImpact: "none"},
+			{SchemaVersion: "1.0.0", ID: labID + ".hint-2", LabID: labID, Level: 2, ContentFR: "Appuie-toi sur les commandes, fichiers ou mécanismes associés au concept. Le checker inspecte l'état réel.", EvidenceImpact: "material"},
+			{SchemaVersion: "1.0.0", ID: labID + ".hint-3", LabID: labID, Level: 3, ContentFR: fmt.Sprintf("Utilise %s comme répertoire de travail et vérifie toi-même le résultat avec un second outil avant validation.", root), EvidenceImpact: "material"},
+			{SchemaVersion: "1.0.0", ID: labID + ".hint-4", LabID: labID, Level: 4, ContentFR: "Produis exactement l'état ou le relevé demandé dans le brief ; le checker le recalculera ou l'inspectera directement.", EvidenceImpact: "solution-revealed"},
+		}
+	}
 	return []Hint{
-		{
-			SchemaVersion:  "1.0.0",
-			ID:             labID + ".hint-1",
-			LabID:          labID,
-			Level:          1,
-			ContentFR:      "Traite un seul concept à la fois : relis son intitulé, choisis un outil ou fichier pertinent, puis observe le système avant d'écrire la preuve.",
-			EvidenceImpact: "none",
-		},
-		{
-			SchemaVersion:  "1.0.0",
-			ID:             labID + ".hint-2",
-			LabID:          labID,
-			Level:          2,
-			ContentFR:      fmt.Sprintf("Crée %s puis un fichier par concept. COMMAND décrit ce que tu as fait; OBSERVATION contient le résultat concret.", root),
-			EvidenceImpact: "material",
-		},
-		{
-			SchemaVersion:  "1.0.0",
-			ID:             labID + ".hint-3",
-			LabID:          labID,
-			Level:          3,
-			ContentFR:      "Chaque preuve doit contenir CONCEPT, TERMS, COMMAND, OBSERVATION et EXPLANATION. Recopie exactement TERMS depuis le brief puis relie le résultat au comportement Linux attendu.",
-			EvidenceImpact: "material",
-		},
-		{
-			SchemaVersion: "1.0.0",
-			ID:            labID + ".hint-4",
-			LabID:         labID,
-			Level:         4,
-			ContentFR: "Format attendu : CONCEPT=<id exact>, TERMS=<liste exacte du brief>, COMMAND=<commande/action>, " +
-				"OBSERVATION=<résultat>, EXPLANATION=<raison>. Répète ce format pour chaque fichier indiqué dans le brief.",
-			EvidenceImpact: "solution-revealed",
-		},
+		{SchemaVersion: "1.0.0", ID: labID + ".hint-1", LabID: labID, Level: 1, ContentFR: "Traite un seul concept à la fois : relis son intitulé, choisis un outil ou fichier pertinent, puis observe le système avant d'écrire la preuve.", EvidenceImpact: "none"},
+		{SchemaVersion: "1.0.0", ID: labID + ".hint-2", LabID: labID, Level: 2, ContentFR: fmt.Sprintf("Crée %s puis un fichier par concept. COMMAND décrit ce que tu as fait; OBSERVATION contient le résultat concret.", root), EvidenceImpact: "material"},
+		{SchemaVersion: "1.0.0", ID: labID + ".hint-3", LabID: labID, Level: 3, ContentFR: "Chaque preuve doit contenir CONCEPT, TERMS, COMMAND, OBSERVATION et EXPLANATION.", EvidenceImpact: "material"},
+		{SchemaVersion: "1.0.0", ID: labID + ".hint-4", LabID: labID, Level: 4, ContentFR: "Format attendu : CONCEPT=<id>, TERMS=<liste>, COMMAND=<action>, OBSERVATION=<résultat>, EXPLANATION=<raison>.", EvidenceImpact: "solution-revealed"},
 	}
 }
 
