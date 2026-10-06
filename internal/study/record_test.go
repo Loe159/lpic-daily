@@ -364,7 +364,7 @@ func TestLabConceptResultsPreserveMixedCheckOutcomes(t *testing.T) {
 	}
 }
 
-func TestGeneratedExam101CommandEvidenceRemainsGuided(t *testing.T) {
+func TestGeneratedExam101DeterministicPracticeAdvancesToTransfer(t *testing.T) {
 	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
 	if err != nil {
 		t.Fatalf("lab.LoadAll() error = %v", err)
@@ -394,14 +394,15 @@ func TestGeneratedExam101CommandEvidenceRemainsGuided(t *testing.T) {
 	if len(events) != 2 {
 		t.Fatalf("events = %#v, want two generated practice events", events)
 	}
-	for index, event := range events {
-		if event.EvidenceKind != learning.EvidenceGuidedPractice {
-			t.Fatalf("event %d evidence = %s, want guided-practice", index+1, event.EvidenceKind)
-		}
+	if events[0].EvidenceKind != learning.EvidenceIndependentPractice {
+		t.Fatalf("diagnostic evidence = %s, want independent-practice", events[0].EvidenceKind)
+	}
+	if events[1].EvidenceKind != learning.EvidenceTransfer {
+		t.Fatalf("transfer evidence = %s, want transfer", events[1].EvidenceKind)
 	}
 }
 
-func TestGeneratedExam101ConceptWithoutRuntimeCommandEvidenceStaysGuided(t *testing.T) {
+func TestGeneratedExam101ConceptualStateCheckCountsAsIndependentPractice(t *testing.T) {
 	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
 	if err != nil {
 		t.Fatalf("lab.LoadAll() error = %v", err)
@@ -428,7 +429,7 @@ func TestGeneratedExam101ConceptWithoutRuntimeCommandEvidenceStaysGuided(t *test
 		t.Fatalf("RecordLab() error = %v", err)
 	}
 	event := store.events[conceptID][0]
-	if event.EvidenceKind != learning.EvidenceGuidedPractice {
-		t.Fatalf("conceptual generated evidence = %s, want guided-practice", event.EvidenceKind)
+	if event.EvidenceKind != learning.EvidenceIndependentPractice {
+		t.Fatalf("conceptual generated evidence = %s, want independent-practice", event.EvidenceKind)
 	}
 }
