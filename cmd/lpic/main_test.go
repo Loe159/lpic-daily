@@ -37,7 +37,7 @@ func TestTodayStartsWith1031AndCreatesLocalProgressStore(t *testing.T) {
 		"LPIC Daily — Aujourd'hui",
 		"Nouveau · 103.1 · syntaxe shell et séquences de commandes",
 		"Cours conseillé: lpic1.103.1.lesson.shell-sequences",
-		"lpic1.103.1.q.sequence-and",
+		"lpic1.103.1.syntaxe-shell-et-sequences-de-commandes.q.autonomous-recall",
 	} {
 		if !strings.Contains(output, want) {
 			t.Fatalf("today output missing %q: %q", want, output)
@@ -127,7 +127,7 @@ func TestLearnRecordsExposureAndAdvancesNewConcept(t *testing.T) {
 		t.Fatalf("today after lesson error = %v", err)
 	}
 	if !strings.Contains(todayOut.String(), "Consolidation · 103.1 · syntaxe shell et séquences de commandes") ||
-		!strings.Contains(todayOut.String(), "lpic1.103.1.q.sequence-and") {
+		!strings.Contains(todayOut.String(), "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes.q.autonomous-recall") {
 		t.Fatalf("today did not request immediate consolidation: %q", todayOut.String())
 	}
 }
@@ -429,7 +429,7 @@ func TestUnknownLabFails(t *testing.T) {
 	}
 }
 
-func TestCorrectRecognitionAfterLessonAdvancesToNextConcept(t *testing.T) {
+func TestCorrectRecognitionAfterLessonRequiresPracticalConsolidation(t *testing.T) {
 	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
 
 	if err := runWithIO(
@@ -453,8 +453,9 @@ func TestCorrectRecognitionAfterLessonAdvancesToNextConcept(t *testing.T) {
 	if err := runWithIO([]string{"today"}, strings.NewReader(""), &todayOut, &bytes.Buffer{}); err != nil {
 		t.Fatalf("today error = %v", err)
 	}
-	if !strings.Contains(todayOut.String(), "Nouveau · 103.1 · variables shell/environnement") {
-		t.Fatalf("today did not advance after consolidation: %q", todayOut.String())
+	if !strings.Contains(todayOut.String(), "Consolidation · 103.1 · syntaxe shell et séquences de commandes") ||
+		!strings.Contains(todayOut.String(), "Lab: lpic1.103.1.shell-environment-repair") {
+		t.Fatalf("today did not require practical consolidation before advancing: %q", todayOut.String())
 	}
 }
 
