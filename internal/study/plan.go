@@ -274,6 +274,12 @@ func exam101MasteryComplete(
 	evidenceByConcept map[string][]learning.EvidenceEvent,
 ) bool {
 	const retentionGap = 72 * time.Hour
+	examByObjective := make(map[string]string, len(bundle.Objectives.Objectives))
+	for _, objective := range bundle.Objectives.Objectives {
+		if objective.Active {
+			examByObjective[objective.ID] = objective.Exam
+		}
+	}
 	for _, concept := range bundle.Concepts.Concepts {
 		if !concept.Active {
 			continue
@@ -281,8 +287,7 @@ func exam101MasteryComplete(
 		if _, inScope := scopeConcepts[concept.ID]; !inScope {
 			continue
 		}
-		objective, exists := bundle.ObjectiveByID(concept.ObjectiveID)
-		if !exists || objective.Exam != "101" {
+		if examByObjective[concept.ObjectiveID] != "101" {
 			continue
 		}
 		if !exam101ConceptMastered(evidenceByConcept[concept.ID], retentionGap) {
