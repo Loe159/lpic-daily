@@ -133,6 +133,7 @@ def audit():
     mapped = {
         concept_id: {
             "labs": [],
+            "generated_state_labs": [],
             "guided_fallback_labs": [],
             "lessons": [],
             "questions": [],
@@ -182,7 +183,7 @@ def audit():
         mapped[concept_id]["questions"].extend(generated_questions)
         mapped[concept_id]["recall_questions"].append(generated_questions[0])
 
-        mapped[concept_id]["guided_fallback_labs"].extend([
+        mapped[concept_id]["generated_state_labs"].extend([
             concept_id + ".standalone-diagnostic",
             concept_id + ".standalone-transfer",
         ])
@@ -194,6 +195,7 @@ def audit():
             surface: sorted(mapped[concept_id][surface])
             for surface in (
                 "labs",
+                "generated_state_labs",
                 "guided_fallback_labs",
                 "lessons",
                 "questions",
@@ -205,7 +207,8 @@ def audit():
 
     objective_with_lab = {
         objective_id: any(
-            item["objective_id"] == objective_id and item["surfaces"]["labs"]
+            item["objective_id"] == objective_id
+            and (item["surfaces"]["labs"] or item["surfaces"]["generated_state_labs"])
             for item in concepts
         )
         for objective_id in selected_objectives
@@ -219,10 +222,14 @@ def audit():
         ),
         "with_question": sum(bool(item["surfaces"]["questions"]) for item in concepts),
         "with_advancement_path": sum(
-            bool(item["surfaces"]["recall_questions"] and item["surfaces"]["labs"])
+            bool(item["surfaces"]["recall_questions"]
+            and (item["surfaces"]["labs"] or item["surfaces"]["generated_state_labs"]))
             for item in concepts
         ),
-        "with_deterministic_lab": sum(bool(item["surfaces"]["labs"]) for item in concepts),
+        "with_deterministic_lab": sum(
+            bool(item["surfaces"]["labs"] or item["surfaces"]["generated_state_labs"])
+            for item in concepts
+        ),
         "with_guided_fallback": sum(bool(item["surfaces"]["guided_fallback_labs"]) for item in concepts),
         "objectives_with_lab": sum(objective_with_lab.values()),
     }
@@ -278,7 +285,9 @@ def main():
         item["concept_id"] for item in concepts if not item["surfaces"]["questions"]
     ]
     missing_lab = [
-        item["concept_id"] for item in concepts if not item["surfaces"]["labs"]
+        item["concept_id"]
+        for item in concepts
+        if not (item["surfaces"]["labs"] or item["surfaces"]["generated_state_labs"])
     ]
     if missing_lesson:
         print(
