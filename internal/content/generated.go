@@ -104,6 +104,7 @@ func synthesizeStandaloneContent(
 				application := generatedApplicationQuestion(
 					objective,
 					concept,
+					guide,
 					concepts,
 					curriculumBundle.Concepts.Concepts,
 					objectiveByID,
@@ -191,13 +192,20 @@ func generatedExam101LessonBody(
 		explanation := standaloneTermExplanation(anchor, objective.ID)
 		fmt.Fprintf(&anchors, "- `%s` — %s\n", anchor, explanation)
 		if usage := standaloneTermUsage(anchor); usage != "" {
-			fmt.Fprintf(&examples, "- `%s` : `%s`\n", anchor, usage)
+			fmt.Fprintf(
+				&examples,
+				"- `%s` : exécute par exemple `%s`. Lis le résultat en le reliant à **%s**, puis vérifie que l'état observé correspond bien au rôle attendu.\n",
+				anchor,
+				usage,
+				concept.TitleFR,
+			)
 		} else {
 			fmt.Fprintf(
 				&examples,
-				"- `%s` : explique son rôle, donne un cas d'emploi dans **%s**, puis indique comment tu confirmerais ton diagnostic.\n",
+				"- `%s` : exemple travaillé — dans un diagnostic de **%s**, ce repère est pertinent car %s On l'identifie dans le contexte du système, puis on confirme la conclusion avec un second indice cohérent plutôt que par le nom seul.\n",
 				anchor,
 				concept.TitleFR,
+				explanation,
 			)
 		}
 	}
@@ -402,6 +410,7 @@ func generatedRecognitionQuestion(
 func generatedApplicationQuestion(
 	objective curriculum.Objective,
 	concept curriculum.Concept,
+	guide curriculum.ObjectiveStudyGuide,
 	concepts []curriculum.Concept,
 	allConcepts []curriculum.Concept,
 	objectiveByID map[string]curriculum.Objective,
@@ -409,10 +418,6 @@ func generatedApplicationQuestion(
 ) Question {
 	primary := concept.AnchorTerms[0]
 	correctDescription := standaloneTermExplanation(primary, objective.ID)
-	correctLabel := fmt.Sprintf("Mobiliser %s : %s", inlineCodeList([]string{primary}), correctDescription)
-	if usage := standaloneTermUsage(primary); usage != "" {
-		correctLabel += fmt.Sprintf(" Exemple : `%s`.", usage)
-	}
 
 	distractorTerms := make([]string, 0, 3)
 	appendDistractor := func(candidate string) {
@@ -451,23 +456,25 @@ func generatedApplicationQuestion(
 		appendDistractor(candidate)
 	}
 
+	choiceLabel := func(term string) string {
+		if usage := standaloneTermUsage(term); usage != "" {
+			return fmt.Sprintf("`%s` — commande possible : `%s`", term, usage)
+		}
+		return "`" + term + "`"
+	}
 	choices := []Choice{
-		{ID: "correct", LabelFR: correctLabel},
-		{
-			ID:      "other-1",
-			LabelFR: fmt.Sprintf("Mobiliser %s : %s", inlineCodeList([]string{distractorTerms[0]}), standaloneTermExplanation(distractorTerms[0], objective.ID)),
-		},
-		{
-			ID:      "other-2",
-			LabelFR: fmt.Sprintf("Mobiliser %s : %s", inlineCodeList([]string{distractorTerms[1]}), standaloneTermExplanation(distractorTerms[1], objective.ID)),
-		},
-		{
-			ID:      "other-3",
-			LabelFR: fmt.Sprintf("Mobiliser %s : %s", inlineCodeList([]string{distractorTerms[2]}), standaloneTermExplanation(distractorTerms[2], objective.ID)),
-		},
+		{ID: "correct", LabelFR: choiceLabel(primary)},
+		{ID: "other-1", LabelFR: choiceLabel(distractorTerms[0])},
+		{ID: "other-2", LabelFR: choiceLabel(distractorTerms[1])},
+		{ID: "other-3", LabelFR: choiceLabel(distractorTerms[2])},
 	}
 	rotation := (index + 1) % len(choices)
 	choices[0], choices[rotation] = choices[rotation], choices[0]
+
+	explanation := fmt.Sprintf("%s : %s", primary, correctDescription)
+	if usage := standaloneTermUsage(primary); usage != "" {
+		explanation += fmt.Sprintf(" Exemple vérifiable : `%s`.", usage)
+	}
 
 	return Question{
 		SchemaVersion: "1.0.0",
@@ -477,9 +484,9 @@ func generatedApplicationQuestion(
 		Type:          "multiple-choice",
 		Usage:         "daily",
 		PromptFR: fmt.Sprintf(
-			"Scénario : tu dois traiter « %s » dans le cadre de %s. Quelle action ou association technique est la plus directement pertinente ?",
+			"Scénario opérationnel : %s Tu dois traiter spécifiquement « %s » sur le système. Quel outil, fichier, commande ou repère utiliserais-tu en premier ?",
+			strings.TrimSpace(guide.Practice),
 			concept.TitleFR,
-			objective.ID,
 		),
 		Choices: choices,
 		Grading: Grading{
@@ -489,7 +496,7 @@ func generatedApplicationQuestion(
 		EvidenceKindOnSuccess: "recognition",
 		Labels:                conceptLabels(concept),
 		Distribution:          "generic",
-		ExplanationFR:         correctLabel,
+		ExplanationFR:         explanation,
 	}
 }
 
