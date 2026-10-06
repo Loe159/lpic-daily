@@ -123,7 +123,8 @@
         "/etc/systemd",
         "/usr/lib/systemd",
         "wall",
-        "acpid"
+        "acpid",
+        "Upstart"
       ],
       "recommended_backend": "libvirt-vm",
       "assessment_evidence": [
@@ -228,7 +229,11 @@
         "ldconfig",
         "/etc/ld.so.conf",
         "LD_LIBRARY_PATH",
-        "shared libraries"
+        "shared libraries",
+        "/lib",
+        "/usr/lib",
+        "/lib64",
+        "/usr/lib64"
       ],
       "recommended_backend": "podman",
       "assessment_evidence": [
@@ -294,6 +299,8 @@
       ],
       "terms_files_utilities": [
         "rpm",
+        "rpm -U",
+        "rpm -e",
         "rpm2cpio",
         "/etc/yum.conf",
         "/etc/yum.repos.d",
@@ -908,7 +915,15 @@
         "which",
         "type",
         "/etc/updatedb.conf",
-        "FHS"
+        "FHS",
+        "/etc",
+        "/var",
+        "/usr",
+        "/home",
+        "/tmp",
+        "/boot",
+        "/opt",
+        "/srv"
       ],
       "recommended_backend": "podman",
       "assessment_evidence": [
