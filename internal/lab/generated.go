@@ -6,6 +6,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/Loe159/lpic-daily/internal/content"
 	"github.com/Loe159/lpic-daily/internal/curriculum"
 )
 
@@ -144,7 +145,7 @@ func generatedStandaloneLab(
 	backend, imageRef, distribution := standaloneLabEnvironment(objective, variant)
 	root := "/workspace/lpic-daily-evidence"
 	setup := Setup{ExecutionScope: "sandbox", ScriptRef: "generated-setup.sh"}
-	setupScript := "set -eu\ninstall -d -m 0777 /workspace/lpic-daily-evidence\n"
+	setupScript := "set -eu\ninstall -d -m 0777 /workspace/lpic-daily-evidence\n: > /workspace/lpic-daily-evidence/command-history.log\nchmod 0666 /workspace/lpic-daily-evidence/command-history.log\n"
 	network := "none"
 	if strings.HasPrefix(objective.ID, "109.") || objective.ID == "110.3" {
 		network = "isolated"
@@ -184,8 +185,9 @@ func generatedStandaloneLab(
 	}
 
 	var tasks strings.Builder
-	checks := make([]CheckDefinition, 0, len(concepts))
+	checks := make([]CheckDefinition, 0, len(concepts)*2)
 	conceptIDs := make([]string, 0, len(concepts))
+	commandHistoryPath := root + "/command-history.log"
 	for _, concept := range concepts {
 		conceptIDs = append(conceptIDs, concept.ID)
 		filename := standaloneConceptFilename(concept)
@@ -207,6 +209,16 @@ func generatedStandaloneLab(
 				"\\nCOMMAND=.+\\nOBSERVATION=.+\\nEXPLANATION=.+\\n?$",
 			ConceptIDs: []string{concept.ID},
 		})
+		if objective.Exam == "101" {
+			if pattern := standaloneCommandEvidencePattern(concept); pattern != "" {
+				checks = append(checks, CheckDefinition{
+					Type:       "file-content-regex",
+					Path:       commandHistoryPath,
+					Pattern:    pattern,
+					ConceptIDs: []string{concept.ID},
+				})
+			}
+		}
 	}
 
 	brief := fmt.Sprintf(
@@ -216,7 +228,8 @@ func generatedStandaloneLab(
 			"COMMAND=<commande/action réellement utilisée>, OBSERVATION=<résultat constaté>, "+
 			"EXPLANATION=<pourquoi ce résultat démontre le concept>. "+
 			"Crée d'abord %s si le répertoire n'existe pas. Le but n'est pas de recopier le cours : "+
-			"fais la manipulation dans le sandbox, puis explique l'état observé.",
+			"fais la manipulation dans le sandbox, puis explique l'état observé. "+
+			"Pour les concepts qui demandent une commande réelle, exécute-la directement à l'invite lpic> : LPIC Daily journalise automatiquement la commande et son code de sortie dans une preuve séparée que le lab vérifie.",
 		contextFR,
 		objective.ID,
 		objective.TitleFR,
@@ -334,6 +347,48 @@ func generatedStandaloneHints(labID, root string) []Hint {
 				"OBSERVATION=<résultat>, EXPLANATION=<raison>. Répète ce format pour chaque fichier indiqué dans le brief.",
 			EvidenceImpact: "solution-revealed",
 		},
+	}
+}
+
+
+func StandaloneCommandHistoryPath(definition Definition) (string, bool) {
+	if !strings.Contains(definition.ID, ".standalone-") {
+		return "", false
+	}
+	switch definition.Environment.Backend {
+	case "podman":
+		return "/workspace/lpic-daily-evidence/command-history.log", true
+	case "libvirt":
+		return "/root/lpic-daily-evidence/command-history.log", true
+	default:
+		return "", false
+	}
+}
+
+func standaloneCommandEvidencePattern(concept curriculum.Concept) string {
+	var anchors []string
+	for _, anchor := range concept.AnchorTerms {
+		if !standaloneCommandAnchorAllowed(anchor) {
+			continue
+		}
+		if strings.TrimSpace(content.PedagogicalTermUsage(anchor)) == "" {
+			continue
+		}
+		anchors = append(anchors, regexEscape(anchor))
+	}
+	if len(anchors) == 0 {
+		return ""
+	}
+	return "(?m)^EXIT=0\\tCOMMAND=.*(?:" + strings.Join(anchors, "|") + ").*$"
+}
+
+func standaloneCommandAnchorAllowed(anchor string) bool {
+	switch anchor {
+	case "vi", "vim", "screen", "tmux", "shutdown", "init", "telinit",
+		"grub-install", "grub-mkconfig", "dpkg-reconfigure":
+		return false
+	default:
+		return true
 	}
 }
 

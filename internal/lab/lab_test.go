@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	lpicdaily "github.com/Loe159/lpic-daily"
+	"github.com/Loe159/lpic-daily/internal/content"
 	"github.com/Loe159/lpic-daily/internal/curriculum"
 	"github.com/Loe159/lpic-daily/internal/lab"
 	"github.com/Loe159/lpic-daily/internal/runner"
@@ -473,42 +474,78 @@ func TestGeneratedStandaloneLabsUseConceptAnchors(t *testing.T) {
 	}
 
 	conceptByID := make(map[string]curriculum.Concept)
+	objectiveExam := make(map[string]string)
+	for _, objective := range curriculumBundle.Objectives.Objectives {
+		if objective.Active {
+			objectiveExam[objective.ID] = objective.Exam
+		}
+	}
 	for _, concept := range curriculumBundle.Concepts.Concepts {
 		if concept.Active {
 			conceptByID[concept.ID] = concept
 		}
 	}
 	seen := make(map[string]int)
+	commandEvidence := make(map[string]int)
 	for _, authored := range labs {
 		if !strings.Contains(authored.Definition.ID, ".standalone-") {
 			continue
 		}
-		for index, conceptID := range authored.Definition.ConceptIDs {
+		historyPath, _ := lab.StandaloneCommandHistoryPath(authored.Definition)
+		for _, conceptID := range authored.Definition.ConceptIDs {
 			concept := conceptByID[conceptID]
-			if index >= len(authored.Definition.Checks) {
-				t.Fatalf("%s missing check for %s", authored.Definition.ID, conceptID)
-			}
 			wantTerms := "TERMS=" + strings.Join(concept.AnchorTerms, ",")
-			if !strings.Contains(authored.Definition.Checks[index].Pattern, regexp.QuoteMeta(wantTerms)) {
-				t.Errorf(
-					"%s check for %s does not require anchors %v: %q",
-					authored.Definition.ID,
-					conceptID,
-					concept.AnchorTerms,
-					authored.Definition.Checks[index].Pattern,
-				)
+			foundStructuredEvidence := false
+			foundRuntimeCommand := false
+			for _, check := range authored.Definition.Checks {
+				if !slices.Contains(check.ConceptIDs, conceptID) {
+					continue
+				}
+				if check.Path == historyPath {
+					foundRuntimeCommand = true
+					continue
+				}
+				if check.Type == "file-content-regex" &&
+					strings.Contains(check.Pattern, regexp.QuoteMeta(wantTerms)) {
+					foundStructuredEvidence = true
+				}
+			}
+			if !foundStructuredEvidence {
+				t.Errorf("%s has no structured evidence check for %s anchors %v", authored.Definition.ID, conceptID, concept.AnchorTerms)
 			}
 			for _, anchor := range concept.AnchorTerms {
 				if !strings.Contains(authored.Definition.BriefFR, "`"+anchor+"`") {
 					t.Errorf("%s brief misses %s anchor %q", authored.Definition.ID, conceptID, anchor)
 				}
 			}
+			if foundRuntimeCommand {
+				commandEvidence[conceptID]++
+			}
 			seen[conceptID]++
 		}
 	}
-	for conceptID := range conceptByID {
+	for conceptID, concept := range conceptByID {
 		if seen[conceptID] < 2 {
 			t.Errorf("%s appears in %d generated standalone labs, want at least 2", conceptID, seen[conceptID])
 		}
+		if objectiveExam[concept.ObjectiveID] != "101" {
+			continue
+		}
+		hasCommandAnchor := false
+		for _, anchor := range concept.AnchorTerms {
+			if content.PedagogicalTermUsage(anchor) != "" {
+				switch anchor {
+				case "vi", "vim", "screen", "tmux", "shutdown", "init", "telinit",
+					"grub-install", "grub-mkconfig", "dpkg-reconfigure":
+					continue
+				}
+				hasCommandAnchor = true
+				break
+			}
+		}
+		if hasCommandAnchor && commandEvidence[conceptID] < 2 {
+			t.Errorf("%s runtime command-evidence contexts = %d, want at least 2", conceptID, commandEvidence[conceptID])
+		}
 	}
 }
+

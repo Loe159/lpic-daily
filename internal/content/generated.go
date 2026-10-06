@@ -481,6 +481,13 @@ func standaloneTermUsage(term string) string {
 	return standaloneTermUsages[term]
 }
 
+// PedagogicalTermUsage exposes the canonical learner-facing command example for
+// lab synthesis. An empty string means that the anchor is conceptual or has no
+// safe deterministic command example.
+func PedagogicalTermUsage(term string) string {
+	return standaloneTermUsage(term)
+}
+
 var standaloneTermUsages = map[string]string{
 	"modprobe":         "modprobe <module> ; modprobe -r <module>",
 	"lsmod":            "lsmod",
