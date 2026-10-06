@@ -59,7 +59,7 @@ func TestPhase1ImageProvidesInteractiveEditorsAndTerminfo(t *testing.T) {
 		Argv: []string{
 			"/usr/bin/bash",
 			"-c",
-			"command -v nano >/dev/null && command -v vi >/dev/null && command -v vim >/dev/null && infocmp xterm-256color >/dev/null && infocmp xterm-kitty >/dev/null",
+			"command -v nano >/dev/null && command -v vi >/dev/null && command -v vim >/dev/null && test -r /usr/share/terminfo/x/xterm-256color && test -r /usr/share/terminfo/x/xterm-kitty",
 		},
 	})
 	if err != nil {
