@@ -244,7 +244,7 @@ func TestQuestionRecommendationPrefersRecallBeforeOtherQuestions(t *testing.T) {
 				ObjectiveIDs:    []string{"103.1"},
 				SourceItemID:    "test-practice",
 				ActivityKind:    learning.ActivityLab,
-				EvidenceKind:    learning.EvidenceGuidedPractice,
+				EvidenceKind:    learning.EvidenceIndependentPractice,
 				Result:          learning.ResultPass,
 				Distribution:    "generic",
 				PracticeContext: "test-practice",
