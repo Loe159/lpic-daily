@@ -415,20 +415,36 @@ func TestExam101GeneratedPedagogyIsFocusedAndApplied(t *testing.T) {
 		application, exists := questions[applicationID]
 		if !exists {
 			t.Errorf("%s has no applied Exam 101 scenario question", concept.ID)
-		} else if previous, duplicate := seenPrompts[application.PromptFR]; duplicate {
-			t.Errorf("%s application prompt duplicates %s", applicationID, previous)
 		} else {
-			seenPrompts[application.PromptFR] = applicationID
+			if previous, duplicate := seenPrompts[application.PromptFR]; duplicate {
+				t.Errorf("%s application prompt duplicates %s", applicationID, previous)
+			} else {
+				seenPrompts[application.PromptFR] = applicationID
+			}
+			if len(application.Choices) != 4 {
+				t.Errorf("%s has %d choices, want 4", applicationID, len(application.Choices))
+			}
+			seenLabels := make(map[string]struct{}, len(application.Choices))
+			for _, choice := range application.Choices {
+				if strings.Contains(choice.LabelFR, "alternative-") {
+					t.Errorf("%s contains synthetic distractor %q", applicationID, choice.LabelFR)
+				}
+				if _, duplicate := seenLabels[choice.LabelFR]; duplicate {
+					t.Errorf("%s contains duplicate choice %q", applicationID, choice.LabelFR)
+				}
+				seenLabels[choice.LabelFR] = struct{}{}
+			}
 		}
 
-		for anchorIndex := range concept.AnchorTerms {
+		for anchorIndex, anchor := range concept.AnchorTerms {
 			recallID := concept.ID + ".q.autonomous-recall"
 			if anchorIndex > 0 {
 				recallID += fmt.Sprintf("-%02d", anchorIndex+1)
 			}
 			recall := questions[recallID]
-			if !recall.Grading.CaseSensitive {
-				t.Errorf("%s must grade Exam 101 command/path/term spelling case-sensitively", recallID)
+			wantCaseSensitive := recallAnswerCaseSensitive(anchor)
+			if recall.Grading.CaseSensitive != wantCaseSensitive {
+				t.Errorf("%s case-sensitive = %t, want %t for anchor %q", recallID, recall.Grading.CaseSensitive, wantCaseSensitive, anchor)
 			}
 			if previous, duplicate := seenPrompts[recall.PromptFR]; duplicate {
 				t.Errorf("%s recall prompt duplicates %s", recallID, previous)
