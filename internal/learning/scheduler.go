@@ -187,9 +187,22 @@ func BuildSession(input SessionInput) (Session, error) {
 		objectiveNodes[node.ObjectiveID] = node
 	}
 
+	startedIncompleteObjectives := make(map[string]bool)
+	for _, concept := range input.Bundle.Concepts.Concepts {
+		if !concept.Active || !eligible[concept.ObjectiveID] || input.ObjectiveReadiness[concept.ObjectiveID] {
+			continue
+		}
+		if projection, exists := input.Projections[concept.ID]; exists && projection.Stage != StageUnseen {
+			startedIncompleteObjectives[concept.ObjectiveID] = true
+		}
+	}
+
 	var candidates []newCandidate
 	for _, concept := range input.Bundle.Concepts.Concepts {
 		if !concept.Active || !eligible[concept.ObjectiveID] {
+			continue
+		}
+		if len(startedIncompleteObjectives) > 0 && !startedIncompleteObjectives[concept.ObjectiveID] {
 			continue
 		}
 		if projection, exists := input.Projections[concept.ID]; exists && projection.Stage != StageUnseen {
