@@ -59,33 +59,32 @@ func ExamQuestions(
 			)
 		}
 
-		// Spread selections over the objective's concepts instead of taking a
-		// cluster of questions from the first concept.
+		// Mix free recall with operational application while spreading selections
+		// across concepts. Application occupies roughly one third of the paper.
 		seenConcept := make(map[string]bool)
-		picked := 0
-		for _, question := range candidates {
-			conceptID := question.ConceptIDs[0]
-			if seenConcept[conceptID] {
-				continue
+		pickedIDs := make(map[string]bool)
+		for slot := 0; slot < objective.Weight; slot++ {
+			wantApplication := slot%3 == 0
+			picked := false
+			for pass := 0; pass < 2 && !picked; pass++ {
+				for _, question := range candidates {
+					if pickedIDs[question.ID] || seenConcept[question.ConceptIDs[0]] {
+						continue
+					}
+					isApplication := strings.Contains(question.ID, ".q.autonomous-application")
+					if pass == 0 && isApplication != wantApplication {
+						continue
+					}
+					selected = append(selected, question)
+					pickedIDs[question.ID] = true
+					seenConcept[question.ConceptIDs[0]] = true
+					picked = true
+					break
+				}
 			}
-			selected = append(selected, question)
-			seenConcept[conceptID] = true
-			picked++
-			if picked == objective.Weight {
-				break
+			if !picked {
+				return nil, fmt.Errorf("objective %s cannot fill weighted mixed exam slot %d", objective.ID, slot+1)
 			}
-		}
-		for _, question := range candidates {
-			if picked == objective.Weight {
-				break
-			}
-			if slices.ContainsFunc(selected, func(existing content.Question) bool {
-				return existing.ID == question.ID
-			}) {
-				continue
-			}
-			selected = append(selected, question)
-			picked++
 		}
 	}
 
