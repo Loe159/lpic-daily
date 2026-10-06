@@ -1172,6 +1172,14 @@ type sanitizedTerminalWriter struct {
 	destination io.Writer
 }
 
+func interactiveTerminal(stdin io.Reader, stdout io.Writer) bool {
+	stdinFile, stdinOK := stdin.(*os.File)
+	stdoutFile, stdoutOK := stdout.(*os.File)
+	return stdinOK && stdoutOK &&
+		terminal.IsTerminal(stdinFile) &&
+		terminal.IsTerminal(stdoutFile)
+}
+
 func (writer sanitizedTerminalWriter) Write(payload []byte) (int, error) {
 	if writer.destination == nil {
 		return 0, errors.New("sanitized terminal writer destination is required")
@@ -1225,8 +1233,36 @@ func runInteractiveLabWithBackend(
 
 	printLab(authored, stdout)
 	fmt.Fprintln(stdout)
+
+	nextHint := nextHintIndex(authored.Hints, highestHintLevel)
+	usedPersistentShell := false
+	var jobControlEvidence *jobControlInteractionEvidence
+	if labRequiresJobControl(authored.Definition) {
+		jobControlEvidence = &jobControlInteractionEvidence{}
+	}
+
 	if persistentShell {
-		fmt.Fprintln(stdout, "Mode commandes sandboxé. Chaque ligne est exécutée dans un nouveau shell du lab.")
+		if interactiveTerminal(stdin, stdout) {
+			fmt.Fprintln(stdout, "Ouverture du shell Linux interactif. Tape exit ou Ctrl-D pour revenir à LPIC Daily.")
+			result, err := runPersistentShell(
+				sessionCtx,
+				backend,
+				session.Instance,
+				stdin,
+				stdout,
+				jobControlEvidence,
+			)
+			if err != nil {
+				return fmt.Errorf("interactive sandbox shell: %w", err)
+			}
+			usedPersistentShell = true
+			fmt.Fprintln(stdout, "\n[retour LPIC Daily]")
+			if result.ExitCode != 0 {
+				fmt.Fprintf(stderr, "[shell exit %d]\n", result.ExitCode)
+			}
+		} else {
+			fmt.Fprintln(stdout, "Terminal interactif indisponible : utilisation du mode commandes sandboxé.")
+		}
 		fmt.Fprintln(stdout, "Commandes LPIC Daily : :shell  :check  :hint  :reset  :quit")
 	} else {
 		fmt.Fprintln(stdout, "Mode commandes VM. Chaque ligne est exécutée dans la VM via QEMU Guest Agent.")
@@ -1243,9 +1279,6 @@ func runInteractiveLabWithBackend(
 
 	scanner := bufio.NewScanner(stdin)
 	scanner.Buffer(make([]byte, 4096), 256<<10)
-	nextHint := nextHintIndex(authored.Hints, highestHintLevel)
-	usedPersistentShell := false
-	jobControlEvidence := &jobControlInteractionEvidence{}
 
 	for {
 		if err := sessionCtx.Err(); err != nil {
