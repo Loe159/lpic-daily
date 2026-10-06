@@ -201,7 +201,7 @@ func deterministicShellExercise(
 		value := token + " value * literal"
 		expected := fmt.Sprintf("single=$VALUE\ndouble=%s\nescaped=$VALUE\n", value)
 		verify := fmt.Sprintf(
-			"set -eu; grep -Fq '\''single=$VALUE'\'' %q; grep -Fq '\"$VALUE\"' %q; grep -Fq '\\$VALUE' %q; actual=$(mktemp); expected=$(mktemp); trap 'rm -f \"$actual\" \"$expected\"' EXIT; VALUE=%q /bin/bash %q >\"$actual\"; printf '%%b' %q >\"$expected\"; cmp -s \"$actual\" \"$expected\"",
+			"set -eu; grep -Fq 'single=$VALUE' %q; grep -Fq 'double=' %q; grep -Fq '\\$VALUE' %q; actual=$(mktemp); expected=$(mktemp); trap 'rm -f \"$actual\" \"$expected\"' EXIT; VALUE=%q /bin/bash %q >\"$actual\"; printf '%%b' %q >\"$expected\"; cmp -s \"$actual\" \"$expected\"",
 			scriptPath, scriptPath, scriptPath, value, scriptPath, expected,
 		)
 		return fmt.Sprintf(
