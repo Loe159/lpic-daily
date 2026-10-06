@@ -781,6 +781,116 @@ func TestIndependentConceptSkipsUnusedLabIDInAlreadyUsedPracticeContext(t *testi
 	}
 }
 
+func TestExam102StaysLockedUntilEveryExam101ConceptCompletesCourseQuizAndLab(t *testing.T) {
+	curriculumBundle, contentBundle, labs := loadInputs(t)
+	now := time.Date(2026, 10, 6, 12, 0, 0, 0, time.UTC)
+	evidence := memoryEvidence{}
+	objectiveExam := make(map[string]string)
+	var incompleteConcept string
+
+	for _, objective := range curriculumBundle.Objectives.Objectives {
+		if objective.Active {
+			objectiveExam[objective.ID] = objective.Exam
+		}
+	}
+	for _, concept := range curriculumBundle.Concepts.Concepts {
+		if !concept.Active || objectiveExam[concept.ObjectiveID] != "101" {
+			continue
+		}
+		events := []learning.EvidenceEvent{
+			{
+				EventID: "lesson-" + concept.ID, OccurredAt: now.Add(-3 * time.Hour),
+				ConceptID: concept.ID, ObjectiveIDs: []string{concept.ObjectiveID},
+				SourceItemID: "lesson", ActivityKind: learning.ActivityLesson,
+				EvidenceKind: learning.EvidenceExposure, Result: learning.ResultPass,
+				Distribution: "generic", AttemptIndex: 1,
+			},
+			{
+				EventID: "quiz-" + concept.ID, OccurredAt: now.Add(-2 * time.Hour),
+				ConceptID: concept.ID, ObjectiveIDs: []string{concept.ObjectiveID},
+				SourceItemID: "quiz", ActivityKind: learning.ActivityQuestion,
+				EvidenceKind: learning.EvidenceRecall, Result: learning.ResultPass,
+				Distribution: "generic", AttemptIndex: 1,
+			},
+		}
+		if incompleteConcept == "" {
+			incompleteConcept = concept.ID
+		} else {
+			events = append(events, learning.EvidenceEvent{
+				EventID: "lab-" + concept.ID, OccurredAt: now.Add(-time.Hour),
+				ConceptID: concept.ID, ObjectiveIDs: []string{concept.ObjectiveID},
+				SourceItemID: "lab", ActivityKind: learning.ActivityLab,
+				EvidenceKind: learning.EvidenceGuidedPractice, Result: learning.ResultPass,
+				Distribution: "generic", PracticeContext: "complete", AttemptIndex: 1,
+			})
+		}
+		evidence[concept.ID] = events
+	}
+
+	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
+		Now: now, Curriculum: curriculumBundle, Content: contentBundle, Labs: labs,
+		Evidence: evidence, Policy: learning.DefaultSessionPolicy(),
+	})
+	if err != nil {
+		t.Fatalf("BuildPlan() error = %v", err)
+	}
+	for _, item := range plan.Items {
+		if objectiveExam[item.ObjectiveID] == "102" {
+			t.Fatalf("Exam 102 item %#v scheduled while Exam 101 concept %s lacks practical completion", item, incompleteConcept)
+		}
+	}
+}
+
+func TestGeneratedGuidedLabRotatesToSecondPracticeContext(t *testing.T) {
+	curriculumBundle, contentBundle, labs := loadInputs(t)
+	now := time.Date(2026, 10, 10, 12, 0, 0, 0, time.UTC)
+	conceptID := "lpic1.103.2.flux-texte-ligne-octet"
+	diagnosticID := conceptID + ".standalone-diagnostic"
+	transferID := conceptID + ".standalone-transfer"
+	evidence := memoryEvidence{
+		conceptID: {
+			{
+				EventID: "lesson", OccurredAt: now.Add(-5 * 24 * time.Hour),
+				ConceptID: conceptID, ObjectiveIDs: []string{"103.2"},
+				SourceItemID: "lesson", ActivityKind: learning.ActivityLesson,
+				EvidenceKind: learning.EvidenceExposure, Result: learning.ResultPass,
+				Distribution: "generic", AttemptIndex: 1,
+			},
+			{
+				EventID: "quiz", OccurredAt: now.Add(-5 * 24 * time.Hour),
+				ConceptID: conceptID, ObjectiveIDs: []string{"103.2"},
+				SourceItemID: "quiz", ActivityKind: learning.ActivityQuestion,
+				EvidenceKind: learning.EvidenceRecall, Result: learning.ResultPass,
+				Distribution: "generic", AttemptIndex: 1,
+			},
+			{
+				EventID: "diagnostic", OccurredAt: now.Add(-4 * 24 * time.Hour),
+				ConceptID: conceptID, ObjectiveIDs: []string{"103.2"},
+				SourceItemID: diagnosticID, ActivityKind: learning.ActivityLab,
+				EvidenceKind: learning.EvidenceGuidedPractice, Result: learning.ResultPass,
+				Distribution: "generic",
+				PracticeContext: "103-2-flux-texte-ligne-octet-standalone-diagnostic",
+				AttemptIndex: 1,
+			},
+		},
+	}
+	policy := learning.DefaultSessionPolicy()
+	policy.MaxNewConcepts = 0
+	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
+		Now: now, Curriculum: curriculumBundle, Content: contentBundle, Labs: labs,
+		Evidence: evidence, Policy: policy,
+	})
+	if err != nil {
+		t.Fatalf("BuildPlan() error = %v", err)
+	}
+	if len(plan.Items) != 1 {
+		t.Fatalf("items = %#v, want one due guided review", plan.Items)
+	}
+	if got := plan.Items[0].RecommendedLabID; got != transferID {
+		t.Fatalf("recommended lab = %q, want %q after diagnostic success", got, transferID)
+	}
+}
+
 func TestCompletedExam101CanProgressIntoExam102(t *testing.T) {
 	curriculumBundle, contentBundle, labs := loadInputs(t)
 	now := time.Date(2026, 10, 5, 18, 0, 0, 0, time.UTC)
@@ -797,6 +907,18 @@ func TestCompletedExam101CanProgressIntoExam102(t *testing.T) {
 			continue
 		}
 		evidence[concept.ID] = []learning.EvidenceEvent{
+			{
+				EventID:      "exam101-lesson-" + concept.ID,
+				OccurredAt:   now.Add(-2 * time.Minute),
+				ConceptID:    concept.ID,
+				ObjectiveIDs: []string{concept.ObjectiveID},
+				SourceItemID: "exam101-lesson",
+				ActivityKind: learning.ActivityLesson,
+				EvidenceKind: learning.EvidenceExposure,
+				Result:       learning.ResultPass,
+				Distribution: "generic",
+				AttemptIndex: 1,
+			},
 			{
 				EventID:      "exam101-ready-" + concept.ID,
 				OccurredAt:   now.Add(-time.Minute),
