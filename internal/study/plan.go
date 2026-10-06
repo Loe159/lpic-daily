@@ -19,11 +19,11 @@ type EvidenceReader interface {
 }
 
 type PlanInput struct {
-	Now         time.Time
-	Curriculum  *curriculum.Bundle
-	Content     *content.Bundle
-	Labs        []lab.Lab
-	Evidence    EvidenceReader
+	Now                     time.Time
+	Curriculum              *curriculum.Bundle
+	Content                 *content.Bundle
+	Labs                    []lab.Lab
+	Evidence                EvidenceReader
 	Policy                  learning.SessionPolicy
 	Exam101Only             bool
 	Exam101AssessmentPassed bool
