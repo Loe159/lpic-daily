@@ -39,8 +39,8 @@
         ]
       },
       "lab_contexts": [
-        "103-1-syntaxe-shell-et-sequences-de-commandes-standalone-diagnostic",
-        "103-1-syntaxe-shell-et-sequences-de-commandes-standalone-transfer",
+        "103-1-c01-standalone-diagnostic",
+        "103-1-c01-standalone-transfer",
         "shell-env-repair",
         "shell-handoff"
       ],
@@ -67,8 +67,8 @@
         ]
       },
       "lab_contexts": [
-        "103-1-variables-shell-environnement-standalone-diagnostic",
-        "103-1-variables-shell-environnement-standalone-transfer",
+        "103-1-c02-standalone-diagnostic",
+        "103-1-c02-standalone-transfer",
         "shell-env-repair",
         "shell-handoff"
       ],
@@ -95,8 +95,8 @@
         ]
       },
       "lab_contexts": [
-        "103-1-path-et-resolution-de-commande-standalone-diagnostic",
-        "103-1-path-et-resolution-de-commande-standalone-transfer",
+        "103-1-c03-standalone-diagnostic",
+        "103-1-c03-standalone-transfer",
         "shell-env-repair",
         "shell-handoff"
       ],
@@ -123,8 +123,8 @@
         ]
       },
       "lab_contexts": [
-        "103-1-quoting-escaping-standalone-diagnostic",
-        "103-1-quoting-escaping-standalone-transfer",
+        "103-1-c04-standalone-diagnostic",
+        "103-1-c04-standalone-transfer",
         "shell-env-repair",
         "shell-handoff"
       ],
@@ -151,8 +151,8 @@
         ]
       },
       "lab_contexts": [
-        "103-1-historique-standalone-diagnostic",
-        "103-1-historique-standalone-transfer",
+        "103-1-c05-standalone-diagnostic",
+        "103-1-c05-standalone-transfer",
         "shell-env-repair",
         "shell-handoff"
       ],
@@ -179,8 +179,8 @@
         ]
       },
       "lab_contexts": [
-        "103-1-documentation-et-identification-d-une-commande-standalone-diagnostic",
-        "103-1-documentation-et-identification-d-une-commande-standalone-transfer",
+        "103-1-c06-standalone-diagnostic",
+        "103-1-c06-standalone-transfer",
         "shell-env-repair",
         "shell-handoff"
       ],
@@ -207,8 +207,8 @@
         ]
       },
       "lab_contexts": [
-        "103-1-informations-systeme-de-base-standalone-diagnostic",
-        "103-1-informations-systeme-de-base-standalone-transfer",
+        "103-1-c07-standalone-diagnostic",
+        "103-1-c07-standalone-transfer",
         "shell-env-repair",
         "shell-handoff"
       ],
@@ -231,8 +231,8 @@
         ]
       },
       "lab_contexts": [
-        "103-1-set-env-et-portee-des-variables-standalone-diagnostic",
-        "103-1-set-env-et-portee-des-variables-standalone-transfer"
+        "103-1-c08-standalone-diagnostic",
+        "103-1-c08-standalone-transfer"
       ],
       "focused_introduction_count": 1
     },
@@ -253,8 +253,8 @@
         ]
       },
       "lab_contexts": [
-        "103-1-export-unset-et-processus-enfants-standalone-diagnostic",
-        "103-1-export-unset-et-processus-enfants-standalone-transfer"
+        "103-1-c09-standalone-diagnostic",
+        "103-1-c09-standalone-transfer"
       ],
       "focused_introduction_count": 1
     },
@@ -275,8 +275,8 @@
         ]
       },
       "lab_contexts": [
-        "103-1-execution-de-commandes-hors-path-standalone-diagnostic",
-        "103-1-execution-de-commandes-hors-path-standalone-transfer"
+        "103-1-c10-standalone-diagnostic",
+        "103-1-c10-standalone-transfer"
       ],
       "focused_introduction_count": 1
     },
@@ -297,8 +297,8 @@
         ]
       },
       "lab_contexts": [
-        "103-1-edition-et-persistance-de-l-historique-standalone-diagnostic",
-        "103-1-edition-et-persistance-de-l-historique-standalone-transfer"
+        "103-1-c11-standalone-diagnostic",
+        "103-1-c11-standalone-transfer"
       ],
       "focused_introduction_count": 1
     },
@@ -319,8 +319,8 @@
         ]
       },
       "lab_contexts": [
-        "103-1-echo-et-expansion-shell-standalone-diagnostic",
-        "103-1-echo-et-expansion-shell-standalone-transfer"
+        "103-1-c12-standalone-diagnostic",
+        "103-1-c12-standalone-transfer"
       ],
       "focused_introduction_count": 1
     },
@@ -345,8 +345,8 @@
         ]
       },
       "lab_contexts": [
-        "103-5-processus-avant-arriere-plan-standalone-diagnostic",
-        "103-5-processus-avant-arriere-plan-standalone-transfer",
+        "103-5-c01-standalone-diagnostic",
+        "103-5-c01-standalone-transfer",
         "operator-session",
         "process-incident"
       ],
@@ -373,8 +373,8 @@
         ]
       },
       "lab_contexts": [
-        "103-5-jobs-du-shell-standalone-diagnostic",
-        "103-5-jobs-du-shell-standalone-transfer",
+        "103-5-c02-standalone-diagnostic",
+        "103-5-c02-standalone-transfer",
         "operator-session",
         "process-incident"
       ],
@@ -401,8 +401,8 @@
         ]
       },
       "lab_contexts": [
-        "103-5-signaux-standalone-diagnostic",
-        "103-5-signaux-standalone-transfer",
+        "103-5-c03-standalone-diagnostic",
+        "103-5-c03-standalone-transfer",
         "operator-session",
         "process-incident"
       ],
@@ -429,8 +429,8 @@
         ]
       },
       "lab_contexts": [
-        "103-5-inspection-arbres-ressources-standalone-diagnostic",
-        "103-5-inspection-arbres-ressources-standalone-transfer",
+        "103-5-c04-standalone-diagnostic",
+        "103-5-c04-standalone-transfer",
         "operator-session",
         "process-incident"
       ],
@@ -457,8 +457,8 @@
         ]
       },
       "lab_contexts": [
-        "103-5-processus-survivant-a-la-session-standalone-diagnostic",
-        "103-5-processus-survivant-a-la-session-standalone-transfer",
+        "103-5-c05-standalone-diagnostic",
+        "103-5-c05-standalone-transfer",
         "operator-session",
         "process-incident"
       ],
@@ -485,8 +485,8 @@
         ]
       },
       "lab_contexts": [
-        "103-5-selection-par-nom-pid-standalone-diagnostic",
-        "103-5-selection-par-nom-pid-standalone-transfer",
+        "103-5-c06-standalone-diagnostic",
+        "103-5-c06-standalone-transfer",
         "operator-session",
         "process-incident"
       ],
@@ -513,8 +513,8 @@
         ]
       },
       "lab_contexts": [
-        "103-5-multiplexeurs-de-terminal-standalone-diagnostic",
-        "103-5-multiplexeurs-de-terminal-standalone-transfer",
+        "103-5-c07-standalone-diagnostic",
+        "103-5-c07-standalone-transfer",
         "operator-session",
         "process-incident"
       ],
@@ -541,8 +541,8 @@
         ]
       },
       "lab_contexts": [
-        "104-5-permissions-rwx-fichier-dossier-standalone-diagnostic",
-        "104-5-permissions-rwx-fichier-dossier-standalone-transfer",
+        "104-5-c01-standalone-diagnostic",
+        "104-5-c01-standalone-transfer",
         "shared-dropbox-policy",
         "team-share-audit"
       ],
@@ -569,8 +569,8 @@
         ]
       },
       "lab_contexts": [
-        "104-5-notation-symbolique-octale-standalone-diagnostic",
-        "104-5-notation-symbolique-octale-standalone-transfer",
+        "104-5-c02-standalone-diagnostic",
+        "104-5-c02-standalone-transfer",
         "shared-dropbox-policy",
         "team-share-audit"
       ],
@@ -597,8 +597,8 @@
         ]
       },
       "lab_contexts": [
-        "104-5-proprietaire-groupe-standalone-diagnostic",
-        "104-5-proprietaire-groupe-standalone-transfer",
+        "104-5-c03-standalone-diagnostic",
+        "104-5-c03-standalone-transfer",
         "shared-dropbox-policy",
         "team-share-audit"
       ],
@@ -625,8 +625,8 @@
         ]
       },
       "lab_contexts": [
-        "104-5-umask-standalone-diagnostic",
-        "104-5-umask-standalone-transfer",
+        "104-5-c04-standalone-diagnostic",
+        "104-5-c04-standalone-transfer",
         "shared-dropbox-policy",
         "team-share-audit"
       ],
@@ -653,8 +653,8 @@
         ]
       },
       "lab_contexts": [
-        "104-5-suid-standalone-diagnostic",
-        "104-5-suid-standalone-transfer",
+        "104-5-c05-standalone-diagnostic",
+        "104-5-c05-standalone-transfer",
         "shared-dropbox-policy",
         "team-share-audit"
       ],
@@ -681,8 +681,8 @@
         ]
       },
       "lab_contexts": [
-        "104-5-sgid-standalone-diagnostic",
-        "104-5-sgid-standalone-transfer",
+        "104-5-c06-standalone-diagnostic",
+        "104-5-c06-standalone-transfer",
         "shared-dropbox-policy",
         "team-share-audit"
       ],
@@ -709,8 +709,8 @@
         ]
       },
       "lab_contexts": [
-        "104-5-sticky-bit-standalone-diagnostic",
-        "104-5-sticky-bit-standalone-transfer",
+        "104-5-c07-standalone-diagnostic",
+        "104-5-c07-standalone-transfer",
         "shared-dropbox-policy",
         "team-share-audit"
       ],
@@ -737,8 +737,8 @@
         ]
       },
       "lab_contexts": [
-        "104-5-effets-speciaux-sur-repertoires-standalone-diagnostic",
-        "104-5-effets-speciaux-sur-repertoires-standalone-transfer",
+        "104-5-c08-standalone-diagnostic",
+        "104-5-c08-standalone-transfer",
         "shared-dropbox-policy",
         "team-share-audit"
       ],
