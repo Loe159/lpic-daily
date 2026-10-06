@@ -146,7 +146,6 @@ func deterministicInspectionProbes(objectiveID string, concept curriculum.Concep
 	return strings.Join(diagnostic, "; "), strings.Join(transfer, "; ")
 }
 
-
 func deterministicShellExercise(
 	concept curriculum.Concept,
 	root, result string,
