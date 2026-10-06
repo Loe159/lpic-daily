@@ -240,6 +240,44 @@ func TestSuccessfulRecallRequiresPracticalWorkBeforeNextConcept(t *testing.T) {
 	}
 }
 
+func TestStartedObjectiveKeepsFocusUntilComplete(t *testing.T) {
+	bundle := loadBundle(t)
+	now := time.Date(2026, 10, 6, 13, 0, 0, 0, time.UTC)
+	first := "lpic1.103.4.stdin-stdout-stderr-et-descripteurs"
+	second := "lpic1.103.4.redirections-ecrasement-append"
+
+	session, err := learning.BuildSession(learning.SessionInput{
+		Now:    now,
+		Bundle: bundle,
+		Projections: map[string]learning.MasteryProjection{
+			first: {
+				ConceptID:           first,
+				Stage:               learning.StageGuided,
+				SuccessfulGuided:    1,
+				LastEvidenceAt:      now,
+				LastStageEvidenceAt: now,
+			},
+		},
+		ObjectiveReadiness: map[string]bool{
+			"103.1": true,
+			"103.4": false,
+			"103.5": false,
+		},
+		ScopeObjectives: []string{"103.4", "103.5"},
+		Policy:          learning.DefaultSessionPolicy(),
+	})
+	if err != nil {
+		t.Fatalf("BuildSession() error = %v", err)
+	}
+	if len(session.Items) != 1 {
+		t.Fatalf("items = %#v, want one new concept in started objective", session.Items)
+	}
+	item := session.Items[0]
+	if item.Kind != learning.SessionNew || item.ObjectiveID != "103.4" || item.ConceptID != second {
+		t.Fatalf("item = %#v, want next 103.4 concept before switching objective", item)
+	}
+}
+
 func TestRecommendedPrerequisitesRankButDoNotBlock(t *testing.T) {
 	bundle := loadBundle(t)
 	now := time.Date(2026, 9, 27, 3, 0, 0, 0, time.UTC)
