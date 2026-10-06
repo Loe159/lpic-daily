@@ -42,7 +42,7 @@ Cross-topic incidents and adaptive extra depth are intentionally tracked in Phas
 
 `python3 scripts/audit_phase3_coverage.py --require-complete` is the course/daily-question/practical-lab exit gate. It requires both recall and practical advancement paths for every Exam-101 concept.
 
-The normal foundation validation runs the non-blocking audit so incomplete curriculum work does not make every intermediate commit fail while invalid mappings still fail closed.
+The normal foundation validation now runs `audit_phase3_coverage.py --require-complete`; any regression that removes a required Exam-101 lesson, quiz, recall path or practical path fails CI.
 
 ## Current state
 
