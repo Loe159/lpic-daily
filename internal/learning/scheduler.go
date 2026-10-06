@@ -205,7 +205,8 @@ func BuildSession(input SessionInput) (Session, error) {
 		if len(startedIncompleteObjectives) > 0 && !startedIncompleteObjectives[concept.ObjectiveID] {
 			continue
 		}
-		if projection, exists := input.Projections[concept.ID]; exists && projection.Stage != StageUnseen {
+		if projection, exists := input.Projections[concept.ID]; exists &&
+			projection.Stage != StageUnseen && projection.SuccessfulExposure > 0 {
 			continue
 		}
 		if containsConcept(session.Items, concept.ID) {
@@ -273,12 +274,14 @@ func BuildSession(input SessionInput) (Session, error) {
 }
 
 func needsImmediatePractice(projection MasteryProjection) bool {
-	if projection.Stage != StageExposed && projection.Stage != StageRecall {
+	if projection.SuccessfulExposure == 0 {
 		return false
 	}
-	return projection.SuccessfulGuided == 0 &&
-		projection.SuccessfulIndependent == 0 &&
-		projection.SuccessfulTransfer == 0
+	hasQuestionSuccess := projection.SuccessfulRecognition > 0 || projection.SuccessfulRecall > 0
+	hasPracticalSuccess := projection.SuccessfulGuided > 0 ||
+		projection.SuccessfulIndependent > 0 ||
+		projection.SuccessfulTransfer > 0
+	return !hasQuestionSuccess || !hasPracticalSuccess
 }
 
 func containsConcept(items []SessionItem, conceptID string) bool {
