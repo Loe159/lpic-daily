@@ -732,3 +732,55 @@ func TestCompletedExam101CanProgressIntoExam102(t *testing.T) {
 		t.Fatalf("first new objective = %s (exam %s), want Exam 102", plan.Items[0].ObjectiveID, got)
 	}
 }
+
+func TestRecallSuccessPrefersLabBeforeNextConcept(t *testing.T) {
+	curriculumBundle, contentBundle, labs := loadInputs(t)
+	now := time.Date(2026, 10, 6, 10, 0, 0, 0, time.UTC)
+	conceptID := "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes"
+	evidence := memoryEvidence{
+		conceptID: {
+			{
+				EventID:      "lesson",
+				OccurredAt:   now.Add(-2 * time.Minute),
+				ConceptID:    conceptID,
+				ObjectiveIDs: []string{"103.1"},
+				SourceItemID: "lpic1.103.1.lesson.shell-sequences",
+				ActivityKind: learning.ActivityLesson,
+				EvidenceKind: learning.EvidenceExposure,
+				Result:       learning.ResultPass,
+				Distribution: "generic",
+				AttemptIndex: 1,
+			},
+			{
+				EventID:      "recall",
+				OccurredAt:   now.Add(-time.Minute),
+				ConceptID:    conceptID,
+				ObjectiveIDs: []string{"103.1"},
+				SourceItemID: conceptID + ".q.autonomous-recall",
+				ActivityKind: learning.ActivityQuestion,
+				EvidenceKind: learning.EvidenceRecall,
+				Result:       learning.ResultPass,
+				Distribution: "generic",
+				AttemptIndex: 1,
+			},
+		},
+	}
+	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
+		Now:        now,
+		Curriculum: curriculumBundle,
+		Content:    contentBundle,
+		Labs:       labs,
+		Evidence:   evidence,
+		Policy:     learning.DefaultSessionPolicy(),
+	})
+	if err != nil {
+		t.Fatalf("BuildPlan() error = %v", err)
+	}
+	if len(plan.Items) == 0 {
+		t.Fatal("expected practical consolidation item")
+	}
+	item := plan.Items[0]
+	if item.ConceptID != conceptID || item.Kind != learning.SessionPractice || !item.PreferLab || item.RecommendedLabID == "" {
+		t.Fatalf("item = %#v, want lab-preferred consolidation after recall", item)
+	}
+}

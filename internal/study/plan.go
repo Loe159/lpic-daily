@@ -196,10 +196,14 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 			input.Now,
 		)
 		projection := projections[scheduled.ConceptID]
+		hasQuestionSuccess := projection.SuccessfulRecognition > 0 || projection.SuccessfulRecall > 0
+		hasPracticalSuccess := projection.SuccessfulGuided > 0 ||
+			projection.SuccessfulIndependent > 0 ||
+			projection.SuccessfulTransfer > 0
 		item.PreferLab = scheduled.Kind != learning.SessionNew &&
-			projection.Stage == learning.StageExposed &&
-			projection.SuccessfulRecognition > 0 &&
-			projection.SuccessfulRecall == 0 &&
+			(projection.Stage == learning.StageExposed || projection.Stage == learning.StageRecall) &&
+			hasQuestionSuccess &&
+			!hasPracticalSuccess &&
 			item.RecommendedLabID != ""
 
 		plan.Items = append(plan.Items, item)

@@ -179,11 +179,10 @@ func TestExposureRequiresImmediatePracticeBeforeNextConcept(t *testing.T) {
 	}
 }
 
-func TestSuccessfulRecognitionAllowsNextNewConcept(t *testing.T) {
+func TestSuccessfulRecognitionRequiresPracticalWorkBeforeNextConcept(t *testing.T) {
 	bundle := loadBundle(t)
 	now := time.Date(2026, 9, 27, 2, 0, 0, 0, time.UTC)
 	first := bundle.Phase1.ObjectiveConcepts["103.1"][0]
-	second := bundle.Phase1.ObjectiveConcepts["103.1"][1]
 
 	session, err := learning.BuildSession(learning.SessionInput{
 		Now:    now,
@@ -204,8 +203,40 @@ func TestSuccessfulRecognitionAllowsNextNewConcept(t *testing.T) {
 	if err != nil {
 		t.Fatalf("BuildSession() error = %v", err)
 	}
-	if len(session.Items) != 1 || session.Items[0].Kind != learning.SessionNew || session.Items[0].ConceptID != second {
-		t.Fatalf("items = %#v, want next new concept", session.Items)
+	if len(session.Items) != 1 ||
+		session.Items[0].Kind != learning.SessionPractice ||
+		session.Items[0].ConceptID != first {
+		t.Fatalf("items = %#v, want practical consolidation before any new concept", session.Items)
+	}
+}
+
+func TestSuccessfulRecallRequiresPracticalWorkBeforeNextConcept(t *testing.T) {
+	bundle := loadBundle(t)
+	now := time.Date(2026, 10, 6, 10, 0, 0, 0, time.UTC)
+	first := bundle.Phase1.ObjectiveConcepts["103.1"][0]
+
+	session, err := learning.BuildSession(learning.SessionInput{
+		Now:    now,
+		Bundle: bundle,
+		Projections: map[string]learning.MasteryProjection{
+			first: {
+				ConceptID:        first,
+				Stage:            learning.StageRecall,
+				SuccessfulRecall: 1,
+				LastEvidenceAt:   now,
+			},
+		},
+		ObjectiveReadiness: map[string]bool{},
+		ScopeObjectives:    []string{"103.1"},
+		Policy:             learning.DefaultSessionPolicy(),
+	})
+	if err != nil {
+		t.Fatalf("BuildSession() error = %v", err)
+	}
+	if len(session.Items) != 1 ||
+		session.Items[0].Kind != learning.SessionPractice ||
+		session.Items[0].ConceptID != first {
+		t.Fatalf("items = %#v, want lab consolidation after recall", session.Items)
 	}
 }
 

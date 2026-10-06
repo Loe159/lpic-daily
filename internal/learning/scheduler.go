@@ -256,10 +256,10 @@ func BuildSession(input SessionInput) (Session, error) {
 }
 
 func needsImmediatePractice(projection MasteryProjection) bool {
-	return projection.Stage == StageExposed &&
-		projection.SuccessfulRecognition == 0 &&
-		projection.SuccessfulRecall == 0 &&
-		projection.SuccessfulGuided == 0 &&
+	if projection.Stage != StageExposed && projection.Stage != StageRecall {
+		return false
+	}
+	return projection.SuccessfulGuided == 0 &&
 		projection.SuccessfulIndependent == 0 &&
 		projection.SuccessfulTransfer == 0
 }
