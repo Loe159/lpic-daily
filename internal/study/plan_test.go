@@ -144,7 +144,7 @@ func TestComplete1034ObjectiveBecomesSchedulable(t *testing.T) {
 		evidence[conceptID] = []learning.EvidenceEvent{
 			{
 				EventID:      "lesson-" + conceptID,
-				OccurredAt:   now.Add(-5 * 24 * time.Hour),
+				OccurredAt:   now.Add(-2 * time.Minute),
 				ConceptID:    conceptID,
 				ObjectiveIDs: []string{"103.1"},
 				SourceItemID: "test-lesson",
@@ -947,7 +947,7 @@ func TestCompletedExam101CanProgressIntoExam102(t *testing.T) {
 		evidence[concept.ID] = []learning.EvidenceEvent{
 			{
 				EventID:      "exam101-lesson-" + concept.ID,
-				OccurredAt:   now.Add(-2 * time.Minute),
+				OccurredAt:   now.Add(-5 * 24 * time.Hour),
 				ConceptID:    concept.ID,
 				ObjectiveIDs: []string{concept.ObjectiveID},
 				SourceItemID: "exam101-lesson",
@@ -988,7 +988,7 @@ func TestCompletedExam101CanProgressIntoExam102(t *testing.T) {
 				ObjectiveIDs:    []string{concept.ObjectiveID},
 				SourceItemID:    "exam101-practice",
 				ActivityKind:    learning.ActivityLab,
-				EvidenceKind:    learning.EvidenceGuidedPractice,
+				EvidenceKind:    learning.EvidenceIndependentPractice,
 				Result:          learning.ResultPass,
 				Distribution:    "generic",
 				PracticeContext: "exam101-complete",
