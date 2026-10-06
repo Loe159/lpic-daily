@@ -165,11 +165,11 @@ func RecordLabConceptResults(
 		}
 		attempt := nextAttemptFromEvents(events, authored.Definition.ID)
 		var evidenceKind learning.EvidenceKind
-		if strings.Contains(authored.Definition.ID, ".standalone-") &&
-			!standaloneConceptHasRuntimeCommandEvidence(authored, conceptID) {
-			// Purely conceptual generated exercises remain guided. Generated Exam
-			// 101 exercises may become independent only when the lab definition
-			// requires app-maintained evidence of a successful relevant command.
+		if strings.Contains(authored.Definition.ID, ".standalone-") {
+			// Generated standalone exercises validate useful practice, but their
+			// generic checks do not prove the same independent system state as a
+			// bespoke lab. Keep their mastery evidence guided even when runtime
+			// command evidence is also required.
 			evidenceKind = learning.EvidenceGuidedPractice
 		} else {
 			evidenceKind, err = practicalEvidenceKind(
@@ -254,24 +254,6 @@ func LabConceptResults(authored lab.Lab, checkResults []checker.Result) (map[str
 		}
 	}
 	return results, nil
-}
-
-func standaloneConceptHasRuntimeCommandEvidence(authored lab.Lab, conceptID string) bool {
-	historyPath, ok := lab.StandaloneCommandHistoryPath(authored.Definition)
-	if !ok {
-		return false
-	}
-	for _, check := range authored.Definition.Checks {
-		if check.Type != "file-content-regex" || check.Path != historyPath {
-			continue
-		}
-		for _, mappedConceptID := range check.ConceptIDs {
-			if mappedConceptID == conceptID {
-				return true
-			}
-		}
-	}
-	return false
 }
 
 func practicalEvidenceKind(
