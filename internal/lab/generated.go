@@ -191,23 +191,23 @@ func generatedStandaloneLab(
 	filename := standaloneConceptFilename(concept)
 	terms := slices.Clone(concept.AnchorTerms)
 	termsLine := strings.Join(terms, ",")
-	fmt.Fprintf(
-		&tasks,
-		"- **%s** : travaille les repères `%s`, réalise une commande, une inspection ou une configuration pertinente, puis écris `%s/%s.txt`.\n",
-		concept.TitleFR,
-		strings.Join(terms, "`, `"),
-		root,
-		filename,
-	)
-	checks := []CheckDefinition{{
-		Type: "file-content-regex",
-		Path: root + "/" + filename + ".txt",
-		Pattern: "(?m)^CONCEPT=" + regexEscape(concept.ID) +
-			"\\nTERMS=" + regexEscape(termsLine) +
-			"\\nCOMMAND=.+\\nOBSERVATION=.+\\nEXPLANATION=.+\\n?$",
-		ConceptIDs: []string{concept.ID},
-	}}
+	labels := []string{"lpic-required"}
+	checks := []CheckDefinition(nil)
+	successCriteria := []string(nil)
+
 	if objective.Exam == "101" {
+		task, stateChecks, extraSetup := deterministicStandaloneExercise(objective, concept, root, variant)
+		fmt.Fprintf(&tasks, "- %s\\n", task)
+		checks = stateChecks
+		labels = append(labels, "deterministic-state")
+		successCriteria = []string{
+			"Le checker recalcule ou inspecte directement l'état Linux attendu.",
+			"Une simple déclaration écrite ou un code de sortie arbitraire ne suffit pas.",
+			"Le contexte diagnostic et le contexte transfert demandent des productions distinctes.",
+		}
+		if setup.ExecutionScope == "sandbox" && extraSetup != "" {
+			setupScript += extraSetup
+		}
 		if pattern := standaloneCommandEvidencePattern(concept); pattern != "" {
 			checks = append(checks, CheckDefinition{
 				Type:       "file-content-regex",
@@ -216,17 +216,33 @@ func generatedStandaloneLab(
 				ConceptIDs: []string{concept.ID},
 			})
 		}
+	} else {
+		fmt.Fprintf(
+			&tasks,
+			"- %s : travaille les repères %s, réalise une commande, une inspection ou une configuration pertinente, puis écris %s/%s.txt.\\n",
+			concept.TitleFR,
+			strings.Join(terms, ", "),
+			root,
+			filename,
+		)
+		checks = []CheckDefinition{{
+			Type: "file-content-regex",
+			Path: root + "/" + filename + ".txt",
+			Pattern: "(?m)^CONCEPT=" + regexEscape(concept.ID) +
+				"\\\\nTERMS=" + regexEscape(termsLine) +
+				"\\\\nCOMMAND=.+\\\\nOBSERVATION=.+\\\\nEXPLANATION=.+\\\\n?$",
+			ConceptIDs: []string{concept.ID},
+		}}
+		successCriteria = []string{
+			"Une preuve distincte est produite pour chaque concept.",
+			"Chaque preuve couvre explicitement les termes/fichiers/utilitaires affectés au concept.",
+			"Chaque preuve explique le lien entre le résultat observé et le concept LPIC.",
+		}
 	}
 
 	brief := fmt.Sprintf(
-		"Contexte de %s pour %s — %s, concept **%s**. Travaille uniquement ce concept ; les autres notions de l'objectif seront proposées séparément.\n\n%s\n"+
-			"Utilise exactement cinq lignes dans le fichier de preuve : "+
-			"CONCEPT=<id>, TERMS=<repères demandés séparés par des virgules>, "+
-			"COMMAND=<commande/action réellement utilisée>, OBSERVATION=<résultat constaté>, "+
-			"EXPLANATION=<pourquoi ce résultat démontre le concept>. "+
-			"Crée d'abord %s si le répertoire n'existe pas. Le but n'est pas de recopier le cours : "+
-			"fais la manipulation dans le sandbox, puis explique l'état observé. "+
-			"Pour les concepts qui demandent une commande réelle, exécute-la directement à l'invite lpic> : LPIC Daily journalise automatiquement la commande et son code de sortie dans une preuve séparée que le lab vérifie.",
+		"Contexte de %s pour %s — %s, concept **%s**. Travaille uniquement ce concept ; les autres notions de l'objectif seront proposées séparément.\\n\\n%s\\n"+
+			"Crée %s si nécessaire. Exécute réellement les inspections ou manipulations demandées : le checker vérifie l'état du sandbox/VM et non une auto-déclaration.",
 		contextFR,
 		objective.ID,
 		objective.TitleFR,
@@ -242,11 +258,7 @@ func generatedStandaloneLab(
 			ID:            labID,
 			TitleFR:       fmt.Sprintf("%s — %s — pratique %s", objective.ID, concept.TitleFR, contextFR),
 			BriefFR:       brief,
-			SuccessCriteriaFR: []string{
-				"Une preuve distincte est produite pour chaque concept.",
-				"Chaque preuve couvre explicitement les termes/fichiers/utilitaires affectés au concept et décrit une commande ou action réellement effectuée.",
-				"Chaque preuve explique le lien entre le résultat observé et le concept LPIC.",
-			},
+			SuccessCriteriaFR: successCriteria,
 			DebriefFR: fmt.Sprintf(
 				"%s %s Le contexte %s oblige à reformuler et vérifier chaque sous-concept au lieu de valider l'objectif par une seule commande.",
 				guide.Overview,
@@ -255,7 +267,7 @@ func generatedStandaloneLab(
 			),
 			ObjectiveIDs:     []string{objective.ID},
 			ConceptIDs:       []string{concept.ID},
-			Labels:           []string{"lpic-required"},
+			Labels:           labels,
 			EstimatedMinutes: 15,
 			PracticeContext: fmt.Sprintf(
 				"%s-c%02d-standalone-%s",
