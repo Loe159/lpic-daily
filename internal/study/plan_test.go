@@ -1013,7 +1013,6 @@ func TestCompletedExam101CanProgressIntoExam102(t *testing.T) {
 	}
 }
 
-
 func TestExam102StaysLockedWhenAnyActiveExam101ConceptIsMissingFromStudyScope(t *testing.T) {
 	curriculumBundle, contentBundle, labs := loadInputs(t)
 	labs = withoutObjectiveLabs(labs, "101.1")
