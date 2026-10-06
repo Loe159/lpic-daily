@@ -74,7 +74,7 @@ func TestInitialAssessmentMarks1031ReadyWithoutLessonEvidence(t *testing.T) {
 		t.Fatalf("assess error = %v", err)
 	}
 	if !strings.Contains(stdout.String(), "Résultat: 12/12") ||
-		!strings.Contains(stdout.String(), "Foundation 103.1 prête") {
+		!strings.Contains(stdout.String(), "Rappel 103.1 solide") {
 		t.Fatalf("assessment output = %q", stdout.String())
 	}
 
