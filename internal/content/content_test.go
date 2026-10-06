@@ -410,12 +410,18 @@ func TestExam101GeneratedPedagogyIsFocusedAndApplied(t *testing.T) {
 		if strings.Contains(lesson.BodyMarkdown, "## Termes, fichiers et utilitaires à connaître pour") {
 			t.Errorf("%s still uses the objective-wide term dump instead of focused Exam 101 pedagogy", concept.ID)
 		}
+		if strings.Contains(lesson.BodyMarkdown, "explique son rôle, donne un cas d'emploi") {
+			t.Errorf("%s still contains a learner instruction where a worked example is required", concept.ID)
+		}
 
 		applicationID := concept.ID + ".q.autonomous-application"
 		application, exists := questions[applicationID]
 		if !exists {
 			t.Errorf("%s has no applied Exam 101 scenario question", concept.ID)
 		} else {
+			if !strings.Contains(application.PromptFR, "Scénario opérationnel") {
+				t.Errorf("%s is not framed as an operational scenario: %q", applicationID, application.PromptFR)
+			}
 			if previous, duplicate := seenPrompts[application.PromptFR]; duplicate {
 				t.Errorf("%s application prompt duplicates %s", applicationID, previous)
 			} else {
@@ -425,7 +431,11 @@ func TestExam101GeneratedPedagogyIsFocusedAndApplied(t *testing.T) {
 				t.Errorf("%s has %d choices, want 4", applicationID, len(application.Choices))
 			}
 			seenLabels := make(map[string]struct{}, len(application.Choices))
+			correctDescription := standaloneTermExplanation(concept.AnchorTerms[0], concept.ObjectiveID)
 			for _, choice := range application.Choices {
+				if strings.Contains(choice.LabelFR, correctDescription) {
+					t.Errorf("%s leaks a term definition in choice %q", applicationID, choice.LabelFR)
+				}
 				if strings.Contains(choice.LabelFR, "alternative-") {
 					t.Errorf("%s contains synthetic distractor %q", applicationID, choice.LabelFR)
 				}

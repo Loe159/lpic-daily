@@ -372,9 +372,9 @@ func TestGeneratedExam101CommandEvidenceRemainsGuided(t *testing.T) {
 	var diagnostic, transfer lab.Lab
 	for _, authored := range labs {
 		switch authored.Definition.ID {
-		case "lpic1.103.2.standalone-diagnostic":
+		case "lpic1.103.2.flux-texte-ligne-octet.standalone-diagnostic":
 			diagnostic = authored
-		case "lpic1.103.2.standalone-transfer":
+		case "lpic1.103.2.flux-texte-ligne-octet.standalone-transfer":
 			transfer = authored
 		}
 	}
@@ -408,7 +408,7 @@ func TestGeneratedExam101ConceptWithoutRuntimeCommandEvidenceStaysGuided(t *test
 	}
 	var diagnostic lab.Lab
 	for _, authored := range labs {
-		if authored.Definition.ID == "lpic1.101.2.standalone-diagnostic" {
+		if authored.Definition.ID == "lpic1.101.2.bios-versus-uefi.standalone-diagnostic" {
 			diagnostic = authored
 			break
 		}

@@ -162,9 +162,16 @@ func BuildSession(input SessionInput) (Session, error) {
 		if containsConcept(session.Items, concept.ID) {
 			continue
 		}
-		reason := "Consolidation immédiate: le concept a été exposé, mais aucune pratique réussie ne l'a encore consolidé."
-		if projection.Stage == StageRecall {
-			reason = "Consolidation immédiate: le rappel est réussi, mais une pratique réussie est requise avant le concept suivant."
+		hasQuestionSuccess := projection.SuccessfulRecognition > 0 || projection.SuccessfulRecall > 0
+		hasPracticalSuccess := projection.SuccessfulGuided > 0 ||
+			projection.SuccessfulIndependent > 0 ||
+			projection.SuccessfulTransfer > 0
+		reason := "Consolidation immédiate: une activité requise manque avant le concept suivant."
+		switch {
+		case !hasQuestionSuccess:
+			reason = "Consolidation immédiate: le cours est vu, mais un quiz réussi est requis avant le concept suivant."
+		case !hasPracticalSuccess:
+			reason = "Consolidation immédiate: le quiz est réussi, mais une pratique réussie est requise avant le concept suivant."
 		}
 		session.Items = append(session.Items, SessionItem{
 			ConceptID:   concept.ID,
@@ -187,12 +194,26 @@ func BuildSession(input SessionInput) (Session, error) {
 		objectiveNodes[node.ObjectiveID] = node
 	}
 
+	startedIncompleteObjectives := make(map[string]bool)
+	for _, concept := range input.Bundle.Concepts.Concepts {
+		if !concept.Active || !eligible[concept.ObjectiveID] || input.ObjectiveReadiness[concept.ObjectiveID] {
+			continue
+		}
+		if projection, exists := input.Projections[concept.ID]; exists && projection.Stage != StageUnseen {
+			startedIncompleteObjectives[concept.ObjectiveID] = true
+		}
+	}
+
 	var candidates []newCandidate
 	for _, concept := range input.Bundle.Concepts.Concepts {
 		if !concept.Active || !eligible[concept.ObjectiveID] {
 			continue
 		}
-		if projection, exists := input.Projections[concept.ID]; exists && projection.Stage != StageUnseen {
+		if len(startedIncompleteObjectives) > 0 && !startedIncompleteObjectives[concept.ObjectiveID] {
+			continue
+		}
+		if projection, exists := input.Projections[concept.ID]; exists &&
+			projection.Stage != StageUnseen && projection.SuccessfulExposure > 0 {
 			continue
 		}
 		if containsConcept(session.Items, concept.ID) {
@@ -260,12 +281,14 @@ func BuildSession(input SessionInput) (Session, error) {
 }
 
 func needsImmediatePractice(projection MasteryProjection) bool {
-	if projection.Stage != StageExposed && projection.Stage != StageRecall {
+	if projection.SuccessfulExposure == 0 {
 		return false
 	}
-	return projection.SuccessfulGuided == 0 &&
-		projection.SuccessfulIndependent == 0 &&
-		projection.SuccessfulTransfer == 0
+	hasQuestionSuccess := projection.SuccessfulRecognition > 0 || projection.SuccessfulRecall > 0
+	hasPracticalSuccess := projection.SuccessfulGuided > 0 ||
+		projection.SuccessfulIndependent > 0 ||
+		projection.SuccessfulTransfer > 0
+	return !hasQuestionSuccess || !hasPracticalSuccess
 }
 
 func containsConcept(items []SessionItem, conceptID string) bool {

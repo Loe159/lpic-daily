@@ -143,6 +143,18 @@ func TestComplete1034ObjectiveBecomesSchedulable(t *testing.T) {
 	for _, conceptID := range curriculumBundle.Phase1.ObjectiveConcepts["103.1"] {
 		evidence[conceptID] = []learning.EvidenceEvent{
 			{
+				EventID:      "lesson-" + conceptID,
+				OccurredAt:   now.Add(-2 * time.Minute),
+				ConceptID:    conceptID,
+				ObjectiveIDs: []string{"103.1"},
+				SourceItemID: "test-lesson",
+				ActivityKind: learning.ActivityLesson,
+				EvidenceKind: learning.EvidenceExposure,
+				Result:       learning.ResultPass,
+				Distribution: "generic",
+				AttemptIndex: 1,
+			},
+			{
 				EventID:      "ready-" + conceptID,
 				OccurredAt:   now.Add(-time.Minute),
 				ConceptID:    conceptID,
@@ -201,6 +213,18 @@ func TestQuestionRecommendationPrefersRecallBeforeOtherQuestions(t *testing.T) {
 
 	for _, conceptID := range curriculumBundle.Phase1.ObjectiveConcepts["103.1"] {
 		evidence[conceptID] = []learning.EvidenceEvent{
+			{
+				EventID:      "lesson-" + conceptID,
+				OccurredAt:   now.Add(-2 * time.Minute),
+				ConceptID:    conceptID,
+				ObjectiveIDs: []string{"103.1"},
+				SourceItemID: "test-lesson",
+				ActivityKind: learning.ActivityLesson,
+				EvidenceKind: learning.EvidenceExposure,
+				Result:       learning.ResultPass,
+				Distribution: "generic",
+				AttemptIndex: 1,
+			},
 			{
 				EventID:      "ready-" + conceptID,
 				OccurredAt:   now.Add(-time.Minute),
@@ -284,12 +308,26 @@ func TestObjectiveWithoutPracticalLabStaysOutOfScheduler(t *testing.T) {
 	now := time.Date(2026, 10, 1, 16, 0, 0, 0, time.UTC)
 	evidence := memoryEvidence{}
 	for _, conceptID := range curriculumBundle.Phase1.ObjectiveConcepts["103.1"] {
-		evidence[conceptID] = []learning.EvidenceEvent{{
-			EventID: "ready-" + conceptID, OccurredAt: now, ConceptID: conceptID,
-			ObjectiveIDs: []string{"103.1"}, SourceItemID: "test-recall",
-			ActivityKind: learning.ActivityQuestion, EvidenceKind: learning.EvidenceRecall,
-			Result: learning.ResultPass, Distribution: "generic", AttemptIndex: 1,
-		}}
+		evidence[conceptID] = []learning.EvidenceEvent{
+			{
+				EventID: "lesson-" + conceptID, OccurredAt: now.Add(-2 * time.Minute), ConceptID: conceptID,
+				ObjectiveIDs: []string{"103.1"}, SourceItemID: "test-lesson",
+				ActivityKind: learning.ActivityLesson, EvidenceKind: learning.EvidenceExposure,
+				Result: learning.ResultPass, Distribution: "generic", AttemptIndex: 1,
+			},
+			{
+				EventID: "ready-" + conceptID, OccurredAt: now.Add(-time.Minute), ConceptID: conceptID,
+				ObjectiveIDs: []string{"103.1"}, SourceItemID: "test-recall",
+				ActivityKind: learning.ActivityQuestion, EvidenceKind: learning.EvidenceRecall,
+				Result: learning.ResultPass, Distribution: "generic", AttemptIndex: 1,
+			},
+			{
+				EventID: "practice-" + conceptID, OccurredAt: now, ConceptID: conceptID,
+				ObjectiveIDs: []string{"103.1"}, SourceItemID: "test-practice",
+				ActivityKind: learning.ActivityLab, EvidenceKind: learning.EvidenceGuidedPractice,
+				Result: learning.ResultPass, Distribution: "generic", PracticeContext: "test-practice", AttemptIndex: 1,
+			},
+		}
 	}
 
 	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
@@ -781,6 +819,116 @@ func TestIndependentConceptSkipsUnusedLabIDInAlreadyUsedPracticeContext(t *testi
 	}
 }
 
+func TestExam102StaysLockedUntilEveryExam101ConceptCompletesCourseQuizAndLab(t *testing.T) {
+	curriculumBundle, contentBundle, labs := loadInputs(t)
+	now := time.Date(2026, 10, 6, 12, 0, 0, 0, time.UTC)
+	evidence := memoryEvidence{}
+	objectiveExam := make(map[string]string)
+	var incompleteConcept string
+
+	for _, objective := range curriculumBundle.Objectives.Objectives {
+		if objective.Active {
+			objectiveExam[objective.ID] = objective.Exam
+		}
+	}
+	for _, concept := range curriculumBundle.Concepts.Concepts {
+		if !concept.Active || objectiveExam[concept.ObjectiveID] != "101" {
+			continue
+		}
+		events := []learning.EvidenceEvent{
+			{
+				EventID: "lesson-" + concept.ID, OccurredAt: now.Add(-3 * time.Hour),
+				ConceptID: concept.ID, ObjectiveIDs: []string{concept.ObjectiveID},
+				SourceItemID: "lesson", ActivityKind: learning.ActivityLesson,
+				EvidenceKind: learning.EvidenceExposure, Result: learning.ResultPass,
+				Distribution: "generic", AttemptIndex: 1,
+			},
+			{
+				EventID: "quiz-" + concept.ID, OccurredAt: now.Add(-2 * time.Hour),
+				ConceptID: concept.ID, ObjectiveIDs: []string{concept.ObjectiveID},
+				SourceItemID: "quiz", ActivityKind: learning.ActivityQuestion,
+				EvidenceKind: learning.EvidenceRecall, Result: learning.ResultPass,
+				Distribution: "generic", AttemptIndex: 1,
+			},
+		}
+		if incompleteConcept == "" {
+			incompleteConcept = concept.ID
+		} else {
+			events = append(events, learning.EvidenceEvent{
+				EventID: "lab-" + concept.ID, OccurredAt: now.Add(-time.Hour),
+				ConceptID: concept.ID, ObjectiveIDs: []string{concept.ObjectiveID},
+				SourceItemID: "lab", ActivityKind: learning.ActivityLab,
+				EvidenceKind: learning.EvidenceGuidedPractice, Result: learning.ResultPass,
+				Distribution: "generic", PracticeContext: "complete", AttemptIndex: 1,
+			})
+		}
+		evidence[concept.ID] = events
+	}
+
+	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
+		Now: now, Curriculum: curriculumBundle, Content: contentBundle, Labs: labs,
+		Evidence: evidence, Policy: learning.DefaultSessionPolicy(),
+	})
+	if err != nil {
+		t.Fatalf("BuildPlan() error = %v", err)
+	}
+	for _, item := range plan.Items {
+		if objectiveExam[item.ObjectiveID] == "102" {
+			t.Fatalf("Exam 102 item %#v scheduled while Exam 101 concept %s lacks practical completion", item, incompleteConcept)
+		}
+	}
+}
+
+func TestGeneratedGuidedLabRotatesToSecondPracticeContext(t *testing.T) {
+	curriculumBundle, contentBundle, labs := loadInputs(t)
+	now := time.Date(2026, 10, 10, 12, 0, 0, 0, time.UTC)
+	conceptID := "lpic1.103.2.flux-texte-ligne-octet"
+	diagnosticID := conceptID + ".standalone-diagnostic"
+	transferID := conceptID + ".standalone-transfer"
+	evidence := memoryEvidence{
+		conceptID: {
+			{
+				EventID: "lesson", OccurredAt: now.Add(-5 * 24 * time.Hour),
+				ConceptID: conceptID, ObjectiveIDs: []string{"103.2"},
+				SourceItemID: "lesson", ActivityKind: learning.ActivityLesson,
+				EvidenceKind: learning.EvidenceExposure, Result: learning.ResultPass,
+				Distribution: "generic", AttemptIndex: 1,
+			},
+			{
+				EventID: "quiz", OccurredAt: now.Add(-5 * 24 * time.Hour),
+				ConceptID: conceptID, ObjectiveIDs: []string{"103.2"},
+				SourceItemID: "quiz", ActivityKind: learning.ActivityQuestion,
+				EvidenceKind: learning.EvidenceRecall, Result: learning.ResultPass,
+				Distribution: "generic", AttemptIndex: 1,
+			},
+			{
+				EventID: "diagnostic", OccurredAt: now.Add(-4 * 24 * time.Hour),
+				ConceptID: conceptID, ObjectiveIDs: []string{"103.2"},
+				SourceItemID: diagnosticID, ActivityKind: learning.ActivityLab,
+				EvidenceKind: learning.EvidenceGuidedPractice, Result: learning.ResultPass,
+				Distribution:    "generic",
+				PracticeContext: "103-2-c01-standalone-diagnostic",
+				AttemptIndex:    1,
+			},
+		},
+	}
+	policy := learning.DefaultSessionPolicy()
+	policy.MaxNewConcepts = 0
+	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
+		Now: now, Curriculum: curriculumBundle, Content: contentBundle, Labs: labs,
+		Evidence: evidence, Policy: policy,
+	})
+	if err != nil {
+		t.Fatalf("BuildPlan() error = %v", err)
+	}
+	if len(plan.Items) != 1 {
+		t.Fatalf("items = %#v, want one due guided review", plan.Items)
+	}
+	if got := plan.Items[0].RecommendedLabID; got != transferID {
+		t.Fatalf("recommended lab = %q, want %q after diagnostic success", got, transferID)
+	}
+}
+
 func TestCompletedExam101CanProgressIntoExam102(t *testing.T) {
 	curriculumBundle, contentBundle, labs := loadInputs(t)
 	now := time.Date(2026, 10, 5, 18, 0, 0, 0, time.UTC)
@@ -797,6 +945,18 @@ func TestCompletedExam101CanProgressIntoExam102(t *testing.T) {
 			continue
 		}
 		evidence[concept.ID] = []learning.EvidenceEvent{
+			{
+				EventID:      "exam101-lesson-" + concept.ID,
+				OccurredAt:   now.Add(-2 * time.Minute),
+				ConceptID:    concept.ID,
+				ObjectiveIDs: []string{concept.ObjectiveID},
+				SourceItemID: "exam101-lesson",
+				ActivityKind: learning.ActivityLesson,
+				EvidenceKind: learning.EvidenceExposure,
+				Result:       learning.ResultPass,
+				Distribution: "generic",
+				AttemptIndex: 1,
+			},
 			{
 				EventID:      "exam101-ready-" + concept.ID,
 				OccurredAt:   now.Add(-time.Minute),
@@ -837,6 +997,146 @@ func TestCompletedExam101CanProgressIntoExam102(t *testing.T) {
 	}
 	if got := objectiveExam[plan.Items[0].ObjectiveID]; got != "102" {
 		t.Fatalf("first new objective = %s (exam %s), want Exam 102", plan.Items[0].ObjectiveID, got)
+	}
+}
+
+func TestAssessmentRecallStillRequiresFocusedLesson(t *testing.T) {
+	curriculumBundle, contentBundle, labs := loadInputs(t)
+	now := time.Date(2026, 10, 6, 14, 0, 0, 0, time.UTC)
+	conceptID := "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes"
+	evidence := memoryEvidence{
+		conceptID: {
+			{
+				EventID:      "assessment",
+				OccurredAt:   now,
+				ConceptID:    conceptID,
+				ObjectiveIDs: []string{"103.1"},
+				SourceItemID: "initial-assessment.103.1",
+				ActivityKind: learning.ActivityQuestion,
+				EvidenceKind: learning.EvidenceRecall,
+				Result:       learning.ResultPass,
+				Distribution: "generic",
+				AttemptIndex: 1,
+			},
+		},
+	}
+
+	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
+		Now: now, Curriculum: curriculumBundle, Content: contentBundle, Labs: labs,
+		Evidence: evidence, Policy: learning.DefaultSessionPolicy(),
+	})
+	if err != nil {
+		t.Fatalf("BuildPlan() error = %v", err)
+	}
+	if len(plan.Items) == 0 {
+		t.Fatal("expected lesson after assessment-only recall")
+	}
+	item := plan.Items[0]
+	if item.ConceptID != conceptID || item.Kind != learning.SessionNew ||
+		item.RecommendedLessonID == "" || item.PreferLab {
+		t.Fatalf("item = %#v, want focused lesson before practical work", item)
+	}
+}
+
+func TestManualLabCannotSkipMissingQuiz(t *testing.T) {
+	curriculumBundle, contentBundle, labs := loadInputs(t)
+	now := time.Date(2026, 10, 6, 14, 30, 0, 0, time.UTC)
+	conceptID := "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes"
+	evidence := memoryEvidence{
+		conceptID: {
+			{
+				EventID:      "lesson",
+				OccurredAt:   now.Add(-2 * time.Minute),
+				ConceptID:    conceptID,
+				ObjectiveIDs: []string{"103.1"},
+				SourceItemID: "lpic1.103.1.lesson.shell-sequences",
+				ActivityKind: learning.ActivityLesson,
+				EvidenceKind: learning.EvidenceExposure,
+				Result:       learning.ResultPass,
+				Distribution: "generic",
+				AttemptIndex: 1,
+			},
+			{
+				EventID:         "manual-lab",
+				OccurredAt:      now.Add(-time.Minute),
+				ConceptID:       conceptID,
+				ObjectiveIDs:    []string{"103.1"},
+				SourceItemID:    conceptID + ".standalone-diagnostic",
+				ActivityKind:    learning.ActivityLab,
+				EvidenceKind:    learning.EvidenceGuidedPractice,
+				Result:          learning.ResultPass,
+				Distribution:    "generic",
+				PracticeContext: "103-1-c01-standalone-diagnostic",
+				AttemptIndex:    1,
+			},
+		},
+	}
+
+	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
+		Now: now, Curriculum: curriculumBundle, Content: contentBundle, Labs: labs,
+		Evidence: evidence, Policy: learning.DefaultSessionPolicy(),
+	})
+	if err != nil {
+		t.Fatalf("BuildPlan() error = %v", err)
+	}
+	if len(plan.Items) == 0 {
+		t.Fatal("expected missing-quiz consolidation")
+	}
+	item := plan.Items[0]
+	if item.ConceptID != conceptID || item.Kind != learning.SessionPractice ||
+		item.RecommendedQuestionID == "" || item.RecommendedLabID != "" {
+		t.Fatalf("item = %#v, want quiz before any further practical work", item)
+	}
+}
+
+func TestDueReviewWithMissingQuizStillRecommendsQuestion(t *testing.T) {
+	curriculumBundle, contentBundle, labs := loadInputs(t)
+	now := time.Date(2026, 10, 10, 14, 30, 0, 0, time.UTC)
+	conceptID := "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes"
+	evidence := memoryEvidence{
+		conceptID: {
+			{
+				EventID:      "lesson",
+				OccurredAt:   now.Add(-5 * 24 * time.Hour),
+				ConceptID:    conceptID,
+				ObjectiveIDs: []string{"103.1"},
+				SourceItemID: "lpic1.103.1.lesson.shell-sequences",
+				ActivityKind: learning.ActivityLesson,
+				EvidenceKind: learning.EvidenceExposure,
+				Result:       learning.ResultPass,
+				Distribution: "generic",
+				AttemptIndex: 1,
+			},
+			{
+				EventID:         "manual-lab",
+				OccurredAt:      now.Add(-4 * 24 * time.Hour),
+				ConceptID:       conceptID,
+				ObjectiveIDs:    []string{"103.1"},
+				SourceItemID:    conceptID + ".standalone-diagnostic",
+				ActivityKind:    learning.ActivityLab,
+				EvidenceKind:    learning.EvidenceGuidedPractice,
+				Result:          learning.ResultPass,
+				Distribution:    "generic",
+				PracticeContext: "103-1-c01-standalone-diagnostic",
+				AttemptIndex:    1,
+			},
+		},
+	}
+
+	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
+		Now: now, Curriculum: curriculumBundle, Content: contentBundle, Labs: labs,
+		Evidence: evidence, Policy: learning.DefaultSessionPolicy(),
+	})
+	if err != nil {
+		t.Fatalf("BuildPlan() error = %v", err)
+	}
+	if len(plan.Items) == 0 {
+		t.Fatal("expected due review")
+	}
+	item := plan.Items[0]
+	if item.ConceptID != conceptID || item.Kind != learning.SessionReview ||
+		item.RecommendedQuestionID == "" || item.RecommendedLabID != "" {
+		t.Fatalf("item = %#v, want due review to prioritize missing quiz", item)
 	}
 }
 

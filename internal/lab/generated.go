@@ -29,22 +29,24 @@ func appendStandaloneLabs(fsys fs.FS, labs []Lab, seen map[string]struct{}) ([]L
 			return nil, fmt.Errorf("objective %s has no study guide", objective.ID)
 		}
 		concepts := standaloneConceptsForObjective(curriculumBundle.Concepts.Concepts, objective.ID)
-		for variant := 0; variant < 2; variant++ {
-			generated := generatedStandaloneLab(objective, concepts, guide, variant)
-			if err := validateStandaloneLab(generated); err != nil {
-				return nil, fmt.Errorf("%s semantic validation: %w", generated.Definition.ID, err)
+		for _, concept := range concepts {
+			for variant := 0; variant < 2; variant++ {
+				generated := generatedStandaloneLab(objective, concept, guide, variant)
+				if err := validateStandaloneLab(generated); err != nil {
+					return nil, fmt.Errorf("%s semantic validation: %w", generated.Definition.ID, err)
+				}
+				if _, duplicate := seen[generated.Definition.ID]; duplicate {
+					continue
+				}
+				if _, err := generated.RunnerDefinition(); err != nil {
+					return nil, fmt.Errorf("%s runner definition: %w", generated.Definition.ID, err)
+				}
+				if _, err := generated.CompileChecks(); err != nil {
+					return nil, fmt.Errorf("%s checks: %w", generated.Definition.ID, err)
+				}
+				seen[generated.Definition.ID] = struct{}{}
+				labs = append(labs, generated)
 			}
-			if _, duplicate := seen[generated.Definition.ID]; duplicate {
-				continue
-			}
-			if _, err := generated.RunnerDefinition(); err != nil {
-				return nil, fmt.Errorf("%s runner definition: %w", generated.Definition.ID, err)
-			}
-			if _, err := generated.CompileChecks(); err != nil {
-				return nil, fmt.Errorf("%s checks: %w", generated.Definition.ID, err)
-			}
-			seen[generated.Definition.ID] = struct{}{}
-			labs = append(labs, generated)
 		}
 	}
 	slices.SortFunc(labs, func(a, b Lab) int {
@@ -131,7 +133,7 @@ func standaloneConceptsForObjective(all []curriculum.Concept, objectiveID string
 
 func generatedStandaloneLab(
 	objective curriculum.Objective,
-	concepts []curriculum.Concept,
+	concept curriculum.Concept,
 	guide curriculum.ObjectiveStudyGuide,
 	variant int,
 ) Lab {
@@ -141,7 +143,7 @@ func generatedStandaloneLab(
 		contextName = "transfer"
 		contextFR = "transfert"
 	}
-	labID := fmt.Sprintf("lpic1.%s.standalone-%s", objective.ID, contextName)
+	labID := concept.ID + ".standalone-" + contextName
 	backend, imageRef, distribution := standaloneLabEnvironment(objective, variant)
 	root := "/workspace/lpic-daily-evidence"
 	setup := Setup{ExecutionScope: "sandbox", ScriptRef: "generated-setup.sh"}
@@ -185,45 +187,40 @@ func generatedStandaloneLab(
 	}
 
 	var tasks strings.Builder
-	checks := make([]CheckDefinition, 0, len(concepts)*2)
-	conceptIDs := make([]string, 0, len(concepts))
 	commandHistoryPath := root + "/command-history.log"
-	for _, concept := range concepts {
-		conceptIDs = append(conceptIDs, concept.ID)
-		filename := standaloneConceptFilename(concept)
-		terms := slices.Clone(concept.AnchorTerms)
-		termsLine := strings.Join(terms, ",")
-		fmt.Fprintf(
-			&tasks,
-			"- **%s** : travaille les repères `%s`, réalise une commande, une inspection ou une configuration pertinente, puis écris `%s/%s.txt`.\n",
-			concept.TitleFR,
-			strings.Join(terms, "`, `"),
-			root,
-			filename,
-		)
-		checks = append(checks, CheckDefinition{
-			Type: "file-content-regex",
-			Path: root + "/" + filename + ".txt",
-			Pattern: "(?m)^CONCEPT=" + regexEscape(concept.ID) +
-				"\\nTERMS=" + regexEscape(termsLine) +
-				"\\nCOMMAND=.+\\nOBSERVATION=.+\\nEXPLANATION=.+\\n?$",
-			ConceptIDs: []string{concept.ID},
-		})
-		if objective.Exam == "101" {
-			if pattern := standaloneCommandEvidencePattern(concept); pattern != "" {
-				checks = append(checks, CheckDefinition{
-					Type:       "file-content-regex",
-					Path:       commandHistoryPath,
-					Pattern:    pattern,
-					ConceptIDs: []string{concept.ID},
-				})
-			}
+	filename := standaloneConceptFilename(concept)
+	terms := slices.Clone(concept.AnchorTerms)
+	termsLine := strings.Join(terms, ",")
+	fmt.Fprintf(
+		&tasks,
+		"- **%s** : travaille les repères `%s`, réalise une commande, une inspection ou une configuration pertinente, puis écris `%s/%s.txt`.\n",
+		concept.TitleFR,
+		strings.Join(terms, "`, `"),
+		root,
+		filename,
+	)
+	checks := []CheckDefinition{{
+		Type: "file-content-regex",
+		Path: root + "/" + filename + ".txt",
+		Pattern: "(?m)^CONCEPT=" + regexEscape(concept.ID) +
+			"\\nTERMS=" + regexEscape(termsLine) +
+			"\\nCOMMAND=.+\\nOBSERVATION=.+\\nEXPLANATION=.+\\n?$",
+		ConceptIDs: []string{concept.ID},
+	}}
+	if objective.Exam == "101" {
+		if pattern := standaloneCommandEvidencePattern(concept); pattern != "" {
+			checks = append(checks, CheckDefinition{
+				Type:       "file-content-regex",
+				Path:       commandHistoryPath,
+				Pattern:    pattern,
+				ConceptIDs: []string{concept.ID},
+			})
 		}
 	}
 
 	brief := fmt.Sprintf(
-		"Contexte de %s pour %s — %s. %s\n\n%s\n"+
-			"Pour chaque fichier, utilise exactement cinq lignes : "+
+		"Contexte de %s pour %s — %s, concept **%s**. Travaille uniquement ce concept ; les autres notions de l'objectif seront proposées séparément.\n\n%s\n"+
+			"Utilise exactement cinq lignes dans le fichier de preuve : "+
 			"CONCEPT=<id>, TERMS=<repères demandés séparés par des virgules>, "+
 			"COMMAND=<commande/action réellement utilisée>, OBSERVATION=<résultat constaté>, "+
 			"EXPLANATION=<pourquoi ce résultat démontre le concept>. "+
@@ -233,7 +230,7 @@ func generatedStandaloneLab(
 		contextFR,
 		objective.ID,
 		objective.TitleFR,
-		guide.Practice,
+		concept.TitleFR,
 		tasks.String(),
 		root,
 	)
@@ -243,7 +240,7 @@ func generatedStandaloneLab(
 		Definition: Definition{
 			SchemaVersion: "1.0.0",
 			ID:            labID,
-			TitleFR:       fmt.Sprintf("%s pratique %s", objective.ID, contextFR),
+			TitleFR:       fmt.Sprintf("%s — %s — pratique %s", objective.ID, concept.TitleFR, contextFR),
 			BriefFR:       brief,
 			SuccessCriteriaFR: []string{
 				"Une preuve distincte est produite pour chaque concept.",
@@ -257,16 +254,21 @@ func generatedStandaloneLab(
 				contextFR,
 			),
 			ObjectiveIDs:     []string{objective.ID},
-			ConceptIDs:       conceptIDs,
+			ConceptIDs:       []string{concept.ID},
 			Labels:           []string{"lpic-required"},
-			EstimatedMinutes: min(120, max(25, len(concepts)*6)),
-			PracticeContext:  strings.ReplaceAll(objective.ID, ".", "-") + "-standalone-" + contextName,
-			Environment:      environment,
-			Resources:        resources,
-			Setup:            setup,
-			Checks:           checks,
-			HintIDs:          []string{hints[0].ID, hints[1].ID, hints[2].ID, hints[3].ID},
-			ResetPolicy:      "disposable",
+			EstimatedMinutes: 15,
+			PracticeContext: fmt.Sprintf(
+				"%s-c%02d-standalone-%s",
+				strings.ReplaceAll(objective.ID, ".", "-"),
+				concept.PedagogyOrder,
+				contextName,
+			),
+			Environment: environment,
+			Resources:   resources,
+			Setup:       setup,
+			Checks:      checks,
+			HintIDs:     []string{hints[0].ID, hints[1].ID, hints[2].ID, hints[3].ID},
+			ResetPolicy: "disposable",
 		},
 		Hints:       hints,
 		SetupScript: setupScript,

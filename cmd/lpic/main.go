@@ -679,9 +679,9 @@ func runAssessment(args []string, stdin io.Reader, stdout io.Writer) error {
 	}
 	fmt.Fprintf(stdout, "Résultat: %d/%d\n", correct, len(questions))
 	if ready {
-		fmt.Fprintln(stdout, "Foundation 103.1 prête : les objectifs dépendants peuvent être proposés.")
+		fmt.Fprintln(stdout, "Rappel 103.1 solide : ces réponses sont conservées comme preuve de quiz. Les cours et pratiques manquants restent obligatoires avant de débloquer les objectifs dépendants.")
 	} else {
-		fmt.Fprintln(stdout, "Foundation 103.1 pas encore prête : LPIC Daily proposera les concepts manquants.")
+		fmt.Fprintln(stdout, "Rappel 103.1 à consolider : LPIC Daily proposera les concepts, cours, quiz et pratiques manquants.")
 	}
 	return nil
 }

@@ -220,10 +220,11 @@ func TestSuccessfulRecallRequiresPracticalWorkBeforeNextConcept(t *testing.T) {
 		Bundle: bundle,
 		Projections: map[string]learning.MasteryProjection{
 			first: {
-				ConceptID:        first,
-				Stage:            learning.StageRecall,
-				SuccessfulRecall: 1,
-				LastEvidenceAt:   now,
+				ConceptID:          first,
+				Stage:              learning.StageRecall,
+				SuccessfulExposure: 1,
+				SuccessfulRecall:   1,
+				LastEvidenceAt:     now,
 			},
 		},
 		ObjectiveReadiness: map[string]bool{},
@@ -237,6 +238,46 @@ func TestSuccessfulRecallRequiresPracticalWorkBeforeNextConcept(t *testing.T) {
 		session.Items[0].Kind != learning.SessionPractice ||
 		session.Items[0].ConceptID != first {
 		t.Fatalf("items = %#v, want lab consolidation after recall", session.Items)
+	}
+}
+
+func TestStartedObjectiveKeepsFocusUntilComplete(t *testing.T) {
+	bundle := loadBundle(t)
+	now := time.Date(2026, 10, 6, 13, 0, 0, 0, time.UTC)
+	first := "lpic1.103.4.stdin-stdout-stderr-et-descripteurs"
+	second := "lpic1.103.4.redirections-ecrasement-append"
+
+	session, err := learning.BuildSession(learning.SessionInput{
+		Now:    now,
+		Bundle: bundle,
+		Projections: map[string]learning.MasteryProjection{
+			first: {
+				ConceptID:           first,
+				Stage:               learning.StageGuided,
+				SuccessfulExposure:  1,
+				SuccessfulRecall:    1,
+				SuccessfulGuided:    1,
+				LastEvidenceAt:      now,
+				LastStageEvidenceAt: now,
+			},
+		},
+		ObjectiveReadiness: map[string]bool{
+			"103.1": true,
+			"103.4": false,
+			"103.5": false,
+		},
+		ScopeObjectives: []string{"103.4", "103.5"},
+		Policy:          learning.DefaultSessionPolicy(),
+	})
+	if err != nil {
+		t.Fatalf("BuildSession() error = %v", err)
+	}
+	if len(session.Items) != 1 {
+		t.Fatalf("items = %#v, want one new concept in started objective", session.Items)
+	}
+	item := session.Items[0]
+	if item.Kind != learning.SessionNew || item.ObjectiveID != "103.4" || item.ConceptID != second {
+		t.Fatalf("item = %#v, want next 103.4 concept before switching objective", item)
 	}
 }
 

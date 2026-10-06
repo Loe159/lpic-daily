@@ -191,13 +191,20 @@ func generatedExam101LessonBody(
 		explanation := standaloneTermExplanation(anchor, objective.ID)
 		fmt.Fprintf(&anchors, "- `%s` — %s\n", anchor, explanation)
 		if usage := standaloneTermUsage(anchor); usage != "" {
-			fmt.Fprintf(&examples, "- `%s` : `%s`\n", anchor, usage)
+			fmt.Fprintf(
+				&examples,
+				"- `%s` : exécute par exemple `%s`. Lis le résultat en le reliant à **%s**, puis vérifie que l'état observé correspond bien au rôle attendu.\n",
+				anchor,
+				usage,
+				concept.TitleFR,
+			)
 		} else {
 			fmt.Fprintf(
 				&examples,
-				"- `%s` : explique son rôle, donne un cas d'emploi dans **%s**, puis indique comment tu confirmerais ton diagnostic.\n",
+				"- `%s` : exemple travaillé — dans un diagnostic de **%s**, ce repère est pertinent car %s On l'identifie dans le contexte du système, puis on confirme la conclusion avec un second indice cohérent plutôt que par le nom seul.\n",
 				anchor,
 				concept.TitleFR,
+				explanation,
 			)
 		}
 	}
@@ -409,10 +416,6 @@ func generatedApplicationQuestion(
 ) Question {
 	primary := concept.AnchorTerms[0]
 	correctDescription := standaloneTermExplanation(primary, objective.ID)
-	correctLabel := fmt.Sprintf("Mobiliser %s : %s", inlineCodeList([]string{primary}), correctDescription)
-	if usage := standaloneTermUsage(primary); usage != "" {
-		correctLabel += fmt.Sprintf(" Exemple : `%s`.", usage)
-	}
 
 	distractorTerms := make([]string, 0, 3)
 	appendDistractor := func(candidate string) {
@@ -451,23 +454,25 @@ func generatedApplicationQuestion(
 		appendDistractor(candidate)
 	}
 
+	choiceLabel := func(term string) string {
+		if usage := standaloneTermUsage(term); usage != "" {
+			return fmt.Sprintf("`%s` — commande possible : `%s`", term, usage)
+		}
+		return "`" + term + "`"
+	}
 	choices := []Choice{
-		{ID: "correct", LabelFR: correctLabel},
-		{
-			ID:      "other-1",
-			LabelFR: fmt.Sprintf("Mobiliser %s : %s", inlineCodeList([]string{distractorTerms[0]}), standaloneTermExplanation(distractorTerms[0], objective.ID)),
-		},
-		{
-			ID:      "other-2",
-			LabelFR: fmt.Sprintf("Mobiliser %s : %s", inlineCodeList([]string{distractorTerms[1]}), standaloneTermExplanation(distractorTerms[1], objective.ID)),
-		},
-		{
-			ID:      "other-3",
-			LabelFR: fmt.Sprintf("Mobiliser %s : %s", inlineCodeList([]string{distractorTerms[2]}), standaloneTermExplanation(distractorTerms[2], objective.ID)),
-		},
+		{ID: "correct", LabelFR: choiceLabel(primary)},
+		{ID: "other-1", LabelFR: choiceLabel(distractorTerms[0])},
+		{ID: "other-2", LabelFR: choiceLabel(distractorTerms[1])},
+		{ID: "other-3", LabelFR: choiceLabel(distractorTerms[2])},
 	}
 	rotation := (index + 1) % len(choices)
 	choices[0], choices[rotation] = choices[rotation], choices[0]
+
+	explanation := fmt.Sprintf("%s : %s", primary, correctDescription)
+	if usage := standaloneTermUsage(primary); usage != "" {
+		explanation += fmt.Sprintf(" Exemple vérifiable : `%s`.", usage)
+	}
 
 	return Question{
 		SchemaVersion: "1.0.0",
@@ -477,9 +482,9 @@ func generatedApplicationQuestion(
 		Type:          "multiple-choice",
 		Usage:         "daily",
 		PromptFR: fmt.Sprintf(
-			"Scénario : tu dois traiter « %s » dans le cadre de %s. Quelle action ou association technique est la plus directement pertinente ?",
+			"Scénario opérationnel : %s Problème ciblé : « %s ». Quel outil, fichier, commande ou repère utiliserais-tu en premier pour confirmer le diagnostic ou agir directement ?",
+			exam101ApplicationScenario(objective.ID),
 			concept.TitleFR,
-			objective.ID,
 		),
 		Choices: choices,
 		Grading: Grading{
@@ -489,8 +494,40 @@ func generatedApplicationQuestion(
 		EvidenceKindOnSuccess: "recognition",
 		Labels:                conceptLabels(concept),
 		Distribution:          "generic",
-		ExplanationFR:         correctLabel,
+		ExplanationFR:         explanation,
 	}
+}
+
+func exam101ApplicationScenario(objectiveID string) string {
+	scenarios := map[string]string{
+		"101.1": "un périphérique attendu est absent ou mal identifié après un changement matériel.",
+		"101.2": "une machine ne suit pas la séquence de démarrage attendue et il faut localiser l'étape en cause.",
+		"101.3": "un hôte doit changer proprement d'état ou un service de démarrage ne se comporte pas comme prévu.",
+		"102.1": "tu prépares le stockage d'une nouvelle installation Linux avec des contraintes de boot et d'espace.",
+		"102.2": "un système n'atteint plus le noyau après une modification de la configuration de démarrage.",
+		"102.3": "un programme refuse de démarrer à cause d'une dépendance de bibliothèque dynamique.",
+		"102.4": "sur une machine Debian, un paquet doit être installé, inspecté ou dépanné sans perdre la cohérence des dépendances.",
+		"102.5": "sur une machine RPM, tu dois vérifier ou modifier un paquet et son origine de dépôt.",
+		"102.6": "tu dois préparer ou diagnostiquer une instance clonée, virtualisée ou conteneurisée.",
+		"103.1": "une commande shell ne produit pas le comportement attendu dans l'environnement courant.",
+		"103.2": "un flux texte doit être inspecté ou transformé pour isoler l'information utile.",
+		"103.3": "tu dois manipuler, rechercher, archiver ou identifier des fichiers sans modifier inutilement le reste du système.",
+		"103.4": "une commande produit plusieurs flux et tu dois acheminer précisément l'entrée, la sortie ou les erreurs.",
+		"103.5": "un processus ou job se comporte mal et tu dois l'identifier, l'observer ou le contrôler.",
+		"103.6": "un processus concurrence d'autres tâches pour le CPU et sa priorité doit être examinée ou ajustée.",
+		"103.7": "tu dois sélectionner précisément des lignes selon un motif sans confondre globbing et expressions régulières.",
+		"103.8": "tu dois modifier rapidement un fichier texte depuis un terminal en conservant le contrôle de l'édition.",
+		"104.1": "un disque doit être partitionné et préparé avec un type de système de fichiers adapté.",
+		"104.2": "un système de fichiers présente un problème d'espace, d'inodes ou d'intégrité qu'il faut diagnostiquer.",
+		"104.3": "un volume doit être monté correctement maintenant ou au prochain démarrage.",
+		"104.5": "un fichier ou répertoire n'accorde pas les accès attendus à son propriétaire, son groupe ou aux autres utilisateurs.",
+		"104.6": "plusieurs chemins doivent référencer les mêmes données ou une cible doit être liée sans recopier son contenu.",
+		"104.7": "tu dois retrouver un fichier, une commande ou l'emplacement conventionnel d'une donnée système.",
+	}
+	if scenario := scenarios[objectiveID]; scenario != "" {
+		return scenario
+	}
+	return "tu dois diagnostiquer un comportement Linux en choisissant le repère technique le plus directement pertinent."
 }
 
 func normalizeSearchText(value string) string {

@@ -79,7 +79,7 @@ The scheduler uses:
 
 The learner can inspect why an item was scheduled. A successful recognition-only answer does not become recall evidence. When such a practical concept is reviewed while still `exposed`, the default daily action should prefer an available lab instead of trapping the learner in repeated recognition questions. Once independent practical evidence is old enough for transfer, scheduling should prefer an unused practical context when one exists.
 
-An initial/adaptive assessment may satisfy a prerequisite by evidence; the system must not invent a fake lesson completion.
+An initial/adaptive assessment may contribute genuine quiz/recall evidence, but it never fabricates lesson or practical completion. Dependency readiness in the normal study path requires the missing learner surfaces to be completed explicitly.
 
 ## Curriculum ordering
 LPIC objective numbers are reporting identifiers, not the teaching sequence.

@@ -182,8 +182,8 @@ def audit():
         mapped[concept_id]["recall_questions"].append(generated_questions[0])
 
         mapped[concept_id]["labs"].extend([
-            f"lpic1.{objective_id}.standalone-diagnostic",
-            f"lpic1.{objective_id}.standalone-transfer",
+            concept_id + ".standalone-diagnostic",
+            concept_id + ".standalone-transfer",
         ])
 
     concepts = [{
@@ -217,7 +217,7 @@ def audit():
         ),
         "with_question": sum(bool(item["surfaces"]["questions"]) for item in concepts),
         "with_advancement_path": sum(
-            bool(item["surfaces"]["recall_questions"] or item["surfaces"]["labs"])
+            bool(item["surfaces"]["recall_questions"] and item["surfaces"]["labs"])
             for item in concepts
         ),
         "with_lab": sum(bool(item["surfaces"]["labs"]) for item in concepts),
@@ -291,7 +291,7 @@ def main():
         for item in concepts
         if not (
             item["surfaces"]["recall_questions"]
-            or item["surfaces"]["labs"]
+            and item["surfaces"]["labs"]
         )
     ]
     if missing_question:
@@ -306,7 +306,7 @@ def main():
         )
     if missing_advancement:
         print(
-            "Phase-3 acceptance FAILED: concepts without recall or practical advancement path: "
+            "Phase-3 acceptance FAILED: concepts without both recall and practical advancement paths: "
             + ", ".join(missing_advancement)
         )
     if (
@@ -319,8 +319,8 @@ def main():
         return 1
 
     print(
-        "Phase-3 course/daily-question/practical-exercise coverage complete. "
-        "Cross-topic challenge gates remain documented in docs/plan/PHASE-3-ACCEPTANCE.md."
+        "Phase-3 Exam-101 course/daily-question/practical-exercise coverage complete; "
+        "every concept has both recall and practical advancement paths."
     )
     return 0
 

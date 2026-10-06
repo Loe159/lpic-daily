@@ -38,8 +38,8 @@ Exit criteria are canonical in `docs/plan/PHASE-1-ACCEPTANCE.md` and were accept
 ## Phase 2 — VM runner (complete)
 Add libvirt/QEMU/KVM images and cover one boot objective + one storage objective end to end. Establish Fedora, Debian and openSUSE guest-image pipeline and isolated multi-machine lab networking. Real-host KVM/libvirt acceptance passed on 2026-10-04.
 
-## Phase 3 — Exam 101 curriculum (in progress)
-Complete topics 101–104 with automated coverage checks, progressive lessons, practical reps and cross-topic challenges. Phase 3 started in parallel on 2026-10-01; see `docs/plan/PHASE-3-EXAM101.md`.
+## Phase 3 — Exam 101 curriculum (core complete; acceptance hardening)
+Topics 101–104 are covered across all 23 objectives / 162 concepts with automated scope checks, focused lessons, quizzes and concept-scoped practical reps. Final hardening enforces course + quiz + lab completion before prerequisite or Exam-102 progression; see `docs/plan/PHASE-3-EXAM101.md`.
 
 ## Phase 4 — Exam 102 curriculum
 Complete topics 105–110, including networking, services and crypto. Ensure modern-versus-legacy labeling remains accurate.

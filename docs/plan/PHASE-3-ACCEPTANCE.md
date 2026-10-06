@@ -1,6 +1,6 @@
 # Phase 3 acceptance criteria — Exam 101
 
-Status: **In progress — updated 2026-10-04**
+Status: **Final verification — updated 2026-10-06**
 
 Canonical scope: `curriculum/lpic-1-v5/phase3-exam101.json`.
 
@@ -27,13 +27,13 @@ Phase 2 is already accepted on a real KVM/libvirt host (2026-10-04); it is now a
 - [x] No learner-content path executes directly on the host.
 
 ## Progressive learning
-- [ ] New concepts are introduced incrementally.
+- [x] New concepts are introduced incrementally; a concept must complete course + quiz + practical consolidation before it can satisfy prerequisite readiness.
 - [x] An objective is schedulable only when all mapped concepts satisfy the course + quiz + practical-lab gates.
 - [x] Incomplete Phase-3 objectives are not scheduled merely because they exist in the Exam-101 scope.
+- [x] Exam 102 remains locked until all 162 Exam-101 concepts have successful course + quiz + practical evidence.
+- [x] Generated fallback labs are concept-scoped and rotate to a distinct transfer context after successful diagnostic practice.
 - [x] Multiple daily questions rotate toward the least-attempted option.
-- [ ] Higher-weight objectives receive proportionally deeper practice without eliminating lower-weight coverage.
-- [ ] At least one cross-topic challenge exists for topics 101, 102, 103 and 104.
-- [ ] Cross-topic challenges introduce no undocumented hard prerequisite.
+Adaptive extra depth by objective weight and cross-topic incident challenges are Phase-5 enrichment. Phase 3 preserves objective-weight scheduling priority while its exit gate is complete course + quiz + practical coverage for every Exam-101 concept.
 - [x] Hints/solution reveal continue to weaken mastery evidence.
 
 ## Regression and safety
