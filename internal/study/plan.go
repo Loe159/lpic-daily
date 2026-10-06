@@ -243,7 +243,10 @@ func completeObjectiveReadiness(
 			case learning.ActivityQuestion:
 				recall = recall || learning.EffectiveEvidenceKind(event) == learning.EvidenceRecall
 			case learning.ActivityLab:
-				practical = true
+				effective := learning.EffectiveEvidenceKind(event)
+				practical = practical ||
+					effective == learning.EvidenceIndependentPractice ||
+					effective == learning.EvidenceTransfer
 			}
 		}
 		if lesson && recall && practical {
