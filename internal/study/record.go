@@ -256,7 +256,6 @@ func LabConceptResults(authored lab.Lab, checkResults []checker.Result) (map[str
 	return results, nil
 }
 
-
 func standaloneConceptHasRuntimeCommandEvidence(authored lab.Lab, conceptID string) bool {
 	historyPath, ok := lab.StandaloneCommandHistoryPath(authored.Definition)
 	if !ok {

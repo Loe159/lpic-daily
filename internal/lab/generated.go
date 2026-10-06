@@ -350,7 +350,6 @@ func generatedStandaloneHints(labID, root string) []Hint {
 	}
 }
 
-
 func StandaloneCommandHistoryPath(definition Definition) (string, bool) {
 	if !strings.Contains(definition.ID, ".standalone-") {
 		return "", false

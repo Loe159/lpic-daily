@@ -1480,7 +1480,6 @@ func runInteractiveLabWithBackend(
 	}
 }
 
-
 func recordStandaloneLabCommand(
 	ctx context.Context,
 	backend runner.Runner,
