@@ -487,6 +487,7 @@ func TestGeneratedStandaloneLabsUseDeterministicExam101Contract(t *testing.T) {
 	}
 
 	seen := make(map[string]int)
+	deterministicSignatures := make(map[string]map[string]struct{})
 	for _, authored := range labs {
 		if !strings.Contains(authored.Definition.ID, ".standalone-") {
 			continue
@@ -503,7 +504,7 @@ func TestGeneratedStandaloneLabsUseDeterministicExam101Contract(t *testing.T) {
 			t.Errorf("%s lacks deterministic-state label", authored.Definition.ID)
 		}
 		historyPath, _ := lab.StandaloneCommandHistoryPath(authored.Definition)
-		stateChecks := 0
+		var stateChecks []lab.CheckDefinition
 		for _, check := range authored.Definition.Checks {
 			if !slices.Contains(check.ConceptIDs, conceptID) {
 				continue
@@ -511,21 +512,28 @@ func TestGeneratedStandaloneLabsUseDeterministicExam101Contract(t *testing.T) {
 			if check.Path == historyPath {
 				continue
 			}
-			stateChecks++
+			stateChecks = append(stateChecks, check)
 			if check.Type == "file-content-regex" && strings.Contains(check.Pattern, "CONCEPT=") {
 				t.Errorf("%s still uses declarative fallback evidence", authored.Definition.ID)
 			}
 		}
-		if stateChecks == 0 {
+		if len(stateChecks) == 0 {
 			t.Errorf("%s has no direct state/result check", authored.Definition.ID)
 		}
+		if deterministicSignatures[conceptID] == nil {
+			deterministicSignatures[conceptID] = make(map[string]struct{})
+		}
+		signature := fmt.Sprintf("%#v|setup=%s", stateChecks, authored.SetupScript)
+		deterministicSignatures[conceptID][signature] = struct{}{}
 	}
 
 	for conceptID, objectiveID := range conceptObjective {
 		if got := seen[conceptID]; got < 2 {
 			t.Errorf("%s generated contexts = %d, want at least 2", conceptID, got)
 		}
-		_ = objectiveID
+		if objectiveExam[objectiveID] == "101" && len(deterministicSignatures[conceptID]) < 2 {
+			t.Errorf("%s diagnostic/transfer reuse the same deterministic state contract", conceptID)
+		}
 	}
 }
 
