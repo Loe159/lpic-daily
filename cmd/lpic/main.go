@@ -97,6 +97,8 @@ func runWithIO(args []string, stdin io.Reader, stdout, stderr io.Writer) error {
 		return nil
 	case "today":
 		return runToday(args[1:], stdout)
+	case "focus":
+		return runFocus(args[1:], stdout)
 	case "tui":
 		if len(args) != 1 {
 			return fmt.Errorf("usage: lpic tui")
@@ -160,13 +162,19 @@ func runDashboard(stdin io.Reader, stdout, stderr io.Writer) error {
 			return err
 		}
 		now := time.Now()
+		focus, err := appstate.LoadStudyFocus()
+		if err != nil {
+			_ = store.Close()
+			return fmt.Errorf("load study focus: %w", err)
+		}
 		plan, planErr := study.BuildPlan(ctx, study.PlanInput{
-			Now:        now,
-			Curriculum: curriculumBundle,
-			Content:    contentBundle,
-			Labs:       labs,
-			Evidence:   store,
-			Policy:     learning.DefaultSessionPolicy(),
+			Now:         now,
+			Curriculum:  curriculumBundle,
+			Content:     contentBundle,
+			Labs:        labs,
+			Evidence:    store,
+			Policy:      learning.DefaultSessionPolicy(),
+			Exam101Only: focus == appstate.StudyFocusExam101,
 		})
 		gameSnapshot, gameErr := loadGamificationSnapshot(ctx, store, now)
 		closeErr := store.Close()
@@ -290,13 +298,18 @@ func runNotifyWithExecutor(
 
 	localDay := now.In(time.Local).Format("2006-01-02")
 
+	focus, err := appstate.LoadStudyFocus()
+	if err != nil {
+		return fmt.Errorf("load study focus: %w", err)
+	}
 	plan, err := study.BuildPlan(ctx, study.PlanInput{
-		Now:        now,
-		Curriculum: curriculumBundle,
-		Content:    contentBundle,
-		Labs:       labs,
-		Evidence:   store,
-		Policy:     learning.DefaultSessionPolicy(),
+		Now:         now,
+		Curriculum:  curriculumBundle,
+		Content:     contentBundle,
+		Labs:        labs,
+		Evidence:    store,
+		Policy:      learning.DefaultSessionPolicy(),
+		Exam101Only: focus == appstate.StudyFocusExam101,
 	})
 	if err != nil {
 		return err
@@ -458,6 +471,29 @@ func sendDailyWithClaimRefresh(
 	}
 }
 
+func runFocus(args []string, stdout io.Writer) error {
+	if len(args) == 0 {
+		focus, err := appstate.LoadStudyFocus()
+		if err != nil {
+			return err
+		}
+		fmt.Fprintf(stdout, "Focus actuel: %s\n", focus)
+		return nil
+	}
+	if len(args) != 1 || (args[0] != appstate.StudyFocusExam101 && args[0] != appstate.StudyFocusAll) {
+		return fmt.Errorf("usage: lpic focus [101|all]")
+	}
+	if err := appstate.SaveStudyFocus(args[0]); err != nil {
+		return err
+	}
+	if args[0] == appstate.StudyFocusExam101 {
+		fmt.Fprintln(stdout, "Focus 101 activé : l'examen 102 ne sera pas planifié.")
+	} else {
+		fmt.Fprintln(stdout, "Focus global activé : la 102 pourra être planifiée après maîtrise complète de la 101.")
+	}
+	return nil
+}
+
 func runToday(args []string, stdout io.Writer) error {
 	policy := learning.DefaultSessionPolicy()
 	switch {
@@ -488,13 +524,18 @@ func runToday(args []string, stdout io.Writer) error {
 	}
 	defer store.Close()
 
+	focus, err := appstate.LoadStudyFocus()
+	if err != nil {
+		return fmt.Errorf("load study focus: %w", err)
+	}
 	plan, err := study.BuildPlan(ctx, study.PlanInput{
-		Now:        time.Now(),
-		Curriculum: curriculumBundle,
-		Content:    contentBundle,
-		Labs:       labs,
-		Evidence:   store,
-		Policy:     policy,
+		Now:         time.Now(),
+		Curriculum:  curriculumBundle,
+		Content:     contentBundle,
+		Labs:        labs,
+		Evidence:    store,
+		Policy:      policy,
+		Exam101Only: focus == appstate.StudyFocusExam101,
 	})
 	if err != nil {
 		return err
