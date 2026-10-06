@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"io"
@@ -377,9 +378,25 @@ func (setup *installer) ensurePodman(ctx context.Context) error {
 		return fmt.Errorf("%w: Podman installation was not approved", ErrDeclined)
 	}
 
+	revision, err := phase1ImageRevision(setup.assets)
+	if err != nil {
+		return err
+	}
 	if _, err := setup.opts.Runner.Run(ctx, "podman", "image", "exists", Phase1Image); err == nil {
-		fmt.Fprintln(setup.opts.Stdout, "Image des labs Podman: prête.")
-		return nil
+		output, inspectErr := setup.opts.Runner.Run(
+			ctx,
+			"podman",
+			"image",
+			"inspect",
+			"--format",
+			`{{ index .Labels "io.lpic-daily.source-digest" }}`,
+			Phase1Image,
+		)
+		if inspectErr == nil && strings.TrimSpace(string(output)) == revision {
+			fmt.Fprintln(setup.opts.Stdout, "Image des labs Podman: prête.")
+			return nil
+		}
+		fmt.Fprintln(setup.opts.Stdout, "Image des labs Podman obsolète: reconstruction automatique…")
 	}
 
 	if !setup.confirm(
@@ -424,6 +441,8 @@ func (setup *installer) ensurePodman(ctx context.Context) error {
 		"podman",
 		"build",
 		"--pull=never",
+		"--label",
+		"io.lpic-daily.source-digest="+revision,
 		"--tag",
 		Phase1Image,
 		"--file",
@@ -635,6 +654,25 @@ func (setup *installer) confirm(question string, defaultYes bool) bool {
 		return defaultYes
 	}
 	return answer == "o" || answer == "oui" || answer == "y" || answer == "yes"
+}
+
+func phase1ImageRevision(assets fs.FS) (string, error) {
+	digest := sha256.New()
+	for _, source := range []string{
+		"labs/images/fedora-phase1/Containerfile",
+		"labs/images/fedora-phase1/report-status-approved",
+		"labs/images/fedora-phase1/report-status-shadow",
+	} {
+		payload, err := fs.ReadFile(assets, source)
+		if err != nil {
+			return "", fmt.Errorf("read Phase-1 image source %s: %w", source, err)
+		}
+		_, _ = io.WriteString(digest, source)
+		_, _ = digest.Write([]byte{0})
+		_, _ = digest.Write(payload)
+		_, _ = digest.Write([]byte{0})
+	}
+	return fmt.Sprintf("%x", digest.Sum(nil)), nil
 }
 
 func (setup *installer) extractPhase1Context() (string, func(), error) {

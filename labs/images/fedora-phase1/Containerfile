@@ -50,6 +50,7 @@ RUN dnf -y install \
         which \
         xfsprogs \
         xz \
+    && test -x /usr/bin/nano \
     && groupadd --gid 2000 project \
     && useradd --create-home --uid 1101 --groups project alice \
     && useradd --create-home --uid 1102 --groups project bob \

@@ -14,10 +14,11 @@ import (
 )
 
 type fakeRunner struct {
-	paths       map[string]bool
-	imageExists bool
-	runs        []string
-	interactive []string
+	paths         map[string]bool
+	imageExists   bool
+	imageRevision string
+	runs          []string
+	interactive   []string
 }
 
 func (runner *fakeRunner) LookPath(name string) (string, error) {
@@ -30,9 +31,17 @@ func (runner *fakeRunner) LookPath(name string) (string, error) {
 func (runner *fakeRunner) Run(_ context.Context, name string, args ...string) ([]byte, error) {
 	call := strings.Join(append([]string{name}, args...), " ")
 	runner.runs = append(runner.runs, call)
-	if name == "podman" && len(args) >= 2 && args[0] == "image" && args[1] == "exists" {
-		if !runner.imageExists {
-			return nil, errors.New("image missing")
+	if name == "podman" && len(args) >= 2 && args[0] == "image" {
+		switch args[1] {
+		case "exists":
+			if !runner.imageExists {
+				return nil, errors.New("image missing")
+			}
+		case "inspect":
+			if !runner.imageExists {
+				return nil, errors.New("image missing")
+			}
+			return []byte(runner.imageRevision + "\n"), nil
 		}
 	}
 	return nil, nil
@@ -50,6 +59,11 @@ func (runner *fakeRunner) Interactive(
 	runner.interactive = append(runner.interactive, call)
 	if name == "podman" && len(args) > 0 && args[0] == "build" {
 		runner.imageExists = true
+		for index := 0; index+1 < len(args); index++ {
+			if args[index] == "--label" {
+				runner.imageRevision = strings.TrimPrefix(args[index+1], "io.lpic-daily.source-digest=")
+			}
+		}
 	}
 	return nil
 }
@@ -109,6 +123,71 @@ func TestInstallConfiguresUserIntegrationAndBuildsMissingPodmanImage(t *testing.
 		!strings.Contains(runner.interactive[0], "podman pull") ||
 		!strings.Contains(runner.interactive[1], "podman build --pull=never") {
 		t.Fatalf("interactive calls = %#v", runner.interactive)
+	}
+}
+
+func TestEnsurePodmanRebuildsStaleImage(t *testing.T) {
+	assets := bootstrapAssets()
+	revision, err := phase1ImageRevision(assets)
+	if err != nil {
+		t.Fatalf("phase1ImageRevision() error = %v", err)
+	}
+
+	runner := &fakeRunner{
+		paths: map[string]bool{
+			"podman":    true,
+			"systemctl": true,
+		},
+		imageExists:   true,
+		imageRevision: "stale",
+	}
+	var stdout, stderr bytes.Buffer
+	if err := EnsurePodmanLab(context.Background(), assets, Options{
+		Runner:    runner,
+		Stdin:     strings.NewReader(""),
+		Stdout:    &stdout,
+		Stderr:    &stderr,
+		AssumeYes: true,
+	}); err != nil {
+		t.Fatalf("EnsurePodmanLab() error = %v; stderr=%q", err, stderr.String())
+	}
+	if runner.imageRevision != revision {
+		t.Fatalf("rebuilt image revision = %q, want %q", runner.imageRevision, revision)
+	}
+	if len(runner.interactive) != 1 || !strings.Contains(runner.interactive[0], "podman build --pull=never --label io.lpic-daily.source-digest=") {
+		t.Fatalf("interactive calls = %#v, want one labeled rebuild", runner.interactive)
+	}
+	if !strings.Contains(stdout.String(), "obsolète") {
+		t.Fatalf("stdout = %q, want stale-image notice", stdout.String())
+	}
+}
+
+func TestEnsurePodmanKeepsCurrentImage(t *testing.T) {
+	assets := bootstrapAssets()
+	revision, err := phase1ImageRevision(assets)
+	if err != nil {
+		t.Fatalf("phase1ImageRevision() error = %v", err)
+	}
+
+	runner := &fakeRunner{
+		paths: map[string]bool{
+			"podman":    true,
+			"systemctl": true,
+		},
+		imageExists:   true,
+		imageRevision: revision,
+	}
+	if err := EnsurePodmanLab(context.Background(), assets, Options{
+		Runner:    runner,
+		Stdin:     strings.NewReader(""),
+		Stdout:    io.Discard,
+		Stderr:    io.Discard,
+		AssumeYes: true,
+	}); err != nil {
+		t.Fatalf("EnsurePodmanLab() error = %v", err)
+	}
+	if len(runner.interactive) != 0 {
+		t.Fatalf("current image unexpectedly rebuilt: %#v", runner.interactive)
 	}
 }
 

@@ -353,6 +353,12 @@ func TestPrepareJobControlShellAvoidsUnsupportedNonTTYStdin(t *testing.T) {
 	}
 }
 
+func TestInteractiveTerminalRejectsBufferedIO(t *testing.T) {
+	if interactiveTerminal(strings.NewReader(""), &bytes.Buffer{}) {
+		t.Fatal("buffered I/O must not be treated as an interactive terminal")
+	}
+}
+
 func TestSanitizedTerminalWriterRemovesTerminalControls(t *testing.T) {
 	var output bytes.Buffer
 	writer := sanitizedTerminalWriter{destination: &output}
