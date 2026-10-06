@@ -162,9 +162,16 @@ func BuildSession(input SessionInput) (Session, error) {
 		if containsConcept(session.Items, concept.ID) {
 			continue
 		}
-		reason := "Consolidation immédiate: le concept a été exposé, mais aucune pratique réussie ne l'a encore consolidé."
-		if projection.Stage == StageRecall {
-			reason = "Consolidation immédiate: le rappel est réussi, mais une pratique réussie est requise avant le concept suivant."
+		hasQuestionSuccess := projection.SuccessfulRecognition > 0 || projection.SuccessfulRecall > 0
+		hasPracticalSuccess := projection.SuccessfulGuided > 0 ||
+			projection.SuccessfulIndependent > 0 ||
+			projection.SuccessfulTransfer > 0
+		reason := "Consolidation immédiate: une activité requise manque avant le concept suivant."
+		switch {
+		case !hasQuestionSuccess:
+			reason = "Consolidation immédiate: le cours est vu, mais un quiz réussi est requis avant le concept suivant."
+		case !hasPracticalSuccess:
+			reason = "Consolidation immédiate: le quiz est réussi, mais une pratique réussie est requise avant le concept suivant."
 		}
 		session.Items = append(session.Items, SessionItem{
 			ConceptID:   concept.ID,
