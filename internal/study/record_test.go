@@ -364,7 +364,7 @@ func TestLabConceptResultsPreserveMixedCheckOutcomes(t *testing.T) {
 	}
 }
 
-func TestGeneratedExam101CommandEvidenceCanAdvanceToIndependentAndTransfer(t *testing.T) {
+func TestGeneratedExam101CommandEvidenceRemainsGuided(t *testing.T) {
 	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
 	if err != nil {
 		t.Fatalf("lab.LoadAll() error = %v", err)
@@ -387,16 +387,17 @@ func TestGeneratedExam101CommandEvidenceCanAdvanceToIndependentAndTransfer(t *te
 	if err := study.RecordLab(context.Background(), store, diagnostic, 0, start); err != nil {
 		t.Fatalf("diagnostic RecordLab() error = %v", err)
 	}
-	first := store.events[conceptID][0]
-	if first.EvidenceKind != learning.EvidenceIndependentPractice {
-		t.Fatalf("first generated command-backed evidence = %s, want independent-practice", first.EvidenceKind)
-	}
 	if err := study.RecordLab(context.Background(), store, transfer, 0, start.Add(25*time.Hour)); err != nil {
 		t.Fatalf("transfer RecordLab() error = %v", err)
 	}
 	events := store.events[conceptID]
-	if len(events) != 2 || events[1].EvidenceKind != learning.EvidenceTransfer {
-		t.Fatalf("events = %#v, want generated transfer after a different verified context", events)
+	if len(events) != 2 {
+		t.Fatalf("events = %#v, want two generated practice events", events)
+	}
+	for index, event := range events {
+		if event.EvidenceKind != learning.EvidenceGuidedPractice {
+			t.Fatalf("event %d evidence = %s, want guided-practice", index+1, event.EvidenceKind)
+		}
 	}
 }
 
