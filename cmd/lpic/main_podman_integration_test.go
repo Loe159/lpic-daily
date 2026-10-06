@@ -11,6 +11,7 @@ import (
 
 	lpicdaily "github.com/Loe159/lpic-daily"
 	"github.com/Loe159/lpic-daily/internal/lab"
+	"github.com/Loe159/lpic-daily/internal/runner"
 	podmanrunner "github.com/Loe159/lpic-daily/internal/runner/podman"
 )
 
