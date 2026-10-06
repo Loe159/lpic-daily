@@ -254,10 +254,10 @@ func generatedStandaloneLab(
 	hints := generatedStandaloneHints(labID, root)
 	return Lab{
 		Definition: Definition{
-			SchemaVersion: "1.0.0",
-			ID:            labID,
-			TitleFR:       fmt.Sprintf("%s — %s — pratique %s", objective.ID, concept.TitleFR, contextFR),
-			BriefFR:       brief,
+			SchemaVersion:     "1.0.0",
+			ID:                labID,
+			TitleFR:           fmt.Sprintf("%s — %s — pratique %s", objective.ID, concept.TitleFR, contextFR),
+			BriefFR:           brief,
 			SuccessCriteriaFR: successCriteria,
 			DebriefFR: fmt.Sprintf(
 				"%s %s Le contexte %s oblige à reformuler et vérifier chaque sous-concept au lieu de valider l'objectif par une seule commande.",
@@ -377,7 +377,6 @@ func StandaloneCommandHistoryPath(definition Definition) (string, bool) {
 		return "", false
 	}
 }
-
 
 func deterministicStandaloneExercise(
 	objective curriculum.Objective,
