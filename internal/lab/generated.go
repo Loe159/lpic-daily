@@ -288,6 +288,9 @@ func generatedStandaloneLab(
 }
 
 func standaloneLabEnvironment(objective curriculum.Objective, variant int) (backend, imageRef, distribution string) {
+	if objective.ID == "102.1" || objective.ID == "104.1" || objective.ID == "104.2" || objective.ID == "104.3" {
+		return "libvirt", "fedora-44-x86_64-v2", "fedora"
+	}
 	if objective.ID == "102.4" {
 		return "libvirt", "debian-13-x86_64-v2", "debian"
 	}
@@ -394,12 +397,16 @@ func deterministicStandaloneExercise(
 		return deterministicFileExercise(concept, root, source, result, variant)
 	case "103.4":
 		return deterministicRedirectionExercise(concept, root, result, variant)
+	case "103.5":
+		return deterministicProcessExercise(concept, root, result, variant)
 	case "103.6":
 		return deterministicPriorityExercise(concept, root, result, variant)
 	case "103.7":
 		return deterministicRegexExercise(concept, source, result, variant)
 	case "103.8":
 		return deterministicEditorExercise(concept, result, variant)
+	case "102.1", "104.1", "104.2", "104.3":
+		return deterministicStorageExercise(objective.ID, concept, root, result, variant)
 	case "104.5":
 		return deterministicPermissionExercise(concept, root, variant)
 	case "104.6":
@@ -419,7 +426,7 @@ func deterministicStandaloneExercise(
 	}
 
 	script := fmt.Sprintf(
-		"set -eu; expected=$(( %s ) | sha256sum | awk '{print $1}'); test -f %q; test \"$(tr -d '[:space:]' < %q)\" = \"$expected\"",
+		"set -eu; expected=$( ( %s ) | sha256sum | awk '{print $1}'); test -f %q; test \"$(tr -d '[:space:]' < %q)\" = \"$expected\"",
 		probe, result, result,
 	)
 	return fmt.Sprintf(
