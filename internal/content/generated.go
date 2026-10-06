@@ -2,6 +2,7 @@ package content
 
 import (
 	"fmt"
+	"regexp"
 	"slices"
 	"strings"
 	"unicode"
@@ -482,9 +483,9 @@ func generatedApplicationQuestion(
 		Type:          "multiple-choice",
 		Usage:         "daily",
 		PromptFR: fmt.Sprintf(
-			"Scénario opérationnel : %s Problème ciblé : « %s ». Quel outil, fichier, commande ou repère utiliserais-tu en premier pour confirmer le diagnostic ou agir directement ?",
+			"Scénario opérationnel : %s Indice fonctionnel : %s Quel outil, fichier, commande ou repère utiliserais-tu en premier pour confirmer le diagnostic ou agir directement ?",
 			exam101ApplicationScenario(objective.ID),
-			concept.TitleFR,
+			exam101ApplicationClue(objective, concept),
 		),
 		Choices: choices,
 		Grading: Grading{
@@ -496,6 +497,20 @@ func generatedApplicationQuestion(
 		Distribution:          "generic",
 		ExplanationFR:         explanation,
 	}
+}
+
+func exam101ApplicationClue(objective curriculum.Objective, concept curriculum.Concept) string {
+	clue := standaloneTermExplanation(concept.AnchorTerms[0], objective.ID)
+	for _, anchor := range concept.AnchorTerms {
+		pattern := regexp.MustCompile("(?i)" + regexp.QuoteMeta(anchor))
+		clue = pattern.ReplaceAllString(clue, "")
+	}
+	clue = strings.Join(strings.Fields(clue), " ")
+	clue = strings.Trim(clue, " —:;,.()[]")
+	if len([]rune(clue)) < 12 {
+		return fmt.Sprintf("sous-cas opérationnel %d de l'objectif %s.", concept.PedagogyOrder, objective.ID)
+	}
+	return clue + "."
 }
 
 func exam101ApplicationScenario(objectiveID string) string {
