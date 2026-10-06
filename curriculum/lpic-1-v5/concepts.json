@@ -208,7 +208,8 @@
         "systemd",
         "init",
         "telinit",
-        "/etc/inittab"
+        "/etc/inittab",
+        "Upstart"
       ]
     },
     {
@@ -560,7 +561,11 @@
       "anchor_terms": [
         "ldconfig",
         "/etc/ld.so.conf",
-        "LD_LIBRARY_PATH"
+        "LD_LIBRARY_PATH",
+        "/lib",
+        "/usr/lib",
+        "/lib64",
+        "/usr/lib64"
       ]
     },
     {
@@ -761,6 +766,8 @@
       "anchor_terms": [
         "rpm -q",
         "rpm -i",
+        "rpm -U",
+        "rpm -e",
         "rpm2cpio"
       ]
     },
@@ -2542,7 +2549,15 @@
       ],
       "active": true,
       "anchor_terms": [
-        "FHS"
+        "FHS",
+        "/etc",
+        "/var",
+        "/usr",
+        "/home",
+        "/tmp",
+        "/boot",
+        "/opt",
+        "/srv"
       ]
     },
     {
