@@ -378,6 +378,302 @@ func StandaloneCommandHistoryPath(definition Definition) (string, bool) {
 	}
 }
 
+
+func deterministicStandaloneExercise(
+	objective curriculum.Objective,
+	concept curriculum.Concept,
+	root string,
+	variant int,
+) (string, []CheckDefinition, string) {
+	result := root + "/" + standaloneConceptFilename(concept) + ".result"
+	source := root + "/" + standaloneConceptFilename(concept) + ".source"
+
+	switch objective.ID {
+	case "103.2":
+		return deterministicTextExercise(concept, source, result, variant)
+	case "103.3":
+		return deterministicFileExercise(concept, root, source, result, variant)
+	case "103.4":
+		return deterministicRedirectionExercise(concept, root, result, variant)
+	case "103.6":
+		return deterministicPriorityExercise(concept, root, result, variant)
+	case "103.7":
+		return deterministicRegexExercise(concept, source, result, variant)
+	case "103.8":
+		return deterministicEditorExercise(concept, result, variant)
+	case "104.5":
+		return deterministicPermissionExercise(concept, root, variant)
+	case "104.6":
+		return deterministicLinkExercise(concept, root, variant)
+	}
+
+	probe := deterministicInspectionProbe(objective, concept)
+	if variant == 0 {
+		script := fmt.Sprintf(
+			"set -eu; a=$(mktemp); trap 'rm -f \"$a\"' EXIT; ( %s ) >\"$a\"; test -f %q; cmp -s %q \"$a\"",
+			probe, result, result,
+		)
+		return fmt.Sprintf(
+			"Diagnostic : inspecte l'état Linux réel lié à %s et écris le relevé canonique dans %s. Le checker recalcule cet état indépendamment.",
+			concept.TitleFR, result,
+		), []CheckDefinition{deterministicCommandCheck(concept.ID, script)}, ""
+	}
+
+	script := fmt.Sprintf(
+		"set -eu; expected=$(( %s ) | sha256sum | awk '{print $1}'); test -f %q; test \"$(tr -d '[:space:]' < %q)\" = \"$expected\"",
+		probe, result, result,
+	)
+	return fmt.Sprintf(
+		"Transfert : réinspecte %s dans ce second contexte, dérive le SHA-256 du relevé canonique et écris uniquement l'empreinte dans %s. Le checker dérive sa propre empreinte.",
+		concept.TitleFR, result,
+	), []CheckDefinition{deterministicCommandCheck(concept.ID, script)}, ""
+}
+
+func deterministicInspectionProbe(objective curriculum.Objective, concept curriculum.Concept) string {
+	var parts []string
+	for _, anchor := range concept.AnchorTerms {
+		trimmed := strings.TrimSpace(anchor)
+		if strings.HasPrefix(trimmed, "/") {
+			parts = append(parts, fmt.Sprintf("if test -e %q; then stat -Lc '%%n|%%F|%%a' %q; else printf 'missing|%%s\\n' %q; fi", trimmed, trimmed, trimmed))
+			continue
+		}
+		if standaloneCommandAnchorAllowed(trimmed) && standaloneDirectCommandAnchor(trimmed) {
+			parts = append(parts, fmt.Sprintf("printf 'command|%%s|' %q; command -v %s 2>/dev/null || true", trimmed, trimmed))
+		}
+	}
+	switch objective.ID {
+	case "101.1":
+		parts = append(parts, "lsblk -ndo NAME,TYPE,TRAN 2>/dev/null | sort", "find /sys/class -mindepth 1 -maxdepth 1 -printf '%f\\n' 2>/dev/null | sort | head -20")
+	case "101.2":
+		parts = append(parts, "printf 'pid1|'; cat /proc/1/comm; printf 'cmdline|'; cat /proc/cmdline", "if test -d /sys/firmware/efi; then echo firmware=UEFI; else echo firmware=BIOS; fi")
+	case "101.3":
+		parts = append(parts, "systemctl get-default 2>/dev/null || true", "systemctl list-jobs --no-pager 2>/dev/null | sed -n '1,12p'")
+	case "102.1", "104.1":
+		parts = append(parts, "lsblk -o NAME,TYPE,SIZE,PTTYPE,FSTYPE,MOUNTPOINTS 2>/dev/null")
+	case "102.2":
+		parts = append(parts, "for p in /boot/grub2/grub.cfg /boot/grub/grub.cfg /boot/grub/menu.lst; do test -e \"$p\" && printf 'bootcfg|%s\\n' \"$p\"; done")
+	case "102.3":
+		parts = append(parts, "ldd /bin/sh 2>/dev/null | sed -n '1,12p'", "ldconfig -p 2>/dev/null | sed -n '1,12p'")
+	case "102.4":
+		parts = append(parts, "dpkg-query -W bash 2>/dev/null || true", "apt-cache depends bash 2>/dev/null | sed -n '1,10p'")
+	case "102.5":
+		parts = append(parts, "rpm -qa 2>/dev/null | sort | head -10", "{ dnf repolist 2>/dev/null || yum repolist 2>/dev/null || zypper lr 2>/dev/null || true; } | sed -n '1,12p'")
+	case "102.6":
+		parts = append(parts, "systemd-detect-virt 2>/dev/null || true", "printf 'machine-id|'; cat /etc/machine-id 2>/dev/null; printf 'hostname|'; hostname")
+	case "103.1":
+		parts = append(parts, "printf 'path|%s\\n' \"$PATH\"; command -V sh; command -V printf")
+	case "104.2":
+		parts = append(parts, "df -P / | tail -1", "df -Pi / | tail -1")
+	case "104.3":
+		parts = append(parts, "findmnt -rn -o SOURCE,TARGET,FSTYPE,OPTIONS | head -12", "grep -Ev '^[[:space:]]*(#|$)' /etc/fstab 2>/dev/null || true")
+	case "104.7":
+		parts = append(parts, "for p in /etc /var /usr /home /tmp /boot /opt /srv; do test -e \"$p\" && stat -Lc '%n|%F' \"$p\"; done", "whereis sh")
+	}
+	if len(parts) == 0 {
+		parts = append(parts, "uname -srm", "pwd")
+	}
+	return strings.Join(parts, "; ")
+}
+
+func deterministicCommandCheck(conceptID, script string) CheckDefinition {
+	return CheckDefinition{
+		Type:         "command-exit",
+		Argv:         []string{"/bin/sh", "-c", script},
+		ExpectedExit: 0,
+		ConceptIDs:   []string{conceptID},
+	}
+}
+
+func deterministicTextExercise(concept curriculum.Concept, source, result string, variant int) (string, []CheckDefinition, string) {
+	payload := "delta:3\\nalpha:1\\nbeta:2\\nalpha:1\\n"
+	if variant == 1 {
+		payload = "kiwi:7\\npear:4\\nkiwi:7\\napple:2\\n"
+	}
+	setup := fmt.Sprintf("printf '%%b' %q > %q\\n", payload, source)
+	var task, verify string
+	switch concept.PedagogyOrder {
+	case 1:
+		task, verify = "Recopie exactement le flux source dans le fichier résultat avec un outil de lecture de texte.", fmt.Sprintf("cmp -s %q %q", source, result)
+	case 2:
+		task, verify = "Extrais uniquement la première colonne séparée par ':' dans le fichier résultat.", fmt.Sprintf("cut -d: -f1 %q | cmp -s - %q", source, result)
+	case 3:
+		task, verify = "Trie puis déduplique le flux source dans le fichier résultat.", fmt.Sprintf("sort %q | uniq | cmp -s - %q", source, result)
+	case 4:
+		task, verify = "Assemble dans le fichier résultat les deux premières lignes de la source avec ':' comme séparateur.", fmt.Sprintf("head -2 %q | paste -sd: - | cmp -s - %q", source, result)
+	case 5:
+		task, verify = "Transforme toutes les minuscules ASCII de la source en majuscules.", fmt.Sprintf("tr '[:lower:]' '[:upper:]' < %q | cmp -s - %q", source, result)
+	case 6:
+		task, verify = "Écris uniquement le SHA-256 de la source.", fmt.Sprintf("test \"$(tr -d '[:space:]' < %q)\" = \"$(sha256sum %q | awk '{print $1}')\"", result, source)
+	default:
+		compressed := source + ".gz"
+		setup += fmt.Sprintf("gzip -c %q > %q\\n", source, compressed)
+		task, verify = "Lis le fichier gzip en flux et reconstitue exactement son contenu.", fmt.Sprintf("gzip -cd %q | cmp -s - %q", compressed, result)
+	}
+	return fmt.Sprintf("%s Source: %s. Résultat attendu dans %s.", task, source, result), []CheckDefinition{deterministicCommandCheck(concept.ID, verify)}, setup
+}
+
+func deterministicFileExercise(concept curriculum.Concept, root, source, result string, variant int) (string, []CheckDefinition, string) {
+	setup := fmt.Sprintf("printf 'variant-%d\\n' > %q\\nmkdir -p %q/tree/a %q/tree/b\\nprintf 'one\\n' > %q/tree/a/one.log\\nprintf 'two\\n' > %q/tree/b/two.txt\\n", variant+1, source, root, root, root, root)
+	var task, verify string
+	switch concept.PedagogyOrder {
+	case 1:
+		task, verify = "Copie la source puis déplace la copie vers le résultat final.", fmt.Sprintf("cmp -s %q %q", source, result)
+	case 2:
+		task, verify = "Utilise le globbing pour produire la liste triée des fichiers .log de tree.", fmt.Sprintf("printf '%%s\\n' %s/tree/*/*.log | sort | cmp -s - %q", root, result)
+	case 3:
+		task, verify = "Trouve uniquement les fichiers réguliers .log sous tree et écris les chemins triés.", fmt.Sprintf("find %q/tree -type f -name '*.log' | sort | cmp -s - %q", root, result)
+	case 4:
+		task, verify = "Avec find, applique le mode 0640 à tous les fichiers sous tree.", fmt.Sprintf("test -z \"$(find %q/tree -type f ! -perm 0640 -print -quit)\"", root)
+	case 5:
+		archive := result + ".tar"
+		task, verify = "Crée une archive tar du répertoire tree.", fmt.Sprintf("tar -tf %q | grep -q 'tree/a/one.log' && tar -tf %q | grep -q 'tree/b/two.txt'", archive, archive)
+	case 6:
+		task, verify = "Copie la source octet pour octet avec dd vers le résultat.", fmt.Sprintf("cmp -s %q %q", source, result)
+	case 7:
+		compressed := result + ".gz"
+		task, verify = "Compresse la source avec gzip sans altérer la source.", fmt.Sprintf("gzip -cd %q | cmp -s - %q", compressed, source)
+	default:
+		task, verify = "Écris la description courte produite par file pour la source.", fmt.Sprintf("file -b %q | cmp -s - %q", source, result)
+	}
+	return fmt.Sprintf("%s Source: %s. Résultat: %s.", task, source, result), []CheckDefinition{deterministicCommandCheck(concept.ID, verify)}, setup
+}
+
+func deterministicRedirectionExercise(concept curriculum.Concept, root, result string, variant int) (string, []CheckDefinition, string) {
+	first, second := "alpha", "omega"
+	if variant == 1 {
+		first, second = "delta", "sigma"
+	}
+	var task, verify string
+	switch concept.PedagogyOrder {
+	case 1:
+		task, verify = "Sépare stdout et stderr dans deux fichiers .out et .err.", fmt.Sprintf("test \"$(cat %q.out)\" = %q && test \"$(cat %q.err)\" = %q", result, first, result, second)
+	case 2:
+		task, verify = "Écris la première valeur puis ajoute la seconde avec >>.", fmt.Sprintf("test \"$(cat %q)\" = \"$(printf '%%s\\n%%s' %q %q)\"", result, first, second)
+	case 3:
+		task, verify = "Redirige uniquement stderr dans le résultat.", fmt.Sprintf("grep -Fq %q %q", second, result)
+	case 4:
+		task, verify = "Utilise un pipeline pour ne conserver que la seconde valeur.", fmt.Sprintf("test \"$(tr -d '\\n' < %q)\" = %q", result, second)
+	case 5:
+		task, verify = "Utilise tee pour dupliquer la première valeur dans le résultat et une copie .copy.", fmt.Sprintf("test \"$(cat %q)\" = %q && cmp -s %q %q.copy", result, first, result, result)
+	case 6:
+		task, verify = "Utilise xargs pour transformer les deux valeurs reçues sur stdin en deux fichiers dans le répertoire de preuve.", fmt.Sprintf("test -f %q/%s && test -f %q/%s", root, first, root, second)
+	default:
+		task, verify = "Réunis stdout et stderr dans le même fichier en respectant l'ordre des redirections.", fmt.Sprintf("grep -Fq %q %q && grep -Fq %q %q", first, result, second, result)
+	}
+	return fmt.Sprintf("%s Valeurs: %s et %s. Cible: %s.", task, first, second, result), []CheckDefinition{deterministicCommandCheck(concept.ID, verify)}, ""
+}
+
+func deterministicPriorityExercise(concept curriculum.Concept, root, result string, variant int) (string, []CheckDefinition, string) {
+	pidPath := root + "/priority.pid"
+	target := 7
+	if variant == 1 {
+		target = 11
+	}
+	switch concept.PedagogyOrder {
+	case 1, 3:
+		script := fmt.Sprintf("test -s %q && test \"$(ps -o ni= -p \"$(cat %q)\" | tr -d ' ')\" = %d", pidPath, pidPath, target)
+		return fmt.Sprintf("Démarre sleep 600 avec une nice value de %d et écris son PID dans %s.", target, pidPath), []CheckDefinition{deterministicCommandCheck(concept.ID, script)}, ""
+	case 2:
+		script := fmt.Sprintf("test -s %q && test \"$(ps -o ni= -p \"$(cat %q)\" | tr -d ' ')\" = 0", pidPath, pidPath)
+		return fmt.Sprintf("Démarre sleep 600 avec la priorité par défaut et écris son PID dans %s.", pidPath), []CheckDefinition{deterministicCommandCheck(concept.ID, script)}, ""
+	case 4:
+		setup := fmt.Sprintf("sleep 600 & echo $! > %q\\n", pidPath)
+		script := fmt.Sprintf("test \"$(ps -o ni= -p \"$(cat %q)\" | tr -d ' ')\" = %d", pidPath, target)
+		return fmt.Sprintf("Change avec renice la nice value du PID contenu dans %s vers %d.", pidPath, target), []CheckDefinition{deterministicCommandCheck(concept.ID, script)}, setup
+	default:
+		setup := fmt.Sprintf("nice -n %d sleep 600 & echo $! > %q\\n", target, pidPath)
+		script := fmt.Sprintf("test \"$(tr -d '[:space:]' < %q)\" = \"$(ps -o ni= -p \"$(cat %q)\" | tr -d ' ')\"", result, pidPath)
+		return fmt.Sprintf("Observe avec ps ou top la nice value du PID dans %s et écris uniquement la valeur dans %s.", pidPath, result), []CheckDefinition{deterministicCommandCheck(concept.ID, script)}, setup
+}
+
+func deterministicRegexExercise(concept curriculum.Concept, source, result string, variant int) (string, []CheckDefinition, string) {
+	payload := "alpha:12\\nbeta:7\\nALPHA:42\\ngamma:x\\n"
+	if variant == 1 {
+		payload = "node:31\\nNODE:8\\nedge:x\\nnode:55\\n"
+	}
+	setup := fmt.Sprintf("printf '%%b' %q > %q\\n", payload, source)
+	if concept.PedagogyOrder == 6 {
+		verify := fmt.Sprintf("sed -E 's/:[0-9]+$/:N/' %q | cmp -s - %q", source, result)
+		return fmt.Sprintf("Avec sed, remplace les valeurs numériques finales par N dans %s et écris le flux dans %s.", source, result), []CheckDefinition{deterministicCommandCheck(concept.ID, verify)}, setup
+	}
+	pattern := "^[a-z]+:[0-9]+$"
+	if concept.PedagogyOrder == 2 {
+		pattern = "^[[:alpha:]]+:[0-9]+$"
+	}
+	if concept.PedagogyOrder == 3 {
+		pattern = ":[0-9][0-9]*$"
+	}
+	if concept.PedagogyOrder == 4 {
+		pattern = "^(alpha|node):[0-9]+$"
+	}
+	if concept.PedagogyOrder == 5 {
+		pattern = "^[a-z]+:"
+	}
+	verify := fmt.Sprintf("grep -E %q %q | cmp -s - %q", pattern, source, result)
+	return fmt.Sprintf("Filtre %s avec la regex adaptée à %s et écris uniquement les lignes retenues dans %s.", source, concept.TitleFR, result), []CheckDefinition{deterministicCommandCheck(concept.ID, verify)}, setup
+}
+
+func deterministicEditorExercise(concept curriculum.Concept, result string, variant int) (string, []CheckDefinition, string) {
+	initial, expected := "one\\ntwo\\nthree\\n", "one\\nTWO\\nthree\\n"
+	if variant == 1 {
+		initial, expected = "red\\ngreen\\nblue\\n", "red\\nGREEN\\nblue\\n"
+	}
+	setup := fmt.Sprintf("printf '%%b' %q > %q\\n", initial, result)
+	verify := fmt.Sprintf("test \"$(cat %q)\" = \"$(printf '%%b' %q)\"", result, expected)
+	return fmt.Sprintf("Édite %s avec un éditeur concerné par %s : seule la ligne centrale doit passer en majuscules.", result, concept.TitleFR), []CheckDefinition{deterministicCommandCheck(concept.ID, verify)}, setup
+}
+
+func deterministicPermissionExercise(concept curriculum.Concept, root string, variant int) (string, []CheckDefinition, string) {
+	path := root + "/perm-target"
+	switch concept.PedagogyOrder {
+	case 1, 2:
+		mode := "0640"
+		if variant == 1 {
+			mode = "0750"
+		}
+		return fmt.Sprintf("Crée %s puis fixe exactement ses permissions à %s.", path, mode), []CheckDefinition{{Type: "file-mode", Path: path, Mode: mode, ConceptIDs: []string{concept.ID}}}, ""
+	case 3:
+		return fmt.Sprintf("Crée %s et fixe son propriétaire/groupe à root:root.", path), []CheckDefinition{{Type: "file-owner", Path: path, User: "root", Group: "root", ConceptIDs: []string{concept.ID}}}, ""
+	case 4:
+		return fmt.Sprintf("Applique umask 027 puis crée %s ; son mode final doit être 0640.", path), []CheckDefinition{{Type: "file-mode", Path: path, Mode: "0640", ConceptIDs: []string{concept.ID}}}, ""
+	case 5:
+		return fmt.Sprintf("Crée %s exécutable et active le bit SUID.", path), []CheckDefinition{deterministicCommandCheck(concept.ID, fmt.Sprintf("test -u %q", path))}, ""
+	case 6:
+		return fmt.Sprintf("Crée le répertoire %s et active le bit SGID.", path), []CheckDefinition{deterministicCommandCheck(concept.ID, fmt.Sprintf("test -d %q && test -g %q", path, path))}, ""
+	case 7:
+		return fmt.Sprintf("Crée le répertoire %s et active le sticky bit.", path), []CheckDefinition{deterministicCommandCheck(concept.ID, fmt.Sprintf("test -d %q && test -k %q", path, path))}, ""
+	default:
+		return fmt.Sprintf("Crée le répertoire partagé %s en mode 3770.", path), []CheckDefinition{{Type: "file-mode", Path: path, Mode: "3770", ConceptIDs: []string{concept.ID}}}, ""
+	}
+}
+
+func deterministicLinkExercise(concept curriculum.Concept, root string, variant int) (string, []CheckDefinition, string) {
+	target, link := root+"/target", root+"/link"
+	setup := fmt.Sprintf("printf 'variant-%d\\n' > %q\\n", variant+1, target)
+	switch concept.PedagogyOrder {
+	case 1, 3:
+		script := fmt.Sprintf("test %q -ef %q && test \"$(stat -c '%%i' %q)\" = \"$(stat -c '%%i' %q)\"", target, link, target, link)
+		return fmt.Sprintf("Crée %s comme hard link de %s.", link, target), []CheckDefinition{deterministicCommandCheck(concept.ID, script)}, setup
+	case 2:
+		script := fmt.Sprintf("test -L %q && test \"$(readlink -f %q)\" = \"$(readlink -f %q)\"", link, link, target)
+		return fmt.Sprintf("Crée %s comme symlink vers %s.", link, target), []CheckDefinition{deterministicCommandCheck(concept.ID, script)}, setup
+	case 4:
+		setup += fmt.Sprintf("ln -s %q %q\\nrm -f %q\\n", target, link, target)
+		return fmt.Sprintf("Le lien %s doit rester un symlink cassé ; diagnostique-le sans recréer la cible.", link), []CheckDefinition{deterministicCommandCheck(concept.ID, fmt.Sprintf("test -L %q && test ! -e %q", link, link))}, setup
+	case 5:
+		copyPath, hardPath, symPath := root+"/copy", root+"/hard", root+"/sym"
+		script := fmt.Sprintf("cmp -s %q %q && test %q -ef %q && test -L %q", target, copyPath, target, hardPath, symPath)
+		return fmt.Sprintf("À partir de %s, crée une copie %s, un hard link %s et un symlink %s.", target, copyPath, hardPath, symPath), []CheckDefinition{deterministicCommandCheck(concept.ID, script)}, setup
+	default:
+		script := fmt.Sprintf("test -L %q && test \"$(readlink -f %q)\" = \"$(readlink -f %q)\"", link, link, target)
+		return fmt.Sprintf("Crée %s comme symlink administratif vers %s.", link, target), []CheckDefinition{deterministicCommandCheck(concept.ID, script)}, setup
+	}
+}
+
+func deterministicStandaloneLab(definition Definition) bool {
+	return strings.Contains(definition.ID, ".standalone-") && slices.Contains(definition.Labels, "deterministic-state")
+}
+
 func standaloneCommandEvidencePattern(concept curriculum.Concept) string {
 	var commands []string
 	for _, anchor := range concept.AnchorTerms {
