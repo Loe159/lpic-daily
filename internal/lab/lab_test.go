@@ -492,6 +492,9 @@ func TestGeneratedStandaloneLabsUseConceptAnchors(t *testing.T) {
 		if !strings.Contains(authored.Definition.ID, ".standalone-") {
 			continue
 		}
+		if len(authored.Definition.ConceptIDs) != 1 {
+			t.Fatalf("%s generated fallback spans %d concepts, want exactly 1", authored.Definition.ID, len(authored.Definition.ConceptIDs))
+		}
 		historyPath, _ := lab.StandaloneCommandHistoryPath(authored.Definition)
 		for _, conceptID := range authored.Definition.ConceptIDs {
 			concept := conceptByID[conceptID]
@@ -557,7 +560,7 @@ func TestGeneratedStandaloneCommandEvidenceRequiresCommandPosition(t *testing.T)
 		t.Fatalf("lab.LoadAll() error = %v", err)
 	}
 	for _, authored := range labs {
-		if !strings.Contains(authored.Definition.ID, "lpic1.103.5.standalone-") {
+		if !strings.HasPrefix(authored.Definition.ID, "lpic1.103.5.") || !strings.Contains(authored.Definition.ID, ".standalone-") {
 			continue
 		}
 		historyPath, ok := lab.StandaloneCommandHistoryPath(authored.Definition)
