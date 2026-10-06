@@ -12,7 +12,7 @@ The Go curriculum/content loaders independently validate embedded authored JSON 
 
 `python3 scripts/audit_phase3_coverage.py --check` validates Phase-3 artifact mappings without requiring unfinished Exam-101 content to be complete. `--require-complete` is the course/daily-question/practical-lab exit gate. The audit reads the canonical `phase3-exam101.json` manifest and, like the Go runtime and embedded filesystem, discovers lesson/question JSON recursively below their content directories.
 
-The study planner only schedules Phase-3 objectives whose mapped concepts all have exactly one focused `introduce` lesson, at least one daily non-assessment question, and at least one machine-checked practical lab. A recall-capable question no longer substitutes for practical coverage. Tests verify incomplete objectives remain unavailable, fully surfaced objectives can be scheduled, and concepts with multiple questions recommend the least-attempted option.
+The study planner only schedules objectives whose mapped concepts all have exactly one focused `introduce` lesson, at least one daily non-assessment question, and at least one machine-checked practical lab. Runtime prerequisite readiness is stricter: every concept in the prerequisite objective must have successful course + quiz + practical evidence. Exam 102 remains locked until that same three-surface completion rule is satisfied for all 162 Exam-101 concepts. Generated fallback labs are concept-scoped and rotate between diagnostic and transfer contexts; recall alone never substitutes for practice.
 
 ### Go unit and domain tests
 
@@ -34,7 +34,7 @@ Raw PTY passthrough is reserved for explicit interactive terminal surfaces where
 
 ### Lab conformance
 
-Authored labs are validated against their schemas and runtime contracts. Loading a built-in lab also validates the derived runner definition and compiles checker configuration (including Go regex syntax), so invalid authored execution settings fail before the lab is advertised as runnable. Phase-1 coverage generation requires all 27 selected concepts to remain traceable, to have exactly one focused `introduce` lesson, at least one daily non-assessment question, and two distinct machine-checked practical contexts.
+Authored labs are validated against their schemas and runtime contracts. Loading a built-in lab also validates the derived runner definition and compiles checker configuration (including Go regex syntax), so invalid authored execution settings fail before the lab is advertised as runnable. Phase-1 coverage generation requires all 27 selected concepts to remain traceable, to have exactly one focused `introduce` lesson, at least one daily non-assessment question, and two distinct machine-checked practical contexts. Runtime-generated fallback labs use one concept per lab so attempts cannot grant or penalize evidence for concepts the learner has not yet studied.
 
 State-based grading must accept equivalent valid end states rather than depending on an exact learner command transcript.
 
@@ -52,15 +52,7 @@ Fast PR CI must not require KVM.
 
 ## Phase 2 verification
 
-The libvirt/QEMU/KVM backend has unit and non-KVM CI coverage and the real-KVM integration layer is implemented, but Phase 2 is not accepted until that suite has actually executed successfully on a compatible host.
-
-Remaining acceptance-level execution includes:
-
-- real KVM/libvirt lifecycle and host-sentinel testing;
-- base-image immutability verification;
-- isolated-network no-forwarding plus host-bridge blocking verification;
-- boot/reboot coverage for the 102.2 reference lab;
-- end-to-end 104.1 and 102.2 execution using the released/reproducible guest-image pipeline.
+The libvirt/QEMU/KVM backend passed the canonical real-host Phase-2 acceptance suite on **2026-10-04**, including host-sentinel isolation, base-image immutability, isolated-network checks, 102.2 reboot coverage, and end-to-end 104.1 / 102.2 reference solutions. These checks remain regression requirements whenever VM/runtime code changes.
 
 Hypervisor scenarios belong on a KVM-capable runner or dedicated integration environment. Never weaken VM isolation or verification merely to make generic hosted CI pass.
 
