@@ -162,12 +162,16 @@ func BuildSession(input SessionInput) (Session, error) {
 		if containsConcept(session.Items, concept.ID) {
 			continue
 		}
+		reason := "Consolidation immédiate: le concept a été exposé, mais aucune pratique réussie ne l'a encore consolidé."
+		if projection.Stage == StageRecall {
+			reason = "Consolidation immédiate: le rappel est réussi, mais une pratique réussie est requise avant le concept suivant."
+		}
 		session.Items = append(session.Items, SessionItem{
 			ConceptID:   concept.ID,
 			ObjectiveID: concept.ObjectiveID,
 			Kind:        SessionPractice,
-			ReasonCode:  "practice-after-exposure",
-			ReasonFR:    "Consolidation immédiate: le concept a été exposé mais aucune réponse correcte n'a encore confirmé sa compréhension.",
+			ReasonCode:  "practice-before-advance",
+			ReasonFR:    reason,
 		})
 		return session, nil
 	}
@@ -233,11 +237,11 @@ func BuildSession(input SessionInput) (Session, error) {
 		if index >= input.Policy.MaxNewConcepts {
 			break
 		}
-		reason := fmt.Sprintf("Nouveau concept: prérequis prêts; priorité LPI %.3f (poids de l’objectif réparti sur ses concepts).", candidate.objectivePriority)
+		reason := fmt.Sprintf("Nouveau concept: prérequis prêts; priorité d’étude %.3f (poids LPI de l’objectif réparti sur ses concepts internes).", candidate.objectivePriority)
 		reasonCode := "prerequisites-ready"
 		if len(candidate.unmetRecommended) != 0 {
 			reason = fmt.Sprintf(
-				"Nouveau concept: hard prerequisites satisfaits; prérequis recommandé(s) non prêt(s): %s. Priorité LPI %.3f; les prérequis recommandés restent prioritaires sur le poids.",
+				"Nouveau concept: hard prerequisites satisfaits; prérequis recommandé(s) non prêt(s): %s. Priorité d’étude %.3f; les prérequis recommandés restent prioritaires sur le poids.",
 				strings.Join(candidate.unmetRecommended, ", "),
 				candidate.objectivePriority,
 			)
