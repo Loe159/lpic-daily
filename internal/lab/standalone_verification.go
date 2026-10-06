@@ -19,6 +19,8 @@ func deterministicStandaloneExercise(
 	switch objective.ID {
 	case "102.1", "104.1", "104.2", "104.3":
 		return deterministicStorageExercise(objective.ID, concept, root, result, variant)
+	case "103.1":
+		return deterministicShellExercise(concept, root, result, variant)
 	case "103.2":
 		return deterministicTextExercise(concept, source, result, variant)
 	case "103.3":
@@ -37,6 +39,8 @@ func deterministicStandaloneExercise(
 		return deterministicPermissionExercise(concept, root, variant)
 	case "104.6":
 		return deterministicLinkExercise(concept, root, variant)
+	case "104.7":
+		return deterministicFHSExercise(concept, root, result, variant)
 	default:
 		diagnostic, transfer := deterministicInspectionProbes(objective.ID, concept)
 		if variant == 0 {
@@ -140,6 +144,231 @@ func deterministicInspectionProbes(objectiveID string, concept curriculum.Concep
 		transfer = append(transfer, "id -u", "uname -r")
 	}
 	return strings.Join(diagnostic, "; "), strings.Join(transfer, "; ")
+}
+
+
+func deterministicShellExercise(
+	concept curriculum.Concept,
+	root, result string,
+	variant int,
+) (string, []CheckDefinition, string) {
+	scriptPath := root + "/shell-task.sh"
+	token := "alpha"
+	if variant == 1 {
+		token = "omega"
+	}
+	check := func(script string) []CheckDefinition {
+		return []CheckDefinition{deterministicCommandCheck(concept.ID, script)}
+	}
+
+	switch concept.PedagogyOrder {
+	case 1:
+		expected := token + "-A\n" + token + "-B\n" + token + "-C\n"
+		verify := fmt.Sprintf(
+			"grep -Fq '&&' %q && grep -Fq '||' %q && /bin/bash %q | cmp -s - <(printf '%%b' %q)",
+			scriptPath, scriptPath, scriptPath, expected,
+		)
+		// Avoid process substitution in the checker shell by comparing through a temporary file.
+		verify = fmt.Sprintf(
+			"set -eu; grep -Fq '&&' %q; grep -Fq '||' %q; actual=$(mktemp); expected=$(mktemp); trap 'rm -f \"$actual\" \"$expected\"' EXIT; /bin/bash %q >\"$actual\"; printf '%%b' %q >\"$expected\"; cmp -s \"$actual\" \"$expected\"",
+			scriptPath, scriptPath, scriptPath, expected,
+		)
+		return fmt.Sprintf(
+			"Crée %s : le script doit utiliser une séquence avec && et || et produire exactement trois lignes %s-A, %s-B, %s-C.",
+			scriptPath, token, token, token,
+		), check(verify), ""
+
+	case 2:
+		expected := fmt.Sprintf("local=%s-local\nexported=%s-exported\nchild=%s-exported\n", token, token, token)
+		verify := fmt.Sprintf(
+			"set -eu; grep -Fq 'export ' %q; actual=$(mktemp); expected=$(mktemp); trap 'rm -f \"$actual\" \"$expected\"' EXIT; /bin/bash %q >\"$actual\"; printf '%%b' %q >\"$expected\"; cmp -s \"$actual\" \"$expected\"",
+			scriptPath, scriptPath, expected,
+		)
+		return fmt.Sprintf(
+			"Crée %s : définis une variable shell %s-local, exporte une variable %s-exported, puis montre sa valeur dans un shell enfant.",
+			scriptPath, token, token,
+		), check(verify), ""
+
+	case 3:
+		toolsDir := root + "/tools-" + token
+		tool := toolsDir + "/lpic-path-tool"
+		setup := fmt.Sprintf("install -d -m 0777 %q\nprintf '#!/bin/sh\\nprintf %s\\\\n\\n' > %q\nchmod 0755 %q\n", toolsDir, token, tool, tool)
+		verify := fmt.Sprintf(
+			"set -eu; grep -Fq 'PATH=' %q; actual=$(/bin/bash %q); test \"$actual\" = %q",
+			scriptPath, scriptPath, tool,
+		)
+		return fmt.Sprintf(
+			"Un exécutable est préparé dans %s. Crée %s pour modifier PATH, résoudre lpic-path-tool sans chemin absolu et afficher uniquement son chemin résolu.",
+			toolsDir, scriptPath,
+		), check(verify), setup
+
+	case 4:
+		value := token + " value * literal"
+		expected := fmt.Sprintf("single=$VALUE\ndouble=%s\nescaped=%s\n", value, value)
+		verify := fmt.Sprintf(
+			"set -eu; actual=$(mktemp); expected=$(mktemp); trap 'rm -f \"$actual\" \"$expected\"' EXIT; VALUE=%q /bin/bash %q >\"$actual\"; printf '%%b' %q >\"$expected\"; cmp -s \"$actual\" \"$expected\"",
+			value, scriptPath, expected,
+		)
+		return fmt.Sprintf(
+			"Crée %s pour démontrer quoting simple, double et échappement avec une valeur contenant espaces et '*'. Le résultat doit distinguer littéral et expansion.",
+			scriptPath,
+		), check(verify), ""
+
+	case 5:
+		historyFile := root + "/history-" + token
+		marker := "lpic-history-" + token
+		verify := fmt.Sprintf(
+			"set -eu; rm -f %q; /bin/bash %q >/dev/null; grep -Fq %q %q",
+			historyFile, scriptPath, marker, historyFile,
+		)
+		return fmt.Sprintf(
+			"Crée %s : active l'historique Bash, utilise HISTFILE=%s, ajoute l'entrée %s avec history et persiste-la.",
+			scriptPath, historyFile, marker,
+		), check(verify), ""
+
+	case 6:
+		probe := "printf"
+		if variant == 1 {
+			probe = "sh"
+		}
+		canonical := fmt.Sprintf(
+			"{ type -a %s 2>/dev/null || true; which %s 2>/dev/null || true; man -w %s 2>/dev/null || true; }",
+			probe, probe, probe,
+		)
+		return deterministicSnapshotTask(concept, result, canonical, variant == 1)
+
+	case 7:
+		probe := "uname -srm; pwd"
+		if variant == 1 {
+			probe = "uname -a; printf 'cwd|'; pwd"
+		}
+		return deterministicSnapshotTask(concept, result, probe, variant == 1)
+
+	case 8:
+		expected := fmt.Sprintf("set-shell=%s-shell\nset-export=%s-env\nenv-export=%s-env\nenv-shell=absent\n", token, token, token)
+		verify := fmt.Sprintf(
+			"set -eu; actual=$(mktemp); expected=$(mktemp); trap 'rm -f \"$actual\" \"$expected\"' EXIT; /bin/bash %q >\"$actual\"; printf '%%b' %q >\"$expected\"; cmp -s \"$actual\" \"$expected\"",
+			scriptPath, expected,
+		)
+		return fmt.Sprintf(
+			"Crée %s pour définir une variable non exportée et une variable exportée, puis prouver avec set et env que seul l'environnement reçoit la seconde.",
+			scriptPath,
+		), check(verify), ""
+
+	case 9:
+		expected := fmt.Sprintf("before=%s\nchild-before=%s\nchild-after=absent\n", token, token)
+		verify := fmt.Sprintf(
+			"set -eu; actual=$(mktemp); expected=$(mktemp); trap 'rm -f \"$actual\" \"$expected\"' EXIT; /bin/bash %q >\"$actual\"; printf '%%b' %q >\"$expected\"; cmp -s \"$actual\" \"$expected\"",
+			scriptPath, expected,
+		)
+		return fmt.Sprintf(
+			"Crée %s pour exporter LPIC_CHILD=%s, l'observer dans un shell enfant, faire unset, puis prouver qu'un nouvel enfant ne la reçoit plus.",
+			scriptPath, token,
+		), check(verify), ""
+
+	case 10:
+		outsideDir := root + "/outside-" + token
+		tool := outsideDir + "/lpic-outside"
+		setup := fmt.Sprintf("install -d -m 0777 %q\nprintf '#!/bin/sh\\nprintf %s\\\\n\\n' > %q\nchmod 0755 %q\n", outsideDir, token, tool, tool)
+		verify := fmt.Sprintf(
+			"set -eu; test \"$(PATH=/usr/bin:/bin /bin/bash %q)\" = %q",
+			scriptPath, token,
+		)
+		return fmt.Sprintf(
+			"%s n'est pas dans PATH. Crée %s qui fixe PATH=/usr/bin:/bin puis exécute explicitement cet outil hors PATH et affiche son résultat.",
+			tool, scriptPath,
+		), check(verify), setup
+
+	case 11:
+		historyFile := root + "/.bash_history-" + token
+		marker := "persist-" + token
+		verify := fmt.Sprintf(
+			"set -eu; rm -f %q; /bin/bash %q >/dev/null; grep -Fq %q %q",
+			historyFile, scriptPath, marker, historyFile,
+		)
+		return fmt.Sprintf(
+			"Crée %s pour utiliser HISTFILE=%s, ajouter %s à l'historique et le persister avec history -w.",
+			scriptPath, historyFile, marker,
+		), check(verify), ""
+
+	default:
+		expected := fmt.Sprintf("%s\n42\n%s-child\n", token, token)
+		verify := fmt.Sprintf(
+			"set -eu; actual=$(mktemp); expected=$(mktemp); trap 'rm -f \"$actual\" \"$expected\"' EXIT; /bin/bash %q >\"$actual\"; printf '%%b' %q >\"$expected\"; cmp -s \"$actual\" \"$expected\"",
+			scriptPath, expected,
+		)
+		return fmt.Sprintf(
+			"Crée %s pour utiliser echo avec expansion de variable, expansion arithmétique 40+2 et substitution de commande produisant %s-child.",
+			scriptPath, token,
+		), check(verify), ""
+	}
+}
+
+func deterministicFHSExercise(
+	concept curriculum.Concept,
+	root, result string,
+	variant int,
+) (string, []CheckDefinition, string) {
+	check := func(script string) []CheckDefinition {
+		return []CheckDefinition{deterministicCommandCheck(concept.ID, script)}
+	}
+	token := "alpha"
+	if variant == 1 {
+		token = "omega"
+	}
+
+	switch concept.PedagogyOrder {
+	case 1:
+		probe := "for p in /etc /var /usr /home /tmp /boot /opt /srv; do test -e \"$p\" && stat -Lc '%n|%F' \"$p\"; done"
+		if variant == 1 {
+			probe = "for p in /etc /var /usr /home /tmp /boot /opt /srv; do test -e \"$p\" && printf '%s|' \"$p\" && findmnt -T \"$p\" -n -o FSTYPE 2>/dev/null || true; done"
+		}
+		return deterministicSnapshotTask(concept, result, probe, variant == 1)
+
+	case 2:
+		tree := root + "/search-" + token
+		db := root + "/locate-" + token + ".db"
+		findResult := root + "/find-" + token + ".result"
+		locateResult := root + "/locate-" + token + ".result"
+		target := tree + "/nested/needle-" + token + ".txt"
+		setup := fmt.Sprintf("install -d -m 0777 %q\nprintf '%s\\n' > %q\nchmod -R a+rwX %q\n", tree+"/nested", token, target, tree)
+		verify := fmt.Sprintf(
+			"set -eu; expected=%q; test \"$(cat %q)\" = \"$expected\"; test \"$(cat %q)\" = \"$expected\"; locate -d %q %q >/dev/null",
+			target, findResult, locateResult, db, "needle-"+token,
+		)
+		return fmt.Sprintf(
+			"Dans %s, retrouve needle-%s.txt d'abord en temps réel avec find vers %s, puis construis %s avec updatedb et retrouve le même chemin avec locate -d vers %s.",
+			tree, token, findResult, db, locateResult,
+		), check(verify), setup
+
+	case 3:
+		tree := root + "/updatedb-" + token
+		db := root + "/updatedb-" + token + ".db"
+		target := tree + "/entry-" + token
+		setup := fmt.Sprintf("install -d -m 0777 %q\nprintf '%s\\n' > %q\nchmod -R a+rwX %q\n", tree, token, target, tree)
+		verify := fmt.Sprintf(
+			"set -eu; test -s %q; test \"$(locate -d %q %q)\" = %q",
+			db, db, "entry-"+token, target,
+		)
+		return fmt.Sprintf(
+			"Construis une base locate dédiée %s pour l'arbre %s avec updatedb -U/-o, puis vérifie que entry-%s y est indexé.",
+			db, tree, token,
+		), check(verify), setup
+
+	case 4:
+		probe := "whereis sh"
+		if variant == 1 {
+			probe = "whereis bash"
+		}
+		return deterministicSnapshotTask(concept, result, probe, variant == 1)
+
+	default:
+		probe := "printf 'type='; type -P sh; printf 'which='; which sh"
+		if variant == 1 {
+			probe = "printf 'type='; type -P bash; printf 'which='; which bash"
+		}
+		return deterministicSnapshotTask(concept, result, probe, variant == 1)
+	}
 }
 
 func deterministicTextExercise(concept curriculum.Concept, source, result string, variant int) (string, []CheckDefinition, string) {
