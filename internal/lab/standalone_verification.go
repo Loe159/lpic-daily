@@ -324,11 +324,24 @@ func deterministicStorageExercise(objectiveID string, concept curriculum.Concept
 			}
 			return deterministicSnapshotTask(concept, result, probe, variant == 1)
 		case 2:
-			return "Initialise /dev/vdb comme swap avec mkswap puis active-le.", check("grep -q '^/dev/vdb[[:space:]]' /proc/swaps"), ""
+			label := "LPIC_SWAP_A"
+			if variant == 1 {
+				label = "LPIC_SWAP_B"
+			}
+			script := fmt.Sprintf("grep -q '^/dev/vdb[[:space:]]' /proc/swaps && test \"$(blkid -s LABEL -o value /dev/vdb 2>/dev/null)\" = %s", label)
+			return fmt.Sprintf("Initialise /dev/vdb comme swap avec le label %s puis active-le.", label), check(script), ""
 		case 4:
-			return "Crée sur /dev/vdb une table GPT et une partition avec drapeau ESP.", check("parted -sm /dev/vdb print 2>/dev/null | grep -q ':gpt:' && parted -sm /dev/vdb print 2>/dev/null | grep -q 'esp'"), ""
+			label := "ESP_A"
+			if variant == 1 {
+				label = "ESP_B"
+			}
+			script := fmt.Sprintf("parted -sm /dev/vdb print 2>/dev/null | grep -q ':gpt:' && parted -sm /dev/vdb print 2>/dev/null | grep -q 'esp' && test \"$(blkid -s LABEL -o value /dev/vdb1 2>/dev/null)\" = %s", label)
+			return fmt.Sprintf("Crée sur /dev/vdb une table GPT et une partition FAT32 avec drapeau ESP et label %s.", label), check(script), ""
 		case 5:
-			return "Crée sur /dev/vdb une table GPT avec une partition /dev/vdb1.", check("test -b /dev/vdb1 && parted -sm /dev/vdb print 2>/dev/null | grep -q '^1:'"), ""
+			if variant == 0 {
+				return "Crée sur /dev/vdb une table GPT avec une partition /dev/vdb1.", check("test -b /dev/vdb1 && test ! -b /dev/vdb2 && parted -sm /dev/vdb print 2>/dev/null | grep -q '^1:'"), ""
+			}
+			return "Crée sur /dev/vdb une table GPT avec deux partitions utilisables /dev/vdb1 et /dev/vdb2.", check("test -b /dev/vdb1 && test -b /dev/vdb2 && parted -sm /dev/vdb print 2>/dev/null | grep -q '^2:'"), ""
 		default:
 			vg, lv := "lpicvg", "lab"
 			if variant == 1 {
@@ -354,15 +367,40 @@ func deterministicStorageExercise(objectiveID string, concept curriculum.Concept
 			}
 			return fmt.Sprintf("Crée un filesystem %s sur /dev/vdb.", fs), check(fmt.Sprintf("test \"$(blkid -s TYPE -o value /dev/vdb 2>/dev/null)\" = %s", fs)), ""
 		case 4:
-			return "Crée un filesystem XFS sur /dev/vdb.", check("test \"$(blkid -s TYPE -o value /dev/vdb 2>/dev/null)\" = xfs"), ""
+			label := "LPIC_XFS_A"
+			if variant == 1 {
+				label = "LPIC_XFS_B"
+			}
+			script := fmt.Sprintf("test \"$(blkid -s TYPE -o value /dev/vdb 2>/dev/null)\" = xfs && test \"$(blkid -s LABEL -o value /dev/vdb 2>/dev/null)\" = %s", label)
+			return fmt.Sprintf("Crée un filesystem XFS sur /dev/vdb avec le label %s.", label), check(script), ""
 		case 5:
-			return "Crée un filesystem VFAT sur /dev/vdb.", check("test \"$(blkid -s TYPE -o value /dev/vdb 2>/dev/null)\" = vfat"), ""
+			label := "LPIC_VFAT_A"
+			if variant == 1 {
+				label = "LPIC_VFAT_B"
+			}
+			script := fmt.Sprintf("test \"$(blkid -s TYPE -o value /dev/vdb 2>/dev/null)\" = vfat && test \"$(blkid -s LABEL -o value /dev/vdb 2>/dev/null)\" = %s", label)
+			return fmt.Sprintf("Crée un filesystem VFAT sur /dev/vdb avec le label %s.", label), check(script), ""
 		case 6:
-			return "Initialise /dev/vdb comme swap puis active-le.", check("grep -q '^/dev/vdb[[:space:]]' /proc/swaps"), ""
+			label := "LPIC_SWAP_A"
+			if variant == 1 {
+				label = "LPIC_SWAP_B"
+			}
+			script := fmt.Sprintf("grep -q '^/dev/vdb[[:space:]]' /proc/swaps && test \"$(blkid -s LABEL -o value /dev/vdb 2>/dev/null)\" = %s", label)
+			return fmt.Sprintf("Initialise /dev/vdb comme swap avec le label %s puis active-le.", label), check(script), ""
 		case 7:
-			return "Crée un filesystem Btrfs sur /dev/vdb.", check("test \"$(blkid -s TYPE -o value /dev/vdb 2>/dev/null)\" = btrfs"), ""
+			label := "LPIC_BTRFS_A"
+			if variant == 1 {
+				label = "LPIC_BTRFS_B"
+			}
+			script := fmt.Sprintf("test \"$(blkid -s TYPE -o value /dev/vdb 2>/dev/null)\" = btrfs && test \"$(blkid -s LABEL -o value /dev/vdb 2>/dev/null)\" = %s", label)
+			return fmt.Sprintf("Crée un filesystem Btrfs sur /dev/vdb avec le label %s.", label), check(script), ""
 		default:
-			return "Crée un filesystem ext4 sur /dev/vdb avec mkfs ou mke2fs.", check("test \"$(blkid -s TYPE -o value /dev/vdb 2>/dev/null)\" = ext4"), ""
+			label := "LPIC_FS_A"
+			if variant == 1 {
+				label = "LPIC_FS_B"
+			}
+			script := fmt.Sprintf("test \"$(blkid -s TYPE -o value /dev/vdb 2>/dev/null)\" = ext4 && test \"$(blkid -s LABEL -o value /dev/vdb 2>/dev/null)\" = %s", label)
+			return fmt.Sprintf("Crée un filesystem ext4 sur /dev/vdb avec mkfs ou mke2fs et le label %s.", label), check(script), ""
 		}
 	}
 	if objectiveID == "104.2" {
@@ -373,8 +411,17 @@ func deterministicStorageExercise(objectiveID string, concept curriculum.Concept
 				probe = "df -PT / | tail -1; df -Pi / | tail -1"
 			}
 			return deterministicSnapshotTask(concept, result, probe, variant == 1)
-		case 2, 3, 6:
-			return "Crée un ext4 sur /dev/vdb puis exécute une vérification hors ligne.", check("test \"$(blkid -s TYPE -o value /dev/vdb 2>/dev/null)\" = ext4 && e2fsck -fn /dev/vdb >/dev/null 2>&1"), ""
+		case 2:
+			fs := "ext4"
+			if variant == 1 {
+				fs = "ext3"
+			}
+			return fmt.Sprintf("Crée un %s sur /dev/vdb puis exécute une vérification hors ligne avec e2fsck.", fs), check(fmt.Sprintf("test \"$(blkid -s TYPE -o value /dev/vdb 2>/dev/null)\" = %s && e2fsck -fn /dev/vdb >/dev/null 2>&1", fs)), ""
+		case 3, 6:
+			if variant == 0 {
+				return "Crée un ext4 sur /dev/vdb puis exécute une vérification/réparation hors ligne avec e2fsck.", check("test \"$(blkid -s TYPE -o value /dev/vdb 2>/dev/null)\" = ext4 && e2fsck -fn /dev/vdb >/dev/null 2>&1"), ""
+			}
+			return "Crée un XFS sur /dev/vdb puis exécute la vérification hors ligne avec xfs_repair -n.", check("test \"$(blkid -s TYPE -o value /dev/vdb 2>/dev/null)\" = xfs && xfs_repair -n /dev/vdb >/dev/null 2>&1"), ""
 		case 4:
 			label := "LPIC_TUNE_A"
 			if variant == 1 {
@@ -388,7 +435,11 @@ func deterministicStorageExercise(objectiveID string, concept curriculum.Concept
 	mountpoint := root + "/mnt"
 	switch concept.PedagogyOrder {
 	case 1:
-		return fmt.Sprintf("Crée un ext4 sur /dev/vdb puis monte-le sur %s.", mountpoint), check(fmt.Sprintf("findmnt -n %q -S /dev/vdb >/dev/null 2>&1", mountpoint)), ""
+		target := mountpoint
+		if variant == 1 {
+			target = root + "/manual-transfer"
+		}
+		return fmt.Sprintf("Crée un ext4 sur /dev/vdb puis monte-le sur %s.", target), check(fmt.Sprintf("findmnt -n %q -S /dev/vdb >/dev/null 2>&1", target)), ""
 	case 2:
 		target := mountpoint
 		if variant == 1 {
@@ -409,7 +460,13 @@ func deterministicStorageExercise(objectiveID string, concept curriculum.Concept
 		}
 		return fmt.Sprintf("Monte /dev/vdb sur %s avec l'option %s.", mountpoint, option), check(fmt.Sprintf("findmnt -n %q -S /dev/vdb -O %s >/dev/null 2>&1", mountpoint, option)), ""
 	case 5:
-		return fmt.Sprintf("Monte /dev/vdb sur %s puis démonte-le avant validation.", mountpoint), check(fmt.Sprintf("! findmnt -n %q >/dev/null 2>&1", mountpoint)), ""
+		marker := ".lpic-mounted-a"
+		if variant == 1 {
+			marker = ".lpic-mounted-b"
+		}
+		verifyDir := root + "/verify-unmount"
+		script := fmt.Sprintf("set -eu; test \"$(blkid -s TYPE -o value /dev/vdb 2>/dev/null)\" = ext4; ! findmnt -n %q >/dev/null 2>&1; mkdir -p %q; mount /dev/vdb %q; test -f %q/%s; umount %q", mountpoint, verifyDir, verifyDir, verifyDir, marker, verifyDir)
+		return fmt.Sprintf("Crée un ext4 sur /dev/vdb, monte-le sur %s, crée le marqueur %s à sa racine puis démonte-le avant validation.", mountpoint, marker), check(script), ""
 	case 6:
 		unit := "/etc/systemd/system/lpic-data.mount"
 		options := "ro"
@@ -428,7 +485,10 @@ func deterministicStorageExercise(objectiveID string, concept curriculum.Concept
 }
 
 func deterministicPermissionExercise(concept curriculum.Concept, root string, variant int) (string, []CheckDefinition, string) {
-	path := root + "/perm-target"
+	path := root + "/perm-diagnostic"
+	if variant == 1 {
+		path = root + "/perm-transfer"
+	}
 	switch concept.PedagogyOrder {
 	case 1, 2:
 		mode := "0640"
