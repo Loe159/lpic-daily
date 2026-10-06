@@ -220,10 +220,11 @@ func TestSuccessfulRecallRequiresPracticalWorkBeforeNextConcept(t *testing.T) {
 		Bundle: bundle,
 		Projections: map[string]learning.MasteryProjection{
 			first: {
-				ConceptID:        first,
-				Stage:            learning.StageRecall,
-				SuccessfulRecall: 1,
-				LastEvidenceAt:   now,
+				ConceptID:          first,
+				Stage:              learning.StageRecall,
+				SuccessfulExposure: 1,
+				SuccessfulRecall:   1,
+				LastEvidenceAt:     now,
 			},
 		},
 		ObjectiveReadiness: map[string]bool{},
