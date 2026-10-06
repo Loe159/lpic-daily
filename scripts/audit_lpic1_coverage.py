@@ -176,8 +176,8 @@ def main():
         f"{len(objectives)} objectives; {len(concepts)} concepts; "
         f"Exam 101={phase3['concept_count']}; Exam 102={phase4['concept_count']}; "
         "every concept receives one focused introduction and recall coverage; "
-        "Exam 101 concepts additionally receive an applied scenario question. "
-        "Generated practical contexts remain guided unless a bespoke state-verified lab exists."
+        "Exam 101 concepts additionally receive an applied scenario question and "
+        "two generated deterministic state-verified practice contexts."
     )
     return 0
 
