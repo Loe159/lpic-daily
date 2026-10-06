@@ -304,7 +304,7 @@ def main():
         for item in concepts
         if not (
             item["surfaces"]["recall_questions"]
-            and item["surfaces"]["labs"]
+            and (item["surfaces"]["labs"] or item["surfaces"]["generated_state_labs"])
         )
     ]
     if missing_question:
