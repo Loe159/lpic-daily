@@ -95,21 +95,15 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 		projections[conceptID] = projection
 	}
 
-	readiness, err := learning.ObjectiveReadiness(
-		input.Curriculum,
-		projections,
-		learning.DefaultReadinessPolicy(),
-	)
-	if err != nil {
-		return Plan{}, fmt.Errorf("derive objective readiness: %w", err)
-	}
+	readiness := completeObjectiveReadiness(input.Curriculum, scopeConcepts, evidenceByConcept)
+	activeScopeObjectives := examProgressionScope(input.Curriculum, scopeObjectives, readiness)
 
 	session, err := learning.BuildSession(learning.SessionInput{
 		Now:                input.Now,
 		Bundle:             input.Curriculum,
 		Projections:        projections,
 		ObjectiveReadiness: readiness,
-		ScopeObjectives:    scopeObjectives,
+		ScopeObjectives:    activeScopeObjectives,
 		Policy:             input.Policy,
 	})
 	if err != nil {
@@ -209,6 +203,80 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 		plan.Items = append(plan.Items, item)
 	}
 	return plan, nil
+}
+
+func completeObjectiveReadiness(
+	bundle *curriculum.Bundle,
+	scopeConcepts map[string]struct{},
+	evidenceByConcept map[string][]learning.EvidenceEvent,
+) map[string]bool {
+	total := make(map[string]int)
+	complete := make(map[string]int)
+	for _, concept := range bundle.Concepts.Concepts {
+		if !concept.Active {
+			continue
+		}
+		if _, inScope := scopeConcepts[concept.ID]; !inScope {
+			continue
+		}
+		total[concept.ObjectiveID]++
+		lesson, question, practical := false, false, false
+		for _, event := range evidenceByConcept[concept.ID] {
+			if event.Result != learning.ResultPass {
+				continue
+			}
+			switch event.ActivityKind {
+			case learning.ActivityLesson:
+				lesson = true
+			case learning.ActivityQuestion:
+				question = true
+			case learning.ActivityLab:
+				practical = true
+			}
+		}
+		if lesson && question && practical {
+			complete[concept.ObjectiveID]++
+		}
+	}
+	readiness := make(map[string]bool, len(total))
+	for objectiveID, count := range total {
+		readiness[objectiveID] = count > 0 && complete[objectiveID] == count
+	}
+	return readiness
+}
+
+func examProgressionScope(
+	bundle *curriculum.Bundle,
+	scopeObjectives []string,
+	readiness map[string]bool,
+) []string {
+	exam101Complete := true
+	for _, objective := range bundle.Objectives.Objectives {
+		if !objective.Active || objective.Exam != "101" {
+			continue
+		}
+		if !readiness[objective.ID] {
+			exam101Complete = false
+			break
+		}
+	}
+	if exam101Complete {
+		return slices.Clone(scopeObjectives)
+	}
+
+	examByObjective := make(map[string]string, len(bundle.Objectives.Objectives))
+	for _, objective := range bundle.Objectives.Objectives {
+		if objective.Active {
+			examByObjective[objective.ID] = objective.Exam
+		}
+	}
+	filtered := make([]string, 0, len(scopeObjectives))
+	for _, objectiveID := range scopeObjectives {
+		if examByObjective[objectiveID] == "101" {
+			filtered = append(filtered, objectiveID)
+		}
+	}
+	return filtered
 }
 
 func schedulableScope(
@@ -388,12 +456,33 @@ func recommendedLab(
 		}
 		return strings.Compare(a, b)
 	})
+
+	usedContexts := make(map[string]bool)
+	for _, event := range events {
+		if event.ActivityKind != learning.ActivityLab ||
+			event.Result != learning.ResultPass ||
+			event.PracticeContext == "" {
+			continue
+		}
+		usedContexts[event.PracticeContext] = true
+	}
+
+	// Generated fallback labs intentionally remain guided evidence. Rotate to a
+	// second authored practice context after the first successful lab instead of
+	// waiting for independent mastery, which those labs can never claim.
+	if stage < learning.StageIndependent && len(usedContexts) > 0 {
+		for _, labID := range candidates {
+			practiceContext := labContexts[labID]
+			if practiceContext != "" && !usedContexts[practiceContext] {
+				return labID
+			}
+		}
+	}
 	if stage < learning.StageIndependent {
 		return candidates[0]
 	}
 
 	policy := learning.DefaultProjectionPolicy()
-	usedContexts := make(map[string]bool)
 	transferReady := false
 	for _, event := range events {
 		if event.Result != learning.ResultPass {
@@ -406,7 +495,6 @@ func recommendedLab(
 		if event.PracticeContext == "" {
 			continue
 		}
-		usedContexts[event.PracticeContext] = true
 		if !event.OccurredAt.After(now) && now.Sub(event.OccurredAt) >= policy.MinTransferGap {
 			transferReady = true
 		}
