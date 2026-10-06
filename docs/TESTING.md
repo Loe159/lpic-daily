@@ -10,7 +10,7 @@ The Go curriculum/content loaders independently validate embedded authored JSON 
 
 ### Phase 3 curriculum coverage
 
-`python3 scripts/audit_phase3_coverage.py --check` validates Phase-3 artifact mappings without requiring unfinished Exam-101 content to be complete. `--require-complete` is the course/daily-question/practical-lab exit gate. The audit reads the canonical `phase3-exam101.json` manifest and, like the Go runtime and embedded filesystem, discovers lesson/question JSON recursively below their content directories.
+`python3 scripts/audit_phase3_coverage.py --check` remains available for mapping diagnostics. Normal foundation CI runs `--require-complete`, which is the Exam-101 course/daily-question/practical-lab exit gate. The audit reads the canonical `phase3-exam101.json` manifest and mirrors deterministic runtime synthesis while Go tests independently validate the generated learner surfaces.
 
 The study planner only schedules objectives whose mapped concepts all have exactly one focused `introduce` lesson, at least one daily non-assessment question, and at least one machine-checked practical lab. Runtime prerequisite readiness is stricter: every concept in the prerequisite objective must have successful course + quiz + practical evidence. Exam 102 remains locked until that same three-surface completion rule is satisfied for all 162 Exam-101 concepts. Generated fallback labs are concept-scoped and rotate between diagnostic and transfer contexts; recall alone never substitutes for practice.
 
