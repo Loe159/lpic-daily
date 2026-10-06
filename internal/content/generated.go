@@ -100,6 +100,17 @@ func synthesizeStandaloneContent(
 			}
 			seenIDs[recognition.ID] = "generated standalone recognition question"
 			bundle.Questions = append(bundle.Questions, recognition)
+			if objective.Exam == "101" {
+				application := generatedApplicationQuestion(objective, concept, concepts, index)
+				if err := validateQuestion(application, knownObjectives, knownConcepts); err != nil {
+					return fmt.Errorf("%s: %w", application.ID, err)
+				}
+				if previous, duplicate := seenIDs[application.ID]; duplicate {
+					return fmt.Errorf("generated question %s conflicts with %s", application.ID, previous)
+				}
+				seenIDs[application.ID] = "generated Exam 101 application question"
+				bundle.Questions = append(bundle.Questions, application)
+			}
 		}
 	}
 	return nil
@@ -152,6 +163,69 @@ func standaloneSupplement(
 }
 
 func generatedLessonBody(
+	objective curriculum.Objective,
+	concept curriculum.Concept,
+	guide curriculum.ObjectiveStudyGuide,
+) string {
+	if objective.Exam == "101" {
+		return generatedExam101LessonBody(objective, concept, guide)
+	}
+	return generatedObjectiveLessonBody(objective, concept, guide)
+}
+
+func generatedExam101LessonBody(
+	objective curriculum.Objective,
+	concept curriculum.Concept,
+	guide curriculum.ObjectiveStudyGuide,
+) string {
+	var anchors strings.Builder
+	var examples strings.Builder
+	for _, anchor := range concept.AnchorTerms {
+		explanation := standaloneTermExplanation(anchor, objective.ID)
+		fmt.Fprintf(&anchors, "- `%s` — %s\n", anchor, explanation)
+		if usage := standaloneTermUsage(anchor); usage != "" {
+			fmt.Fprintf(&examples, "- `%s` : `%s`\n", anchor, usage)
+		} else {
+			fmt.Fprintf(
+				&examples,
+				"- `%s` : explique son rôle, donne un cas d'emploi dans **%s**, puis indique comment tu confirmerais ton diagnostic.\n",
+				anchor,
+				concept.TitleFR,
+			)
+		}
+	}
+
+	return fmt.Sprintf(
+		"# %s\n\n"+
+			"Ce concept appartient à **%s — %s**. Ici, le cours reste volontairement centré sur ce sous-concept au lieu de répéter tout l'objectif.\n\n"+
+			"## À comprendre précisément\n\n%s\n"+
+			"Ne mémorise pas seulement les noms : relie chaque repère à son rôle, à ce qu'il permet d'observer ou de modifier et au résultat attendu.\n\n"+
+			"## Exemple travaillé / commandes\n\n%s\n"+
+			"## Raisonnement attendu\n\n"+
+			"Face à une question sur **%s**, commence par identifier les repères %s, choisis celui qui répond directement au besoin, puis vérifie le résultat avant de conclure.\n\n"+
+			"## Mise en pratique\n\n%s\n\n"+
+			"Ramène cette pratique au concept **%s** : réalise au moins une commande, inspection ou modification pertinente et explique ce que son résultat prouve.\n\n"+
+			"## Pièges et distinctions\n\n%s\n\n"+
+			"## Auto-test\n\n"+
+			"1. Explique **%s** sans relire le titre.\n"+
+			"2. Donne le rôle précis de %s.\n"+
+			"3. Décris une situation où tu les utiliserais et comment tu vérifierais que ton raisonnement est correct.\n",
+		concept.TitleFR,
+		objective.ID,
+		objective.TitleFR,
+		anchors.String(),
+		examples.String(),
+		concept.TitleFR,
+		inlineCodeList(concept.AnchorTerms),
+		guide.Practice,
+		concept.TitleFR,
+		guide.Pitfalls,
+		concept.TitleFR,
+		inlineCodeList(concept.AnchorTerms),
+	)
+}
+
+func generatedObjectiveLessonBody(
 	objective curriculum.Objective,
 	concept curriculum.Concept,
 	guide curriculum.ObjectiveStudyGuide,
@@ -220,15 +294,11 @@ func generatedRecallQuestion(
 		ConceptIDs:    []string{concept.ID},
 		Type:          "fill-in",
 		Usage:         "daily",
-		PromptFR: fmt.Sprintf(
-			"Dans %s, quel terme, fichier ou utilitaire correspond à cette description : %s ?",
-			objective.ID,
-			description,
-		),
+		PromptFR: fmt.Sprintf(\n\t\t\t"Pour le concept « %s » (%s), quel terme, fichier ou utilitaire correspond à cette description : %s ?",\n\t\t\tconcept.TitleFR,\n\t\t\tobjective.ID,\n\t\t\tdescription,\n\t\t),
 		Grading: Grading{
 			Strategy:        "exact-text",
 			AcceptedAnswers: []string{anchor},
-			CaseSensitive:   false,
+			CaseSensitive:   objective.Exam == "101",
 		},
 		EvidenceKindOnSuccess: "recall",
 		Labels:                conceptLabels(concept),
@@ -280,7 +350,8 @@ func generatedRecognitionQuestion(
 		Type:          "multiple-choice",
 		Usage:         "daily",
 		PromptFR: fmt.Sprintf(
-			"Dans %s, quelle description correspond correctement à %s ?",
+			"Pour le concept « %s » dans %s, quelle description correspond correctement à %s ?",
+			concept.TitleFR,
 			objective.ID,
 			inlineCodeList([]string{primary}),
 		),
@@ -297,6 +368,84 @@ func generatedRecognitionQuestion(
 			primary,
 			correctDescription,
 		),
+	}
+}
+
+func generatedApplicationQuestion(
+	objective curriculum.Objective,
+	concept curriculum.Concept,
+	concepts []curriculum.Concept,
+	index int,
+) Question {
+	primary := concept.AnchorTerms[0]
+	correctDescription := standaloneTermExplanation(primary, objective.ID)
+	correctLabel := fmt.Sprintf("Mobiliser %s : %s", inlineCodeList([]string{primary}), correctDescription)
+	if usage := standaloneTermUsage(primary); usage != "" {
+		correctLabel += fmt.Sprintf(" Exemple : `%s`.", usage)
+	}
+
+	distractorTerms := make([]string, 0, 3)
+	for offset := 1; len(distractorTerms) < 3 && offset < len(concepts); offset++ {
+		candidateConcept := concepts[(index+offset)%len(concepts)]
+		if len(candidateConcept.AnchorTerms) == 0 {
+			continue
+		}
+		candidate := candidateConcept.AnchorTerms[0]
+		if candidate == primary || slices.Contains(distractorTerms, candidate) {
+			continue
+		}
+		distractorTerms = append(distractorTerms, candidate)
+	}
+	for offset := 1; len(distractorTerms) < 3 && offset <= len(objective.TermsFilesUtilities); offset++ {
+		candidate := objective.TermsFilesUtilities[(index+offset)%len(objective.TermsFilesUtilities)]
+		if candidate == primary || slices.Contains(distractorTerms, candidate) {
+			continue
+		}
+		distractorTerms = append(distractorTerms, candidate)
+	}
+	for len(distractorTerms) < 3 {
+		distractorTerms = append(distractorTerms, fmt.Sprintf("alternative-%d", len(distractorTerms)+1))
+	}
+
+	choices := []Choice{
+		{ID: "correct", LabelFR: correctLabel},
+		{
+			ID:      "other-1",
+			LabelFR: fmt.Sprintf("Mobiliser %s : %s", inlineCodeList([]string{distractorTerms[0]}), standaloneTermExplanation(distractorTerms[0], objective.ID)),
+		},
+		{
+			ID:      "other-2",
+			LabelFR: fmt.Sprintf("Mobiliser %s : %s", inlineCodeList([]string{distractorTerms[1]}), standaloneTermExplanation(distractorTerms[1], objective.ID)),
+		},
+		{
+			ID:      "other-3",
+			LabelFR: fmt.Sprintf("Mobiliser %s : %s", inlineCodeList([]string{distractorTerms[2]}), standaloneTermExplanation(distractorTerms[2], objective.ID)),
+		},
+	}
+	rotation := (index + 1) % len(choices)
+	choices[0], choices[rotation] = choices[rotation], choices[0]
+
+	return Question{
+		SchemaVersion: "1.0.0",
+		ID:            concept.ID + ".q.autonomous-application",
+		ObjectiveIDs:  []string{objective.ID},
+		ConceptIDs:    []string{concept.ID},
+		Type:          "multiple-choice",
+		Usage:         "daily",
+		PromptFR: fmt.Sprintf(
+			"Scénario : tu dois **%s** dans le cadre de %s. Quelle action ou association technique est la plus directement pertinente ?",
+			concept.TitleFR,
+			objective.ID,
+		),
+		Choices: choices,
+		Grading: Grading{
+			Strategy:          "choice-ids",
+			AcceptedChoiceIDs: []string{"correct"},
+		},
+		EvidenceKindOnSuccess: "recognition",
+		Labels:                conceptLabels(concept),
+		Distribution:          "generic",
+		ExplanationFR:         correctLabel,
 	}
 }
 

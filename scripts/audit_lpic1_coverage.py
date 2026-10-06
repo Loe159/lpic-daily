@@ -5,9 +5,31 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 CURRICULUM = ROOT / "curriculum" / "lpic-1-v5"
+EXAM101_OFFICIAL_SCOPE = CURRICULUM / "exam101-official-terms.json"
 
 def load(name):
     return json.loads((CURRICULUM / name).read_text(encoding="utf-8"))
+
+def normalize_official_term(term):
+    aliases = {
+        "/ (root) filesystem": "/",
+        "/var filesystem": "/var",
+        "/home filesystem": "/home",
+        "/boot filesystem": "/boot",
+        "EFI System Partition (ESP)": "ESP",
+        "swap space": "swap",
+        "Virtual machine": "virtual machine",
+        "Application container": "application container",
+        "Guest drivers": "guest drivers",
+        "D-Bus machine id": "D-Bus machine-id",
+        "Quoting": "quoting",
+        "file globbing": "globbing",
+    }
+    value = aliases.get(term, term)
+    if value != "/" and value.endswith("/"):
+        value = value.rstrip("/")
+    return value
+
 
 def fail(errors):
     if errors:
@@ -23,6 +45,7 @@ def main():
     guides_file = load("objective-study-guides.json")
     phase3 = load("phase3-exam101.json")
     phase4 = load("phase4-exam102.json")
+    official101 = json.loads(EXAM101_OFFICIAL_SCOPE.read_text(encoding="utf-8"))
 
     objectives = [o for o in objectives_file["objectives"] if o.get("active")]
     concepts = [c for c in concepts_file["concepts"] if c.get("active")]
@@ -61,6 +84,25 @@ def main():
 
     for objective in objectives:
         objective_concepts = concepts_by_objective.get(objective["id"], [])
+        if objective["exam"] == "101":
+            snapshot = official101["objectives"].get(objective["id"])
+            if snapshot is None:
+                errors.append(f"{objective['id']}: missing official Exam 101 scope snapshot")
+            else:
+                if snapshot["weight"] != objective["weight"]:
+                    errors.append(
+                        f"{objective['id']}: weight drift: curriculum={objective['weight']} official={snapshot['weight']}"
+                    )
+                anchored_normalized = {
+                    normalize_official_term(anchor)
+                    for concept in objective_concepts
+                    for anchor in concept.get("anchor_terms", [])
+                }
+                for term in snapshot["terms_files_utilities"]:
+                    if normalize_official_term(term) not in anchored_normalized:
+                        errors.append(
+                            f"{objective['id']}: official Exam 101 term {term!r} has no concept anchor"
+                        )
         anchored_terms = {
             anchor
             for concept in objective_concepts
@@ -69,7 +111,7 @@ def main():
         for term in objective.get("terms_files_utilities", []):
             if term not in anchored_terms:
                 errors.append(
-                    f"{objective['id']}: official term {term!r} is not anchored to any concept"
+                    f"{objective['id']}: pedagogical term {term!r} is not anchored to any concept"
                 )
         signatures = {}
         for concept in objective_concepts:
@@ -91,7 +133,7 @@ def main():
             if len(str(guide.get(field, "")).strip()) < 40:
                 errors.append(f"{objective['id']}: study guide {field} is too shallow")
         if not objective.get("terms_files_utilities"):
-            errors.append(f"{objective['id']}: no official terms/files/utilities")
+            errors.append(f"{objective['id']}: no pedagogical terms/files/utilities")
         if not objective.get("assessment_evidence"):
             errors.append(f"{objective['id']}: no assessment evidence targets")
 
@@ -133,8 +175,9 @@ def main():
         "LPIC-1 standalone coverage OK: "
         f"{len(objectives)} objectives; {len(concepts)} concepts; "
         f"Exam 101={phase3['concept_count']}; Exam 102={phase4['concept_count']}; "
-        "every concept receives one focused introduction, two daily questions "
-        "(including recall), and two practical contexts at runtime."
+        "every concept receives one focused introduction and recall coverage; "
+        "Exam 101 concepts additionally receive an applied scenario question. "
+        "Generated practical contexts remain guided unless a bespoke state-verified lab exists."
     )
     return 0
 

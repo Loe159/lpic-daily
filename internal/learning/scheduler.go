@@ -79,6 +79,20 @@ func BuildSession(input SessionInput) (Session, error) {
 		return len(scope) == 0 || scope[objectiveID]
 	}
 
+	conceptCountByObjective := make(map[string]int)
+	for _, concept := range input.Bundle.Concepts.Concepts {
+		if concept.Active && inScope(concept.ObjectiveID) {
+			conceptCountByObjective[concept.ObjectiveID]++
+		}
+	}
+	objectivePriority := make(map[string]float64)
+	for _, objective := range input.Bundle.Objectives.Objectives {
+		count := conceptCountByObjective[objective.ID]
+		if objective.Active && count > 0 {
+			objectivePriority[objective.ID] = float64(objective.Weight) / float64(count)
+		}
+	}
+
 	var reviews []SessionItem
 	for _, concept := range input.Bundle.Concepts.Concepts {
 		if !concept.Active || !inScope(concept.ObjectiveID) {
@@ -111,6 +125,12 @@ func BuildSession(input SessionInput) (Session, error) {
 			return -1
 		}
 		if a.DueAt.After(b.DueAt) {
+			return 1
+		}
+		if objectivePriority[a.ObjectiveID] != objectivePriority[b.ObjectiveID] {
+			if objectivePriority[a.ObjectiveID] > objectivePriority[b.ObjectiveID] {
+				return -1
+			}
 			return 1
 		}
 		return compareText(a.ConceptID, b.ConceptID)
@@ -156,6 +176,7 @@ func BuildSession(input SessionInput) (Session, error) {
 		concept               curriculum.Concept
 		unmetRecommendedCount int
 		unmetRecommended      []string
+		objectivePriority     float64
 	}
 	objectiveNodes := make(map[string]curriculum.ObjectiveNode, len(input.Bundle.Prerequisites.Nodes))
 	for _, node := range input.Bundle.Prerequisites.Nodes {
@@ -185,12 +206,19 @@ func BuildSession(input SessionInput) (Session, error) {
 			concept:               concept,
 			unmetRecommendedCount: len(unmet),
 			unmetRecommended:      unmet,
+			objectivePriority:     objectivePriority[concept.ObjectiveID],
 		})
 	}
 
 	slices.SortFunc(candidates, func(a, b newCandidate) int {
 		if a.unmetRecommendedCount != b.unmetRecommendedCount {
 			return a.unmetRecommendedCount - b.unmetRecommendedCount
+		}
+		if a.objectivePriority != b.objectivePriority {
+			if a.objectivePriority > b.objectivePriority {
+				return -1
+			}
+			return 1
 		}
 		if a.concept.PedagogyOrder != b.concept.PedagogyOrder {
 			return a.concept.PedagogyOrder - b.concept.PedagogyOrder
@@ -205,12 +233,13 @@ func BuildSession(input SessionInput) (Session, error) {
 		if index >= input.Policy.MaxNewConcepts {
 			break
 		}
-		reason := "Nouveau concept: ses hard prerequisites sont satisfaits et ses prerequisites recommandés sont prêts."
+		reason := fmt.Sprintf("Nouveau concept: prérequis prêts; priorité LPI %.3f (poids de l’objectif réparti sur ses concepts).", candidate.objectivePriority)
 		reasonCode := "prerequisites-ready"
 		if len(candidate.unmetRecommended) != 0 {
 			reason = fmt.Sprintf(
-				"Nouveau concept: ses hard prerequisites sont satisfaits. Prerequisite(s) recommandé(s) non prêt(s): %s; cela réduit seulement sa priorité et ne le bloque pas.",
+				"Nouveau concept: hard prerequisites satisfaits; prérequis recommandé(s) non prêt(s): %s. Priorité LPI %.3f; les prérequis recommandés restent prioritaires sur le poids.",
 				strings.Join(candidate.unmetRecommended, ", "),
+				candidate.objectivePriority,
 			)
 			reasonCode = "hard-ready-recommended-pending"
 		}

@@ -249,3 +249,27 @@ func TestRecommendedPrerequisitesRankButDoNotBlock(t *testing.T) {
 		t.Fatalf("reason = %#v", onlyPermissions.Items[0])
 	}
 }
+
+
+func TestExamWeightDensityPrioritizesNewConceptsWithEqualPrerequisiteReadiness(t *testing.T) {
+	bundle := loadBundle(t)
+	now := time.Date(2026, 10, 6, 10, 0, 0, 0, time.UTC)
+
+	session, err := learning.BuildSession(learning.SessionInput{
+		Now:                now,
+		Bundle:             bundle,
+		Projections:        map[string]learning.MasteryProjection{},
+		ObjectiveReadiness: map[string]bool{"103.1": true},
+		ScopeObjectives:    []string{"102.3", "103.8"},
+		Policy:             learning.DefaultSessionPolicy(),
+	})
+	if err != nil {
+		t.Fatalf("BuildSession() error = %v", err)
+	}
+	if len(session.Items) != 1 {
+		t.Fatalf("items = %#v, want one new concept", session.Items)
+	}
+	if got := session.Items[0].ObjectiveID; got != "103.8" {
+		t.Fatalf("selected objective = %s, want 103.8: weight/concept density 3/8 must beat 102.3 at 1/5", got)
+	}
+}
