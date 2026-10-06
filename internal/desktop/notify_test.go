@@ -73,6 +73,38 @@ func TestLaunchDailyUsesConfiguredLauncherAndBinary(t *testing.T) {
 	}
 }
 
+func TestLaunchLabUsesConfiguredLauncherAndBinary(t *testing.T) {
+	t.Setenv("LPIC_DAILY_TERMINAL_LAUNCHER", "kitty -e")
+	t.Setenv("LPIC_DAILY_BINARY", "/home/test/.local/bin/lpic")
+	executor := &fakeExecutor{}
+	if err := desktop.LaunchLab(context.Background(), executor, "lpic1.103.1.shell-environment-repair"); err != nil {
+		t.Fatalf("LaunchLab() error = %v", err)
+	}
+	want := call{
+		name: "kitty",
+		args: []string{
+			"-e",
+			"/home/test/.local/bin/lpic",
+			"lab",
+			"run",
+			"lpic1.103.1.shell-environment-repair",
+		},
+	}
+	if len(executor.starts) != 1 || !reflect.DeepEqual(executor.starts[0], want) {
+		t.Fatalf("starts = %#v, want %#v", executor.starts, want)
+	}
+}
+
+func TestLaunchLabRejectsEmptyID(t *testing.T) {
+	executor := &fakeExecutor{}
+	if err := desktop.LaunchLab(context.Background(), executor, "  "); err == nil {
+		t.Fatal("LaunchLab() unexpectedly accepted an empty lab ID")
+	}
+	if len(executor.starts) != 0 {
+		t.Fatalf("starts = %#v, want none", executor.starts)
+	}
+}
+
 func TestDetectTerminalLauncherFallsBackToKitty(t *testing.T) {
 	t.Setenv("LPIC_DAILY_TERMINAL_LAUNCHER", "")
 	dir := t.TempDir()
