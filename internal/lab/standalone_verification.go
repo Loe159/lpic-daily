@@ -165,11 +165,6 @@ func deterministicShellExercise(
 	case 1:
 		expected := token + "-A\n" + token + "-B\n" + token + "-C\n"
 		verify := fmt.Sprintf(
-			"grep -Fq '&&' %q && grep -Fq '||' %q && /bin/bash %q | cmp -s - <(printf '%%b' %q)",
-			scriptPath, scriptPath, scriptPath, expected,
-		)
-		// Avoid process substitution in the checker shell by comparing through a temporary file.
-		verify = fmt.Sprintf(
 			"set -eu; grep -Fq '&&' %q; grep -Fq '||' %q; actual=$(mktemp); expected=$(mktemp); trap 'rm -f \"$actual\" \"$expected\"' EXIT; /bin/bash %q >\"$actual\"; printf '%%b' %q >\"$expected\"; cmp -s \"$actual\" \"$expected\"",
 			scriptPath, scriptPath, scriptPath, expected,
 		)
@@ -204,10 +199,10 @@ func deterministicShellExercise(
 
 	case 4:
 		value := token + " value * literal"
-		expected := fmt.Sprintf("single=$VALUE\ndouble=%s\nescaped=%s\n", value, value)
+		expected := fmt.Sprintf("single=$VALUE\ndouble=%s\nescaped=$VALUE\n", value)
 		verify := fmt.Sprintf(
-			"set -eu; actual=$(mktemp); expected=$(mktemp); trap 'rm -f \"$actual\" \"$expected\"' EXIT; VALUE=%q /bin/bash %q >\"$actual\"; printf '%%b' %q >\"$expected\"; cmp -s \"$actual\" \"$expected\"",
-			value, scriptPath, expected,
+			"set -eu; grep -Fq '\''single=$VALUE'\'' %q; grep -Fq '\"$VALUE\"' %q; grep -Fq '\\$VALUE' %q; actual=$(mktemp); expected=$(mktemp); trap 'rm -f \"$actual\" \"$expected\"' EXIT; VALUE=%q /bin/bash %q >\"$actual\"; printf '%%b' %q >\"$expected\"; cmp -s \"$actual\" \"$expected\"",
+			scriptPath, scriptPath, scriptPath, value, scriptPath, expected,
 		)
 		return fmt.Sprintf(
 			"Crée %s pour démontrer quoting simple, double et échappement avec une valeur contenant espaces et '*'. Le résultat doit distinguer littéral et expansion.",
@@ -247,8 +242,8 @@ func deterministicShellExercise(
 	case 8:
 		expected := fmt.Sprintf("set-shell=%s-shell\nset-export=%s-env\nenv-export=%s-env\nenv-shell=absent\n", token, token, token)
 		verify := fmt.Sprintf(
-			"set -eu; actual=$(mktemp); expected=$(mktemp); trap 'rm -f \"$actual\" \"$expected\"' EXIT; /bin/bash %q >\"$actual\"; printf '%%b' %q >\"$expected\"; cmp -s \"$actual\" \"$expected\"",
-			scriptPath, expected,
+			"set -eu; grep -Eq '(^|[;&[:space:]])set([;&[:space:]]|$)' %q; grep -Eq '(^|[;&[:space:]])env([;&[:space:]]|$)' %q; actual=$(mktemp); expected=$(mktemp); trap 'rm -f \"$actual\" \"$expected\"' EXIT; /bin/bash %q >\"$actual\"; printf '%%b' %q >\"$expected\"; cmp -s \"$actual\" \"$expected\"",
+			scriptPath, scriptPath, scriptPath, expected,
 		)
 		return fmt.Sprintf(
 			"Crée %s pour définir une variable non exportée et une variable exportée, puis prouver avec set et env que seul l'environnement reçoit la seconde.",
@@ -258,8 +253,8 @@ func deterministicShellExercise(
 	case 9:
 		expected := fmt.Sprintf("before=%s\nchild-before=%s\nchild-after=absent\n", token, token)
 		verify := fmt.Sprintf(
-			"set -eu; actual=$(mktemp); expected=$(mktemp); trap 'rm -f \"$actual\" \"$expected\"' EXIT; /bin/bash %q >\"$actual\"; printf '%%b' %q >\"$expected\"; cmp -s \"$actual\" \"$expected\"",
-			scriptPath, expected,
+			"set -eu; grep -Eq '(^|[;&[:space:]])export([;&[:space:]]|$)' %q; grep -Eq '(^|[;&[:space:]])unset([;&[:space:]]|$)' %q; actual=$(mktemp); expected=$(mktemp); trap 'rm -f \"$actual\" \"$expected\"' EXIT; /bin/bash %q >\"$actual\"; printf '%%b' %q >\"$expected\"; cmp -s \"$actual\" \"$expected\"",
+			scriptPath, scriptPath, scriptPath, expected,
 		)
 		return fmt.Sprintf(
 			"Crée %s pour exporter LPIC_CHILD=%s, l'observer dans un shell enfant, faire unset, puis prouver qu'un nouvel enfant ne la reçoit plus.",
@@ -271,8 +266,8 @@ func deterministicShellExercise(
 		tool := outsideDir + "/lpic-outside"
 		setup := fmt.Sprintf("install -d -m 0777 %q\nprintf '#!/bin/sh\\nprintf %s\\\\n\\n' > %q\nchmod 0755 %q\n", outsideDir, token, tool, tool)
 		verify := fmt.Sprintf(
-			"set -eu; test \"$(PATH=/usr/bin:/bin /bin/bash %q)\" = %q",
-			scriptPath, token,
+			"set -eu; grep -Fq 'PATH=/usr/bin:/bin' %q; grep -Fq %q %q; test \"$(PATH=/usr/bin:/bin /bin/bash %q)\" = %q",
+			scriptPath, tool, scriptPath, scriptPath, token,
 		)
 		return fmt.Sprintf(
 			"%s n'est pas dans PATH. Crée %s qui fixe PATH=/usr/bin:/bin puis exécute explicitement cet outil hors PATH et affiche son résultat.",
@@ -294,8 +289,8 @@ func deterministicShellExercise(
 	default:
 		expected := fmt.Sprintf("%s\n42\n%s-child\n", token, token)
 		verify := fmt.Sprintf(
-			"set -eu; actual=$(mktemp); expected=$(mktemp); trap 'rm -f \"$actual\" \"$expected\"' EXIT; /bin/bash %q >\"$actual\"; printf '%%b' %q >\"$expected\"; cmp -s \"$actual\" \"$expected\"",
-			scriptPath, expected,
+			"set -eu; grep -Fq '$((40+2))' %q; grep -Fq '$(' %q; grep -Eq '(^|[;&[:space:]])echo([;&[:space:]]|$)' %q; actual=$(mktemp); expected=$(mktemp); trap 'rm -f \"$actual\" \"$expected\"' EXIT; /bin/bash %q >\"$actual\"; printf '%%b' %q >\"$expected\"; cmp -s \"$actual\" \"$expected\"",
+			scriptPath, scriptPath, scriptPath, scriptPath, expected,
 		)
 		return fmt.Sprintf(
 			"Crée %s pour utiliser echo avec expansion de variable, expansion arithmétique 40+2 et substitution de commande produisant %s-child.",
