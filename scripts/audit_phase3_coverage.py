@@ -319,8 +319,8 @@ def main():
         return 1
 
     print(
-        "Phase-3 course/daily-question/practical-exercise coverage complete. "
-        "Cross-topic challenge gates remain documented in docs/plan/PHASE-3-ACCEPTANCE.md."
+        "Phase-3 Exam-101 course/daily-question/practical-exercise coverage complete; "
+        "every concept has both recall and practical advancement paths."
     )
     return 0
 
