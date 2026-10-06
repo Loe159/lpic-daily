@@ -167,6 +167,11 @@ func runDashboard(stdin io.Reader, stdout, stderr io.Writer) error {
 			_ = store.Close()
 			return fmt.Errorf("load study focus: %w", err)
 		}
+		assessmentPassed, err := appstate.Exam101AssessmentPassed()
+		if err != nil {
+			_ = store.Close()
+			return fmt.Errorf("load Exam 101 assessment state: %w", err)
+		}
 		plan, planErr := study.BuildPlan(ctx, study.PlanInput{
 			Now:         now,
 			Curriculum:  curriculumBundle,
@@ -174,7 +179,8 @@ func runDashboard(stdin io.Reader, stdout, stderr io.Writer) error {
 			Labs:        labs,
 			Evidence:    store,
 			Policy:      learning.DefaultSessionPolicy(),
-			Exam101Only: focus == appstate.StudyFocusExam101,
+			Exam101Only:             focus == appstate.StudyFocusExam101,
+			Exam101AssessmentPassed: assessmentPassed,
 		})
 		gameSnapshot, gameErr := loadGamificationSnapshot(ctx, store, now)
 		closeErr := store.Close()
@@ -302,6 +308,10 @@ func runNotifyWithExecutor(
 	if err != nil {
 		return fmt.Errorf("load study focus: %w", err)
 	}
+	assessmentPassed, err := appstate.Exam101AssessmentPassed()
+	if err != nil {
+		return fmt.Errorf("load Exam 101 assessment state: %w", err)
+	}
 	plan, err := study.BuildPlan(ctx, study.PlanInput{
 		Now:         now,
 		Curriculum:  curriculumBundle,
@@ -309,7 +319,8 @@ func runNotifyWithExecutor(
 		Labs:        labs,
 		Evidence:    store,
 		Policy:      learning.DefaultSessionPolicy(),
-		Exam101Only: focus == appstate.StudyFocusExam101,
+		Exam101Only:             focus == appstate.StudyFocusExam101,
+		Exam101AssessmentPassed: assessmentPassed,
 	})
 	if err != nil {
 		return err
@@ -528,6 +539,10 @@ func runToday(args []string, stdout io.Writer) error {
 	if err != nil {
 		return fmt.Errorf("load study focus: %w", err)
 	}
+	assessmentPassed, err := appstate.Exam101AssessmentPassed()
+	if err != nil {
+		return fmt.Errorf("load Exam 101 assessment state: %w", err)
+	}
 	plan, err := study.BuildPlan(ctx, study.PlanInput{
 		Now:         time.Now(),
 		Curriculum:  curriculumBundle,
@@ -535,7 +550,8 @@ func runToday(args []string, stdout io.Writer) error {
 		Labs:        labs,
 		Evidence:    store,
 		Policy:      policy,
-		Exam101Only: focus == appstate.StudyFocusExam101,
+		Exam101Only:             focus == appstate.StudyFocusExam101,
+		Exam101AssessmentPassed: assessmentPassed,
 	})
 	if err != nil {
 		return err
