@@ -193,7 +193,11 @@ func runDashboard(stdin io.Reader, stdout, stderr io.Writer) error {
 		case lpicui.ActionQuestion:
 			err = runQuestion([]string{action.ID}, stdin, stdout)
 		case lpicui.ActionLab:
-			err = runLabCommand([]string{"run", action.ID}, stdin, stdout, stderr)
+			authored, findErr := findLab(labs, action.ID)
+			if findErr != nil {
+				return findErr
+			}
+			err = runDashboardLab(ctx, authored, stdin, stdout, stderr)
 		default:
 			return fmt.Errorf("unsupported TUI action %q", action.Kind)
 		}
@@ -203,6 +207,32 @@ func runDashboard(stdin io.Reader, stdout, stderr io.Writer) error {
 
 		fmt.Fprintln(stdout)
 	}
+}
+
+func runDashboardLab(
+	ctx context.Context,
+	authored lab.Lab,
+	stdin io.Reader,
+	stdout, stderr io.Writer,
+) error {
+	printLab(authored, stdout)
+	fmt.Fprintln(stdout)
+	if err := desktop.LaunchLab(ctx, desktop.OSExecutor{}, authored.Definition.ID); err != nil {
+		fmt.Fprintf(
+			stderr,
+			"warning: impossible d'ouvrir un terminal enfant pour le lab; utilisation du terminal courant: %v\n",
+			err,
+		)
+		return runInteractiveLab(authored, stdin, stdout, stderr)
+	}
+
+	fmt.Fprintln(stdout, "Lab ouvert dans un nouveau terminal.")
+	fmt.Fprintln(stdout, "Garde cette fenêtre ouverte : la consigne reste visible ici pendant que tu travailles dans le terminal du lab.")
+	fmt.Fprint(stdout, "Quand le lab est terminé, reviens ici et appuie sur Entrée pour actualiser la progression. ")
+	if _, err := readLine(stdin); err != nil {
+		return fmt.Errorf("wait for child lab completion: %w", err)
+	}
+	return nil
 }
 
 func runInstall(args []string, stdin io.Reader, stdout, stderr io.Writer) error {
@@ -1199,27 +1229,25 @@ func runInteractiveLabWithBackend(
 	stdin io.Reader,
 	stdout, stderr io.Writer,
 ) error {
-	timeout := time.Duration(authored.Definition.Resources.TimeoutSeconds) * time.Second
-	if timeout <= 0 {
+	operationTimeout := time.Duration(authored.Definition.Resources.TimeoutSeconds) * time.Second
+	if operationTimeout <= 0 {
 		return errors.New("lab runtime timeout must be positive")
 	}
-	sessionCtx, cancelSession := context.WithTimeout(ctx, timeout)
+	// A lab session itself has no wall-clock deadline: learners can keep an
+	// interactive shell open as long as needed. timeout_seconds only bounds
+	// individual backend operations so a slow command cannot destroy the whole
+	// disposable environment and force the learner to restart from zero.
+	sessionCtx, cancelSession := context.WithCancel(ctx)
 	defer cancelSession()
-
-	if inputFile, ok := stdin.(*os.File); ok {
-		if deadline, ok := sessionCtx.Deadline(); ok {
-			if err := inputFile.SetReadDeadline(deadline); err == nil {
-				defer inputFile.SetReadDeadline(time.Time{})
-			}
-		}
-	}
 
 	highestHintLevel, err := pendingLabHintLevel(sessionCtx, authored.Definition.ID)
 	if err != nil {
 		return fmt.Errorf("load pending lab disclosure: %w", err)
 	}
 
-	session, err := lab.Start(sessionCtx, authored, backend)
+	startCtx, cancelStart := context.WithTimeout(sessionCtx, operationTimeout)
+	session, err := lab.Start(startCtx, authored, backend)
+	cancelStart()
 	if err != nil {
 		return err
 	}
@@ -1371,14 +1399,28 @@ func runInteractiveLabWithBackend(
 			if !ok {
 				return fmt.Errorf("%w: backend has no reboot capability", runner.ErrNotSupported)
 			}
-			if err := rebooter.Reboot(sessionCtx, session.Instance); err != nil {
-				return fmt.Errorf("reboot VM: %w", err)
+			rebootCtx, cancelReboot := context.WithTimeout(sessionCtx, operationTimeout)
+			rebootErr := rebooter.Reboot(rebootCtx, session.Instance)
+			cancelReboot()
+			if rebootErr != nil {
+				if errors.Is(rebootErr, context.DeadlineExceeded) {
+					fmt.Fprintf(stdout, "Reboot interrompu après %s. Le lab reste ouvert.\n", operationTimeout)
+					continue
+				}
+				return fmt.Errorf("reboot VM: %w", rebootErr)
 			}
 			fmt.Fprintln(stdout, "Reboot demandé. La console série permet de suivre le prochain boot.")
 			continue
 		case ":reset":
-			if err := session.Reset(sessionCtx); err != nil {
-				return fmt.Errorf("reset lab: %w", err)
+			resetCtx, cancelReset := context.WithTimeout(sessionCtx, operationTimeout)
+			resetErr := session.Reset(resetCtx)
+			cancelReset()
+			if resetErr != nil {
+				if errors.Is(resetErr, context.DeadlineExceeded) {
+					fmt.Fprintf(stdout, "Réinitialisation interrompue après %s. Le lab reste ouvert.\n", operationTimeout)
+					continue
+				}
+				return fmt.Errorf("reset lab: %w", resetErr)
 			}
 			// Reset restores sandbox state only. Disclosure state is persisted
 			// across resets/restarts and remains attached to the learning attempt.
@@ -1389,8 +1431,14 @@ func runInteractiveLabWithBackend(
 			continue
 		case ":check":
 			passed := true
-			results, err := session.Evaluate(sessionCtx)
+			checkCtx, cancelCheck := context.WithTimeout(sessionCtx, operationTimeout)
+			results, err := session.Evaluate(checkCtx)
+			cancelCheck()
 			if err != nil {
+				if errors.Is(err, context.DeadlineExceeded) {
+					fmt.Fprintf(stdout, "Validation interrompue après %s. Le lab reste ouvert; tu peux réessayer :check.\n", operationTimeout)
+					continue
+				}
 				return fmt.Errorf("evaluate lab: %w", err)
 			}
 			conceptResults, err := study.LabConceptResults(authored, results)
@@ -1489,23 +1537,36 @@ func runInteractiveLabWithBackend(
 			return fmt.Errorf("lab session ended: %w", err)
 		}
 
-		result, err := backend.Exec(sessionCtx, session.Instance, runner.ExecRequest{
+		commandCtx, cancelCommand := context.WithTimeout(sessionCtx, operationTimeout)
+		result, err := backend.Exec(commandCtx, session.Instance, runner.ExecRequest{
 			Argv:   []string{"/usr/bin/bash", "-lc", line},
 			Stdout: commandStdout,
 			Stderr: commandStderr,
 		})
+		cancelCommand()
 		if err != nil {
+			if errors.Is(err, context.DeadlineExceeded) {
+				fmt.Fprintf(stderr, "[commande interrompue après %s; le lab reste ouvert]\n", operationTimeout)
+				continue
+			}
 			return fmt.Errorf("execute lab command: %w", err)
 		}
-		if err := recordStandaloneLabCommand(
-			sessionCtx,
+		evidenceCtx, cancelEvidence := context.WithTimeout(sessionCtx, operationTimeout)
+		evidenceErr := recordStandaloneLabCommand(
+			evidenceCtx,
 			backend,
 			session.Instance,
 			authored.Definition,
 			line,
 			result.ExitCode,
-		); err != nil {
-			return fmt.Errorf("record generated lab command evidence: %w", err)
+		)
+		cancelEvidence()
+		if evidenceErr != nil {
+			if errors.Is(evidenceErr, context.DeadlineExceeded) {
+				fmt.Fprintf(stderr, "[journalisation de la commande interrompue après %s; le lab reste ouvert]\n", operationTimeout)
+				continue
+			}
+			return fmt.Errorf("record generated lab command evidence: %w", evidenceErr)
 		}
 		if result.ExitCode != 0 {
 			fmt.Fprintf(stderr, "[exit %d]\n", result.ExitCode)
