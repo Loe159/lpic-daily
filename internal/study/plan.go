@@ -287,14 +287,11 @@ func exam101MasteryComplete(
 		}
 	}
 	for _, concept := range bundle.Concepts.Concepts {
-		if !concept.Active {
+		if !concept.Active || examByObjective[concept.ObjectiveID] != "101" {
 			continue
 		}
 		if _, inScope := scopeConcepts[concept.ID]; !inScope {
-			continue
-		}
-		if examByObjective[concept.ObjectiveID] != "101" {
-			continue
+			return false
 		}
 		if !exam101ConceptMastered(evidenceByConcept[concept.ID], retentionGap) {
 			return false
