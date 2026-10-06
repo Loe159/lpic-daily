@@ -576,7 +576,7 @@ func deterministicStorageExercise(objectiveID string, concept curriculum.Concept
 			if variant == 1 {
 				label = "ESP_B"
 			}
-			script := fmt.Sprintf("parted -sm /dev/vdb print 2>/dev/null | grep -q ':gpt:' && parted -sm /dev/vdb print 2>/dev/null | grep -q 'esp' && test \"$(blkid -s LABEL -o value /dev/vdb1 2>/dev/null)\" = %s", label)
+			script := fmt.Sprintf("parted -sm /dev/vdb print 2>/dev/null | grep -q ':gpt:' && parted -sm /dev/vdb print 2>/dev/null | grep -q 'esp' && test \"$(blkid -s TYPE -o value /dev/vdb1 2>/dev/null)\" = vfat && test \"$(blkid -s LABEL -o value /dev/vdb1 2>/dev/null)\" = %s", label)
 			return fmt.Sprintf("Crée sur /dev/vdb une table GPT et une partition FAT32 avec drapeau ESP et label %s.", label), check(script), ""
 		case 5:
 			if variant == 0 {
@@ -687,7 +687,7 @@ func deterministicStorageExercise(objectiveID string, concept curriculum.Concept
 		if variant == 1 {
 			target = root + "/manual-transfer"
 		}
-		return fmt.Sprintf("Crée un ext4 sur /dev/vdb puis monte-le sur %s.", target), check(fmt.Sprintf("findmnt -n %q -S /dev/vdb >/dev/null 2>&1", target)), ""
+		return fmt.Sprintf("Crée un ext4 sur /dev/vdb puis monte-le sur %s.", target), check(fmt.Sprintf("test \"$(blkid -s TYPE -o value /dev/vdb 2>/dev/null)\" = ext4 && findmnt -n %q -S /dev/vdb >/dev/null 2>&1", target)), ""
 	case 2:
 		target := mountpoint
 		if variant == 1 {
@@ -713,7 +713,7 @@ func deterministicStorageExercise(objectiveID string, concept curriculum.Concept
 			marker = ".lpic-mounted-b"
 		}
 		verifyDir := root + "/verify-unmount"
-		script := fmt.Sprintf("set -eu; test \"$(blkid -s TYPE -o value /dev/vdb 2>/dev/null)\" = ext4; ! findmnt -n %q >/dev/null 2>&1; mkdir -p %q; mount /dev/vdb %q; test -f %q/%s; umount %q", mountpoint, verifyDir, verifyDir, verifyDir, marker, verifyDir)
+		script := fmt.Sprintf("set -eu; test \"$(blkid -s TYPE -o value /dev/vdb 2>/dev/null)\" = ext4; ! findmnt -n %q >/dev/null 2>&1; mkdir -p %q; mount /dev/vdb %q; found=0; test -f %q/%s && found=1; umount %q; test \"$found\" = 1", mountpoint, verifyDir, verifyDir, verifyDir, marker, verifyDir)
 		return fmt.Sprintf("Crée un ext4 sur /dev/vdb, monte-le sur %s, crée le marqueur %s à sa racine puis démonte-le avant validation.", mountpoint, marker), check(script), ""
 	case 6:
 		unit := "/etc/systemd/system/lpic-data.mount"
