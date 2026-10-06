@@ -1000,6 +1000,7 @@ func TestCompletedExam101CanProgressIntoExam102(t *testing.T) {
 	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
 		Now: now, Curriculum: curriculumBundle, Content: contentBundle, Labs: labs,
 		Evidence: evidence, Policy: learning.DefaultSessionPolicy(),
+		Exam101AssessmentPassed: true,
 	})
 	if err != nil {
 		t.Fatalf("BuildPlan() error = %v", err)
