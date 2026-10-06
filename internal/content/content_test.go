@@ -2,8 +2,8 @@ package content
 
 import (
 	"fmt"
-	"slices"
 	"regexp"
+	"slices"
 	"strings"
 	"testing"
 	"testing/fstest"
