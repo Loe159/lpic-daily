@@ -498,6 +498,8 @@ func generatedApplicationQuestion(
 func exam101ApplicationPrompt(objective curriculum.Objective, concept curriculum.Concept) string {
 	scenario := exam101ApplicationScenario(objective.ID)
 	clue := standaloneTermExplanation(concept.AnchorTerms[0], objective.ID)
+	scenario = redactApplicationTerm(scenario, concept.TitleFR)
+	clue = redactApplicationTerm(clue, concept.TitleFR)
 	for _, anchor := range concept.AnchorTerms {
 		scenario = redactApplicationTerm(scenario, anchor)
 		clue = redactApplicationTerm(clue, anchor)
