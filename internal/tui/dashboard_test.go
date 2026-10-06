@@ -106,7 +106,7 @@ func TestRecognizedExposedReviewDefaultsToLab(t *testing.T) {
 	}
 }
 
-func TestGuidedReviewDefaultsToLab(t *testing.T) {
+func TestGuidedReviewDefaultsToQuestion(t *testing.T) {
 	model := NewDashboard(study.Plan{Items: []study.Item{{
 		ConceptID:             "first",
 		ConceptTitleFR:        "Premier",
@@ -117,7 +117,7 @@ func TestGuidedReviewDefaultsToLab(t *testing.T) {
 		RecommendedLabID:      "lab.first",
 	}}}, gamification.Snapshot{})
 	model, quit := model.updateKey("enter")
-	if !quit || model.action != (Action{Kind: ActionLab, ID: "lab.first"}) {
+	if !quit || model.action != (Action{Kind: ActionQuestion, ID: "question.first"}) {
 		t.Fatalf("action = %#v quit=%v", model.action, quit)
 	}
 }
