@@ -173,12 +173,12 @@ func runDashboard(stdin io.Reader, stdout, stderr io.Writer) error {
 			return fmt.Errorf("load Exam 101 assessment state: %w", err)
 		}
 		plan, planErr := study.BuildPlan(ctx, study.PlanInput{
-			Now:         now,
-			Curriculum:  curriculumBundle,
-			Content:     contentBundle,
-			Labs:        labs,
-			Evidence:    store,
-			Policy:      learning.DefaultSessionPolicy(),
+			Now:                     now,
+			Curriculum:              curriculumBundle,
+			Content:                 contentBundle,
+			Labs:                    labs,
+			Evidence:                store,
+			Policy:                  learning.DefaultSessionPolicy(),
 			Exam101Only:             focus == appstate.StudyFocusExam101,
 			Exam101AssessmentPassed: assessmentPassed,
 		})
@@ -313,12 +313,12 @@ func runNotifyWithExecutor(
 		return fmt.Errorf("load Exam 101 assessment state: %w", err)
 	}
 	plan, err := study.BuildPlan(ctx, study.PlanInput{
-		Now:         now,
-		Curriculum:  curriculumBundle,
-		Content:     contentBundle,
-		Labs:        labs,
-		Evidence:    store,
-		Policy:      learning.DefaultSessionPolicy(),
+		Now:                     now,
+		Curriculum:              curriculumBundle,
+		Content:                 contentBundle,
+		Labs:                    labs,
+		Evidence:                store,
+		Policy:                  learning.DefaultSessionPolicy(),
 		Exam101Only:             focus == appstate.StudyFocusExam101,
 		Exam101AssessmentPassed: assessmentPassed,
 	})
@@ -544,12 +544,12 @@ func runToday(args []string, stdout io.Writer) error {
 		return fmt.Errorf("load Exam 101 assessment state: %w", err)
 	}
 	plan, err := study.BuildPlan(ctx, study.PlanInput{
-		Now:         time.Now(),
-		Curriculum:  curriculumBundle,
-		Content:     contentBundle,
-		Labs:        labs,
-		Evidence:    store,
-		Policy:      policy,
+		Now:                     time.Now(),
+		Curriculum:              curriculumBundle,
+		Content:                 contentBundle,
+		Labs:                    labs,
+		Evidence:                store,
+		Policy:                  policy,
 		Exam101Only:             focus == appstate.StudyFocusExam101,
 		Exam101AssessmentPassed: assessmentPassed,
 	})
