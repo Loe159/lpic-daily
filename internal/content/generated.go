@@ -482,8 +482,8 @@ func generatedApplicationQuestion(
 		ConceptIDs:    []string{concept.ID},
 		Type:          "multiple-choice",
 		Usage:         "daily",
-		PromptFR: exam101ApplicationPrompt(objective, concept),
-		Choices: choices,
+		PromptFR:      exam101ApplicationPrompt(objective, concept),
+		Choices:       choices,
 		Grading: Grading{
 			Strategy:          "choice-ids",
 			AcceptedChoiceIDs: []string{"correct"},
