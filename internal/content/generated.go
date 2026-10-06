@@ -104,7 +104,6 @@ func synthesizeStandaloneContent(
 				application := generatedApplicationQuestion(
 					objective,
 					concept,
-					guide,
 					concepts,
 					curriculumBundle.Concepts.Concepts,
 					objectiveByID,
@@ -410,7 +409,6 @@ func generatedRecognitionQuestion(
 func generatedApplicationQuestion(
 	objective curriculum.Objective,
 	concept curriculum.Concept,
-	guide curriculum.ObjectiveStudyGuide,
 	concepts []curriculum.Concept,
 	allConcepts []curriculum.Concept,
 	objectiveByID map[string]curriculum.Objective,
@@ -484,8 +482,8 @@ func generatedApplicationQuestion(
 		Type:          "multiple-choice",
 		Usage:         "daily",
 		PromptFR: fmt.Sprintf(
-			"Scénario opérationnel : %s Tu dois traiter spécifiquement « %s » sur le système. Quel outil, fichier, commande ou repère utiliserais-tu en premier ?",
-			strings.TrimSpace(guide.Practice),
+			"Scénario opérationnel : %s Problème ciblé : « %s ». Quel outil, fichier, commande ou repère utiliserais-tu en premier pour confirmer le diagnostic ou agir directement ?",
+			exam101ApplicationScenario(objective.ID),
 			concept.TitleFR,
 		),
 		Choices: choices,
@@ -498,6 +496,38 @@ func generatedApplicationQuestion(
 		Distribution:          "generic",
 		ExplanationFR:         explanation,
 	}
+}
+
+func exam101ApplicationScenario(objectiveID string) string {
+	scenarios := map[string]string{
+		"101.1": "un périphérique attendu est absent ou mal identifié après un changement matériel.",
+		"101.2": "une machine ne suit pas la séquence de démarrage attendue et il faut localiser l'étape en cause.",
+		"101.3": "un hôte doit changer proprement d'état ou un service de démarrage ne se comporte pas comme prévu.",
+		"102.1": "tu prépares le stockage d'une nouvelle installation Linux avec des contraintes de boot et d'espace.",
+		"102.2": "un système n'atteint plus le noyau après une modification de la configuration de démarrage.",
+		"102.3": "un programme refuse de démarrer à cause d'une dépendance de bibliothèque dynamique.",
+		"102.4": "sur une machine Debian, un paquet doit être installé, inspecté ou dépanné sans perdre la cohérence des dépendances.",
+		"102.5": "sur une machine RPM, tu dois vérifier ou modifier un paquet et son origine de dépôt.",
+		"102.6": "tu dois préparer ou diagnostiquer une instance clonée, virtualisée ou conteneurisée.",
+		"103.1": "une commande shell ne produit pas le comportement attendu dans l'environnement courant.",
+		"103.2": "un flux texte doit être inspecté ou transformé pour isoler l'information utile.",
+		"103.3": "tu dois manipuler, rechercher, archiver ou identifier des fichiers sans modifier inutilement le reste du système.",
+		"103.4": "une commande produit plusieurs flux et tu dois acheminer précisément l'entrée, la sortie ou les erreurs.",
+		"103.5": "un processus ou job se comporte mal et tu dois l'identifier, l'observer ou le contrôler.",
+		"103.6": "un processus concurrence d'autres tâches pour le CPU et sa priorité doit être examinée ou ajustée.",
+		"103.7": "tu dois sélectionner précisément des lignes selon un motif sans confondre globbing et expressions régulières.",
+		"103.8": "tu dois modifier rapidement un fichier texte depuis un terminal en conservant le contrôle de l'édition.",
+		"104.1": "un disque doit être partitionné et préparé avec un type de système de fichiers adapté.",
+		"104.2": "un système de fichiers présente un problème d'espace, d'inodes ou d'intégrité qu'il faut diagnostiquer.",
+		"104.3": "un volume doit être monté correctement maintenant ou au prochain démarrage.",
+		"104.5": "un fichier ou répertoire n'accorde pas les accès attendus à son propriétaire, son groupe ou aux autres utilisateurs.",
+		"104.6": "plusieurs chemins doivent référencer les mêmes données ou une cible doit être liée sans recopier son contenu.",
+		"104.7": "tu dois retrouver un fichier, une commande ou l'emplacement conventionnel d'une donnée système.",
+	}
+	if scenario := scenarios[objectiveID]; scenario != "" {
+		return scenario
+	}
+	return "tu dois diagnostiquer un comportement Linux en choisissant le repère technique le plus directement pertinent."
 }
 
 func normalizeSearchText(value string) string {
