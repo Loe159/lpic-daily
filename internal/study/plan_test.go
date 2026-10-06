@@ -906,9 +906,9 @@ func TestGeneratedGuidedLabRotatesToSecondPracticeContext(t *testing.T) {
 				ConceptID: conceptID, ObjectiveIDs: []string{"103.2"},
 				SourceItemID: diagnosticID, ActivityKind: learning.ActivityLab,
 				EvidenceKind: learning.EvidenceGuidedPractice, Result: learning.ResultPass,
-				Distribution: "generic",
+				Distribution:    "generic",
 				PracticeContext: "103-2-c01-standalone-diagnostic",
-				AttemptIndex: 1,
+				AttemptIndex:    1,
 			},
 		},
 	}
