@@ -26,6 +26,7 @@ RUN dnf -y install \
         hostname \
         iproute \
         iputils \
+        kitty-terminfo \
         less \
         logrotate \
         lsof \
@@ -46,11 +47,15 @@ RUN dnf -y install \
         tar \
         tmux \
         util-linux \
+        vim-enhanced \
         vim-minimal \
         which \
         xfsprogs \
         xz \
     && test -x /usr/bin/nano \
+    && test -x /usr/bin/vi \
+    && test -x /usr/bin/vim \
+    && test -r /usr/share/terminfo/x/xterm-kitty \
     && groupadd --gid 2000 project \
     && useradd --create-home --uid 1101 --groups project alice \
     && useradd --create-home --uid 1102 --groups project bob \
