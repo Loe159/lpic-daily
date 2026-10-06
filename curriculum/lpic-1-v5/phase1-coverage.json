@@ -24,8 +24,8 @@
       "surfaces": {
         "labs": [
           "lpic1.103.1.shell-environment-repair",
-          "lpic1.103.1.standalone-diagnostic",
-          "lpic1.103.1.standalone-transfer",
+          "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes.standalone-diagnostic",
+          "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes.standalone-transfer",
           "lpic1.103.1.transfer-shell-handoff"
         ],
         "lessons": [
@@ -39,8 +39,8 @@
         ]
       },
       "lab_contexts": [
-        "103-1-standalone-diagnostic",
-        "103-1-standalone-transfer",
+        "103-1-syntaxe-shell-et-sequences-de-commandes-standalone-diagnostic",
+        "103-1-syntaxe-shell-et-sequences-de-commandes-standalone-transfer",
         "shell-env-repair",
         "shell-handoff"
       ],
@@ -52,9 +52,9 @@
       "surfaces": {
         "labs": [
           "lpic1.103.1.shell-environment-repair",
-          "lpic1.103.1.standalone-diagnostic",
-          "lpic1.103.1.standalone-transfer",
-          "lpic1.103.1.transfer-shell-handoff"
+          "lpic1.103.1.transfer-shell-handoff",
+          "lpic1.103.1.variables-shell-environnement.standalone-diagnostic",
+          "lpic1.103.1.variables-shell-environnement.standalone-transfer"
         ],
         "lessons": [
           "lpic1.103.1.lesson.command-line-foundations",
@@ -67,8 +67,8 @@
         ]
       },
       "lab_contexts": [
-        "103-1-standalone-diagnostic",
-        "103-1-standalone-transfer",
+        "103-1-variables-shell-environnement-standalone-diagnostic",
+        "103-1-variables-shell-environnement-standalone-transfer",
         "shell-env-repair",
         "shell-handoff"
       ],
@@ -79,9 +79,9 @@
       "objective_id": "103.1",
       "surfaces": {
         "labs": [
+          "lpic1.103.1.path-et-resolution-de-commande.standalone-diagnostic",
+          "lpic1.103.1.path-et-resolution-de-commande.standalone-transfer",
           "lpic1.103.1.shell-environment-repair",
-          "lpic1.103.1.standalone-diagnostic",
-          "lpic1.103.1.standalone-transfer",
           "lpic1.103.1.transfer-shell-handoff"
         ],
         "lessons": [
@@ -95,8 +95,8 @@
         ]
       },
       "lab_contexts": [
-        "103-1-standalone-diagnostic",
-        "103-1-standalone-transfer",
+        "103-1-path-et-resolution-de-commande-standalone-diagnostic",
+        "103-1-path-et-resolution-de-commande-standalone-transfer",
         "shell-env-repair",
         "shell-handoff"
       ],
@@ -107,9 +107,9 @@
       "objective_id": "103.1",
       "surfaces": {
         "labs": [
+          "lpic1.103.1.quoting-escaping.standalone-diagnostic",
+          "lpic1.103.1.quoting-escaping.standalone-transfer",
           "lpic1.103.1.shell-environment-repair",
-          "lpic1.103.1.standalone-diagnostic",
-          "lpic1.103.1.standalone-transfer",
           "lpic1.103.1.transfer-shell-handoff"
         ],
         "lessons": [
@@ -123,8 +123,8 @@
         ]
       },
       "lab_contexts": [
-        "103-1-standalone-diagnostic",
-        "103-1-standalone-transfer",
+        "103-1-quoting-escaping-standalone-diagnostic",
+        "103-1-quoting-escaping-standalone-transfer",
         "shell-env-repair",
         "shell-handoff"
       ],
@@ -135,9 +135,9 @@
       "objective_id": "103.1",
       "surfaces": {
         "labs": [
+          "lpic1.103.1.historique.standalone-diagnostic",
+          "lpic1.103.1.historique.standalone-transfer",
           "lpic1.103.1.shell-environment-repair",
-          "lpic1.103.1.standalone-diagnostic",
-          "lpic1.103.1.standalone-transfer",
           "lpic1.103.1.transfer-shell-handoff"
         ],
         "lessons": [
@@ -151,8 +151,8 @@
         ]
       },
       "lab_contexts": [
-        "103-1-standalone-diagnostic",
-        "103-1-standalone-transfer",
+        "103-1-historique-standalone-diagnostic",
+        "103-1-historique-standalone-transfer",
         "shell-env-repair",
         "shell-handoff"
       ],
@@ -163,9 +163,9 @@
       "objective_id": "103.1",
       "surfaces": {
         "labs": [
+          "lpic1.103.1.documentation-et-identification-d-une-commande.standalone-diagnostic",
+          "lpic1.103.1.documentation-et-identification-d-une-commande.standalone-transfer",
           "lpic1.103.1.shell-environment-repair",
-          "lpic1.103.1.standalone-diagnostic",
-          "lpic1.103.1.standalone-transfer",
           "lpic1.103.1.transfer-shell-handoff"
         ],
         "lessons": [
@@ -179,8 +179,8 @@
         ]
       },
       "lab_contexts": [
-        "103-1-standalone-diagnostic",
-        "103-1-standalone-transfer",
+        "103-1-documentation-et-identification-d-une-commande-standalone-diagnostic",
+        "103-1-documentation-et-identification-d-une-commande-standalone-transfer",
         "shell-env-repair",
         "shell-handoff"
       ],
@@ -191,9 +191,9 @@
       "objective_id": "103.1",
       "surfaces": {
         "labs": [
+          "lpic1.103.1.informations-systeme-de-base.standalone-diagnostic",
+          "lpic1.103.1.informations-systeme-de-base.standalone-transfer",
           "lpic1.103.1.shell-environment-repair",
-          "lpic1.103.1.standalone-diagnostic",
-          "lpic1.103.1.standalone-transfer",
           "lpic1.103.1.transfer-shell-handoff"
         ],
         "lessons": [
@@ -207,8 +207,8 @@
         ]
       },
       "lab_contexts": [
-        "103-1-standalone-diagnostic",
-        "103-1-standalone-transfer",
+        "103-1-informations-systeme-de-base-standalone-diagnostic",
+        "103-1-informations-systeme-de-base-standalone-transfer",
         "shell-env-repair",
         "shell-handoff"
       ],
@@ -219,8 +219,8 @@
       "objective_id": "103.1",
       "surfaces": {
         "labs": [
-          "lpic1.103.1.standalone-diagnostic",
-          "lpic1.103.1.standalone-transfer"
+          "lpic1.103.1.set-env-et-portee-des-variables.standalone-diagnostic",
+          "lpic1.103.1.set-env-et-portee-des-variables.standalone-transfer"
         ],
         "lessons": [
           "lpic1.103.1.set-env-et-portee-des-variables.lesson.autonomous"
@@ -231,8 +231,8 @@
         ]
       },
       "lab_contexts": [
-        "103-1-standalone-diagnostic",
-        "103-1-standalone-transfer"
+        "103-1-set-env-et-portee-des-variables-standalone-diagnostic",
+        "103-1-set-env-et-portee-des-variables-standalone-transfer"
       ],
       "focused_introduction_count": 1
     },
@@ -241,8 +241,8 @@
       "objective_id": "103.1",
       "surfaces": {
         "labs": [
-          "lpic1.103.1.standalone-diagnostic",
-          "lpic1.103.1.standalone-transfer"
+          "lpic1.103.1.export-unset-et-processus-enfants.standalone-diagnostic",
+          "lpic1.103.1.export-unset-et-processus-enfants.standalone-transfer"
         ],
         "lessons": [
           "lpic1.103.1.export-unset-et-processus-enfants.lesson.autonomous"
@@ -253,8 +253,8 @@
         ]
       },
       "lab_contexts": [
-        "103-1-standalone-diagnostic",
-        "103-1-standalone-transfer"
+        "103-1-export-unset-et-processus-enfants-standalone-diagnostic",
+        "103-1-export-unset-et-processus-enfants-standalone-transfer"
       ],
       "focused_introduction_count": 1
     },
@@ -263,8 +263,8 @@
       "objective_id": "103.1",
       "surfaces": {
         "labs": [
-          "lpic1.103.1.standalone-diagnostic",
-          "lpic1.103.1.standalone-transfer"
+          "lpic1.103.1.execution-de-commandes-hors-path.standalone-diagnostic",
+          "lpic1.103.1.execution-de-commandes-hors-path.standalone-transfer"
         ],
         "lessons": [
           "lpic1.103.1.execution-de-commandes-hors-path.lesson.autonomous"
@@ -275,8 +275,8 @@
         ]
       },
       "lab_contexts": [
-        "103-1-standalone-diagnostic",
-        "103-1-standalone-transfer"
+        "103-1-execution-de-commandes-hors-path-standalone-diagnostic",
+        "103-1-execution-de-commandes-hors-path-standalone-transfer"
       ],
       "focused_introduction_count": 1
     },
@@ -285,8 +285,8 @@
       "objective_id": "103.1",
       "surfaces": {
         "labs": [
-          "lpic1.103.1.standalone-diagnostic",
-          "lpic1.103.1.standalone-transfer"
+          "lpic1.103.1.edition-et-persistance-de-l-historique.standalone-diagnostic",
+          "lpic1.103.1.edition-et-persistance-de-l-historique.standalone-transfer"
         ],
         "lessons": [
           "lpic1.103.1.edition-et-persistance-de-l-historique.lesson.autonomous"
@@ -297,8 +297,8 @@
         ]
       },
       "lab_contexts": [
-        "103-1-standalone-diagnostic",
-        "103-1-standalone-transfer"
+        "103-1-edition-et-persistance-de-l-historique-standalone-diagnostic",
+        "103-1-edition-et-persistance-de-l-historique-standalone-transfer"
       ],
       "focused_introduction_count": 1
     },
@@ -307,8 +307,8 @@
       "objective_id": "103.1",
       "surfaces": {
         "labs": [
-          "lpic1.103.1.standalone-diagnostic",
-          "lpic1.103.1.standalone-transfer"
+          "lpic1.103.1.echo-et-expansion-shell.standalone-diagnostic",
+          "lpic1.103.1.echo-et-expansion-shell.standalone-transfer"
         ],
         "lessons": [
           "lpic1.103.1.echo-et-expansion-shell.lesson.autonomous"
@@ -319,8 +319,8 @@
         ]
       },
       "lab_contexts": [
-        "103-1-standalone-diagnostic",
-        "103-1-standalone-transfer"
+        "103-1-echo-et-expansion-shell-standalone-diagnostic",
+        "103-1-echo-et-expansion-shell-standalone-transfer"
       ],
       "focused_introduction_count": 1
     },
@@ -329,8 +329,8 @@
       "objective_id": "103.5",
       "surfaces": {
         "labs": [
-          "lpic1.103.5.standalone-diagnostic",
-          "lpic1.103.5.standalone-transfer",
+          "lpic1.103.5.processus-avant-arriere-plan.standalone-diagnostic",
+          "lpic1.103.5.processus-avant-arriere-plan.standalone-transfer",
           "lpic1.103.5.stuck-worker",
           "lpic1.103.5.transfer-operator-session"
         ],
@@ -345,8 +345,8 @@
         ]
       },
       "lab_contexts": [
-        "103-5-standalone-diagnostic",
-        "103-5-standalone-transfer",
+        "103-5-processus-avant-arriere-plan-standalone-diagnostic",
+        "103-5-processus-avant-arriere-plan-standalone-transfer",
         "operator-session",
         "process-incident"
       ],
@@ -357,8 +357,8 @@
       "objective_id": "103.5",
       "surfaces": {
         "labs": [
-          "lpic1.103.5.standalone-diagnostic",
-          "lpic1.103.5.standalone-transfer",
+          "lpic1.103.5.jobs-du-shell.standalone-diagnostic",
+          "lpic1.103.5.jobs-du-shell.standalone-transfer",
           "lpic1.103.5.stuck-worker",
           "lpic1.103.5.transfer-operator-session"
         ],
@@ -373,8 +373,8 @@
         ]
       },
       "lab_contexts": [
-        "103-5-standalone-diagnostic",
-        "103-5-standalone-transfer",
+        "103-5-jobs-du-shell-standalone-diagnostic",
+        "103-5-jobs-du-shell-standalone-transfer",
         "operator-session",
         "process-incident"
       ],
@@ -385,8 +385,8 @@
       "objective_id": "103.5",
       "surfaces": {
         "labs": [
-          "lpic1.103.5.standalone-diagnostic",
-          "lpic1.103.5.standalone-transfer",
+          "lpic1.103.5.signaux.standalone-diagnostic",
+          "lpic1.103.5.signaux.standalone-transfer",
           "lpic1.103.5.stuck-worker",
           "lpic1.103.5.transfer-operator-session"
         ],
@@ -401,8 +401,8 @@
         ]
       },
       "lab_contexts": [
-        "103-5-standalone-diagnostic",
-        "103-5-standalone-transfer",
+        "103-5-signaux-standalone-diagnostic",
+        "103-5-signaux-standalone-transfer",
         "operator-session",
         "process-incident"
       ],
@@ -413,8 +413,8 @@
       "objective_id": "103.5",
       "surfaces": {
         "labs": [
-          "lpic1.103.5.standalone-diagnostic",
-          "lpic1.103.5.standalone-transfer",
+          "lpic1.103.5.inspection-arbres-ressources.standalone-diagnostic",
+          "lpic1.103.5.inspection-arbres-ressources.standalone-transfer",
           "lpic1.103.5.stuck-worker",
           "lpic1.103.5.transfer-operator-session"
         ],
@@ -429,8 +429,8 @@
         ]
       },
       "lab_contexts": [
-        "103-5-standalone-diagnostic",
-        "103-5-standalone-transfer",
+        "103-5-inspection-arbres-ressources-standalone-diagnostic",
+        "103-5-inspection-arbres-ressources-standalone-transfer",
         "operator-session",
         "process-incident"
       ],
@@ -441,8 +441,8 @@
       "objective_id": "103.5",
       "surfaces": {
         "labs": [
-          "lpic1.103.5.standalone-diagnostic",
-          "lpic1.103.5.standalone-transfer",
+          "lpic1.103.5.processus-survivant-a-la-session.standalone-diagnostic",
+          "lpic1.103.5.processus-survivant-a-la-session.standalone-transfer",
           "lpic1.103.5.stuck-worker",
           "lpic1.103.5.transfer-operator-session"
         ],
@@ -457,8 +457,8 @@
         ]
       },
       "lab_contexts": [
-        "103-5-standalone-diagnostic",
-        "103-5-standalone-transfer",
+        "103-5-processus-survivant-a-la-session-standalone-diagnostic",
+        "103-5-processus-survivant-a-la-session-standalone-transfer",
         "operator-session",
         "process-incident"
       ],
@@ -469,8 +469,8 @@
       "objective_id": "103.5",
       "surfaces": {
         "labs": [
-          "lpic1.103.5.standalone-diagnostic",
-          "lpic1.103.5.standalone-transfer",
+          "lpic1.103.5.selection-par-nom-pid.standalone-diagnostic",
+          "lpic1.103.5.selection-par-nom-pid.standalone-transfer",
           "lpic1.103.5.stuck-worker",
           "lpic1.103.5.transfer-operator-session"
         ],
@@ -485,8 +485,8 @@
         ]
       },
       "lab_contexts": [
-        "103-5-standalone-diagnostic",
-        "103-5-standalone-transfer",
+        "103-5-selection-par-nom-pid-standalone-diagnostic",
+        "103-5-selection-par-nom-pid-standalone-transfer",
         "operator-session",
         "process-incident"
       ],
@@ -497,8 +497,8 @@
       "objective_id": "103.5",
       "surfaces": {
         "labs": [
-          "lpic1.103.5.standalone-diagnostic",
-          "lpic1.103.5.standalone-transfer",
+          "lpic1.103.5.multiplexeurs-de-terminal.standalone-diagnostic",
+          "lpic1.103.5.multiplexeurs-de-terminal.standalone-transfer",
           "lpic1.103.5.stuck-worker",
           "lpic1.103.5.transfer-operator-session"
         ],
@@ -513,8 +513,8 @@
         ]
       },
       "lab_contexts": [
-        "103-5-standalone-diagnostic",
-        "103-5-standalone-transfer",
+        "103-5-multiplexeurs-de-terminal-standalone-diagnostic",
+        "103-5-multiplexeurs-de-terminal-standalone-transfer",
         "operator-session",
         "process-incident"
       ],
@@ -525,9 +525,9 @@
       "objective_id": "104.5",
       "surfaces": {
         "labs": [
+          "lpic1.104.5.permissions-rwx-fichier-dossier.standalone-diagnostic",
+          "lpic1.104.5.permissions-rwx-fichier-dossier.standalone-transfer",
           "lpic1.104.5.shared-dropbox",
-          "lpic1.104.5.standalone-diagnostic",
-          "lpic1.104.5.standalone-transfer",
           "lpic1.104.5.transfer-team-share-audit"
         ],
         "lessons": [
@@ -541,8 +541,8 @@
         ]
       },
       "lab_contexts": [
-        "104-5-standalone-diagnostic",
-        "104-5-standalone-transfer",
+        "104-5-permissions-rwx-fichier-dossier-standalone-diagnostic",
+        "104-5-permissions-rwx-fichier-dossier-standalone-transfer",
         "shared-dropbox-policy",
         "team-share-audit"
       ],
@@ -553,9 +553,9 @@
       "objective_id": "104.5",
       "surfaces": {
         "labs": [
+          "lpic1.104.5.notation-symbolique-octale.standalone-diagnostic",
+          "lpic1.104.5.notation-symbolique-octale.standalone-transfer",
           "lpic1.104.5.shared-dropbox",
-          "lpic1.104.5.standalone-diagnostic",
-          "lpic1.104.5.standalone-transfer",
           "lpic1.104.5.transfer-team-share-audit"
         ],
         "lessons": [
@@ -569,8 +569,8 @@
         ]
       },
       "lab_contexts": [
-        "104-5-standalone-diagnostic",
-        "104-5-standalone-transfer",
+        "104-5-notation-symbolique-octale-standalone-diagnostic",
+        "104-5-notation-symbolique-octale-standalone-transfer",
         "shared-dropbox-policy",
         "team-share-audit"
       ],
@@ -581,9 +581,9 @@
       "objective_id": "104.5",
       "surfaces": {
         "labs": [
+          "lpic1.104.5.proprietaire-groupe.standalone-diagnostic",
+          "lpic1.104.5.proprietaire-groupe.standalone-transfer",
           "lpic1.104.5.shared-dropbox",
-          "lpic1.104.5.standalone-diagnostic",
-          "lpic1.104.5.standalone-transfer",
           "lpic1.104.5.transfer-team-share-audit"
         ],
         "lessons": [
@@ -597,8 +597,8 @@
         ]
       },
       "lab_contexts": [
-        "104-5-standalone-diagnostic",
-        "104-5-standalone-transfer",
+        "104-5-proprietaire-groupe-standalone-diagnostic",
+        "104-5-proprietaire-groupe-standalone-transfer",
         "shared-dropbox-policy",
         "team-share-audit"
       ],
@@ -610,9 +610,9 @@
       "surfaces": {
         "labs": [
           "lpic1.104.5.shared-dropbox",
-          "lpic1.104.5.standalone-diagnostic",
-          "lpic1.104.5.standalone-transfer",
-          "lpic1.104.5.transfer-team-share-audit"
+          "lpic1.104.5.transfer-team-share-audit",
+          "lpic1.104.5.umask.standalone-diagnostic",
+          "lpic1.104.5.umask.standalone-transfer"
         ],
         "lessons": [
           "lpic1.104.5.lesson.permissions-special-bits",
@@ -625,8 +625,8 @@
         ]
       },
       "lab_contexts": [
-        "104-5-standalone-diagnostic",
-        "104-5-standalone-transfer",
+        "104-5-umask-standalone-diagnostic",
+        "104-5-umask-standalone-transfer",
         "shared-dropbox-policy",
         "team-share-audit"
       ],
@@ -638,8 +638,8 @@
       "surfaces": {
         "labs": [
           "lpic1.104.5.shared-dropbox",
-          "lpic1.104.5.standalone-diagnostic",
-          "lpic1.104.5.standalone-transfer",
+          "lpic1.104.5.suid.standalone-diagnostic",
+          "lpic1.104.5.suid.standalone-transfer",
           "lpic1.104.5.transfer-team-share-audit"
         ],
         "lessons": [
@@ -653,8 +653,8 @@
         ]
       },
       "lab_contexts": [
-        "104-5-standalone-diagnostic",
-        "104-5-standalone-transfer",
+        "104-5-suid-standalone-diagnostic",
+        "104-5-suid-standalone-transfer",
         "shared-dropbox-policy",
         "team-share-audit"
       ],
@@ -665,9 +665,9 @@
       "objective_id": "104.5",
       "surfaces": {
         "labs": [
+          "lpic1.104.5.sgid.standalone-diagnostic",
+          "lpic1.104.5.sgid.standalone-transfer",
           "lpic1.104.5.shared-dropbox",
-          "lpic1.104.5.standalone-diagnostic",
-          "lpic1.104.5.standalone-transfer",
           "lpic1.104.5.transfer-team-share-audit"
         ],
         "lessons": [
@@ -681,8 +681,8 @@
         ]
       },
       "lab_contexts": [
-        "104-5-standalone-diagnostic",
-        "104-5-standalone-transfer",
+        "104-5-sgid-standalone-diagnostic",
+        "104-5-sgid-standalone-transfer",
         "shared-dropbox-policy",
         "team-share-audit"
       ],
@@ -694,8 +694,8 @@
       "surfaces": {
         "labs": [
           "lpic1.104.5.shared-dropbox",
-          "lpic1.104.5.standalone-diagnostic",
-          "lpic1.104.5.standalone-transfer",
+          "lpic1.104.5.sticky-bit.standalone-diagnostic",
+          "lpic1.104.5.sticky-bit.standalone-transfer",
           "lpic1.104.5.transfer-team-share-audit"
         ],
         "lessons": [
@@ -709,8 +709,8 @@
         ]
       },
       "lab_contexts": [
-        "104-5-standalone-diagnostic",
-        "104-5-standalone-transfer",
+        "104-5-sticky-bit-standalone-diagnostic",
+        "104-5-sticky-bit-standalone-transfer",
         "shared-dropbox-policy",
         "team-share-audit"
       ],
@@ -721,9 +721,9 @@
       "objective_id": "104.5",
       "surfaces": {
         "labs": [
+          "lpic1.104.5.effets-speciaux-sur-repertoires.standalone-diagnostic",
+          "lpic1.104.5.effets-speciaux-sur-repertoires.standalone-transfer",
           "lpic1.104.5.shared-dropbox",
-          "lpic1.104.5.standalone-diagnostic",
-          "lpic1.104.5.standalone-transfer",
           "lpic1.104.5.transfer-team-share-audit"
         ],
         "lessons": [
@@ -737,8 +737,8 @@
         ]
       },
       "lab_contexts": [
-        "104-5-standalone-diagnostic",
-        "104-5-standalone-transfer",
+        "104-5-effets-speciaux-sur-repertoires-standalone-diagnostic",
+        "104-5-effets-speciaux-sur-repertoires-standalone-transfer",
         "shared-dropbox-policy",
         "team-share-audit"
       ],
