@@ -3,6 +3,7 @@ package content
 import (
 	"fmt"
 	"slices"
+	"regexp"
 	"strings"
 	"testing"
 	"testing/fstest"
@@ -426,10 +427,10 @@ func TestExam101GeneratedPedagogyIsFocusedAndApplied(t *testing.T) {
 				t.Errorf("%s leaks the exact concept title in its prompt: %q", applicationID, application.PromptFR)
 			}
 			for _, anchor := range concept.AnchorTerms {
-				if len([]rune(anchor)) < 3 || !strings.Contains(strings.ToLower(concept.TitleFR), strings.ToLower(anchor)) {
+				if len([]rune(anchor)) < 3 || !containsStandaloneToken(concept.TitleFR, anchor) {
 					continue
 				}
-				if strings.Contains(strings.ToLower(application.PromptFR), strings.ToLower(anchor)) {
+				if containsStandaloneToken(application.PromptFR, anchor) {
 					t.Errorf("%s leaks answer-bearing anchor %q from the concept title: %q", applicationID, anchor, application.PromptFR)
 				}
 			}
@@ -477,4 +478,10 @@ func TestExam101GeneratedPedagogyIsFocusedAndApplied(t *testing.T) {
 	if exam101Concepts != 162 {
 		t.Fatalf("Exam 101 concept count = %d, want 162", exam101Concepts)
 	}
+}
+
+
+func containsStandaloneToken(text, term string) bool {
+	pattern := regexp.MustCompile("(?i)(^|[^[:alnum:]_])" + regexp.QuoteMeta(term) + "([^[:alnum:]_]|$)")
+	return pattern.MatchString(text)
 }
