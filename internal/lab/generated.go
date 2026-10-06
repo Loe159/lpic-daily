@@ -251,7 +251,7 @@ func generatedStandaloneLab(
 		root,
 	)
 
-	hints := generatedStandaloneHints(labID, root)
+	hints := generatedStandaloneHints(labID, root, objective.Exam == "101")
 	return Lab{
 		Definition: Definition{
 			SchemaVersion:     "1.0.0",
@@ -329,7 +329,43 @@ func standaloneMachineForObjective(objective curriculum.Objective) *Machine {
 	return machine
 }
 
-func generatedStandaloneHints(labID, root string) []Hint {
+func generatedStandaloneHints(labID, root string, deterministic bool) []Hint {
+	if deterministic {
+		return []Hint{
+			{
+				SchemaVersion:  "1.0.0",
+				ID:             labID + ".hint-1",
+				LabID:          labID,
+				Level:          1,
+				ContentFR:      "Relis le résultat demandé et commence par observer l'état actuel avant de modifier quoi que ce soit.",
+				EvidenceImpact: "none",
+			},
+			{
+				SchemaVersion:  "1.0.0",
+				ID:             labID + ".hint-2",
+				LabID:          labID,
+				Level:          2,
+				ContentFR:      "Appuie-toi sur les commandes, fichiers ou mécanismes nommés dans le concept. Le checker inspecte l'état final ou recalcule le relevé attendu.",
+				EvidenceImpact: "material",
+			},
+			{
+				SchemaVersion:  "1.0.0",
+				ID:             labID + ".hint-3",
+				LabID:          labID,
+				Level:          3,
+				ContentFR:      fmt.Sprintf("Utilise %s comme répertoire de travail. Vérifie toi-même l'état final avec un second outil avant de lancer la validation.", root),
+				EvidenceImpact: "material",
+			},
+			{
+				SchemaVersion:  "1.0.0",
+				ID:             labID + ".hint-4",
+				LabID:          labID,
+				Level:          4,
+				ContentFR:      "La solution consiste à produire exactement l'état ou le relevé demandé dans le brief. Repars du concept, exécute l'outil adapté, puis compare directement l'état Linux obtenu avant validation.",
+				EvidenceImpact: "solution-revealed",
+			},
+		}
+	}
 	return []Hint{
 		{
 			SchemaVersion:  "1.0.0",
