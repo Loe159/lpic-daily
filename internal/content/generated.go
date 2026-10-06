@@ -101,7 +101,14 @@ func synthesizeStandaloneContent(
 			seenIDs[recognition.ID] = "generated standalone recognition question"
 			bundle.Questions = append(bundle.Questions, recognition)
 			if objective.Exam == "101" {
-				application := generatedApplicationQuestion(objective, concept, concepts, index)
+				application := generatedApplicationQuestion(
+					objective,
+					concept,
+					concepts,
+					curriculumBundle.Concepts.Concepts,
+					objectiveByID,
+					index,
+				)
 				if err := validateQuestion(application, knownObjectives, knownConcepts); err != nil {
 					return fmt.Errorf("%s: %w", application.ID, err)
 				}
@@ -303,7 +310,7 @@ func generatedRecallQuestion(
 		Grading: Grading{
 			Strategy:        "exact-text",
 			AcceptedAnswers: []string{anchor},
-			CaseSensitive:   objective.Exam == "101",
+			CaseSensitive:   recallAnswerCaseSensitive(anchor),
 		},
 		EvidenceKindOnSuccess: "recall",
 		Labels:                conceptLabels(concept),
@@ -313,6 +320,22 @@ func generatedRecallQuestion(
 			anchor,
 			description,
 		),
+	}
+}
+
+func recallAnswerCaseSensitive(anchor string) bool {
+	if standaloneTermUsage(anchor) != "" {
+		return true
+	}
+	if strings.HasPrefix(anchor, "/") || strings.HasPrefix(anchor, "~/") ||
+		strings.HasPrefix(anchor, ".") {
+		return true
+	}
+	switch anchor {
+	case "EDITOR", "LD_LIBRARY_PATH":
+		return true
+	default:
+		return strings.ContainsAny(anchor, "<>|&$?")
 	}
 }
 
@@ -380,6 +403,8 @@ func generatedApplicationQuestion(
 	objective curriculum.Objective,
 	concept curriculum.Concept,
 	concepts []curriculum.Concept,
+	allConcepts []curriculum.Concept,
+	objectiveByID map[string]curriculum.Objective,
 	index int,
 ) Question {
 	primary := concept.AnchorTerms[0]
@@ -390,26 +415,40 @@ func generatedApplicationQuestion(
 	}
 
 	distractorTerms := make([]string, 0, 3)
+	appendDistractor := func(candidate string) {
+		if candidate == "" || candidate == primary || slices.Contains(distractorTerms, candidate) {
+			return
+		}
+		distractorTerms = append(distractorTerms, candidate)
+	}
 	for offset := 1; len(distractorTerms) < 3 && offset < len(concepts); offset++ {
 		candidateConcept := concepts[(index+offset)%len(concepts)]
-		if len(candidateConcept.AnchorTerms) == 0 {
-			continue
+		if len(candidateConcept.AnchorTerms) != 0 {
+			appendDistractor(candidateConcept.AnchorTerms[0])
 		}
-		candidate := candidateConcept.AnchorTerms[0]
-		if candidate == primary || slices.Contains(distractorTerms, candidate) {
-			continue
-		}
-		distractorTerms = append(distractorTerms, candidate)
 	}
-	for offset := 1; len(distractorTerms) < 3 && offset <= len(objective.TermsFilesUtilities); offset++ {
-		candidate := objective.TermsFilesUtilities[(index+offset)%len(objective.TermsFilesUtilities)]
-		if candidate == primary || slices.Contains(distractorTerms, candidate) {
+	for _, candidateConcept := range allConcepts {
+		if len(distractorTerms) >= 3 {
+			break
+		}
+		candidateObjective, exists := objectiveByID[candidateConcept.ObjectiveID]
+		if !candidateConcept.Active || !exists || candidateObjective.Exam != objective.Exam ||
+			candidateConcept.ID == concept.ID || len(candidateConcept.AnchorTerms) == 0 {
 			continue
 		}
-		distractorTerms = append(distractorTerms, candidate)
+		appendDistractor(candidateConcept.AnchorTerms[0])
 	}
-	for len(distractorTerms) < 3 {
-		distractorTerms = append(distractorTerms, fmt.Sprintf("alternative-%d", len(distractorTerms)+1))
+	for _, candidate := range objective.TermsFilesUtilities {
+		if len(distractorTerms) >= 3 {
+			break
+		}
+		appendDistractor(candidate)
+	}
+	for _, candidate := range []string{"ls", "grep", "systemctl", "mount"} {
+		if len(distractorTerms) >= 3 {
+			break
+		}
+		appendDistractor(candidate)
 	}
 
 	choices := []Choice{
@@ -438,7 +477,7 @@ func generatedApplicationQuestion(
 		Type:          "multiple-choice",
 		Usage:         "daily",
 		PromptFR: fmt.Sprintf(
-			"Scénario : tu dois **%s** dans le cadre de %s. Quelle action ou association technique est la plus directement pertinente ?",
+			"Scénario : tu dois traiter « %s » dans le cadre de %s. Quelle action ou association technique est la plus directement pertinente ?",
 			concept.TitleFR,
 			objective.ID,
 		),
