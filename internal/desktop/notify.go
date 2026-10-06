@@ -105,32 +105,53 @@ func DetectTerminalLauncher() (TerminalLauncher, error) {
 	)
 }
 
-func LaunchDaily(ctx context.Context, executor Executor) error {
+func resolveBinary() (string, error) {
+	binary := strings.TrimSpace(os.Getenv("LPIC_DAILY_BINARY"))
+	if binary == "" {
+		resolved, err := os.Executable()
+		if err != nil {
+			return "", fmt.Errorf("resolve LPIC Daily executable: %w", err)
+		}
+		binary = resolved
+	}
+	if !filepath.IsAbs(binary) && strings.ContainsRune(binary, filepath.Separator) {
+		resolved, err := filepath.Abs(binary)
+		if err != nil {
+			return "", fmt.Errorf("resolve LPIC Daily executable path: %w", err)
+		}
+		binary = resolved
+	}
+	return binary, nil
+}
+
+func launchTerminal(ctx context.Context, executor Executor, commandArgs ...string) error {
 	if executor == nil {
 		return errors.New("executor is required")
 	}
-
 	launcher, err := DetectTerminalLauncher()
 	if err != nil {
 		return err
 	}
-	binary := strings.TrimSpace(os.Getenv("LPIC_DAILY_BINARY"))
-	if binary == "" {
-		binary, err = os.Executable()
-		if err != nil {
-			return fmt.Errorf("resolve LPIC Daily executable: %w", err)
-		}
+	binary, err := resolveBinary()
+	if err != nil {
+		return err
 	}
-	if !filepath.IsAbs(binary) && strings.ContainsRune(binary, filepath.Separator) {
-		binary, err = filepath.Abs(binary)
-		if err != nil {
-			return fmt.Errorf("resolve LPIC Daily executable path: %w", err)
-		}
-	}
-
-	args := append(append([]string(nil), launcher.Prefix...), binary, "tui")
+	args := append(append([]string(nil), launcher.Prefix...), binary)
+	args = append(args, commandArgs...)
 	if err := executor.Start(ctx, launcher.Command, args...); err != nil {
 		return fmt.Errorf("launch %s terminal: %w", launcher.Command, err)
 	}
 	return nil
+}
+
+func LaunchDaily(ctx context.Context, executor Executor) error {
+	return launchTerminal(ctx, executor, "tui")
+}
+
+func LaunchLab(ctx context.Context, executor Executor, labID string) error {
+	labID = strings.TrimSpace(labID)
+	if labID == "" {
+		return errors.New("lab ID is required")
+	}
+	return launchTerminal(ctx, executor, "lab", "run", labID)
 }
