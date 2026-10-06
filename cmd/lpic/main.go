@@ -642,8 +642,11 @@ func nextHintIndex(hints []lab.Hint, highestHintLevel int) int {
 }
 
 func runAssessment(args []string, stdin io.Reader, stdout io.Writer) error {
+	if len(args) == 2 && args[0] == "--exam" && args[1] == "101" {
+		return runExam101Assessment(stdin, stdout)
+	}
 	if len(args) != 0 {
-		return fmt.Errorf("usage: lpic assess")
+		return fmt.Errorf("usage: lpic assess [--exam 101]")
 	}
 
 	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
@@ -723,6 +726,91 @@ func runAssessment(args []string, stdin io.Reader, stdout io.Writer) error {
 		fmt.Fprintln(stdout, "Rappel 103.1 solide : ces réponses sont conservées comme preuve de quiz. Les cours et pratiques manquants restent obligatoires avant de débloquer les objectifs dépendants.")
 	} else {
 		fmt.Fprintln(stdout, "Rappel 103.1 à consolider : LPIC Daily proposera les concepts, cours, quiz et pratiques manquants.")
+	}
+	return nil
+}
+
+func runExam101Assessment(stdin io.Reader, stdout io.Writer) error {
+	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		return fmt.Errorf("load curriculum: %w", err)
+	}
+	contentBundle, err := content.Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		return fmt.Errorf("load content: %w", err)
+	}
+	questions, err := assessment.ExamQuestions(curriculumBundle, contentBundle, "101")
+	if err != nil {
+		return err
+	}
+
+	ctx := context.Background()
+	store, err := openProgressStore(ctx)
+	if err != nil {
+		return err
+	}
+	defer store.Close()
+
+	fmt.Fprintf(stdout, "Simulation cumulative LPIC-1 101 · %d questions pondérées par objectifs\n", len(questions))
+	fmt.Fprintln(stdout, "Réponds sans cours ni aide. Ce score est un indicateur interne, pas un score officiel LPI.")
+	fmt.Fprintln(stdout)
+
+	reader := bufio.NewReader(stdin)
+	correct := 0
+	correctByObjective := make(map[string]int)
+	totalByObjective := make(map[string]int)
+	for index, question := range questions {
+		objectiveID := question.ObjectiveIDs[0]
+		totalByObjective[objectiveID]++
+		fmt.Fprintf(stdout, "%d/%d · %s · %s\n", index+1, len(questions), objectiveID, question.PromptFR)
+		for choiceIndex, choice := range question.Choices {
+			fmt.Fprintf(stdout, "  %d) %s\n", choiceIndex+1, choice.LabelFR)
+		}
+		fmt.Fprint(stdout, "Réponse: ")
+		line, err := readLine(reader)
+		if err != nil {
+			return fmt.Errorf("read Exam 101 answer %d: %w", index+1, err)
+		}
+		answer, err := parseAnswer(question, strings.TrimSpace(line))
+		if err != nil {
+			return fmt.Errorf("Exam 101 question %d: %w", index+1, err)
+		}
+		pass, err := question.Grade(answer)
+		if err != nil {
+			return fmt.Errorf("grade Exam 101 question %d: %w", index+1, err)
+		}
+		now := time.Now()
+		if err := study.RecordQuestion(ctx, store, question, pass, now); err != nil {
+			return err
+		}
+		if pass {
+			correct++
+			correctByObjective[objectiveID]++
+			fmt.Fprintln(stdout, "✓ CORRECT")
+		} else {
+			fmt.Fprintln(stdout, "✗ INCORRECT")
+		}
+		fmt.Fprintln(stdout)
+	}
+
+	percent := 100 * correct / len(questions)
+	fmt.Fprintf(stdout, "Résultat simulation 101: %d/%d (%d%%)\n", correct, len(questions), percent)
+	weakObjective := false
+	for _, objective := range curriculumBundle.Objectives.Objectives {
+		if !objective.Active || objective.Exam != "101" {
+			continue
+		}
+		got := correctByObjective[objective.ID]
+		total := totalByObjective[objective.ID]
+		fmt.Fprintf(stdout, "  %s: %d/%d\n", objective.ID, got, total)
+		if got*2 < total {
+			weakObjective = true
+		}
+	}
+	if percent >= 80 && !weakObjective {
+		fmt.Fprintln(stdout, "Simulation solide. La readiness finale exige aussi la maîtrise pratique indépendante et la rétention espacée de chaque concept.")
+	} else {
+		fmt.Fprintln(stdout, "Simulation à consolider. Reprends les objectifs faibles avant de considérer la 101 prête.")
 	}
 	return nil
 }
