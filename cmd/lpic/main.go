@@ -2057,6 +2057,8 @@ Usage:
   lpic tui                       open the interactive daily dashboard
   lpic notify [--force]           send today's desktop notification once
   lpic assess                     run the Phase-1 initial recall assessment
+  lpic assess --exam 101          run the 60-question cumulative Exam 101 simulation
+  lpic focus [101|all]            keep study on Exam 101 (default) or allow Exam 102 after readiness
   lpic today [--quick]           build today's adaptive session from local progress
   lpic learn <lesson-id>          read a lesson and record exposure when confirmed
   lpic question <question-id>     answer a deterministic question and record evidence
