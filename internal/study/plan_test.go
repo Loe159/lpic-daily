@@ -1089,6 +1089,57 @@ func TestManualLabCannotSkipMissingQuiz(t *testing.T) {
 	}
 }
 
+func TestDueReviewWithMissingQuizStillRecommendsQuestion(t *testing.T) {
+	curriculumBundle, contentBundle, labs := loadInputs(t)
+	now := time.Date(2026, 10, 10, 14, 30, 0, 0, time.UTC)
+	conceptID := "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes"
+	evidence := memoryEvidence{
+		conceptID: {
+			{
+				EventID:      "lesson",
+				OccurredAt:   now.Add(-5 * 24 * time.Hour),
+				ConceptID:    conceptID,
+				ObjectiveIDs: []string{"103.1"},
+				SourceItemID: "lpic1.103.1.lesson.shell-sequences",
+				ActivityKind: learning.ActivityLesson,
+				EvidenceKind: learning.EvidenceExposure,
+				Result:       learning.ResultPass,
+				Distribution: "generic",
+				AttemptIndex: 1,
+			},
+			{
+				EventID:         "manual-lab",
+				OccurredAt:      now.Add(-4 * 24 * time.Hour),
+				ConceptID:       conceptID,
+				ObjectiveIDs:    []string{"103.1"},
+				SourceItemID:    conceptID + ".standalone-diagnostic",
+				ActivityKind:    learning.ActivityLab,
+				EvidenceKind:    learning.EvidenceGuidedPractice,
+				Result:          learning.ResultPass,
+				Distribution:    "generic",
+				PracticeContext: "103-1-c01-standalone-diagnostic",
+				AttemptIndex:    1,
+			},
+		},
+	}
+
+	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
+		Now: now, Curriculum: curriculumBundle, Content: contentBundle, Labs: labs,
+		Evidence: evidence, Policy: learning.DefaultSessionPolicy(),
+	})
+	if err != nil {
+		t.Fatalf("BuildPlan() error = %v", err)
+	}
+	if len(plan.Items) == 0 {
+		t.Fatal("expected due review")
+	}
+	item := plan.Items[0]
+	if item.ConceptID != conceptID || item.Kind != learning.SessionReview ||
+		item.RecommendedQuestionID == "" || item.RecommendedLabID != "" {
+		t.Fatalf("item = %#v, want due review to prioritize missing quiz", item)
+	}
+}
+
 func TestRecallSuccessPrefersLabBeforeNextConcept(t *testing.T) {
 	curriculumBundle, contentBundle, labs := loadInputs(t)
 	now := time.Date(2026, 10, 6, 10, 0, 0, 0, time.UTC)
