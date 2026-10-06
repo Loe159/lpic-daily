@@ -869,7 +869,7 @@ func TestGeneratedGuidedLabRotatesToSecondPracticeContext(t *testing.T) {
 				SourceItemID: diagnosticID, ActivityKind: learning.ActivityLab,
 				EvidenceKind: learning.EvidenceGuidedPractice, Result: learning.ResultPass,
 				Distribution: "generic",
-				PracticeContext: "103-2-flux-texte-ligne-octet-standalone-diagnostic",
+				PracticeContext: "103-2-c01-standalone-diagnostic",
 				AttemptIndex: 1,
 			},
 		},
