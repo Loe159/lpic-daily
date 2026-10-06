@@ -1013,6 +1013,70 @@ func TestCompletedExam101CanProgressIntoExam102(t *testing.T) {
 	}
 }
 
+
+func TestExam102StaysLockedWhenAnyActiveExam101ConceptIsMissingFromStudyScope(t *testing.T) {
+	curriculumBundle, contentBundle, labs := loadInputs(t)
+	labs = withoutObjectiveLabs(labs, "101.1")
+	now := time.Date(2026, 10, 6, 18, 0, 0, 0, time.UTC)
+
+	objectiveExam := make(map[string]string)
+	for _, objective := range curriculumBundle.Objectives.Objectives {
+		if objective.Active {
+			objectiveExam[objective.ID] = objective.Exam
+		}
+	}
+	evidence := memoryEvidence{}
+	for _, concept := range curriculumBundle.Concepts.Concepts {
+		if !concept.Active || objectiveExam[concept.ObjectiveID] != "101" {
+			continue
+		}
+		evidence[concept.ID] = []learning.EvidenceEvent{
+			{
+				EventID: "lesson-" + concept.ID, OccurredAt: now.Add(-5 * 24 * time.Hour),
+				ConceptID: concept.ID, ObjectiveIDs: []string{concept.ObjectiveID},
+				SourceItemID: "lesson", ActivityKind: learning.ActivityLesson,
+				EvidenceKind: learning.EvidenceExposure, Result: learning.ResultPass,
+				Distribution: "generic", AttemptIndex: 1,
+			},
+			{
+				EventID: "recall-1-" + concept.ID, OccurredAt: now.Add(-4 * 24 * time.Hour),
+				ConceptID: concept.ID, ObjectiveIDs: []string{concept.ObjectiveID},
+				SourceItemID: "recall-1", ActivityKind: learning.ActivityQuestion,
+				EvidenceKind: learning.EvidenceRecall, Result: learning.ResultPass,
+				Distribution: "generic", AttemptIndex: 1,
+			},
+			{
+				EventID: "recall-2-" + concept.ID, OccurredAt: now.Add(-12 * time.Hour),
+				ConceptID: concept.ID, ObjectiveIDs: []string{concept.ObjectiveID},
+				SourceItemID: "recall-2", ActivityKind: learning.ActivityQuestion,
+				EvidenceKind: learning.EvidenceRecall, Result: learning.ResultPass,
+				Distribution: "generic", AttemptIndex: 2,
+			},
+			{
+				EventID: "practice-" + concept.ID, OccurredAt: now.Add(-time.Hour),
+				ConceptID: concept.ID, ObjectiveIDs: []string{concept.ObjectiveID},
+				SourceItemID: "practice", ActivityKind: learning.ActivityLab,
+				EvidenceKind: learning.EvidenceIndependentPractice, Result: learning.ResultPass,
+				Distribution: "generic", PracticeContext: "independent", AttemptIndex: 1,
+			},
+		}
+	}
+
+	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
+		Now: now, Curriculum: curriculumBundle, Content: contentBundle, Labs: labs,
+		Evidence: evidence, Policy: learning.DefaultSessionPolicy(),
+		Exam101AssessmentPassed: true,
+	})
+	if err != nil {
+		t.Fatalf("BuildPlan() error = %v", err)
+	}
+	for _, item := range plan.Items {
+		if objectiveExam[item.ObjectiveID] == "102" {
+			t.Fatalf("Exam 102 scheduled despite missing active Exam-101 scope: %#v", item)
+		}
+	}
+}
+
 func TestAssessmentRecallStillRequiresFocusedLesson(t *testing.T) {
 	curriculumBundle, contentBundle, labs := loadInputs(t)
 	now := time.Date(2026, 10, 6, 14, 0, 0, 0, time.UTC)
