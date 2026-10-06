@@ -143,6 +143,18 @@ func TestComplete1034ObjectiveBecomesSchedulable(t *testing.T) {
 	for _, conceptID := range curriculumBundle.Phase1.ObjectiveConcepts["103.1"] {
 		evidence[conceptID] = []learning.EvidenceEvent{
 			{
+				EventID:      "lesson-" + conceptID,
+				OccurredAt:   now.Add(-2 * time.Minute),
+				ConceptID:    conceptID,
+				ObjectiveIDs: []string{"103.1"},
+				SourceItemID: "test-lesson",
+				ActivityKind: learning.ActivityLesson,
+				EvidenceKind: learning.EvidenceExposure,
+				Result:       learning.ResultPass,
+				Distribution: "generic",
+				AttemptIndex: 1,
+			},
+			{
 				EventID:      "ready-" + conceptID,
 				OccurredAt:   now.Add(-time.Minute),
 				ConceptID:    conceptID,
@@ -201,6 +213,18 @@ func TestQuestionRecommendationPrefersRecallBeforeOtherQuestions(t *testing.T) {
 
 	for _, conceptID := range curriculumBundle.Phase1.ObjectiveConcepts["103.1"] {
 		evidence[conceptID] = []learning.EvidenceEvent{
+			{
+				EventID:      "lesson-" + conceptID,
+				OccurredAt:   now.Add(-2 * time.Minute),
+				ConceptID:    conceptID,
+				ObjectiveIDs: []string{"103.1"},
+				SourceItemID: "test-lesson",
+				ActivityKind: learning.ActivityLesson,
+				EvidenceKind: learning.EvidenceExposure,
+				Result:       learning.ResultPass,
+				Distribution: "generic",
+				AttemptIndex: 1,
+			},
 			{
 				EventID:      "ready-" + conceptID,
 				OccurredAt:   now.Add(-time.Minute),
@@ -284,12 +308,26 @@ func TestObjectiveWithoutPracticalLabStaysOutOfScheduler(t *testing.T) {
 	now := time.Date(2026, 10, 1, 16, 0, 0, 0, time.UTC)
 	evidence := memoryEvidence{}
 	for _, conceptID := range curriculumBundle.Phase1.ObjectiveConcepts["103.1"] {
-		evidence[conceptID] = []learning.EvidenceEvent{{
-			EventID: "ready-" + conceptID, OccurredAt: now, ConceptID: conceptID,
-			ObjectiveIDs: []string{"103.1"}, SourceItemID: "test-recall",
-			ActivityKind: learning.ActivityQuestion, EvidenceKind: learning.EvidenceRecall,
-			Result: learning.ResultPass, Distribution: "generic", AttemptIndex: 1,
-		}}
+		evidence[conceptID] = []learning.EvidenceEvent{
+			{
+				EventID: "lesson-" + conceptID, OccurredAt: now.Add(-2 * time.Minute), ConceptID: conceptID,
+				ObjectiveIDs: []string{"103.1"}, SourceItemID: "test-lesson",
+				ActivityKind: learning.ActivityLesson, EvidenceKind: learning.EvidenceExposure,
+				Result: learning.ResultPass, Distribution: "generic", AttemptIndex: 1,
+			},
+			{
+				EventID: "ready-" + conceptID, OccurredAt: now.Add(-time.Minute), ConceptID: conceptID,
+				ObjectiveIDs: []string{"103.1"}, SourceItemID: "test-recall",
+				ActivityKind: learning.ActivityQuestion, EvidenceKind: learning.EvidenceRecall,
+				Result: learning.ResultPass, Distribution: "generic", AttemptIndex: 1,
+			},
+			{
+				EventID: "practice-" + conceptID, OccurredAt: now, ConceptID: conceptID,
+				ObjectiveIDs: []string{"103.1"}, SourceItemID: "test-practice",
+				ActivityKind: learning.ActivityLab, EvidenceKind: learning.EvidenceGuidedPractice,
+				Result: learning.ResultPass, Distribution: "generic", PracticeContext: "test-practice", AttemptIndex: 1,
+			},
+		}
 	}
 
 	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
