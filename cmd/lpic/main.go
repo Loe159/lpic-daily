@@ -823,10 +823,14 @@ func runExam101Assessment(stdin io.Reader, stdout io.Writer) error {
 			weakObjective = true
 		}
 	}
-	if percent >= 80 && !weakObjective {
-		fmt.Fprintln(stdout, "Simulation solide. La readiness finale exige aussi la maîtrise pratique indépendante et la rétention espacée de chaque concept.")
+	passed := percent >= 80 && !weakObjective
+	if err := appstate.SaveExam101AssessmentPassed(passed); err != nil {
+		return fmt.Errorf("save Exam 101 assessment result: %w", err)
+	}
+	if passed {
+		fmt.Fprintln(stdout, "Simulation validée. La 102 reste bloquée tant que la maîtrise pratique indépendante et la rétention espacée de chaque concept ne sont pas acquises.")
 	} else {
-		fmt.Fprintln(stdout, "Simulation à consolider. Reprends les objectifs faibles avant de considérer la 101 prête.")
+		fmt.Fprintln(stdout, "Simulation non validée. Reprends les objectifs faibles avant de considérer la 101 prête.")
 	}
 	return nil
 }
