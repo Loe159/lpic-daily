@@ -422,6 +422,17 @@ func TestExam101GeneratedPedagogyIsFocusedAndApplied(t *testing.T) {
 			if !strings.Contains(application.PromptFR, "Scénario opérationnel") {
 				t.Errorf("%s is not framed as an operational scenario: %q", applicationID, application.PromptFR)
 			}
+			if strings.Contains(strings.ToLower(application.PromptFR), strings.ToLower(concept.TitleFR)) {
+				t.Errorf("%s leaks the exact concept title in its prompt: %q", applicationID, application.PromptFR)
+			}
+			for _, anchor := range concept.AnchorTerms {
+				if len([]rune(anchor)) < 3 || !strings.Contains(strings.ToLower(concept.TitleFR), strings.ToLower(anchor)) {
+					continue
+				}
+				if strings.Contains(strings.ToLower(application.PromptFR), strings.ToLower(anchor)) {
+					t.Errorf("%s leaks answer-bearing anchor %q from the concept title: %q", applicationID, anchor, application.PromptFR)
+				}
+			}
 			if previous, duplicate := seenPrompts[application.PromptFR]; duplicate {
 				t.Errorf("%s application prompt duplicates %s", applicationID, previous)
 			} else {
