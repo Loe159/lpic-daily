@@ -257,11 +257,12 @@ func generatedStandaloneLab(
 			ConceptIDs:       []string{concept.ID},
 			Labels:           []string{"lpic-required"},
 			EstimatedMinutes: 15,
-			PracticeContext: strings.ReplaceAll(
-				strings.TrimPrefix(concept.ID, "lpic1."),
-				".",
-				"-",
-			) + "-standalone-" + contextName,
+			PracticeContext: fmt.Sprintf(
+				"%s-c%02d-standalone-%s",
+				strings.ReplaceAll(objective.ID, ".", "-"),
+				concept.PedagogyOrder,
+				contextName,
+			),
 			Environment:      environment,
 			Resources:        resources,
 			Setup:            setup,
