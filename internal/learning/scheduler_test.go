@@ -250,7 +250,6 @@ func TestRecommendedPrerequisitesRankButDoNotBlock(t *testing.T) {
 	}
 }
 
-
 func TestExamWeightDensityPrioritizesNewConceptsWithEqualPrerequisiteReadiness(t *testing.T) {
 	bundle := loadBundle(t)
 	now := time.Date(2026, 10, 6, 10, 0, 0, 0, time.UTC)

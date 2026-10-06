@@ -358,7 +358,6 @@ func TestGeneratedRecallQuestionsUseConceptAnchor(t *testing.T) {
 	}
 }
 
-
 func TestExam101GeneratedPedagogyIsFocusedAndApplied(t *testing.T) {
 	bundle, err := Load(lpicdaily.BuiltinFS)
 	if err != nil {

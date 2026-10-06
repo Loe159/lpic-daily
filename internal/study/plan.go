@@ -334,6 +334,9 @@ func recommendedQuestion(
 		if attempts[a] != attempts[b] {
 			return attempts[a] - attempts[b]
 		}
+		if questionPracticePriority(a) != questionPracticePriority(b) {
+			return questionPracticePriority(a) - questionPracticePriority(b)
+		}
 		switch {
 		case a < b:
 			return -1
@@ -344,6 +347,19 @@ func recommendedQuestion(
 		}
 	})
 	return candidates[0]
+}
+
+func questionPracticePriority(questionID string) int {
+	switch {
+	case strings.Contains(questionID, ".q.autonomous-recall"):
+		return 0
+	case strings.Contains(questionID, ".q.autonomous-application"):
+		return 2
+	case strings.Contains(questionID, ".q.autonomous-recognition"):
+		return 3
+	default:
+		return 1
+	}
 }
 
 func recommendedLab(
