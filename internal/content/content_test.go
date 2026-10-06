@@ -480,7 +480,6 @@ func TestExam101GeneratedPedagogyIsFocusedAndApplied(t *testing.T) {
 	}
 }
 
-
 func containsStandaloneToken(text, term string) bool {
 	pattern := regexp.MustCompile("(?i)(^|[^[:alnum:]_])" + regexp.QuoteMeta(term) + "([^[:alnum:]_]|$)")
 	return pattern.MatchString(text)
