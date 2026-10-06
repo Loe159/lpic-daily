@@ -24,8 +24,9 @@ type PlanInput struct {
 	Content     *content.Bundle
 	Labs        []lab.Lab
 	Evidence    EvidenceReader
-	Policy      learning.SessionPolicy
-	Exam101Only bool
+	Policy                  learning.SessionPolicy
+	Exam101Only             bool
+	Exam101AssessmentPassed bool
 }
 
 type Item struct {
@@ -103,6 +104,7 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 		scopeConcepts,
 		evidenceByConcept,
 		input.Exam101Only,
+		input.Exam101AssessmentPassed,
 	)
 
 	session, err := learning.BuildSession(learning.SessionInput{
@@ -261,8 +263,9 @@ func examProgressionScope(
 	scopeConcepts map[string]struct{},
 	evidenceByConcept map[string][]learning.EvidenceEvent,
 	exam101Only bool,
+	exam101AssessmentPassed bool,
 ) []string {
-	if exam101Only || !exam101MasteryComplete(bundle, scopeConcepts, evidenceByConcept) {
+	if exam101Only || !exam101AssessmentPassed || !exam101MasteryComplete(bundle, scopeConcepts, evidenceByConcept) {
 		return filterExam101Objectives(bundle, scopeObjectives)
 	}
 	return slices.Clone(scopeObjectives)
@@ -539,9 +542,9 @@ func recommendedLab(
 		usedContexts[event.PracticeContext] = true
 	}
 
-	// Generated fallback labs intentionally remain guided evidence. Rotate to a
-	// second authored practice context after the first successful lab instead of
-	// waiting for independent mastery, which those labs can never claim.
+	// Rotate practical contexts after a successful lab. Deterministic generated
+	// Exam-101 labs can now earn independent/transfer evidence; legacy generated
+	// fallbacks remain guided and therefore never satisfy final mastery.
 	if stage < learning.StageIndependent && len(usedContexts) > 0 {
 		for _, labID := range candidates {
 			practiceContext := labContexts[labID]
