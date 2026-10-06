@@ -219,8 +219,8 @@ func generatedStandaloneLab(
 	}
 
 	brief := fmt.Sprintf(
-		"Contexte de %s pour %s — %s. %s\n\n%s\n"+
-			"Pour chaque fichier, utilise exactement cinq lignes : "+
+		"Contexte de %s pour %s — %s, concept **%s**. Travaille uniquement ce concept ; les autres notions de l'objectif seront proposées séparément.\n\n%s\n"+
+			"Utilise exactement cinq lignes dans le fichier de preuve : "+
 			"CONCEPT=<id>, TERMS=<repères demandés séparés par des virgules>, "+
 			"COMMAND=<commande/action réellement utilisée>, OBSERVATION=<résultat constaté>, "+
 			"EXPLANATION=<pourquoi ce résultat démontre le concept>. "+
@@ -230,7 +230,7 @@ func generatedStandaloneLab(
 		contextFR,
 		objective.ID,
 		objective.TitleFR,
-		guide.Practice,
+		concept.TitleFR,
 		tasks.String(),
 		root,
 	)
