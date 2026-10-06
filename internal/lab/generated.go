@@ -365,20 +365,28 @@ func StandaloneCommandHistoryPath(definition Definition) (string, bool) {
 }
 
 func standaloneCommandEvidencePattern(concept curriculum.Concept) string {
-	var anchors []string
+	var commands []string
 	for _, anchor := range concept.AnchorTerms {
-		if !standaloneCommandAnchorAllowed(anchor) {
+		if !standaloneCommandAnchorAllowed(anchor) || !standaloneDirectCommandAnchor(anchor) {
 			continue
 		}
-		if strings.TrimSpace(content.PedagogicalTermUsage(anchor)) == "" {
-			continue
-		}
-		anchors = append(anchors, regexEscape(anchor))
+		commands = append(
+			commands,
+			"(?:[^;&|]*[;&|][[:space:]]*)*[[:space:]]*(?:sudo[[:space:]]+)?"+
+				regexEscape(anchor)+"(?:[[:space:]]|$)",
+		)
 	}
-	if len(anchors) == 0 {
+	if len(commands) == 0 {
 		return ""
 	}
-	return "(?m)^EXIT=0\\tCOMMAND=.*(?:" + strings.Join(anchors, "|") + ").*$"
+	return "(?m)^EXIT=0\\tCOMMAND=(?:" + strings.Join(commands, "|") + ").*$"
+}
+
+func standaloneDirectCommandAnchor(anchor string) bool {
+	usage := strings.TrimSpace(content.PedagogicalTermUsage(anchor))
+	return usage == anchor ||
+		strings.HasPrefix(usage, anchor+" ") ||
+		strings.HasPrefix(usage, anchor+" ;")
 }
 
 func standaloneCommandAnchorAllowed(anchor string) bool {
