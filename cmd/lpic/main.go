@@ -1464,10 +1464,54 @@ func runInteractiveLabWithBackend(
 		if err != nil {
 			return fmt.Errorf("execute lab command: %w", err)
 		}
+		if err := recordStandaloneLabCommand(
+			sessionCtx,
+			backend,
+			session.Instance,
+			authored.Definition,
+			line,
+			result.ExitCode,
+		); err != nil {
+			return fmt.Errorf("record generated lab command evidence: %w", err)
+		}
 		if result.ExitCode != 0 {
 			fmt.Fprintf(stderr, "[exit %d]\n", result.ExitCode)
 		}
 	}
+}
+
+func recordStandaloneLabCommand(
+	ctx context.Context,
+	backend runner.Runner,
+	instance runner.Instance,
+	definition lab.Definition,
+	line string,
+	exitCode int,
+) error {
+	historyPath, ok := lab.StandaloneCommandHistoryPath(definition)
+	if !ok {
+		return nil
+	}
+	dir := historyPath[:strings.LastIndex(historyPath, "/")]
+	result, err := backend.Exec(ctx, instance, runner.ExecRequest{
+		Argv: []string{
+			"/usr/bin/bash",
+			"-c",
+			`install -d -m 0777 "$1"; touch "$2"; chmod 0666 "$2"; printf 'EXIT=%s\tCOMMAND=%s\n' "$3" "$4" >> "$2"`,
+			"lpic-daily-command-evidence",
+			dir,
+			historyPath,
+			strconv.Itoa(exitCode),
+			line,
+		},
+	})
+	if err != nil {
+		return err
+	}
+	if result.ExitCode != 0 {
+		return fmt.Errorf("command evidence logger exited with code %d", result.ExitCode)
+	}
+	return nil
 }
 
 func labRequiresJobControl(definition lab.Definition) bool {

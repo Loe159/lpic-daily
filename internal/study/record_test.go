@@ -363,3 +363,72 @@ func TestLabConceptResultsPreserveMixedCheckOutcomes(t *testing.T) {
 		t.Fatalf("sticky events = %#v, want partial", stickyEvents)
 	}
 }
+
+func TestGeneratedExam101CommandEvidenceRemainsGuided(t *testing.T) {
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("lab.LoadAll() error = %v", err)
+	}
+	var diagnostic, transfer lab.Lab
+	for _, authored := range labs {
+		switch authored.Definition.ID {
+		case "lpic1.103.2.standalone-diagnostic":
+			diagnostic = authored
+		case "lpic1.103.2.standalone-transfer":
+			transfer = authored
+		}
+	}
+	if diagnostic.Definition.ID == "" || transfer.Definition.ID == "" {
+		t.Fatal("generated 103.2 standalone labs not found")
+	}
+	conceptID := "lpic1.103.2.flux-texte-ligne-octet"
+	store := newRecordingStore()
+	start := time.Date(2026, 10, 6, 8, 0, 0, 0, time.UTC)
+	if err := study.RecordLab(context.Background(), store, diagnostic, 0, start); err != nil {
+		t.Fatalf("diagnostic RecordLab() error = %v", err)
+	}
+	if err := study.RecordLab(context.Background(), store, transfer, 0, start.Add(25*time.Hour)); err != nil {
+		t.Fatalf("transfer RecordLab() error = %v", err)
+	}
+	events := store.events[conceptID]
+	if len(events) != 2 {
+		t.Fatalf("events = %#v, want two generated practice events", events)
+	}
+	for index, event := range events {
+		if event.EvidenceKind != learning.EvidenceGuidedPractice {
+			t.Fatalf("event %d evidence = %s, want guided-practice", index+1, event.EvidenceKind)
+		}
+	}
+}
+
+func TestGeneratedExam101ConceptWithoutRuntimeCommandEvidenceStaysGuided(t *testing.T) {
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("lab.LoadAll() error = %v", err)
+	}
+	var diagnostic lab.Lab
+	for _, authored := range labs {
+		if authored.Definition.ID == "lpic1.101.2.standalone-diagnostic" {
+			diagnostic = authored
+			break
+		}
+	}
+	if diagnostic.Definition.ID == "" {
+		t.Fatal("generated 101.2 standalone diagnostic lab not found")
+	}
+	conceptID := "lpic1.101.2.bios-versus-uefi"
+	store := newRecordingStore()
+	if err := study.RecordLab(
+		context.Background(),
+		store,
+		diagnostic,
+		0,
+		time.Date(2026, 10, 6, 8, 0, 0, 0, time.UTC),
+	); err != nil {
+		t.Fatalf("RecordLab() error = %v", err)
+	}
+	event := store.events[conceptID][0]
+	if event.EvidenceKind != learning.EvidenceGuidedPractice {
+		t.Fatalf("conceptual generated evidence = %s, want guided-practice", event.EvidenceKind)
+	}
+}

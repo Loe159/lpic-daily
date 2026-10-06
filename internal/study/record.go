@@ -166,10 +166,10 @@ func RecordLabConceptResults(
 		attempt := nextAttemptFromEvents(events, authored.Definition.ID)
 		var evidenceKind learning.EvidenceKind
 		if strings.Contains(authored.Definition.ID, ".standalone-") {
-			// Generated standalone labs deliberately rely on a structured learner
-			// explanation in addition to machine checks. They are valuable guided
-			// practice, but must not claim the same mastery strength as a bespoke
-			// state-verified lab.
+			// Generated standalone exercises validate useful practice, but their
+			// generic checks do not prove the same independent system state as a
+			// bespoke lab. Keep their mastery evidence guided even when runtime
+			// command evidence is also required.
 			evidenceKind = learning.EvidenceGuidedPractice
 		} else {
 			evidenceKind, err = practicalEvidenceKind(

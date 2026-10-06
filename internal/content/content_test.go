@@ -218,7 +218,7 @@ func TestBuiltinStandaloneContentCoversEveryActiveConcept(t *testing.T) {
 	}
 }
 
-func TestEveryOfficialTermHasSpecificStandaloneExplanation(t *testing.T) {
+func TestEveryPedagogicalTermHasSpecificStandaloneExplanation(t *testing.T) {
 	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
 	if err != nil {
 		t.Fatalf("curriculum.Load() error = %v", err)
@@ -239,7 +239,7 @@ func TestEveryOfficialTermHasSpecificStandaloneExplanation(t *testing.T) {
 	}
 }
 
-func TestEveryOfficialTermAppearsInLearnerLessons(t *testing.T) {
+func TestEveryPedagogicalTermAppearsInLearnerLessons(t *testing.T) {
 	bundle, err := Load(lpicdaily.BuiltinFS)
 	if err != nil {
 		t.Fatalf("Load() error = %v", err)
@@ -355,5 +355,105 @@ func TestGeneratedRecallQuestionsUseConceptAnchor(t *testing.T) {
 				)
 			}
 		}
+	}
+}
+
+func TestExam101GeneratedPedagogyIsFocusedAndApplied(t *testing.T) {
+	bundle, err := Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("curriculum.Load() error = %v", err)
+	}
+
+	objectiveExam := make(map[string]string)
+	for _, objective := range curriculumBundle.Objectives.Objectives {
+		if objective.Active {
+			objectiveExam[objective.ID] = objective.Exam
+		}
+	}
+	focusedLessons := make(map[string]Lesson)
+	questions := make(map[string]Question)
+	for _, lesson := range bundle.Lessons {
+		if lesson.Stage == "introduce" && len(lesson.ConceptIDs) == 1 {
+			focusedLessons[lesson.ConceptIDs[0]] = lesson
+		}
+	}
+	for _, question := range bundle.Questions {
+		questions[question.ID] = question
+	}
+
+	seenPrompts := make(map[string]string)
+	exam101Concepts := 0
+	for _, concept := range curriculumBundle.Concepts.Concepts {
+		if !concept.Active || objectiveExam[concept.ObjectiveID] != "101" {
+			continue
+		}
+		exam101Concepts++
+
+		lesson, exists := focusedLessons[concept.ID]
+		if !exists {
+			t.Fatalf("missing focused lesson for Exam 101 concept %s", concept.ID)
+		}
+		for _, heading := range []string{
+			"## À comprendre précisément",
+			"## Exemple travaillé / commandes",
+			"## Raisonnement attendu",
+			"## Auto-test",
+		} {
+			if !strings.Contains(lesson.BodyMarkdown, heading) {
+				t.Errorf("%s focused lesson missing %q", concept.ID, heading)
+			}
+		}
+		if strings.Contains(lesson.BodyMarkdown, "## Termes, fichiers et utilitaires à connaître pour") {
+			t.Errorf("%s still uses the objective-wide term dump instead of focused Exam 101 pedagogy", concept.ID)
+		}
+
+		applicationID := concept.ID + ".q.autonomous-application"
+		application, exists := questions[applicationID]
+		if !exists {
+			t.Errorf("%s has no applied Exam 101 scenario question", concept.ID)
+		} else {
+			if previous, duplicate := seenPrompts[application.PromptFR]; duplicate {
+				t.Errorf("%s application prompt duplicates %s", applicationID, previous)
+			} else {
+				seenPrompts[application.PromptFR] = applicationID
+			}
+			if len(application.Choices) != 4 {
+				t.Errorf("%s has %d choices, want 4", applicationID, len(application.Choices))
+			}
+			seenLabels := make(map[string]struct{}, len(application.Choices))
+			for _, choice := range application.Choices {
+				if strings.Contains(choice.LabelFR, "alternative-") {
+					t.Errorf("%s contains synthetic distractor %q", applicationID, choice.LabelFR)
+				}
+				if _, duplicate := seenLabels[choice.LabelFR]; duplicate {
+					t.Errorf("%s contains duplicate choice %q", applicationID, choice.LabelFR)
+				}
+				seenLabels[choice.LabelFR] = struct{}{}
+			}
+		}
+
+		for anchorIndex, anchor := range concept.AnchorTerms {
+			recallID := concept.ID + ".q.autonomous-recall"
+			if anchorIndex > 0 {
+				recallID += fmt.Sprintf("-%02d", anchorIndex+1)
+			}
+			recall := questions[recallID]
+			wantCaseSensitive := recallAnswerCaseSensitive(anchor)
+			if recall.Grading.CaseSensitive != wantCaseSensitive {
+				t.Errorf("%s case-sensitive = %t, want %t for anchor %q", recallID, recall.Grading.CaseSensitive, wantCaseSensitive, anchor)
+			}
+			if previous, duplicate := seenPrompts[recall.PromptFR]; duplicate {
+				t.Errorf("%s recall prompt duplicates %s", recallID, previous)
+			} else {
+				seenPrompts[recall.PromptFR] = recallID
+			}
+		}
+	}
+	if exam101Concepts != 162 {
+		t.Fatalf("Exam 101 concept count = %d, want 162", exam101Concepts)
 	}
 }

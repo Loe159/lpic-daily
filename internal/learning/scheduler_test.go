@@ -179,11 +179,10 @@ func TestExposureRequiresImmediatePracticeBeforeNextConcept(t *testing.T) {
 	}
 }
 
-func TestSuccessfulRecognitionAllowsNextNewConcept(t *testing.T) {
+func TestSuccessfulRecognitionRequiresPracticalWorkBeforeNextConcept(t *testing.T) {
 	bundle := loadBundle(t)
 	now := time.Date(2026, 9, 27, 2, 0, 0, 0, time.UTC)
 	first := bundle.Phase1.ObjectiveConcepts["103.1"][0]
-	second := bundle.Phase1.ObjectiveConcepts["103.1"][1]
 
 	session, err := learning.BuildSession(learning.SessionInput{
 		Now:    now,
@@ -204,8 +203,40 @@ func TestSuccessfulRecognitionAllowsNextNewConcept(t *testing.T) {
 	if err != nil {
 		t.Fatalf("BuildSession() error = %v", err)
 	}
-	if len(session.Items) != 1 || session.Items[0].Kind != learning.SessionNew || session.Items[0].ConceptID != second {
-		t.Fatalf("items = %#v, want next new concept", session.Items)
+	if len(session.Items) != 1 ||
+		session.Items[0].Kind != learning.SessionPractice ||
+		session.Items[0].ConceptID != first {
+		t.Fatalf("items = %#v, want practical consolidation before any new concept", session.Items)
+	}
+}
+
+func TestSuccessfulRecallRequiresPracticalWorkBeforeNextConcept(t *testing.T) {
+	bundle := loadBundle(t)
+	now := time.Date(2026, 10, 6, 10, 0, 0, 0, time.UTC)
+	first := bundle.Phase1.ObjectiveConcepts["103.1"][0]
+
+	session, err := learning.BuildSession(learning.SessionInput{
+		Now:    now,
+		Bundle: bundle,
+		Projections: map[string]learning.MasteryProjection{
+			first: {
+				ConceptID:        first,
+				Stage:            learning.StageRecall,
+				SuccessfulRecall: 1,
+				LastEvidenceAt:   now,
+			},
+		},
+		ObjectiveReadiness: map[string]bool{},
+		ScopeObjectives:    []string{"103.1"},
+		Policy:             learning.DefaultSessionPolicy(),
+	})
+	if err != nil {
+		t.Fatalf("BuildSession() error = %v", err)
+	}
+	if len(session.Items) != 1 ||
+		session.Items[0].Kind != learning.SessionPractice ||
+		session.Items[0].ConceptID != first {
+		t.Fatalf("items = %#v, want lab consolidation after recall", session.Items)
 	}
 }
 
@@ -247,5 +278,28 @@ func TestRecommendedPrerequisitesRankButDoNotBlock(t *testing.T) {
 	}
 	if onlyPermissions.Items[0].ReasonCode != "hard-ready-recommended-pending" {
 		t.Fatalf("reason = %#v", onlyPermissions.Items[0])
+	}
+}
+
+func TestExamWeightDensityPrioritizesNewConceptsWithEqualPrerequisiteReadiness(t *testing.T) {
+	bundle := loadBundle(t)
+	now := time.Date(2026, 10, 6, 10, 0, 0, 0, time.UTC)
+
+	session, err := learning.BuildSession(learning.SessionInput{
+		Now:                now,
+		Bundle:             bundle,
+		Projections:        map[string]learning.MasteryProjection{},
+		ObjectiveReadiness: map[string]bool{"103.1": true},
+		ScopeObjectives:    []string{"102.3", "103.8"},
+		Policy:             learning.DefaultSessionPolicy(),
+	})
+	if err != nil {
+		t.Fatalf("BuildSession() error = %v", err)
+	}
+	if len(session.Items) != 1 {
+		t.Fatalf("items = %#v, want one new concept", session.Items)
+	}
+	if got := session.Items[0].ObjectiveID; got != "103.8" {
+		t.Fatalf("selected objective = %s, want 103.8: weight/concept density 3/8 must beat 102.3 at 1/5", got)
 	}
 }

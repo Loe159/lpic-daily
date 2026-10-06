@@ -100,6 +100,24 @@ func synthesizeStandaloneContent(
 			}
 			seenIDs[recognition.ID] = "generated standalone recognition question"
 			bundle.Questions = append(bundle.Questions, recognition)
+			if objective.Exam == "101" {
+				application := generatedApplicationQuestion(
+					objective,
+					concept,
+					concepts,
+					curriculumBundle.Concepts.Concepts,
+					objectiveByID,
+					index,
+				)
+				if err := validateQuestion(application, knownObjectives, knownConcepts); err != nil {
+					return fmt.Errorf("%s: %w", application.ID, err)
+				}
+				if previous, duplicate := seenIDs[application.ID]; duplicate {
+					return fmt.Errorf("generated question %s conflicts with %s", application.ID, previous)
+				}
+				seenIDs[application.ID] = "generated Exam 101 application question"
+				bundle.Questions = append(bundle.Questions, application)
+			}
 		}
 	}
 	return nil
@@ -152,6 +170,69 @@ func standaloneSupplement(
 }
 
 func generatedLessonBody(
+	objective curriculum.Objective,
+	concept curriculum.Concept,
+	guide curriculum.ObjectiveStudyGuide,
+) string {
+	if objective.Exam == "101" {
+		return generatedExam101LessonBody(objective, concept, guide)
+	}
+	return generatedObjectiveLessonBody(objective, concept, guide)
+}
+
+func generatedExam101LessonBody(
+	objective curriculum.Objective,
+	concept curriculum.Concept,
+	guide curriculum.ObjectiveStudyGuide,
+) string {
+	var anchors strings.Builder
+	var examples strings.Builder
+	for _, anchor := range concept.AnchorTerms {
+		explanation := standaloneTermExplanation(anchor, objective.ID)
+		fmt.Fprintf(&anchors, "- `%s` — %s\n", anchor, explanation)
+		if usage := standaloneTermUsage(anchor); usage != "" {
+			fmt.Fprintf(&examples, "- `%s` : `%s`\n", anchor, usage)
+		} else {
+			fmt.Fprintf(
+				&examples,
+				"- `%s` : explique son rôle, donne un cas d'emploi dans **%s**, puis indique comment tu confirmerais ton diagnostic.\n",
+				anchor,
+				concept.TitleFR,
+			)
+		}
+	}
+
+	return fmt.Sprintf(
+		"# %s\n\n"+
+			"Ce concept appartient à **%s — %s**. Ici, le cours reste volontairement centré sur ce sous-concept au lieu de répéter tout l'objectif.\n\n"+
+			"## À comprendre précisément\n\n%s\n"+
+			"Ne mémorise pas seulement les noms : relie chaque repère à son rôle, à ce qu'il permet d'observer ou de modifier et au résultat attendu.\n\n"+
+			"## Exemple travaillé / commandes\n\n%s\n"+
+			"## Raisonnement attendu\n\n"+
+			"Face à une question sur **%s**, commence par identifier les repères %s, choisis celui qui répond directement au besoin, puis vérifie le résultat avant de conclure.\n\n"+
+			"## Mise en pratique\n\n%s\n\n"+
+			"Ramène cette pratique au concept **%s** : réalise au moins une commande, inspection ou modification pertinente et explique ce que son résultat prouve.\n\n"+
+			"## Pièges et distinctions\n\n%s\n\n"+
+			"## Auto-test\n\n"+
+			"1. Explique **%s** sans relire le titre.\n"+
+			"2. Donne le rôle précis de %s.\n"+
+			"3. Décris une situation où tu les utiliserais et comment tu vérifierais que ton raisonnement est correct.\n",
+		concept.TitleFR,
+		objective.ID,
+		objective.TitleFR,
+		anchors.String(),
+		examples.String(),
+		concept.TitleFR,
+		inlineCodeList(concept.AnchorTerms),
+		guide.Practice,
+		concept.TitleFR,
+		guide.Pitfalls,
+		concept.TitleFR,
+		inlineCodeList(concept.AnchorTerms),
+	)
+}
+
+func generatedObjectiveLessonBody(
 	objective curriculum.Objective,
 	concept curriculum.Concept,
 	guide curriculum.ObjectiveStudyGuide,
@@ -221,14 +302,15 @@ func generatedRecallQuestion(
 		Type:          "fill-in",
 		Usage:         "daily",
 		PromptFR: fmt.Sprintf(
-			"Dans %s, quel terme, fichier ou utilitaire correspond à cette description : %s ?",
+			"Pour le concept « %s » (%s), quel terme, fichier ou utilitaire correspond à cette description : %s ?",
+			concept.TitleFR,
 			objective.ID,
 			description,
 		),
 		Grading: Grading{
 			Strategy:        "exact-text",
 			AcceptedAnswers: []string{anchor},
-			CaseSensitive:   false,
+			CaseSensitive:   recallAnswerCaseSensitive(anchor),
 		},
 		EvidenceKindOnSuccess: "recall",
 		Labels:                conceptLabels(concept),
@@ -238,6 +320,22 @@ func generatedRecallQuestion(
 			anchor,
 			description,
 		),
+	}
+}
+
+func recallAnswerCaseSensitive(anchor string) bool {
+	if standaloneTermUsage(anchor) != "" {
+		return true
+	}
+	if strings.HasPrefix(anchor, "/") || strings.HasPrefix(anchor, "~/") ||
+		strings.HasPrefix(anchor, ".") {
+		return true
+	}
+	switch anchor {
+	case "EDITOR", "LD_LIBRARY_PATH":
+		return true
+	default:
+		return strings.ContainsAny(anchor, "<>|&$?")
 	}
 }
 
@@ -280,7 +378,8 @@ func generatedRecognitionQuestion(
 		Type:          "multiple-choice",
 		Usage:         "daily",
 		PromptFR: fmt.Sprintf(
-			"Dans %s, quelle description correspond correctement à %s ?",
+			"Pour le concept « %s » dans %s, quelle description correspond correctement à %s ?",
+			concept.TitleFR,
 			objective.ID,
 			inlineCodeList([]string{primary}),
 		),
@@ -297,6 +396,100 @@ func generatedRecognitionQuestion(
 			primary,
 			correctDescription,
 		),
+	}
+}
+
+func generatedApplicationQuestion(
+	objective curriculum.Objective,
+	concept curriculum.Concept,
+	concepts []curriculum.Concept,
+	allConcepts []curriculum.Concept,
+	objectiveByID map[string]curriculum.Objective,
+	index int,
+) Question {
+	primary := concept.AnchorTerms[0]
+	correctDescription := standaloneTermExplanation(primary, objective.ID)
+	correctLabel := fmt.Sprintf("Mobiliser %s : %s", inlineCodeList([]string{primary}), correctDescription)
+	if usage := standaloneTermUsage(primary); usage != "" {
+		correctLabel += fmt.Sprintf(" Exemple : `%s`.", usage)
+	}
+
+	distractorTerms := make([]string, 0, 3)
+	appendDistractor := func(candidate string) {
+		if candidate == "" || candidate == primary || slices.Contains(distractorTerms, candidate) {
+			return
+		}
+		distractorTerms = append(distractorTerms, candidate)
+	}
+	for offset := 1; len(distractorTerms) < 3 && offset < len(concepts); offset++ {
+		candidateConcept := concepts[(index+offset)%len(concepts)]
+		if len(candidateConcept.AnchorTerms) != 0 {
+			appendDistractor(candidateConcept.AnchorTerms[0])
+		}
+	}
+	for _, candidateConcept := range allConcepts {
+		if len(distractorTerms) >= 3 {
+			break
+		}
+		candidateObjective, exists := objectiveByID[candidateConcept.ObjectiveID]
+		if !candidateConcept.Active || !exists || candidateObjective.Exam != objective.Exam ||
+			candidateConcept.ID == concept.ID || len(candidateConcept.AnchorTerms) == 0 {
+			continue
+		}
+		appendDistractor(candidateConcept.AnchorTerms[0])
+	}
+	for _, candidate := range objective.TermsFilesUtilities {
+		if len(distractorTerms) >= 3 {
+			break
+		}
+		appendDistractor(candidate)
+	}
+	for _, candidate := range []string{"ls", "grep", "systemctl", "mount"} {
+		if len(distractorTerms) >= 3 {
+			break
+		}
+		appendDistractor(candidate)
+	}
+
+	choices := []Choice{
+		{ID: "correct", LabelFR: correctLabel},
+		{
+			ID:      "other-1",
+			LabelFR: fmt.Sprintf("Mobiliser %s : %s", inlineCodeList([]string{distractorTerms[0]}), standaloneTermExplanation(distractorTerms[0], objective.ID)),
+		},
+		{
+			ID:      "other-2",
+			LabelFR: fmt.Sprintf("Mobiliser %s : %s", inlineCodeList([]string{distractorTerms[1]}), standaloneTermExplanation(distractorTerms[1], objective.ID)),
+		},
+		{
+			ID:      "other-3",
+			LabelFR: fmt.Sprintf("Mobiliser %s : %s", inlineCodeList([]string{distractorTerms[2]}), standaloneTermExplanation(distractorTerms[2], objective.ID)),
+		},
+	}
+	rotation := (index + 1) % len(choices)
+	choices[0], choices[rotation] = choices[rotation], choices[0]
+
+	return Question{
+		SchemaVersion: "1.0.0",
+		ID:            concept.ID + ".q.autonomous-application",
+		ObjectiveIDs:  []string{objective.ID},
+		ConceptIDs:    []string{concept.ID},
+		Type:          "multiple-choice",
+		Usage:         "daily",
+		PromptFR: fmt.Sprintf(
+			"Scénario : tu dois traiter « %s » dans le cadre de %s. Quelle action ou association technique est la plus directement pertinente ?",
+			concept.TitleFR,
+			objective.ID,
+		),
+		Choices: choices,
+		Grading: Grading{
+			Strategy:          "choice-ids",
+			AcceptedChoiceIDs: []string{"correct"},
+		},
+		EvidenceKindOnSuccess: "recognition",
+		Labels:                conceptLabels(concept),
+		Distribution:          "generic",
+		ExplanationFR:         correctLabel,
 	}
 }
 
@@ -325,6 +518,13 @@ func inlineCodeList(values []string) string {
 
 func standaloneTermUsage(term string) string {
 	return standaloneTermUsages[term]
+}
+
+// PedagogicalTermUsage exposes the canonical learner-facing command example for
+// lab synthesis. An empty string means that the anchor is conceptual or has no
+// safe deterministic command example.
+func PedagogicalTermUsage(term string) string {
+	return standaloneTermUsage(term)
 }
 
 var standaloneTermUsages = map[string]string{
@@ -547,6 +747,8 @@ var standaloneTermUsages = map[string]string{
 	"ntpq":             "ntpq -p",
 	"rpm -q":           "rpm -q <paquet>",
 	"rpm -i":           "rpm -i <paquet.rpm>",
+	"rpm -U":           "rpm -U <paquet.rpm>",
+	"rpm -e":           "rpm -e <paquet>",
 	"rpm -K":           "rpm -K <paquet.rpm>",
 	"rpm -V":           "rpm -V <paquet>",
 	"rpm -qf":          "rpm -qf <fichier>",
@@ -876,6 +1078,10 @@ var standaloneTermExplanations = map[string]string{
 	"mount points":               "répertoires où des filesystems sont attachés à l'arborescence",
 	"partitions":                 "plages définies dans une table de partitions et utilisables comme volumes bloc",
 	"/etc/ld.so.conf":            "configuration des chemins additionnels du chargeur dynamique, souvent complétée par ld.so.conf.d",
+	"/lib":                       "emplacement historique des bibliothèques essentielles nécessaires très tôt au démarrage; souvent fusionné via usrmerge",
+	"/usr/lib":                   "emplacement principal des bibliothèques partagées fournies avec les logiciels de l’espace utilisateur",
+	"/lib64":                     "variante historique 64 bits des bibliothèques essentielles sur certaines architectures/distributions",
+	"/usr/lib64":                 "variante 64 bits de /usr/lib utilisée par certaines distributions et architectures",
 	"shared libraries":           "bibliothèques chargées dynamiquement et partagées entre programmes",
 	"/etc/apt/sources.list":      "source historique principale de dépôts APT, complétée par sources.list.d",
 	"/etc/yum.conf":              "configuration globale historique de YUM/DNF selon distribution",
@@ -914,6 +1120,11 @@ var standaloneTermExplanations = map[string]string{
 	"symbolic link":              "fichier spécial contenant un chemin vers une cible, qui peut devenir cassé",
 	"/etc/updatedb.conf":         "configuration contrôlant les chemins/filesystems inclus ou exclus de la base locate",
 	"FHS":                        "Filesystem Hierarchy Standard définissant le rôle des grands répertoires Linux/Unix",
+	"/etc":                       "configuration système statique, normalement sans binaires ordinaires",
+	"/usr":                       "programmes, bibliothèques et données partageables principalement en lecture seule après installation",
+	"/tmp":                       "fichiers temporaires non destinés à une conservation durable",
+	"/opt":                       "logiciels additionnels installés sous une arborescence propre au fournisseur ou au produit",
+	"/srv":                       "données servies par les services fournis par la machine",
 	".":                          "builtin shell équivalent à source pour exécuter un fichier dans le shell courant",
 	"/etc/bash.bashrc":           "configuration interactive Bash globale sur les distributions qui l'utilisent",
 	"/etc/profile":               "profil global généralement lu par les login shells compatibles",
@@ -1040,7 +1251,9 @@ var standaloneTermExplanations = map[string]string{
 	"nice default":               "valeur nice héritée/par défaut d'un processus avant ajustement explicite",
 	"rpm -K":                     "vérifie les signatures et sommes de contrôle d'un paquet RPM",
 	"rpm -V":                     "compare les fichiers installés d'un paquet RPM à ses métadonnées enregistrées",
-	"rpm -i":                     "installe directement un paquet RPM sans résolution haut niveau des dépendances de dépôt",
+	"rpm -i":                     "installe directement un nouveau paquet RPM sans résolution haut niveau des dépendances de dépôt",
+	"rpm -U":                     "met à niveau un paquet RPM et peut aussi l’installer s’il n’est pas déjà présent",
+	"rpm -e":                     "désinstalle un paquet enregistré dans la base RPM",
 	"rpm -q":                     "interroge la base RPM sur un paquet installé",
 	"rpm -qf":                    "identifie le paquet RPM propriétaire d'un fichier installé",
 	"rsyslog remote":             "configuration rsyslog envoyant ou recevant des messages via une destination/source réseau",
