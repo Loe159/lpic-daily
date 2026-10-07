@@ -1,0 +1,90 @@
+{
+  "schema_version": "1.0.0",
+  "migrated_objective_ids": [
+    "103.1"
+  ],
+  "scenarios": [
+    {
+      "scenario_id": "lpic1.103.1.shell-environment-repair",
+      "objective_ids": [
+        "103.1"
+      ],
+      "concept_ids": [
+        "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes",
+        "lpic1.103.1.variables-shell-environnement",
+        "lpic1.103.1.path-et-resolution-de-commande",
+        "lpic1.103.1.quoting-escaping",
+        "lpic1.103.1.historique",
+        "lpic1.103.1.documentation-et-identification-d-une-commande",
+        "lpic1.103.1.informations-systeme-de-base"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "behavior",
+      "transfer_group": "103.1-shell-environment"
+    },
+    {
+      "scenario_id": "lpic1.103.1.transfer-shell-handoff",
+      "objective_ids": [
+        "103.1"
+      ],
+      "concept_ids": [
+        "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes",
+        "lpic1.103.1.variables-shell-environnement",
+        "lpic1.103.1.path-et-resolution-de-commande",
+        "lpic1.103.1.quoting-escaping",
+        "lpic1.103.1.historique",
+        "lpic1.103.1.documentation-et-identification-d-une-commande",
+        "lpic1.103.1.informations-systeme-de-base"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "behavior",
+      "transfer_group": "103.1-shell-environment"
+    },
+    {
+      "scenario_id": "lpic1.103.1.environment-boundary-repair",
+      "objective_ids": [
+        "103.1"
+      ],
+      "concept_ids": [
+        "lpic1.103.1.set-env-et-portee-des-variables",
+        "lpic1.103.1.export-unset-et-processus-enfants",
+        "lpic1.103.1.echo-et-expansion-shell",
+        "lpic1.103.1.variables-shell-environnement"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.103.1.external-command-recovery",
+      "objective_ids": [
+        "103.1"
+      ],
+      "concept_ids": [
+        "lpic1.103.1.execution-de-commandes-hors-path",
+        "lpic1.103.1.path-et-resolution-de-commande",
+        "lpic1.103.1.documentation-et-identification-d-une-commande",
+        "lpic1.103.1.quoting-escaping"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.103.1.history-handoff-recovery",
+      "objective_ids": [
+        "103.1"
+      ],
+      "concept_ids": [
+        "lpic1.103.1.edition-et-persistance-de-l-historique",
+        "lpic1.103.1.historique",
+        "lpic1.103.1.echo-et-expansion-shell"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "state"
+    }
+  ]
+}

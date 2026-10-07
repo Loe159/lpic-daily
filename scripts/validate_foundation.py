@@ -17,6 +17,7 @@ SCRIPTS = [
     ROOT / "scripts" / "generate_phase1_coverage.py",
     ROOT / "scripts" / "audit_phase3_coverage.py",
     ROOT / "scripts" / "audit_lpic1_coverage.py",
+    ROOT / "scripts" / "audit_scenario_coverage.py",
 ]
 
 for script in SYNTAX_ONLY:
@@ -32,6 +33,8 @@ for script in SCRIPTS:
         command.append("--check")
     elif script.name == "audit_phase3_coverage.py":
         command.append("--require-complete")
+    elif script.name == "audit_scenario_coverage.py":
+        command.append("--check")
     completed = subprocess.run(command, cwd=ROOT)
     if completed.returncode != 0:
         sys.exit(completed.returncode)

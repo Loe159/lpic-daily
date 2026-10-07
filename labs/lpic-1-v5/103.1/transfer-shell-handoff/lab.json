@@ -25,7 +25,8 @@
   ],
   "labels": [
     "lpic-required",
-    "modern-practice"
+    "modern-practice",
+    "scenario-accepted"
   ],
   "estimated_minutes": 12,
   "practice_context": "shell-handoff",

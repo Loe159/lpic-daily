@@ -1191,3 +1191,51 @@ func TestRecallSuccessPrefersLabBeforeNextConcept(t *testing.T) {
 		t.Fatalf("item = %#v, want lab-preferred consolidation after recall", item)
 	}
 }
+
+func TestAcceptedScenarioSuppressesGeneratedFallbackAfterGuidedSuccess(t *testing.T) {
+	curriculumBundle, contentBundle, labs := loadInputs(t)
+	now := time.Date(2026, 10, 12, 12, 0, 0, 0, time.UTC)
+	conceptID := "lpic1.103.1.set-env-et-portee-des-variables"
+	evidence := memoryEvidence{
+		conceptID: {
+			{
+				EventID: "lesson", OccurredAt: now.Add(-6 * 24 * time.Hour),
+				ConceptID: conceptID, ObjectiveIDs: []string{"103.1"},
+				SourceItemID: conceptID + ".lesson.autonomous",
+				ActivityKind: learning.ActivityLesson, EvidenceKind: learning.EvidenceExposure,
+				Result: learning.ResultPass, Distribution: "generic", AttemptIndex: 1,
+			},
+			{
+				EventID: "quiz", OccurredAt: now.Add(-6 * 24 * time.Hour),
+				ConceptID: conceptID, ObjectiveIDs: []string{"103.1"},
+				SourceItemID: conceptID + ".q.autonomous-recall",
+				ActivityKind: learning.ActivityQuestion, EvidenceKind: learning.EvidenceRecall,
+				Result: learning.ResultPass, Distribution: "generic", AttemptIndex: 1,
+			},
+			{
+				EventID: "guided-scenario", OccurredAt: now.Add(-5 * 24 * time.Hour),
+				ConceptID: conceptID, ObjectiveIDs: []string{"103.1"},
+				SourceItemID: "lpic1.103.1.environment-boundary-repair",
+				ActivityKind: learning.ActivityLab, EvidenceKind: learning.EvidenceGuidedPractice,
+				Result: learning.ResultPass, Distribution: "fedora",
+				PracticeContext: "environment-boundary-repair", AttemptIndex: 1,
+			},
+		},
+	}
+	policy := learning.DefaultSessionPolicy()
+	policy.MaxNewConcepts = 0
+
+	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
+		Now: now, Curriculum: curriculumBundle, Content: contentBundle, Labs: labs,
+		Evidence: evidence, Policy: policy,
+	})
+	if err != nil {
+		t.Fatalf("BuildPlan() error = %v", err)
+	}
+	if len(plan.Items) != 1 || plan.Items[0].ConceptID != conceptID {
+		t.Fatalf("items = %#v, want one due review for %s", plan.Items, conceptID)
+	}
+	if got := plan.Items[0].RecommendedLabID; got != "lpic1.103.1.environment-boundary-repair" {
+		t.Fatalf("recommended lab = %q, want accepted scenario instead of generated fallback", got)
+	}
+}

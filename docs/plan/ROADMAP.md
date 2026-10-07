@@ -44,10 +44,10 @@ Topics 101–104 are covered across all 23 objectives / 162 concepts with automa
 ## Phase 4 — Exam 102 curriculum
 Complete topics 105–110, including networking, services and crypto. Ensure modern-versus-legacy labeling remains accurate.
 
-## Cross-cutting initiative — scenario-based practical curriculum (planned)
+## Cross-cutting initiative — scenario-based practical curriculum (in progress)
 Replace the 618 concept-scoped fallback labs progressively with a smaller portfolio of realistic, state-based scenarios modeled after shell-environment-repair, stuck-worker and shared-dropbox. Keep full concept coverage throughout the migration, prefer scenario evidence in the scheduler, then retire fallback generation only after both exams are fully covered.
 
-Canonical plan: docs/plan/SCENARIO-LABS-MIGRATION.md.
+Pilot in progress: objective 103.1 is the first migration target, with accepted state-based scenarios replacing generated fallbacks in normal scheduling once coverage is complete.\n\nCanonical plan: docs/plan/SCENARIO-LABS-MIGRATION.md.
 
 ## Phase 5 — adaptive practice depth
 Strengthen spaced retrieval, concept prerequisites where demonstrated, distribution transfer, cross-topic incidents, achievement system and mastery explainability. Add adaptive short assessments.
