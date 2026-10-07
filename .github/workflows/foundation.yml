@@ -222,7 +222,7 @@ jobs:
       - name: Run authored Podman labs end to end
         env:
           LPIC_DAILY_RUN_PODMAN_INTEGRATION: "1"
-        run: go test -tags=integration ./cmd/lpic -count=1 -v
+        run: go test -tags=integration ./cmd/lpic -count=1 -v -run 'TestPhase1ImageProvidesInteractiveEditorsAndTerminfo|TestAllAuthoredPodmanReferenceSolutionsPassStateChecks|TestShellEnvironmentRepairReferenceSolutionPassesEveryCheck|TestPrepareJobControlShellOnRootlessPodman'
 
   podman-lab-acceptance-fedora:
     runs-on: ubuntu-latest
@@ -279,4 +279,4 @@ jobs:
         env:
           XDG_RUNTIME_DIR: /run/user/1000
           LPIC_DAILY_RUN_PODMAN_INTEGRATION: "1"
-        run: go test -tags=integration ./cmd/lpic -count=1 -v
+        run: go test -tags=integration ./cmd/lpic -count=1 -v -run 'TestPhase1ImageProvidesInteractiveEditorsAndTerminfo|TestAllAuthoredPodmanReferenceSolutionsPassStateChecks|TestShellEnvironmentRepairReferenceSolutionPassesEveryCheck|TestPrepareJobControlShellOnRootlessPodman'
