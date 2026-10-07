@@ -35,12 +35,21 @@ func TestTodayStartsWith1031AndCreatesLocalProgressStore(t *testing.T) {
 	output := stdout.String()
 	for _, want := range []string{
 		"LPIC Daily — Aujourd'hui",
+		"101: 0/162 concepts complets",
 		"Nouveau · 103.1 · syntaxe shell et séquences de commandes",
 		"Cours conseillé: lpic1.103.1.lesson.shell-sequences",
 		"lpic1.103.1.syntaxe-shell-et-sequences-de-commandes.q.autonomous-recall",
 	} {
 		if !strings.Contains(output, want) {
 			t.Fatalf("today output missing %q: %q", want, output)
+		}
+	}
+}
+
+func TestDoctorRejectsRepairOnlyFlagsWithoutFix(t *testing.T) {
+	for _, args := range [][]string{{"doctor", "--vm"}, {"doctor", "--yes"}} {
+		if err := runWithIO(args, strings.NewReader(""), &bytes.Buffer{}, &bytes.Buffer{}); err == nil {
+			t.Fatalf("runWithIO(%v) unexpectedly succeeded", args)
 		}
 	}
 }
