@@ -42,8 +42,7 @@ func synthesizeStandaloneContent(
 			continue
 		}
 		objective := objectiveByID[concept.ObjectiveID]
-		guide := guideByObjective[concept.ObjectiveID]
-		supplement := standaloneSupplement(objective, concept, guide)
+		supplement := standaloneSupplement(objective, concept)
 		if !strings.Contains(lesson.BodyMarkdown, standaloneSupplementHeading) {
 			lesson.BodyMarkdown = strings.TrimRight(lesson.BodyMarkdown, "\n") + "\n\n" + supplement
 		}
@@ -163,10 +162,19 @@ func generatedIntroduction(
 func standaloneSupplement(
 	objective curriculum.Objective,
 	concept curriculum.Concept,
-	guide curriculum.ObjectiveStudyGuide,
 ) string {
-	return standaloneSupplementHeading + "\n\n" +
-		generatedLessonBody(objective, concept, guide)
+	var body strings.Builder
+	body.WriteString(standaloneSupplementHeading)
+	body.WriteString("\n\n")
+	for _, anchor := range concept.AnchorTerms {
+		fmt.Fprintf(
+			&body,
+			"- `%s` — %s\n",
+			anchor,
+			standaloneTermExplanation(anchor, objective.ID),
+		)
+	}
+	return strings.TrimRight(body.String(), "\n")
 }
 
 func generatedLessonBody(
@@ -183,60 +191,49 @@ func generatedLessonBody(
 func generatedExam101LessonBody(
 	objective curriculum.Objective,
 	concept curriculum.Concept,
-	guide curriculum.ObjectiveStudyGuide,
+	_ curriculum.ObjectiveStudyGuide,
 ) string {
 	var anchors strings.Builder
 	var examples strings.Builder
 	for _, anchor := range concept.AnchorTerms {
-		explanation := standaloneTermExplanation(anchor, objective.ID)
-		fmt.Fprintf(&anchors, "- `%s` — %s\n", anchor, explanation)
+		fmt.Fprintf(
+			&anchors,
+			"- `%s` — %s\n",
+			anchor,
+			standaloneTermExplanation(anchor, objective.ID),
+		)
 		if usage := standaloneTermUsage(anchor); usage != "" {
-			fmt.Fprintf(
-				&examples,
-				"- `%s` : exécute par exemple `%s`. Lis le résultat en le reliant à **%s**, puis vérifie que l'état observé correspond bien au rôle attendu.\n",
-				anchor,
-				usage,
-				concept.TitleFR,
-			)
-		} else {
-			fmt.Fprintf(
-				&examples,
-				"- `%s` : exemple travaillé — dans un diagnostic de **%s**, ce repère est pertinent car %s On l'identifie dans le contexte du système, puis on confirme la conclusion avec un second indice cohérent plutôt que par le nom seul.\n",
-				anchor,
-				concept.TitleFR,
-				explanation,
-			)
+			fmt.Fprintf(&examples, "- `%s`\n", usage)
 		}
+	}
+	if examples.Len() == 0 {
+		examples.WriteString("- Observe le système avec les repères ci-dessus et vérifie le résultat obtenu.\n")
 	}
 
 	return fmt.Sprintf(
-		"# %s\n\n"+
-			"Ce concept appartient à **%s — %s**. Ici, le cours reste volontairement centré sur ce sous-concept au lieu de répéter tout l'objectif.\n\n"+
-			"## À comprendre précisément\n\n%s\n"+
-			"Ne mémorise pas seulement les noms : relie chaque repère à son rôle, à ce qu'il permet d'observer ou de modifier et au résultat attendu.\n\n"+
-			"## Exemple travaillé / commandes\n\n%s\n"+
-			"## Raisonnement attendu\n\n"+
-			"Face à une question sur **%s**, commence par identifier les repères %s, choisis celui qui répond directement au besoin, puis vérifie le résultat avant de conclure.\n\n"+
-			"## Mise en pratique\n\n%s\n\n"+
-			"Ramène cette pratique au concept **%s** : réalise au moins une commande, inspection ou modification pertinente et explique ce que son résultat prouve.\n\n"+
-			"## Pièges et distinctions\n\n%s\n\n"+
-			"## Auto-test\n\n"+
-			"1. Explique **%s** sans relire le titre.\n"+
-			"2. Donne le rôle précis de %s.\n"+
-			"3. Décris une situation où tu les utiliserais et comment tu vérifierais que ton raisonnement est correct.\n",
-		concept.TitleFR,
-		objective.ID,
-		objective.TitleFR,
+		"## À retenir\n\n%s\n"+
+			"## À essayer\n\n%s\n"+
+			"## Point d'attention\n\n%s\n\n"+
+			"## Vérifie-toi\n\n"+
+			"Explique en une phrase la différence ou le comportement étudié, puis cite la commande qui permet de le vérifier.\n",
 		anchors.String(),
 		examples.String(),
-		concept.TitleFR,
-		inlineCodeList(concept.AnchorTerms),
-		guide.Practice,
-		concept.TitleFR,
-		guide.Pitfalls,
-		concept.TitleFR,
-		inlineCodeList(concept.AnchorTerms),
+		standaloneConceptAttention(concept),
 	)
+}
+
+func standaloneConceptAttention(concept curriculum.Concept) string {
+	switch concept.ID {
+	case "lpic1.103.1.set-env-et-portee-des-variables":
+		return "Une variable créée dans le shell apparaît dans `set`, mais pas dans `env` tant qu'elle n'est pas exportée."
+	case "lpic1.103.1.export-unset-et-processus-enfants":
+		return "`export` rend une variable disponible aux processus enfants ; `unset` la retire du shell courant."
+	default:
+		return fmt.Sprintf(
+			"Vérifie le comportement avec %s plutôt que de te fier uniquement au nom de l'outil.",
+			inlineCodeList(concept.AnchorTerms),
+		)
+	}
 }
 
 func generatedObjectiveLessonBody(

@@ -186,19 +186,10 @@ func generatedStandaloneLab(
 		}
 	}
 
-	var tasks strings.Builder
 	commandHistoryPath := root + "/command-history.log"
 	filename := standaloneConceptFilename(concept)
 	terms := slices.Clone(concept.AnchorTerms)
 	termsLine := strings.Join(terms, ",")
-	fmt.Fprintf(
-		&tasks,
-		"- **%s** : travaille les repères `%s`, réalise une commande, une inspection ou une configuration pertinente, puis écris `%s/%s.txt`.\n",
-		concept.TitleFR,
-		strings.Join(terms, "`, `"),
-		root,
-		filename,
-	)
 	checks := []CheckDefinition{{
 		Type: "file-content-regex",
 		Path: root + "/" + filename + ".txt",
@@ -219,23 +210,13 @@ func generatedStandaloneLab(
 	}
 
 	brief := fmt.Sprintf(
-		"Contexte de %s pour %s — %s, concept **%s**. Travaille uniquement ce concept ; les autres notions de l'objectif seront proposées séparément.\n\n%s\n"+
-			"Utilise exactement cinq lignes dans le fichier de preuve : "+
-			"CONCEPT=<id>, TERMS=<repères demandés séparés par des virgules>, "+
-			"COMMAND=<commande/action réellement utilisée>, OBSERVATION=<résultat constaté>, "+
-			"EXPLANATION=<pourquoi ce résultat démontre le concept>. "+
-			"Crée d'abord %s si le répertoire n'existe pas. Le but n'est pas de recopier le cours : "+
-			"fais la manipulation dans le sandbox, puis explique l'état observé. "+
-			"Pour les concepts qui demandent une commande réelle, exécute-la directement à l'invite lpic> : LPIC Daily journalise automatiquement la commande et son code de sortie dans une preuve séparée que le lab vérifie.",
-		contextFR,
-		objective.ID,
-		objective.TitleFR,
+		"## Objectif\n%s\n\n## À faire\n%s\n\nQuand tu as terminé, tape `:check`. "+
+			"LPIC Daily te demandera une conclusion courte avant de valider le lab.",
 		concept.TitleFR,
-		tasks.String(),
-		root,
+		standaloneLearnerTask(concept, variant),
 	)
 
-	hints := generatedStandaloneHints(labID, root)
+	hints := generatedStandaloneHints(labID, concept)
 	return Lab{
 		Definition: Definition{
 			SchemaVersion: "1.0.0",
@@ -243,9 +224,8 @@ func generatedStandaloneLab(
 			TitleFR:       fmt.Sprintf("%s — %s — pratique %s", objective.ID, concept.TitleFR, contextFR),
 			BriefFR:       brief,
 			SuccessCriteriaFR: []string{
-				"Une preuve distincte est produite pour chaque concept.",
-				"Chaque preuve couvre explicitement les termes/fichiers/utilitaires affectés au concept et décrit une commande ou action réellement effectuée.",
-				"Chaque preuve explique le lien entre le résultat observé et le concept LPIC.",
+				"La manipulation demandée a réellement été effectuée.",
+				"Le résultat observé permet d'expliquer le concept avec tes propres mots.",
 			},
 			DebriefFR: fmt.Sprintf(
 				"%s %s Le contexte %s oblige à reformuler et vérifier chaque sous-concept au lieu de valider l'objectif par une seule commande.",
@@ -314,14 +294,15 @@ func standaloneMachineForObjective(objective curriculum.Objective) *Machine {
 	return machine
 }
 
-func generatedStandaloneHints(labID, root string) []Hint {
+func generatedStandaloneHints(labID string, concept curriculum.Concept) []Hint {
+	anchors := "`" + strings.Join(concept.AnchorTerms, "`, `") + "`"
 	return []Hint{
 		{
 			SchemaVersion:  "1.0.0",
 			ID:             labID + ".hint-1",
 			LabID:          labID,
 			Level:          1,
-			ContentFR:      "Traite un seul concept à la fois : relis son intitulé, choisis un outil ou fichier pertinent, puis observe le système avant d'écrire la preuve.",
+			ContentFR:      "Commence par observer le système avant de modifier quoi que ce soit. Repère ce que montrent " + anchors + ".",
 			EvidenceImpact: "none",
 		},
 		{
@@ -329,7 +310,7 @@ func generatedStandaloneHints(labID, root string) []Hint {
 			ID:             labID + ".hint-2",
 			LabID:          labID,
 			Level:          2,
-			ContentFR:      fmt.Sprintf("Crée %s puis un fichier par concept. COMMAND décrit ce que tu as fait; OBSERVATION contient le résultat concret.", root),
+			ContentFR:      "Fais une petite manipulation, puis compare l'état avant et après avec " + anchors + ".",
 			EvidenceImpact: "material",
 		},
 		{
@@ -337,19 +318,42 @@ func generatedStandaloneHints(labID, root string) []Hint {
 			ID:             labID + ".hint-3",
 			LabID:          labID,
 			Level:          3,
-			ContentFR:      "Chaque preuve doit contenir CONCEPT, TERMS, COMMAND, OBSERVATION et EXPLANATION. Recopie exactement TERMS depuis le brief puis relie le résultat au comportement Linux attendu.",
+			ContentFR:      "Avant `:check`, prépare deux phrases : ce que tu as observé et pourquoi ce résultat démontre le concept.",
 			EvidenceImpact: "material",
 		},
 		{
-			SchemaVersion: "1.0.0",
-			ID:            labID + ".hint-4",
-			LabID:         labID,
-			Level:         4,
-			ContentFR: "Format attendu : CONCEPT=<id exact>, TERMS=<liste exacte du brief>, COMMAND=<commande/action>, " +
-				"OBSERVATION=<résultat>, EXPLANATION=<raison>. Répète ce format pour chaque fichier indiqué dans le brief.",
+			SchemaVersion:  "1.0.0",
+			ID:             labID + ".hint-4",
+			LabID:          labID,
+			Level:          4,
+			ContentFR:      "Repars de la consigne et utilise directement " + anchors + ". Cherche un résultat observable qui distingue clairement les deux états ou comportements étudiés.",
 			EvidenceImpact: "solution-revealed",
 		},
 	}
+}
+
+func standaloneLearnerTask(concept curriculum.Concept, variant int) string {
+	switch concept.ID {
+	case "lpic1.103.1.set-env-et-portee-des-variables":
+		if variant == 0 {
+			return "Dans le shell, crée une variable sans l'exporter. Compare ce que montrent `set` et `env`. Exporte ensuite la variable et compare à nouveau."
+		}
+		return "Crée une nouvelle variable et vérifie si un processus lancé avec `env` la reçoit. Change sa portée, puis vérifie à nouveau avec `set` et `env`."
+	}
+
+	anchors := "`" + strings.Join(concept.AnchorTerms, "`, `") + "`"
+	if variant == 0 {
+		return fmt.Sprintf(
+			"Utilise %s pour montrer concrètement **%s**. Fais au moins une manipulation dont tu peux expliquer le résultat.",
+			anchors,
+			concept.TitleFR,
+		)
+	}
+	return fmt.Sprintf(
+		"Reproduis **%s** dans un autre cas en utilisant %s, puis vérifie le résultat obtenu.",
+		concept.TitleFR,
+		anchors,
+	)
 }
 
 func StandaloneCommandHistoryPath(definition Definition) (string, bool) {
@@ -366,7 +370,28 @@ func StandaloneCommandHistoryPath(definition Definition) (string, bool) {
 	}
 }
 
+func StandaloneReflectionPath(definition Definition) (string, bool) {
+	if !strings.Contains(definition.ID, ".standalone-") {
+		return "", false
+	}
+	historyPath, _ := StandaloneCommandHistoryPath(definition)
+	for _, check := range definition.Checks {
+		if check.Type == "file-content-regex" && check.Path != "" && check.Path != historyPath {
+			return check.Path, true
+		}
+	}
+	return "", false
+}
+
 func standaloneCommandEvidencePattern(concept curriculum.Concept) string {
+	// This concept is intentionally exercised inside one persistent shell:
+	// a non-exported variable must survive while set/env are compared. The
+	// interactive reflection is therefore the evidence source; executing env or
+	// set later through the one-command runner would test a different shell.
+	if concept.ID == "lpic1.103.1.set-env-et-portee-des-variables" {
+		return ""
+	}
+
 	var commands []string
 	for _, anchor := range concept.AnchorTerms {
 		if !standaloneCommandAnchorAllowed(anchor) || !standaloneDirectCommandAnchor(anchor) {

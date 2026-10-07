@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"os/signal"
+	"slices"
 	"strconv"
 	"strings"
 	"syscall"
@@ -730,7 +731,7 @@ func runLearn(args []string, stdin io.Reader, stdout io.Writer) error {
 		return fmt.Errorf("unknown lesson %q", args[0])
 	}
 
-	fmt.Fprintf(stdout, "%s\n\n%s\n", lesson.TitleFR, lesson.BodyMarkdown)
+	fmt.Fprintf(stdout, "%s\n\n%s\n", lesson.TitleFR, lpicui.RenderMarkdown(lesson.BodyMarkdown))
 	fmt.Fprint(stdout, "\nMarquer ce cours comme lu ? [o/N] ")
 
 	line, err := readLine(stdin)
@@ -1052,17 +1053,13 @@ func findLab(labs []lab.Lab, id string) (lab.Lab, error) {
 func printLab(authored lab.Lab, out io.Writer) {
 	definition := authored.Definition
 	fmt.Fprintf(out, "%s\n", definition.TitleFR)
-	fmt.Fprintf(out, "ID: %s\n", definition.ID)
-	fmt.Fprintf(out, "Objectifs LPIC: %s\n", strings.Join(definition.ObjectiveIDs, ", "))
-	fmt.Fprintf(out, "Environnement: %s / %s / network=%s\n", definition.Environment.Backend, definition.Environment.Distribution, definition.Environment.Network)
-	fmt.Fprintf(out, "Durée estimée: %d min\n", definition.EstimatedMinutes)
-	fmt.Fprintf(out, "Labels: %s\n\n", strings.Join(definition.Labels, ", "))
-	fmt.Fprintln(out, definition.BriefFR)
-	fmt.Fprintln(out, "\nCritères de réussite:")
+	fmt.Fprintf(out, "%s · environ %d min\n\n", strings.Join(definition.ObjectiveIDs, ", "), definition.EstimatedMinutes)
+	fmt.Fprintln(out, lpicui.RenderMarkdown(definition.BriefFR))
+	fmt.Fprintln(out, "\nRéussite :")
 	for _, criterion := range definition.SuccessCriteriaFR {
-		fmt.Fprintf(out, "- %s\n", criterion)
+		fmt.Fprintf(out, "• %s\n", criterion)
 	}
-	fmt.Fprintf(out, "\n%d niveaux d'indices disponibles. Le debrief est masqué jusqu'à réussite ou demande explicite.\n", len(authored.Hints))
+	fmt.Fprintln(out, "\nCommandes utiles : :check  :hint  :reset  :quit")
 }
 
 func runInteractiveLab(authored lab.Lab, stdin io.Reader, stdout, stderr io.Writer) error {
@@ -1264,6 +1261,8 @@ func runInteractiveLabWithBackend(
 
 	nextHint := nextHintIndex(authored.Hints, highestHintLevel)
 	usedPersistentShell := false
+	reflectionRecorded := false
+	lastLearnerCommand := ""
 	var jobControlEvidence *jobControlInteractionEvidence
 	if labRequiresJobControl(authored.Definition) {
 		jobControlEvidence = &jobControlInteractionEvidence{}
@@ -1351,7 +1350,7 @@ func runInteractiveLabWithBackend(
 			if hint.Level > highestHintLevel {
 				highestHintLevel = hint.Level
 			}
-			fmt.Fprintf(stdout, "Indice %d/4 : %s\n", hint.Level, hint.ContentFR)
+			fmt.Fprintf(stdout, "Indice %d/4 : %s\n", hint.Level, lpicui.RenderMarkdown(hint.ContentFR))
 			if solutionRevealed {
 				fmt.Fprintln(stdout, "Cet indice révèle la solution et réduira la force de la preuve pratique.")
 			}
@@ -1426,10 +1425,27 @@ func runInteractiveLabWithBackend(
 			// across resets/restarts and remains attached to the learning attempt.
 			nextHint = nextHintIndex(authored.Hints, highestHintLevel)
 			usedPersistentShell = false
+			reflectionRecorded = false
+			lastLearnerCommand = ""
 			jobControlEvidence.Reset()
 			fmt.Fprintln(stdout, "Lab réinitialisé dans son état de départ.")
 			continue
 		case ":check":
+			if !reflectionRecorded {
+				recorded, err := collectStandaloneReflection(
+					sessionCtx,
+					scanner,
+					stdout,
+					backend,
+					session.Instance,
+					authored.Definition,
+					lastLearnerCommand,
+				)
+				if err != nil {
+					return fmt.Errorf("record learner conclusion: %w", err)
+				}
+				reflectionRecorded = recorded
+			}
 			passed := true
 			checkCtx, cancelCheck := context.WithTimeout(sessionCtx, operationTimeout)
 			results, err := session.Evaluate(checkCtx)
@@ -1537,6 +1553,7 @@ func runInteractiveLabWithBackend(
 			return fmt.Errorf("lab session ended: %w", err)
 		}
 
+		lastLearnerCommand = line
 		commandCtx, cancelCommand := context.WithTimeout(sessionCtx, operationTimeout)
 		result, err := backend.Exec(commandCtx, session.Instance, runner.ExecRequest{
 			Argv:   []string{"/usr/bin/bash", "-lc", line},
@@ -1571,6 +1588,116 @@ func runInteractiveLabWithBackend(
 		if result.ExitCode != 0 {
 			fmt.Fprintf(stderr, "[exit %d]\n", result.ExitCode)
 		}
+	}
+}
+
+type standaloneReflectionSpec struct {
+	path      string
+	conceptID string
+	title     string
+	terms     []string
+}
+
+func collectStandaloneReflection(
+	ctx context.Context,
+	scanner *bufio.Scanner,
+	stdout io.Writer,
+	backend runner.Runner,
+	instance runner.Instance,
+	definition lab.Definition,
+	lastCommand string,
+) (bool, error) {
+	path, ok := lab.StandaloneReflectionPath(definition)
+	if !ok {
+		return false, nil
+	}
+	spec, err := standaloneReflectionFor(definition, path)
+	if err != nil {
+		return false, err
+	}
+
+	fmt.Fprintln(stdout, "Conclusion rapide :")
+	observation, err := readRequiredLabLine(
+		scanner,
+		stdout,
+		fmt.Sprintf("Qu'as-tu observé avec %s ? ", strings.Join(spec.terms, ", ")),
+	)
+	if err != nil {
+		return false, err
+	}
+	explanation, err := readRequiredLabLine(
+		scanner,
+		stdout,
+		fmt.Sprintf("Pourquoi cela démontre « %s » ? ", spec.title),
+	)
+	if err != nil {
+		return false, err
+	}
+	if strings.TrimSpace(lastCommand) == "" {
+		lastCommand = "session shell interactive"
+	}
+
+	dir := spec.path[:strings.LastIndex(spec.path, "/")]
+	result, err := backend.Exec(ctx, instance, runner.ExecRequest{
+		Argv: []string{
+			"/usr/bin/bash",
+			"-c",
+			`install -d -m 0777 "$1"; printf 'CONCEPT=%s\nTERMS=%s\nCOMMAND=%s\nOBSERVATION=%s\nEXPLANATION=%s\n' "$3" "$4" "$5" "$6" "$7" > "$2"`,
+			"lpic-daily-reflection",
+			dir,
+			spec.path,
+			spec.conceptID,
+			strings.Join(spec.terms, ","),
+			lastCommand,
+			observation,
+			explanation,
+		},
+	})
+	if err != nil {
+		return false, err
+	}
+	if result.ExitCode != 0 {
+		return false, fmt.Errorf("reflection writer exited with code %d", result.ExitCode)
+	}
+	return true, nil
+}
+
+func standaloneReflectionFor(definition lab.Definition, path string) (standaloneReflectionSpec, error) {
+	if len(definition.ConceptIDs) != 1 {
+		return standaloneReflectionSpec{}, errors.New("generated standalone lab must map exactly one concept")
+	}
+	bundle, err := curriculum.Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		return standaloneReflectionSpec{}, fmt.Errorf("load curriculum for lab reflection: %w", err)
+	}
+	conceptID := definition.ConceptIDs[0]
+	for _, concept := range bundle.Concepts.Concepts {
+		if concept.ID == conceptID {
+			return standaloneReflectionSpec{
+				path:      path,
+				conceptID: concept.ID,
+				title:     concept.TitleFR,
+				terms:     slices.Clone(concept.AnchorTerms),
+			}, nil
+		}
+	}
+	return standaloneReflectionSpec{}, fmt.Errorf("unknown concept %q for lab reflection", conceptID)
+}
+
+func readRequiredLabLine(scanner *bufio.Scanner, out io.Writer, prompt string) (string, error) {
+	for {
+		fmt.Fprint(out, prompt)
+		if !scanner.Scan() {
+			if err := scanner.Err(); err != nil {
+				return "", err
+			}
+			return "", io.EOF
+		}
+		value := strings.TrimSpace(scanner.Text())
+		if value != "" {
+			return value, nil
+		}
+		fmt.Fprintln(out, "Réponse vide : une phrase suffit.")
 	}
 }
 

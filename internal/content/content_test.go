@@ -397,21 +397,35 @@ func TestExam101GeneratedPedagogyIsFocusedAndApplied(t *testing.T) {
 		if !exists {
 			t.Fatalf("missing focused lesson for Exam 101 concept %s", concept.ID)
 		}
-		for _, heading := range []string{
-			"## À comprendre précisément",
-			"## Exemple travaillé / commandes",
-			"## Raisonnement attendu",
-			"## Auto-test",
-		} {
-			if !strings.Contains(lesson.BodyMarkdown, heading) {
-				t.Errorf("%s focused lesson missing %q", concept.ID, heading)
+		if strings.HasSuffix(lesson.ID, ".lesson.autonomous") {
+			for _, heading := range []string{
+				"## À retenir",
+				"## À essayer",
+				"## Point d'attention",
+				"## Vérifie-toi",
+			} {
+				if !strings.Contains(lesson.BodyMarkdown, heading) {
+					t.Errorf("%s generated focused lesson missing %q", concept.ID, heading)
+				}
 			}
+		} else if !strings.Contains(lesson.BodyMarkdown, standaloneSupplementHeading) {
+			t.Errorf("%s authored focused lesson has no compact standalone supplement", concept.ID)
 		}
 		if strings.Contains(lesson.BodyMarkdown, "## Termes, fichiers et utilitaires à connaître pour") {
 			t.Errorf("%s still uses the objective-wide term dump instead of focused Exam 101 pedagogy", concept.ID)
 		}
 		if strings.Contains(lesson.BodyMarkdown, "explique son rôle, donne un cas d'emploi") {
 			t.Errorf("%s still contains a learner instruction where a worked example is required", concept.ID)
+		}
+		for _, filler := range []string{
+			"Ce concept appartient à",
+			"Ne mémorise pas seulement les noms",
+			"Ramène cette pratique au concept",
+			"Face à une question sur",
+		} {
+			if strings.Contains(lesson.BodyMarkdown, filler) {
+				t.Errorf("%s still contains generic generated filler %q", concept.ID, filler)
+			}
 		}
 
 		applicationID := concept.ID + ".q.autonomous-application"

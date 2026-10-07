@@ -548,6 +548,12 @@ func TestGeneratedStandaloneLabsUseConceptAnchors(t *testing.T) {
 				break
 			}
 		}
+		if conceptID == "lpic1.103.1.set-env-et-portee-des-variables" {
+			// This exercise compares shell-local and exported state inside one
+			// persistent shell. The learner reflection is the evidence source;
+			// a separate one-shot command would run in another shell.
+			continue
+		}
 		if hasCommandAnchor && commandEvidence[conceptID] < 2 {
 			t.Errorf("%s runtime command-evidence contexts = %d, want at least 2", conceptID, commandEvidence[conceptID])
 		}
