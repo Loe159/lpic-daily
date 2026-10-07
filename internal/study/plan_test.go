@@ -717,8 +717,8 @@ func TestIndependentConceptRecommendsUnusedTransferLab(t *testing.T) {
 	if len(plan.Items) != 1 || plan.Items[0].ConceptID != conceptID {
 		t.Fatalf("items = %#v, want due independent review", plan.Items)
 	}
-	if got := plan.Items[0].RecommendedLabID; got != "lpic1.103.1.transfer-shell-handoff" {
-		t.Fatalf("recommended lab = %q, want unused transfer context", got)
+	if got := plan.Items[0].RecommendedLabID; got != "lpic1.103.1.outside-path-recovery" {
+		t.Fatalf("recommended lab = %q, want unused scenario context", got)
 	}
 }
 
@@ -820,8 +820,8 @@ func TestIndependentConceptSkipsUnusedLabIDInAlreadyUsedPracticeContext(t *testi
 	if len(plan.Items) != 1 {
 		t.Fatalf("items = %#v, want one due review", plan.Items)
 	}
-	if got := plan.Items[0].RecommendedLabID; got != "lpic1.103.1.transfer-shell-handoff" {
-		t.Fatalf("recommended lab = %q, want materially different practice context", got)
+	if got := plan.Items[0].RecommendedLabID; got != "lpic1.103.1.outside-path-recovery" {
+		t.Fatalf("recommended lab = %q, want materially different scenario context", got)
 	}
 }
 
