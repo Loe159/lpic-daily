@@ -1,0 +1,141 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.4.deb-apt-offline-recovery",
+  "title_fr": "Réparer un paquet Debian hors ligne avec dpkg et APT",
+  "brief_fr": "Un paquet nano .deb est conservé sous /opt/lpic/packages. Crée /root/lpic-deb/. Capture les sources APT dans sources.txt, apt-cache policy dans policy.txt et apt-cache depends nano dans dependencies.txt. Supprime nano avec apt-get, réinstalle le .deb local avec apt-get, supprime ensuite nano avec dpkg -r puis réinstalle-le avec dpkg -i. Inspecte le paquet avec dpkg-deb -c dans package-content.txt, les fichiers installés avec dpkg -L dans installed-files.txt, et le propriétaire de /usr/bin/bash avec dpkg -S dans owner.txt. Simule une mise à jour avec apt-get -s upgrade dans upgrade-sim.txt. Enfin configure tzdata sur Etc/UTC via debconf-set-selections et dpkg-reconfigure -f noninteractive ; capture la cible de /etc/localtime dans timezone-target.txt.",
+  "success_criteria_fr": [
+    "dpkg et APT sont tous deux utilisés sur un vrai paquet local.",
+    "La suppression, installation et simulation de mise à jour sont visibles dans l'état/logs.",
+    "Sources, métadonnées et dépendances APT sont inspectées.",
+    "Le contenu du .deb et les fichiers installés sont distingués.",
+    "tzdata est réellement reconfiguré sur Etc/UTC.",
+    "dpkg identifie bash comme propriétaire de /usr/bin/bash."
+  ],
+  "debrief_fr": "dpkg travaille directement avec la base Debian et les fichiers .deb ; APT ajoute sources, métadonnées et résolution de dépendances. dpkg-deb inspecte un paquet avant installation, dpkg -L/-S interrogent la base installée et dpkg-reconfigure relance la configuration d'un paquet.",
+  "objective_ids": [
+    "102.4"
+  ],
+  "concept_ids": [
+    "lpic1.102.4.roles-respectifs-dpkg-et-apt",
+    "lpic1.102.4.installation-mise-a-jour-suppression",
+    "lpic1.102.4.sources-et-metadonnees",
+    "lpic1.102.4.dependances",
+    "lpic1.102.4.inspection-d-un-paquet-et-de-ses-fichiers",
+    "lpic1.102.4.reconfiguration",
+    "lpic1.102.4.identifier-quel-paquet-fournit-possede-un-fichier"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "estimated_minutes": 22,
+  "practice_context": "deb-apt-offline-recovery",
+  "environment": {
+    "backend": "libvirt",
+    "image_ref": "debian-13-x86_64-v2",
+    "distribution": "debian",
+    "network": "none",
+    "capability_profile": "full-machine",
+    "writable_guest_paths": [],
+    "machine": {
+      "firmware": "uefi"
+    }
+  },
+  "resources": {
+    "memory_mb": 1024,
+    "pids": 192,
+    "timeout_seconds": 2400,
+    "cpu_percent": 100
+  },
+  "setup": {
+    "execution_scope": "none"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "dpkg-query -W -f='${Status}\\n' nano | grep -qx 'install ok installed' && test -x /usr/bin/nano"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.4.roles-respectifs-dpkg-et-apt",
+        "lpic1.102.4.installation-mise-a-jour-suppression"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "grep -Eq '^(deb |Types: deb|URIs:)' /root/lpic-deb/sources.txt && test -s /root/lpic-deb/policy.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.4.sources-et-metadonnees",
+        "lpic1.102.4.roles-respectifs-dpkg-et-apt"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "grep -Eq 'Depends:|PreDepends:' /root/lpic-deb/dependencies.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.4.dependances"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "grep -q '/usr/bin/nano' /root/lpic-deb/installed-files.txt && grep -Eq 'usr/bin/nano|bin/nano' /root/lpic-deb/package-content.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.4.inspection-d-un-paquet-et-de-ses-fichiers"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "grep -Eq ' remove nano | install nano ' /var/log/dpkg.log && grep -q 'nano' /var/log/apt/history.log && test -s /root/lpic-deb/upgrade-sim.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.4.installation-mise-a-jour-suppression"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/root/lpic-deb/timezone-target.txt",
+      "pattern": "^/usr/share/zoneinfo/Etc/UTC\\n?$",
+      "concept_ids": [
+        "lpic1.102.4.reconfiguration"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/root/lpic-deb/owner.txt",
+      "pattern": "^bash: /usr/bin/bash\\n?$",
+      "concept_ids": [
+        "lpic1.102.4.identifier-quel-paquet-fournit-possede-un-fichier"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.102.4.deb-apt-offline-recovery.hint-1",
+    "lpic1.102.4.deb-apt-offline-recovery.hint-2",
+    "lpic1.102.4.deb-apt-offline-recovery.hint-3",
+    "lpic1.102.4.deb-apt-offline-recovery.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}
