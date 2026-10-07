@@ -384,6 +384,14 @@ func StandaloneReflectionPath(definition Definition) (string, bool) {
 }
 
 func standaloneCommandEvidencePattern(concept curriculum.Concept) string {
+	// This concept is intentionally exercised inside one persistent shell:
+	// a non-exported variable must survive while set/env are compared. The
+	// interactive reflection is therefore the evidence source; executing env or
+	// set later through the one-command runner would test a different shell.
+	if concept.ID == "lpic1.103.1.set-env-et-portee-des-variables" {
+		return ""
+	}
+
 	var commands []string
 	for _, anchor := range concept.AnchorTerms {
 		if !standaloneCommandAnchorAllowed(anchor) || !standaloneDirectCommandAnchor(anchor) {
