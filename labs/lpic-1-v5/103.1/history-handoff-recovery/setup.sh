@@ -13,4 +13,5 @@ export API_TOKEN=should-not-stay
 echo old
 EOF
 chown alice:alice /home/alice/.bashrc /home/alice/.bash_history
-rm -f /run/lpic/history-proof
+touch /run/lpic/history-proof
+chown alice:alice /run/lpic/history-proof
