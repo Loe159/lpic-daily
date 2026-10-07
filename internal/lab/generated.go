@@ -134,7 +134,7 @@ func standaloneConceptsForObjective(all []curriculum.Concept, objectiveID string
 func generatedStandaloneLab(
 	objective curriculum.Objective,
 	concept curriculum.Concept,
-	guide curriculum.ObjectiveStudyGuide,
+	_ curriculum.ObjectiveStudyGuide,
 	variant int,
 ) Lab {
 	contextName := "diagnostic"
@@ -210,9 +210,9 @@ func generatedStandaloneLab(
 	}
 
 	brief := fmt.Sprintf(
-		"## Objectif\n%s\n\n## À faire\n%s\n\nQuand tu as terminé, tape `:check`. "+
-			"LPIC Daily te demandera une conclusion courte avant de valider le lab.",
+		"## Objectif\n%s\n\nRepères : %s\n\n## À faire\n%s\n\nQuand tu as terminé, tape `:check`.",
 		concept.TitleFR,
+		standaloneAnchorList(concept),
 		standaloneLearnerTask(concept, variant),
 	)
 
@@ -224,15 +224,10 @@ func generatedStandaloneLab(
 			TitleFR:       fmt.Sprintf("%s — %s — pratique %s", objective.ID, concept.TitleFR, contextFR),
 			BriefFR:       brief,
 			SuccessCriteriaFR: []string{
-				"La manipulation demandée a réellement été effectuée.",
-				"Le résultat observé permet d'expliquer le concept avec tes propres mots.",
+				"La commande ou l'observation demandée a été réalisée.",
+				fmt.Sprintf("Tu peux relier %s à « %s ».", standaloneAnchorList(concept), concept.TitleFR),
 			},
-			DebriefFR: fmt.Sprintf(
-				"%s %s Le contexte %s oblige à reformuler et vérifier chaque sous-concept au lieu de valider l'objectif par une seule commande.",
-				guide.Overview,
-				guide.Pitfalls,
-				contextFR,
-			),
+			DebriefFR: standaloneDebrief(concept),
 			ObjectiveIDs:     []string{objective.ID},
 			ConceptIDs:       []string{concept.ID},
 			Labels:           []string{"lpic-required"},
@@ -294,15 +289,166 @@ func standaloneMachineForObjective(objective curriculum.Objective) *Machine {
 	return machine
 }
 
+type standalonePracticeExample struct {
+	Anchor      string
+	Command     string
+	Explanation string
+}
+
+func standaloneAnchorList(concept curriculum.Concept) string {
+	return "`" + strings.Join(concept.AnchorTerms, "`, `") + "`"
+}
+
+func standalonePracticeExamples(concept curriculum.Concept) []standalonePracticeExample {
+	examples := make([]standalonePracticeExample, 0, 4)
+	seen := make(map[string]struct{})
+	for _, anchor := range concept.AnchorTerms {
+		explanation := content.PedagogicalTermExplanation(anchor, concept.ObjectiveID)
+		usage := strings.TrimSpace(content.PedagogicalTermUsage(anchor))
+		if usage != "" && standaloneCommandAnchorAllowed(anchor) {
+			for _, command := range strings.Split(usage, " ; ") {
+				command = strings.TrimSpace(command)
+				if command == "" {
+					continue
+				}
+				if _, duplicate := seen[command]; duplicate {
+					continue
+				}
+				seen[command] = struct{}{}
+				examples = append(examples, standalonePracticeExample{
+					Anchor: anchor, Command: command, Explanation: explanation,
+				})
+				if len(examples) == 4 {
+					return examples
+				}
+			}
+		}
+		if fallback := standaloneInspectionCommand(anchor); fallback != "" {
+			if _, duplicate := seen[fallback]; !duplicate {
+				seen[fallback] = struct{}{}
+				examples = append(examples, standalonePracticeExample{
+					Anchor: anchor, Command: fallback, Explanation: explanation,
+				})
+				if len(examples) == 4 {
+					return examples
+				}
+			}
+		}
+	}
+	return examples
+}
+
+func standaloneInspectionCommand(anchor string) string {
+	switch {
+	case strings.HasPrefix(anchor, "/"), strings.HasPrefix(anchor, "~/"):
+		return "ls -ld " + anchor
+	case isDecimalAnchor(anchor):
+		return "grep -E '[[:space:]]" + anchor + "/(tcp|udp)' /etc/services"
+	default:
+		return ""
+	}
+}
+
+func isDecimalAnchor(value string) bool {
+	if value == "" {
+		return false
+	}
+	for _, r := range value {
+		if r < '0' || r > '9' {
+			return false
+		}
+	}
+	return true
+}
+
+func standaloneLearnerTask(concept curriculum.Concept, variant int) string {
+	if concept.ID == "lpic1.103.1.set-env-et-portee-des-variables" {
+		if variant == 0 {
+			return "Crée `LPIC_SCOPE=local` sans l'exporter. Vérifie sa présence avec `set` et son absence avec `env`, puis exporte-la et compare à nouveau."
+		}
+		return "Crée `LPIC_CHILD=visible`, exporte-la et lance `env | grep '^LPIC_CHILD='`. Fais ensuite `unset LPIC_CHILD` et vérifie qu'un nouveau processus ne la reçoit plus."
+	}
+
+	examples := standalonePracticeExamples(concept)
+	if len(examples) != 0 {
+		example := examples[variant%len(examples)]
+		if variant == 0 {
+			return fmt.Sprintf(
+				"Exécute `%s`. Observe ce que le résultat montre sur `%s` : %s",
+				example.Command,
+				example.Anchor,
+				example.Explanation,
+			)
+		}
+		return fmt.Sprintf(
+			"Utilise `%s` sur un autre exemple ou une autre cible. Vérifie que le résultat confirme le rôle de `%s` : %s",
+			example.Command,
+			example.Anchor,
+			example.Explanation,
+		)
+	}
+
+	if len(concept.AnchorTerms) >= 2 {
+		first := concept.AnchorTerms[0]
+		second := concept.AnchorTerms[1]
+		return fmt.Sprintf(
+			"Compare `%s` et `%s` dans le système du lab. Identifie un exemple concret de chacun et explique la différence : `%s` — %s ; `%s` — %s",
+			first,
+			second,
+			first,
+			content.PedagogicalTermExplanation(first, concept.ObjectiveID),
+			second,
+			content.PedagogicalTermExplanation(second, concept.ObjectiveID),
+		)
+	}
+
+	anchor := concept.AnchorTerms[0]
+	return fmt.Sprintf(
+		"Trouve dans le système du lab un exemple de `%s` correspondant à cette définition : %s Note où tu l'as observé et ce qui le prouve.",
+		anchor,
+		content.PedagogicalTermExplanation(anchor, concept.ObjectiveID),
+	)
+}
+
+func standaloneDebrief(concept curriculum.Concept) string {
+	limit := 2
+	if len(concept.AnchorTerms) < limit {
+		limit = len(concept.AnchorTerms)
+	}
+	parts := make([]string, 0, limit)
+	for _, anchor := range concept.AnchorTerms[:limit] {
+		parts = append(parts, fmt.Sprintf(
+			"`%s` : %s",
+			anchor,
+			content.PedagogicalTermExplanation(anchor, concept.ObjectiveID),
+		))
+	}
+	return "À retenir — " + strings.Join(parts, " ")
+}
+
 func generatedStandaloneHints(labID string, concept curriculum.Concept) []Hint {
-	anchors := "`" + strings.Join(concept.AnchorTerms, "`, `") + "`"
+	examples := standalonePracticeExamples(concept)
+	firstAnchor := concept.AnchorTerms[0]
+	firstExplanation := content.PedagogicalTermExplanation(firstAnchor, concept.ObjectiveID)
+
+	level1 := "Commence par repérer `" + firstAnchor + "` : " + firstExplanation
+	level2 := "Cherche un résultat observable qui confirme cette définition."
+	level4 := "Reprends exactement les repères " + standaloneAnchorList(concept) + " et vérifie-les un par un."
+	if len(examples) != 0 {
+		level1 = "Commence par `" + examples[0].Command + "`."
+		level2 = "Dans le résultat, vérifie `" + examples[0].Anchor + "` : " + examples[0].Explanation
+		if len(examples) > 1 {
+			level4 = "Essaie ensuite `" + examples[1].Command + "` et compare les deux observations."
+		}
+	}
+
 	return []Hint{
 		{
 			SchemaVersion:  "1.0.0",
 			ID:             labID + ".hint-1",
 			LabID:          labID,
 			Level:          1,
-			ContentFR:      "Commence par observer le système avant de modifier quoi que ce soit. Repère ce que montrent " + anchors + ".",
+			ContentFR:      level1,
 			EvidenceImpact: "none",
 		},
 		{
@@ -310,7 +456,7 @@ func generatedStandaloneHints(labID string, concept curriculum.Concept) []Hint {
 			ID:             labID + ".hint-2",
 			LabID:          labID,
 			Level:          2,
-			ContentFR:      "Fais une petite manipulation, puis compare l'état avant et après avec " + anchors + ".",
+			ContentFR:      level2,
 			EvidenceImpact: "material",
 		},
 		{
@@ -318,7 +464,7 @@ func generatedStandaloneHints(labID string, concept curriculum.Concept) []Hint {
 			ID:             labID + ".hint-3",
 			LabID:          labID,
 			Level:          3,
-			ContentFR:      "Avant `:check`, prépare deux phrases : ce que tu as observé et pourquoi ce résultat démontre le concept.",
+			ContentFR:      "Avant `:check`, résume en une phrase ce que tu as observé et ce que cela démontre.",
 			EvidenceImpact: "material",
 		},
 		{
@@ -326,34 +472,10 @@ func generatedStandaloneHints(labID string, concept curriculum.Concept) []Hint {
 			ID:             labID + ".hint-4",
 			LabID:          labID,
 			Level:          4,
-			ContentFR:      "Repars de la consigne et utilise directement " + anchors + ". Cherche un résultat observable qui distingue clairement les deux états ou comportements étudiés.",
+			ContentFR:      level4,
 			EvidenceImpact: "solution-revealed",
 		},
 	}
-}
-
-func standaloneLearnerTask(concept curriculum.Concept, variant int) string {
-	switch concept.ID {
-	case "lpic1.103.1.set-env-et-portee-des-variables":
-		if variant == 0 {
-			return "Dans le shell, crée une variable sans l'exporter. Compare ce que montrent `set` et `env`. Exporte ensuite la variable et compare à nouveau."
-		}
-		return "Crée une nouvelle variable et vérifie si un processus lancé avec `env` la reçoit. Change sa portée, puis vérifie à nouveau avec `set` et `env`."
-	}
-
-	anchors := "`" + strings.Join(concept.AnchorTerms, "`, `") + "`"
-	if variant == 0 {
-		return fmt.Sprintf(
-			"Utilise %s pour montrer concrètement **%s**. Fais au moins une manipulation dont tu peux expliquer le résultat.",
-			anchors,
-			concept.TitleFR,
-		)
-	}
-	return fmt.Sprintf(
-		"Reproduis **%s** dans un autre cas en utilisant %s, puis vérifie le résultat obtenu.",
-		concept.TitleFR,
-		anchors,
-	)
 }
 
 func StandaloneCommandHistoryPath(definition Definition) (string, bool) {
