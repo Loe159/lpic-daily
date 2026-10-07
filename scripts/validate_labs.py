@@ -154,10 +154,16 @@ def main():
             if not safe_local_ref(lab_dir, setup.get("script_ref")):
                 errors.append(f"{lab_id}: setup script reference is missing or unsafe")
         elif backend == "libvirt":
-            if setup_scope != "none":
-                errors.append(f"{lab_id}: Phase-2 libvirt setup must use execution_scope=none")
-            if "script_ref" in setup:
-                errors.append(f"{lab_id}: libvirt setup=none must not declare script_ref")
+            if setup_scope == "none":
+                if "script_ref" in setup:
+                    errors.append(f"{lab_id}: libvirt setup=none must not declare script_ref")
+            elif setup_scope == "sandbox":
+                if not safe_local_ref(lab_dir, setup.get("script_ref")):
+                    errors.append(f"{lab_id}: libvirt setup script reference is missing or unsafe")
+            else:
+                errors.append(
+                    f"{lab_id}: libvirt setup execution_scope must be 'none' or 'sandbox'"
+                )
 
         solution_ref = lab.get("reference_solution_ref")
         if solution_ref is not None and not safe_local_ref(lab_dir, solution_ref):
