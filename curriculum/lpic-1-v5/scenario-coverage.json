@@ -4,6 +4,7 @@
     "103.1",
     "103.2",
     "103.3",
+    "103.4",
     "103.5",
     "104.5"
   ],
@@ -223,6 +224,37 @@
         "lpic1.103.3.copie-bas-niveau-dd",
         "lpic1.103.3.compression-gzip-bzip2-xz",
         "lpic1.103.3.detection-de-type"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "artifact"
+    },
+    {
+      "scenario_id": "lpic1.103.4.batch-stream-repair",
+      "objective_ids": [
+        "103.4"
+      ],
+      "concept_ids": [
+        "lpic1.103.4.stdin-stdout-stderr-et-descripteurs",
+        "lpic1.103.4.redirections-ecrasement-append",
+        "lpic1.103.4.redirection-stderr",
+        "lpic1.103.4.pipelines",
+        "lpic1.103.4.dupliquer-sortie-avec-tee",
+        "lpic1.103.4.ordre-des-redirections"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "artifact"
+    },
+    {
+      "scenario_id": "lpic1.103.4.bulk-argument-dispatch",
+      "objective_ids": [
+        "103.4"
+      ],
+      "concept_ids": [
+        "lpic1.103.4.transformer-stdin-en-arguments-via-xargs",
+        "lpic1.103.4.pipelines",
+        "lpic1.103.4.stdin-stdout-stderr-et-descripteurs"
       ],
       "backend": "podman",
       "status": "accepted",

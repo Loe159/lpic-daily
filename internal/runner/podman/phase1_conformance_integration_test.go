@@ -27,6 +27,8 @@ var phase1ReferenceSolutions = map[string]string{
 	"lpic1.103.2.compressed-manifest-recovery": "labs/lpic-1-v5/103.2/compressed-manifest-recovery/reference-solution.sh",
 	"lpic1.103.3.release-tree-recovery":         "labs/lpic-1-v5/103.3/release-tree-recovery/reference-solution.sh",
 	"lpic1.103.3.backup-bundle-recovery":       "labs/lpic-1-v5/103.3/backup-bundle-recovery/reference-solution.sh",
+	"lpic1.103.4.batch-stream-repair":           "labs/lpic-1-v5/103.4/batch-stream-repair/reference-solution.sh",
+	"lpic1.103.4.bulk-argument-dispatch":         "labs/lpic-1-v5/103.4/bulk-argument-dispatch/reference-solution.sh",
 	"lpic1.103.5.stuck-worker":                "labs/lpic-1-v5/103.5/stuck-worker/reference-solution.sh",
 	"lpic1.103.5.transfer-operator-session":   "labs/lpic-1-v5/103.5/transfer-operator-session/reference-solution.sh",
 	"lpic1.104.5.shared-dropbox":              "labs/lpic-1-v5/104.5/shared-dropbox/reference-solution.sh",

@@ -1,0 +1,126 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.4.batch-stream-repair",
+  "title_fr": "Réparer les flux d’un batch",
+  "brief_fr": "Un batch mélange ses sorties et écrase mal ses journaux. À partir de jobs.txt, produis stdout.log avec uniquement les lignes OK, stderr.log avec uniquement les erreurs, combined.log avec les deux flux dans l’ordre, ajoute les OK à history.log sans perdre previous-run, puis duplique les OK vers live.log tout en écrivant leur nombre dans success-count.txt.",
+  "success_criteria_fr": [
+    "stdout.log remplace le contenu STALE et contient uniquement les deux lignes OK.",
+    "stderr.log contient uniquement les deux lignes ERR.",
+    "combined.log contient stdout et stderr dans l’ordre émis par le batch.",
+    "history.log conserve previous-run puis ajoute les deux lignes OK.",
+    "live.log reçoit les lignes OK et success-count.txt vaut 2."
+  ],
+  "debrief_fr": "stdin alimente le programme, stdout et stderr sont deux descripteurs distincts. > écrase, >> ajoute, 2> cible stderr et l’ordre de 2>&1 par rapport à > change la destination copiée. Les pipelines chaînent stdout et tee duplique un flux vers un fichier tout en le laissant continuer.",
+  "objective_ids": [
+    "103.4"
+  ],
+  "concept_ids": [
+    "lpic1.103.4.stdin-stdout-stderr-et-descripteurs",
+    "lpic1.103.4.redirections-ecrasement-append",
+    "lpic1.103.4.redirection-stderr",
+    "lpic1.103.4.pipelines",
+    "lpic1.103.4.dupliquer-sortie-avec-tee",
+    "lpic1.103.4.ordre-des-redirections"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-accepted"
+  ],
+  "estimated_minutes": 10,
+  "practice_context": "batch-stream-repair",
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "baseline",
+    "writable_guest_paths": [
+      "/workspace"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "cpu_percent": 100,
+    "pids": 96,
+    "timeout_seconds": 1200
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "printf 'OK:alpha\\nOK:gamma\\n' | cmp -s - /workspace/output/stdout.log"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.4.stdin-stdout-stderr-et-descripteurs",
+        "lpic1.103.4.redirections-ecrasement-append"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "printf 'ERR:bad-beta\\nERR:bad-delta\\n' | cmp -s - /workspace/output/stderr.log"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.4.redirection-stderr",
+        "lpic1.103.4.stdin-stdout-stderr-et-descripteurs"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "printf 'OK:alpha\\nERR:bad-beta\\nOK:gamma\\nERR:bad-delta\\n' | cmp -s - /workspace/output/combined.log"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.4.ordre-des-redirections",
+        "lpic1.103.4.redirection-stderr"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "printf 'previous-run\\nOK:alpha\\nOK:gamma\\n' | cmp -s - /workspace/output/history.log"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.4.redirections-ecrasement-append"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "printf 'OK:alpha\\nOK:gamma\\n' | cmp -s - /workspace/output/live.log && grep -qx '2' /workspace/output/success-count.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.4.pipelines",
+        "lpic1.103.4.dupliquer-sortie-avec-tee"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.103.4.batch-stream-repair.hint-1",
+    "lpic1.103.4.batch-stream-repair.hint-2",
+    "lpic1.103.4.batch-stream-repair.hint-3",
+    "lpic1.103.4.batch-stream-repair.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}
