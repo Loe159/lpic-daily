@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "id": "lpic1.102.5.rpm-dnf-offline-recovery",
   "title_fr": "Réparer des paquets RPM avec un dépôt DNF local",
-  "brief_fr": "Un dépôt RPM hors ligne est préparé dans /workspace/repo. Inspecte lpic-demo avec rpm -qpi et rpm2cpio, et vérifie son intégrité avec rpm -K. Installe d'abord lpic-helper puis lpic-demo avec rpm, liste les fichiers de lpic-demo et identifie le paquet possédant /usr/bin/lpic-demo. Modifie volontairement /usr/bin/lpic-demo, capture le résultat non vide de rpm -V dans verify-broken.txt, puis restaure le paquet avec rpm -U --replacepkgs et capture une vérification propre dans verify-clean.txt. Supprime ensuite lpic-demo et lpic-helper avec rpm -e, puis réinstalle uniquement lpic-demo avec DNF depuis le repo lpic-local : DNF doit résoudre lpic-helper automatiquement. Produis aussi repos.txt avec le dépôt local visible.",
+  "brief_fr": "Un dépôt RPM hors ligne est préparé dans /workspace/repo. Travaille dans la racine de test /workspace/root afin de ne jamais modifier le système du conteneur. Inspecte lpic-demo avec rpm -qpi et rpm2cpio, vérifie son intégrité avec rpm -K, puis installe lpic-helper et lpic-demo avec rpm --root. Liste les fichiers et identifie le paquet possédant /usr/bin/lpic-demo dans cette base RPM. Modifie volontairement /workspace/root/usr/bin/lpic-demo, capture rpm -V, restaure le paquet avec rpm -U --replacepkgs, puis supprime les deux paquets. Réinstalle enfin uniquement lpic-demo avec DNF --installroot depuis lpic-local : DNF doit résoudre lpic-helper automatiquement. Produis aussi repos.txt avec le dépôt local visible.",
   "success_criteria_fr": [
     "Le paquet RPM est inspecté sans installation et son payload est listé.",
     "Les opérations rpm install/query/update/remove sont réellement exercées.",
@@ -36,12 +36,7 @@
     "network": "none",
     "capability_profile": "baseline",
     "writable_guest_paths": [
-      "/workspace",
-      "/etc/yum.repos.d",
-      "/usr/bin",
-      "/usr/share",
-      "/var/lib",
-      "/var/cache"
+      "/workspace"
     ]
   },
   "resources": {
@@ -72,7 +67,7 @@
       "argv": [
         "/usr/bin/bash",
         "-lc",
-        "rpm -q lpic-demo >/dev/null && rpm -q lpic-helper >/dev/null && grep -q '/usr/bin/lpic-demo' /workspace/files.txt"
+        "rpm --root /workspace/root -q lpic-demo >/dev/null && rpm --root /workspace/root -q lpic-helper >/dev/null && grep -q '/usr/bin/lpic-demo' /workspace/files.txt"
       ],
       "expected_exit": 0,
       "concept_ids": [
@@ -106,7 +101,7 @@
       "argv": [
         "/usr/bin/bash",
         "-lc",
-        "grep -q '^\\[lpic-local\\]' /etc/yum.repos.d/lpic-local.repo && grep -q 'lpic-local' /workspace/repos.txt"
+        "grep -q '^\\[lpic-local\\]' /workspace/lpic-local.repo && grep -q 'lpic-local' /workspace/repos.txt"
       ],
       "expected_exit": 0,
       "concept_ids": [
@@ -118,7 +113,7 @@
       "argv": [
         "/usr/bin/bash",
         "-lc",
-        "rpm -q --whatrequires lpic-helper | grep -q '^lpic-demo' && test \"$(cat /usr/share/lpic-helper/state.txt)\" = helper-ok && /usr/bin/lpic-demo | grep -qx demo-ok"
+        "rpm --root /workspace/root -q --whatrequires lpic-helper | grep -q '^lpic-demo' && test \"$(cat /workspace/root/usr/share/lpic-helper/state.txt)\" = helper-ok && /workspace/root/usr/bin/lpic-demo | grep -qx demo-ok"
       ],
       "expected_exit": 0,
       "concept_ids": [
