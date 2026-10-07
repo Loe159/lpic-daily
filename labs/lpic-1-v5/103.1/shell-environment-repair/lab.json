@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.1.shell-environment-repair",
   "title_fr": "Réparer un environnement de login shell",
-  "brief_fr": "Une configuration de login shell a été mal modifiée. Dans un nouveau login shell, report-status doit résoudre vers /opt/lpic/approved/bin/report-status, REPORT_ENV doit valoir production et REPORT_FILE doit contenir exactement /var/lib/lpic/reports/daily report.txt. Configure aussi un historique exploitable avec HISTSIZE=2000 et HISTFILESIZE=4000, puis produis /run/lpic/system-summary avec le résultat de uname -s sur la première ligne et le type Bash de report-status sur la seconde.",
+  "brief_fr": "Une configuration de login shell a été mal modifiée. Dans un nouveau login shell, report-status doit résoudre vers /opt/lpic/approved/bin/report-status, REPORT_ENV doit valoir production et REPORT_FILE doit contenir exactement /var/lib/lpic/reports/daily report.txt. Configure aussi un historique exploitable avec HISTSIZE=2000 et HISTFILESIZE=4000, puis produis /run/lpic/system-summary avec le résultat de uname -s sur la première ligne et exactement la sortie de type -t report-status sur la seconde.",
   "success_criteria_fr": [
     "Le report-status approuvé est résolu dans un nouveau login shell.",
     "REPORT_ENV et REPORT_FILE sont correctement exportées, avec le quoting attendu.",
