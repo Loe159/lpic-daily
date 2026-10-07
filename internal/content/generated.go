@@ -192,7 +192,7 @@ func generatedLessonBody(
 func generatedExam101LessonBody(
 	objective curriculum.Objective,
 	concept curriculum.Concept,
-	guide curriculum.ObjectiveStudyGuide,
+	_ curriculum.ObjectiveStudyGuide,
 ) string {
 	var anchors strings.Builder
 	var examples strings.Builder
@@ -219,8 +219,22 @@ func generatedExam101LessonBody(
 			"Explique en une phrase la différence ou le comportement étudié, puis cite la commande qui permet de le vérifier.\n",
 		anchors.String(),
 		examples.String(),
-		strings.TrimSpace(guide.Pitfalls),
+		standaloneConceptAttention(concept),
 	)
+}
+
+func standaloneConceptAttention(concept curriculum.Concept) string {
+	switch concept.ID {
+	case "lpic1.103.1.set-env-et-portee-des-variables":
+		return "Une variable créée dans le shell apparaît dans `set`, mais pas dans `env` tant qu'elle n'est pas exportée."
+	case "lpic1.103.1.export-unset-et-processus-enfants":
+		return "`export` rend une variable disponible aux processus enfants ; `unset` la retire du shell courant."
+	default:
+		return fmt.Sprintf(
+			"Vérifie le comportement avec %s plutôt que de te fier uniquement au nom de l'outil.",
+			inlineCodeList(concept.AnchorTerms),
+		)
+	}
 }
 
 func generatedObjectiveLessonBody(
