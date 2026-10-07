@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.1.filesystem-families.hint-1",
+  "lab_id": "lpic1.104.1.filesystem-families",
+  "level": 1,
+  "content_fr": "Identifie d'abord les cinq disques avec lsblk et vérifie deux fois que /dev/vda reste hors périmètre.",
+  "evidence_impact": "none"
+}

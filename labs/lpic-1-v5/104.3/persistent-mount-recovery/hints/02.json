@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.3.persistent-mount-recovery.hint-2",
+  "lab_id": "lpic1.104.3.persistent-mount-recovery",
+  "level": 2,
+  "content_fr": "blkid fournit UUID et LABEL ; findmnt permet de vérifier la source et les options réellement montées.",
+  "evidence_impact": "material"
+}

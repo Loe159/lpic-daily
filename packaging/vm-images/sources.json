@@ -53,6 +53,7 @@
         "lsof",
         "xfsprogs",
         "dosfstools",
+        "exfatprogs",
         "btrfs-progs",
         "vim-minimal",
         "nano",

@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.3.persistent-mount-recovery.hint-1",
+  "lab_id": "lpic1.104.3.persistent-mount-recovery",
+  "level": 1,
+  "content_fr": "Travaille d'abord sur vdb : formatage, montage manuel, UUID, fstab, puis systemd. Traite vdc ensuite.",
+  "evidence_impact": "none"
+}

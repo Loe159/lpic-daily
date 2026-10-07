@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.1.filesystem-families.hint-2",
+  "lab_id": "lpic1.104.1.filesystem-families",
+  "level": 2,
+  "content_fr": "Les outils sont mkfs.xfs, mkfs.vfat, mkfs.exfat et mkfs.btrfs ; chacun accepte une option de label.",
+  "evidence_impact": "material"
+}
