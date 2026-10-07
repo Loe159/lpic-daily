@@ -3,6 +3,6 @@
   "id": "lpic1.103.1.history-handoff-recovery.hint-3",
   "lab_id": "lpic1.103.1.history-handoff-recovery",
   "level": 3,
-  "content_fr": "Corrige HISTSIZE/HISTFILESIZE, nettoie l’entrée sensible, crée history-proof depuis /root puis ajoute une entrée correspondante à l’historique avant de l’écrire sur disque.",
+  "content_fr": "Corrige HISTSIZE/HISTFILESIZE pour alice, nettoie l’entrée sensible, crée history-proof depuis /home/alice puis ajoute une entrée correspondante à l’historique avant de l’écrire sur disque.",
   "evidence_impact": "material"
 }
