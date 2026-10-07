@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.2.grub-recovery-layout.hint-3",
+  "lab_id": "lpic1.102.2.grub-recovery-layout",
+  "level": 3,
+  "content_fr": "GRUB Legacy et GRUB 2 se distinguent aussi par leurs fichiers de configuration : note ce qui est réellement présent sur Fedora.",
+  "evidence_impact": "material"
+}

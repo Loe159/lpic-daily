@@ -71,7 +71,9 @@
         "lvm2",
         "acpid",
         "cloud-init",
-        "openssh-server"
+        "openssh-server",
+        "dracut",
+        "grub2-tools"
       ],
       "recipe": "fedora-cloud-v2"
     },

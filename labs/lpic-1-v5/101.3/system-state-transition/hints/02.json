@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.3.system-state-transition.hint-2",
+  "lab_id": "lpic1.101.3.system-state-transition",
+  "level": 2,
+  "content_fr": "Requires= exprime une dépendance, After= l'ordre. Active les deux unités de preuve avec systemctl daemon-reload puis enable --now.",
+  "evidence_impact": "material"
+}

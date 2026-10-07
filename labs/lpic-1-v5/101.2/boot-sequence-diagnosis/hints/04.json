@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.2.boot-sequence-diagnosis.hint-4",
+  "lab_id": "lpic1.101.2.boot-sequence-diagnosis",
+  "level": 4,
+  "content_fr": "Collecte ensuite PID 1, /sbin/init et journalctl -b -k sous /root/lpic-boot avant :check.",
+  "evidence_impact": "solution-revealed"
+}

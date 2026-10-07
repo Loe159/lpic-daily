@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.2.grub-recovery-layout.hint-4",
+  "lab_id": "lpic1.102.2.grub-recovery-layout",
+  "level": 4,
+  "content_fr": "Avant :check, vérifie parted print, grep LPIC Recovery dans grub.cfg et les deux fichiers sous /root/lpic-grub.",
+  "evidence_impact": "solution-revealed"
+}

@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.3.system-state-transition.hint-3",
+  "lab_id": "lpic1.101.3.system-state-transition",
+  "level": 3,
+  "content_fr": "Le marqueur clean-stop ne doit apparaître qu'après l'arrêt de l'unité ; utilise :reboot une fois lpc-cleanstop actif.",
+  "evidence_impact": "material"
+}

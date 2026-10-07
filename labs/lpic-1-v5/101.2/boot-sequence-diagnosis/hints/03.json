@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.2.boot-sequence-diagnosis.hint-3",
+  "lab_id": "lpic1.101.2.boot-sequence-diagnosis",
+  "level": 3,
+  "content_fr": "Après reboot, /proc/cmdline doit contenir le token. /sys/firmware/efi distingue UEFI et lsinitrd inspecte l'image du noyau courant.",
+  "evidence_impact": "material"
+}

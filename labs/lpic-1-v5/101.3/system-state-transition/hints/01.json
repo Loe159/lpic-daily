@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.3.system-state-transition.hint-1",
+  "lab_id": "lpic1.101.3.system-state-transition",
+  "level": 1,
+  "content_fr": "Commence par les targets et les rapports ; la partie services vient ensuite. Ne change pas de target courant vers rescue, contente-toi de l'inspecter.",
+  "evidence_impact": "none"
+}
