@@ -69,7 +69,7 @@
       "argv": [
         "/usr/bin/bash",
         "-lc",
-        "test -s /workspace/acme.db && locate -d /workspace/acme.db -b '\\\\acme-guide.txt' | grep -qx '/workspace/catalog/usr/share/doc/acme-guide.txt'"
+        "test -s /workspace/acme.db && locate -d /workspace/acme.db -b 'acme-guide.txt' | grep -qx '/workspace/catalog/usr/share/doc/acme-guide.txt'"
       ],
       "expected_exit": 0,
       "concept_ids": [
