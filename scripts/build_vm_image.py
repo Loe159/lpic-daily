@@ -97,7 +97,7 @@ EOF""",
     ]
     recipe = image["recipe"]
     distribution = image["distribution"]
-    if recipe == "fedora-cloud-v2":
+    if recipe == "fedora-cloud-v3":
         expected_distribution = "fedora"
         commands = [
             "grubby --update-kernel=ALL --args='console=tty0 console=ttyS0,115200n8'",
@@ -105,7 +105,7 @@ EOF""",
             """printf '%s\n' 'GRUB_TERMINAL_INPUT="console serial"' 'GRUB_TERMINAL_OUTPUT="console serial"' 'GRUB_SERIAL_COMMAND="serial --unit=0 --speed=115200 --word=8 --parity=no --stop=1"' 'GRUB_TIMEOUT_STYLE="menu"' 'GRUB_TIMEOUT="5"' >> /etc/default/grub""",
             "grub2-mkconfig -o /boot/grub2/grub.cfg",
         ]
-    elif recipe == "debian-cloud-v2":
+    elif recipe == "debian-cloud-v3":
         expected_distribution = "debian"
         commands = [
             """grep -q 'console=ttyS0,115200n8' /etc/default/grub || sed -i 's/^GRUB_CMDLINE_LINUX="/GRUB_CMDLINE_LINUX="console=tty0 console=ttyS0,115200n8 /' /etc/default/grub""",
@@ -113,7 +113,7 @@ EOF""",
             "install -d -m 0755 /opt/lpic/packages",
             "cd /opt/lpic/packages && apt-get download nano",
         ]
-    elif recipe == "opensuse-cloud-v2":
+    elif recipe == "opensuse-cloud-v3":
         expected_distribution = "opensuse"
         commands = [
             """grep -q 'console=ttyS0,115200n8' /etc/default/grub || sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT="/GRUB_CMDLINE_LINUX_DEFAULT="console=tty0 console=ttyS0,115200n8 /' /etc/default/grub""",
