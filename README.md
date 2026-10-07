@@ -81,6 +81,8 @@ lpic assess             # évaluation initiale
 lpic lab list           # voir les labs disponibles
 lpic lab run <lab-id>   # lancer un lab
 lpic doctor             # vérifier l'environnement
+lpic doctor --fix       # réparer les dépendances utilisateur/Podman simples avec confirmation
+lpic doctor --fix --vm  # préparer aussi KVM/libvirt et l'image VM
 lpic update             # mettre à jour depuis main
 ```
 
