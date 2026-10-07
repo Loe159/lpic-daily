@@ -1,7 +1,9 @@
 {
   "schema_version": "1.0.0",
   "migrated_objective_ids": [
-    "103.1"
+    "103.1",
+    "103.5",
+    "104.5"
   ],
   "scenarios": [
     {
@@ -85,6 +87,84 @@
       "backend": "podman",
       "status": "accepted",
       "evidence_strength": "state"
+    },
+    {
+      "scenario_id": "lpic1.103.5.stuck-worker",
+      "objective_ids": [
+        "103.5"
+      ],
+      "concept_ids": [
+        "lpic1.103.5.processus-avant-arriere-plan",
+        "lpic1.103.5.jobs-du-shell",
+        "lpic1.103.5.signaux",
+        "lpic1.103.5.inspection-arbres-ressources",
+        "lpic1.103.5.processus-survivant-a-la-session",
+        "lpic1.103.5.selection-par-nom-pid",
+        "lpic1.103.5.multiplexeurs-de-terminal"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "behavior",
+      "transfer_group": "103.5-process-control"
+    },
+    {
+      "scenario_id": "lpic1.103.5.transfer-operator-session",
+      "objective_ids": [
+        "103.5"
+      ],
+      "concept_ids": [
+        "lpic1.103.5.processus-avant-arriere-plan",
+        "lpic1.103.5.jobs-du-shell",
+        "lpic1.103.5.signaux",
+        "lpic1.103.5.inspection-arbres-ressources",
+        "lpic1.103.5.processus-survivant-a-la-session",
+        "lpic1.103.5.selection-par-nom-pid",
+        "lpic1.103.5.multiplexeurs-de-terminal"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "behavior",
+      "transfer_group": "103.5-process-control"
+    },
+    {
+      "scenario_id": "lpic1.104.5.shared-dropbox",
+      "objective_ids": [
+        "104.5"
+      ],
+      "concept_ids": [
+        "lpic1.104.5.permissions-rwx-fichier-dossier",
+        "lpic1.104.5.notation-symbolique-octale",
+        "lpic1.104.5.proprietaire-groupe",
+        "lpic1.104.5.umask",
+        "lpic1.104.5.suid",
+        "lpic1.104.5.sgid",
+        "lpic1.104.5.sticky-bit",
+        "lpic1.104.5.effets-speciaux-sur-repertoires"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "behavior",
+      "transfer_group": "104.5-shared-permissions"
+    },
+    {
+      "scenario_id": "lpic1.104.5.transfer-team-share-audit",
+      "objective_ids": [
+        "104.5"
+      ],
+      "concept_ids": [
+        "lpic1.104.5.permissions-rwx-fichier-dossier",
+        "lpic1.104.5.notation-symbolique-octale",
+        "lpic1.104.5.proprietaire-groupe",
+        "lpic1.104.5.umask",
+        "lpic1.104.5.suid",
+        "lpic1.104.5.sgid",
+        "lpic1.104.5.sticky-bit",
+        "lpic1.104.5.effets-speciaux-sur-repertoires"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "behavior",
+      "transfer_group": "104.5-shared-permissions"
     }
   ]
 }
