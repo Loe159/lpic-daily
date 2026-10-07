@@ -14,8 +14,7 @@
   ],
   "concept_ids": [
     "lpic1.103.1.edition-et-persistance-de-l-historique",
-    "lpic1.103.1.historique",
-    "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes"
+    "lpic1.103.1.historique"
   ],
   "labels": [
     "lpic-required",
@@ -81,8 +80,7 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.1.edition-et-persistance-de-l-historique",
-        "lpic1.103.1.historique",
-        "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes"
+        "lpic1.103.1.historique"
       ]
     }
   ],
