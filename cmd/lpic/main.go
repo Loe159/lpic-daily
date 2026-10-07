@@ -82,19 +82,7 @@ func runWithIO(args []string, stdin io.Reader, stdout, stderr io.Writer) error {
 		fmt.Fprintf(stdout, "builtin content OK: %d lessons; %d questions\n", len(contentBundle.Lessons), len(contentBundle.Questions))
 		return nil
 	case "doctor":
-		if _, err := curriculum.Load(lpicdaily.BuiltinFS); err != nil {
-			return fmt.Errorf("builtin curriculum: %w", err)
-		}
-		if _, err := lab.LoadAll(lpicdaily.BuiltinFS); err != nil {
-			return fmt.Errorf("builtin labs: %w", err)
-		}
-		if _, err := content.Load(lpicdaily.BuiltinFS); err != nil {
-			return fmt.Errorf("builtin content: %w", err)
-		}
-		for _, check := range doctor.Run().Checks {
-			fmt.Fprintf(stdout, "%-24s %-5s %s\n", check.Name, check.Status, check.Detail)
-		}
-		return nil
+		return runDoctor(args[1:], stdin, stdout, stderr)
 	case "today":
 		return runToday(args[1:], stdout)
 	case "continue":
@@ -236,6 +224,63 @@ func runDashboardLab(
 	fmt.Fprint(stdout, "Quand le lab est terminé, reviens ici et appuie sur Entrée pour actualiser la progression. ")
 	if _, err := readLine(stdin); err != nil {
 		return fmt.Errorf("wait for child lab completion: %w", err)
+	}
+	return nil
+}
+
+func runDoctor(args []string, stdin io.Reader, stdout, stderr io.Writer) error {
+	fix := false
+	prepareVM := false
+	assumeYes := false
+	for _, arg := range args {
+		switch arg {
+		case "--fix":
+			fix = true
+		case "--vm":
+			prepareVM = true
+		case "--yes", "-y":
+			assumeYes = true
+		case "help", "-h", "--help":
+			fmt.Fprintln(stdout, "Usage: lpic doctor [--fix] [--vm] [--yes]")
+			fmt.Fprintln(stdout, "  --fix  réparer les dépendances utilisateur/Podman simples avec confirmation")
+			fmt.Fprintln(stdout, "  --vm   avec --fix, préparer aussi KVM/libvirt et l'image VM")
+			return nil
+		default:
+			return fmt.Errorf("usage: lpic doctor [--fix] [--vm] [--yes]")
+		}
+	}
+	if prepareVM && !fix {
+		return errors.New("--vm requires --fix")
+	}
+	if assumeYes && !fix {
+		return errors.New("--yes requires --fix")
+	}
+
+	if fix {
+		if err := bootstrap.Install(context.Background(), lpicdaily.BuiltinFS, bootstrap.Options{
+			Stdin:     stdin,
+			Stdout:    stdout,
+			Stderr:    stderr,
+			PrepareVM: prepareVM,
+			AssumeYes: assumeYes,
+			FirstRun:  false,
+		}); err != nil {
+			return fmt.Errorf("doctor repair: %w", err)
+		}
+		fmt.Fprintln(stdout, "\nVérification après réparation :")
+	}
+
+	if _, err := curriculum.Load(lpicdaily.BuiltinFS); err != nil {
+		return fmt.Errorf("builtin curriculum: %w", err)
+	}
+	if _, err := lab.LoadAll(lpicdaily.BuiltinFS); err != nil {
+		return fmt.Errorf("builtin labs: %w", err)
+	}
+	if _, err := content.Load(lpicdaily.BuiltinFS); err != nil {
+		return fmt.Errorf("builtin content: %w", err)
+	}
+	for _, check := range doctor.Run().Checks {
+		fmt.Fprintf(stdout, "%-24s %-5s %s\n", check.Name, check.Status, check.Detail)
 	}
 	return nil
 }
@@ -2090,7 +2135,7 @@ Usage:
   lpic learn <lesson-id>          read a lesson and record exposure when confirmed
   lpic question <question-id>     answer a deterministic question and record evidence
   lpic validate                  validate embedded curriculum and labs
-  lpic doctor                    check local prerequisites without changing the host
+  lpic doctor [--fix] [--vm]     check prerequisites; optionally repair with confirmation
   lpic labs                      list built-in labs (alias of "lpic lab list")
   lpic lab list                  list built-in labs
   lpic lab show <id>             show a lab without spoilers
