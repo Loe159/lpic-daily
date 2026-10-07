@@ -278,6 +278,35 @@ func TestVMSetupNoneSkipsGuestExec(t *testing.T) {
 	}
 }
 
+func TestVMSetupSandboxUsesStructuredGuestExec(t *testing.T) {
+	authored := loadBuiltinLab(t, sharedDropboxID)
+	authored.Definition.ID = "lpic1.104.2.test-vm-setup"
+	authored.Definition.Environment.Backend = "libvirt"
+	authored.Definition.Environment.CapabilityProfile = "full-machine"
+	authored.Definition.Environment.WritableGuestPaths = nil
+	authored.Definition.Environment.Machine = &lab.Machine{Firmware: "uefi"}
+	authored.Definition.Setup = lab.Setup{ExecutionScope: "sandbox", ScriptRef: "setup.sh"}
+	authored.SetupScript = "printf ready > /run/lpic-vm-setup"
+
+	fake := &fakeRunner{}
+	session, err := lab.Start(context.Background(), authored, fake)
+	if err != nil {
+		t.Fatalf("Start() error = %v", err)
+	}
+	defer session.Close(context.Background())
+
+	if fake.execCalls != 1 {
+		t.Fatalf("VM sandbox setup Exec calls = %d, want 1", fake.execCalls)
+	}
+	if len(fake.exec.Argv) != 4 ||
+		fake.exec.Argv[0] != "/usr/bin/bash" ||
+		fake.exec.Argv[1] != "-eu" ||
+		fake.exec.Argv[2] != "-c" ||
+		fake.exec.Argv[3] != authored.SetupScript {
+		t.Fatalf("VM setup argv = %#v, want structured bash setup", fake.exec.Argv)
+	}
+}
+
 func TestDestructiveSetupCannotModifyHostSentinelThroughLabOrchestration(t *testing.T) {
 	sentinel := filepath.Join(t.TempDir(), "host-sentinel")
 	if err := os.WriteFile(sentinel, []byte("safe"), 0o600); err != nil {
