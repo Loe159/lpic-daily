@@ -139,14 +139,22 @@ func TestAllAuthoredPodmanReferenceSolutionsPassStateChecks(t *testing.T) {
 				}
 			}()
 
+			var solutionStdout, solutionStderr bytes.Buffer
 			result, err := backend.Exec(ctx, session.Instance, runner.ExecRequest{
-				Argv: []string{"/usr/bin/bash", "-eu", "-c", solution},
+				Argv:   []string{"/usr/bin/bash", "-eu", "-c", solution},
+				Stdout: &solutionStdout,
+				Stderr: &solutionStderr,
 			})
 			if err != nil {
 				t.Fatalf("execute reference solution error = %v", err)
 			}
 			if result.ExitCode != 0 {
-				t.Fatalf("reference solution exit = %d, want 0", result.ExitCode)
+				t.Fatalf(
+					"reference solution exit = %d, want 0; stdout=%q stderr=%q",
+					result.ExitCode,
+					solutionStdout.String(),
+					solutionStderr.String(),
+				)
 			}
 
 			results, err := session.Evaluate(ctx)
