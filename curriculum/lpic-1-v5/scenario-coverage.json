@@ -6,6 +6,7 @@
     "103.3",
     "103.4",
     "103.5",
+    "103.6",
     "104.5"
   ],
   "scenarios": [
@@ -259,6 +260,22 @@
       "backend": "podman",
       "status": "accepted",
       "evidence_strength": "artifact"
+    },
+    {
+      "scenario_id": "lpic1.103.6.priority-incident",
+      "objective_ids": [
+        "103.6"
+      ],
+      "concept_ids": [
+        "lpic1.103.6.nice-value-et-ordonnancement-utilisateur",
+        "lpic1.103.6.priorite-par-defaut",
+        "lpic1.103.6.demarrer-avec-une-priorite",
+        "lpic1.103.6.modifier-priorite-existante",
+        "lpic1.103.6.observer-priorite"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "state"
     }
   ]
 }
