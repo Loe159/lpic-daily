@@ -1,0 +1,141 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.4.redirection-pipeline-repair",
+  "title_fr": "Réparer une chaîne de redirections",
+  "brief_fr": "Dans /workspace, utilise emit.sh et numbers.txt. stdin-copy.txt doit copier numbers.txt via stdin. stdout.txt et stderr.txt doivent séparer les sorties de emit.sh. append.txt doit contenir first puis second avec écrasement puis append. pipeline-count.txt doit compter les lignes purement numériques. tee-copy.txt et tee-captured.txt doivent recevoir le même flux « mirror ». xargs.txt doit contenir item:alpha puis item:beta. Enfin order-a.txt doit recevoir stdout+stderr alors que order-b.txt ne contient que stdout.",
+  "success_criteria_fr": [
+    "stdin/stdout/stderr sont dirigés correctement.",
+    "> et >> construisent le journal attendu.",
+    "Le pipeline filtre et compte correctement.",
+    "tee duplique le flux.",
+    "xargs transforme stdin en arguments.",
+    "L'ordre des redirections produit deux états distincts."
+  ],
+  "debrief_fr": "Les redirections sont appliquées de gauche à droite et 2>&1 copie la destination courante de stdout. Les pipes connectent stdout à stdin, tee duplique et xargs fabrique des arguments.",
+  "objective_ids": [
+    "103.4"
+  ],
+  "concept_ids": [
+    "lpic1.103.4.stdin-stdout-stderr-et-descripteurs",
+    "lpic1.103.4.redirections-ecrasement-append",
+    "lpic1.103.4.redirection-stderr",
+    "lpic1.103.4.pipelines",
+    "lpic1.103.4.dupliquer-sortie-avec-tee",
+    "lpic1.103.4.transformer-stdin-en-arguments-via-xargs",
+    "lpic1.103.4.ordre-des-redirections"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "estimated_minutes": 18,
+  "practice_context": "redirection-incident",
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "baseline",
+    "writable_guest_paths": [
+      "/workspace"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "pids": 128,
+    "timeout_seconds": 1200,
+    "cpu_percent": 100
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/cmp",
+        "-s",
+        "/workspace/numbers.txt",
+        "/workspace/stdin-copy.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.4.stdin-stdout-stderr-et-descripteurs"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/workspace/stdout.txt",
+      "pattern": "^OUT\\n?$",
+      "concept_ids": [
+        "lpic1.103.4.stdin-stdout-stderr-et-descripteurs"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/workspace/stderr.txt",
+      "pattern": "^ERR\\n?$",
+      "concept_ids": [
+        "lpic1.103.4.redirection-stderr"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/workspace/append.txt",
+      "pattern": "^first\\nsecond\\n?$",
+      "concept_ids": [
+        "lpic1.103.4.redirections-ecrasement-append"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/workspace/pipeline-count.txt",
+      "pattern": "^3\\n?$",
+      "concept_ids": [
+        "lpic1.103.4.pipelines"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test \"$(cat /workspace/tee-copy.txt)\" = mirror && cmp -s /workspace/tee-copy.txt /workspace/tee-captured.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.4.dupliquer-sortie-avec-tee"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/workspace/xargs.txt",
+      "pattern": "^item:alpha\\nitem:beta\\n?$",
+      "concept_ids": [
+        "lpic1.103.4.transformer-stdin-en-arguments-via-xargs"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "grep -qx OUT /workspace/order-b.txt && ! grep -q ERR /workspace/order-b.txt && grep -q OUT /workspace/order-a.txt && grep -q ERR /workspace/order-a.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.4.ordre-des-redirections",
+        "lpic1.103.4.redirection-stderr"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.103.4.redirection-pipeline-repair.hint-1",
+    "lpic1.103.4.redirection-pipeline-repair.hint-2",
+    "lpic1.103.4.redirection-pipeline-repair.hint-3",
+    "lpic1.103.4.redirection-pipeline-repair.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

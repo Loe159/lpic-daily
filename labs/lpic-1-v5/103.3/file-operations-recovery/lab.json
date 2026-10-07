@@ -1,0 +1,153 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.3.file-operations-recovery",
+  "title_fr": "Restaurer une arborescence et ses archives",
+  "brief_fr": "Répare /workspace : crée work/, copie source/a.txt vers work/copied.txt, déplace source/b.txt vers work/moved.txt et supprime source/remove.me. Produis logs.list avec les *.log triés, found-large.txt avec le fichier de search dépassant 50 octets, et copie via une action find les .txt de source dans found/. Crée bundle.tar et bundle.cpio depuis archive-src, raw-copy.bin par copie bas niveau de raw.bin, trois versions compressées de source/a.txt et type.txt décrivant ce fichier.",
+  "success_criteria_fr": [
+    "Les opérations de fichiers ont l'état final demandé.",
+    "Globbing et find sélectionnent les bonnes entrées.",
+    "Une action find produit les copies attendues.",
+    "tar et cpio contiennent les deux fichiers de référence.",
+    "La copie bas niveau et les compressions restituent les octets source.",
+    "file identifie correctement le texte."
+  ],
+  "debrief_fr": "103.3 combine manipulation, recherche, archivage et copie d'octets. Les checks valident l'état final et le contenu plutôt que d'imposer une seule syntaxe.",
+  "objective_ids": [
+    "103.3"
+  ],
+  "concept_ids": [
+    "lpic1.103.3.creation-copie-deplacement-suppression",
+    "lpic1.103.3.recursivite-et-globbing",
+    "lpic1.103.3.recherche-par-metadonnees",
+    "lpic1.103.3.actions-find",
+    "lpic1.103.3.archives-tar-cpio",
+    "lpic1.103.3.copie-bas-niveau-dd",
+    "lpic1.103.3.compression-gzip-bzip2-xz",
+    "lpic1.103.3.detection-de-type"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "estimated_minutes": 18,
+  "practice_context": "filesystem-recovery",
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "baseline",
+    "writable_guest_paths": [
+      "/workspace"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "pids": 128,
+    "timeout_seconds": 1200,
+    "cpu_percent": 100
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test -d /workspace/work && cmp -s /workspace/source/a.txt /workspace/work/copied.txt && test \"$(cat /workspace/work/moved.txt)\" = B-source && test ! -e /workspace/source/b.txt && test ! -e /workspace/source/remove.me"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.3.creation-copie-deplacement-suppression"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/workspace/logs.list",
+      "pattern": "^app\\.log\\naudit\\.log\\n?$",
+      "concept_ids": [
+        "lpic1.103.3.recursivite-et-globbing"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/workspace/found-large.txt",
+      "pattern": "^large\\.dat\\n?$",
+      "concept_ids": [
+        "lpic1.103.3.recherche-par-metadonnees"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "cmp -s /workspace/source/a.txt /workspace/found/a.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.3.actions-find"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "tar -tf /workspace/bundle.tar | grep -Eq '(^|/)one\\.txt$' && tar -tf /workspace/bundle.tar | grep -Eq '(^|/)two\\.txt$' && cpio -it < /workspace/bundle.cpio 2>/dev/null | grep -Eq '(^|/)one\\.txt$' && cpio -it < /workspace/bundle.cpio 2>/dev/null | grep -Eq '(^|/)two\\.txt$'"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.3.archives-tar-cpio"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/cmp",
+        "-s",
+        "/workspace/raw.bin",
+        "/workspace/raw-copy.bin"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.3.copie-bas-niveau-dd"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "gzip -cd /workspace/a.txt.gz | cmp -s - /workspace/source/a.txt && bzip2 -cd /workspace/a.txt.bz2 | cmp -s - /workspace/source/a.txt && xz -cd /workspace/a.txt.xz | cmp -s - /workspace/source/a.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.3.compression-gzip-bzip2-xz"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "grep -qi text /workspace/type.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.3.detection-de-type"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.103.3.file-operations-recovery.hint-1",
+    "lpic1.103.3.file-operations-recovery.hint-2",
+    "lpic1.103.3.file-operations-recovery.hint-3",
+    "lpic1.103.3.file-operations-recovery.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

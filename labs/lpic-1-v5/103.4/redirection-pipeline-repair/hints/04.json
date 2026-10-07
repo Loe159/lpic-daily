@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.4.redirection-pipeline-repair.hint-4",
+  "lab_id": "lpic1.103.4.redirection-pipeline-repair",
+  "level": 4,
+  "content_fr": "Une solution utilise <, >, >>, 2>, grep|wc, tee, xargs puis les deux ordres de redirection.",
+  "evidence_impact": "solution-revealed"
+}
