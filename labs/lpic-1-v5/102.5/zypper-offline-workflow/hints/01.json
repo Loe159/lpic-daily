@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.5.zypper-offline-workflow.hint-1",
+  "lab_id": "lpic1.102.5.zypper-offline-workflow",
+  "level": 1,
+  "content_fr": "Commence par zypper ar puis zypper refresh sur le seul alias lpic-local ; aucun accès réseau n'est nécessaire.",
+  "evidence_impact": "none"
+}

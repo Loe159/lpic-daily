@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.5.zypper-offline-workflow.hint-4",
+  "lab_id": "lpic1.102.5.zypper-offline-workflow",
+  "level": 4,
+  "content_fr": "Séquence : rr éventuel, ar -G file:///opt/lpic/rpmrepo lpic-local, refresh, install, rapports lr/se/info, remove, install final.",
+  "evidence_impact": "solution-revealed"
+}

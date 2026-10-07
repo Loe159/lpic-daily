@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.5.zypper-offline-workflow.hint-2",
+  "lab_id": "lpic1.102.5.zypper-offline-workflow",
+  "level": 2,
+  "content_fr": "Les commandes lr, se et info servent respectivement à voir les dépôts, rechercher et détailler un paquet.",
+  "evidence_impact": "material"
+}
