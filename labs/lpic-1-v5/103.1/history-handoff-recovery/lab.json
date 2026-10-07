@@ -1,0 +1,112 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.history-handoff-recovery",
+  "title_fr": "Rendre l’historique de relève durable",
+  "brief_fr": "Le compte root perd rapidement son historique et conserve encore une ancienne ligne contenant API_TOKEN. Porte l’historique interactif à HISTSIZE=2000 et HISTFILESIZE=4000, retire toute trace d’API_TOKEN, puis produis /run/lpic/history-proof avec la valeur développée root:/root. La commande de relève qui produit ce fichier doit être persistée dans .bash_history et visible depuis un nouveau shell.",
+  "success_criteria_fr": [
+    "Un nouveau shell interactif utilise HISTSIZE=2000 et HISTFILESIZE=4000.",
+    ".bash_history ne contient plus API_TOKEN.",
+    "history-proof contient root:/root issu d’une expansion shell.",
+    "Un nouveau shell recharge une entrée d’historique liée à history-proof."
+  ],
+  "debrief_fr": "HISTSIZE limite l’historique chargé en mémoire et HISTFILESIZE celui conservé sur disque. history permet de relire, modifier et réécrire l’historique persistant. Une nouvelle session ne voit une commande précédente que si l’état a réellement été écrit dans .bash_history. L’expansion de USER et PWD est évaluée par le shell avant l’écriture du résultat.",
+  "objective_ids": [
+    "103.1"
+  ],
+  "concept_ids": [
+    "lpic1.103.1.edition-et-persistance-de-l-historique",
+    "lpic1.103.1.historique",
+    "lpic1.103.1.echo-et-expansion-shell"
+  ],
+  "labels": [
+    "lpic-required",
+    "lpic-legacy",
+    "scenario-accepted"
+  ],
+  "estimated_minutes": 9,
+  "practice_context": "history-handoff-recovery",
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "baseline",
+    "writable_guest_paths": [
+      "/root",
+      "/run/lpic"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "pids": 96,
+    "timeout_seconds": 1200,
+    "cpu_percent": 100
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "--noprofile",
+        "--rcfile",
+        "/root/.bashrc",
+        "-ic",
+        "test \"$HISTSIZE\" = 2000 && test \"$HISTFILESIZE\" = 4000"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.1.historique",
+        "lpic1.103.1.edition-et-persistance-de-l-historique"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/grep",
+        "-q",
+        "API_TOKEN",
+        "/root/.bash_history"
+      ],
+      "expected_exit": 1,
+      "concept_ids": [
+        "lpic1.103.1.edition-et-persistance-de-l-historique"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/run/lpic/history-proof",
+      "pattern": "^root:/root\\n?$",
+      "concept_ids": [
+        "lpic1.103.1.echo-et-expansion-shell"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "--noprofile",
+        "--rcfile",
+        "/root/.bashrc",
+        "-ic",
+        "history -c; history -r; history | grep -q 'history-proof'"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.1.edition-et-persistance-de-l-historique",
+        "lpic1.103.1.historique"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.103.1.history-handoff-recovery.hint-1",
+    "lpic1.103.1.history-handoff-recovery.hint-2",
+    "lpic1.103.1.history-handoff-recovery.hint-3",
+    "lpic1.103.1.history-handoff-recovery.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}
