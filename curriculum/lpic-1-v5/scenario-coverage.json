@@ -350,6 +350,22 @@
       "backend": "podman",
       "status": "accepted",
       "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.104.1.partition-filesystems",
+      "objective_ids": [
+        "104.1"
+      ],
+      "concept_ids": [
+        "lpic1.104.1.mbr-versus-gpt",
+        "lpic1.104.1.creation-modification-de-partitions",
+        "lpic1.104.1.ext2-ext3-ext4",
+        "lpic1.104.1.swap",
+        "lpic1.104.1.creation-de-filesystem"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "state"
     }
   ]
 }

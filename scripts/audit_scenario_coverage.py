@@ -64,25 +64,30 @@ def main():
             errors.append(f"{scenario_id}: invalid evidence_strength {entry.get('evidence_strength')!r}")
         if entry.get("backend") not in VALID_BACKEND:
             errors.append(f"{scenario_id}: invalid backend {entry.get('backend')!r}")
-        if entry.get("status") != "accepted":
+        status = entry.get("status")
+        if status == "planned":
             continue
 
-        accepted_ids.add(scenario_id)
-        strengths[entry["evidence_strength"]] += 1
         if scenario_id not in labs:
-            errors.append(f"{scenario_id}: accepted scenario has no authored lab")
+            errors.append(f"{scenario_id}: {status} scenario has no authored lab")
             continue
 
         lab, path = labs[scenario_id]
-        if "scenario-accepted" not in lab.get("labels", []):
-            errors.append(f"{scenario_id}: accepted matrix entry lacks scenario-accepted lab label")
+        if status == "accepted":
+            accepted_ids.add(scenario_id)
+            strengths[entry["evidence_strength"]] += 1
+            if "scenario-accepted" not in lab.get("labels", []):
+                errors.append(f"{scenario_id}: accepted matrix entry lacks scenario-accepted lab label")
+        elif "scenario-accepted" in lab.get("labels", []):
+            errors.append(f"{scenario_id}: implemented scenario must not carry scenario-accepted label")
+
         for field in ("objective_ids", "concept_ids"):
             if sorted(entry.get(field, [])) != sorted(lab.get(field, [])):
                 errors.append(f"{scenario_id}: matrix {field} differs from {path.relative_to(ROOT)}")
         if entry.get("backend") != lab.get("environment", {}).get("backend"):
             errors.append(f"{scenario_id}: matrix backend differs from authored lab")
         if not lab.get("reference_solution_ref"):
-            errors.append(f"{scenario_id}: accepted scenario lacks reference_solution_ref")
+            errors.append(f"{scenario_id}: {status} scenario lacks reference_solution_ref")
         else:
             ref = path.parent / lab["reference_solution_ref"]
             if not ref.is_file():
@@ -97,8 +102,9 @@ def main():
                 continue
             if concept_id not in checked:
                 errors.append(f"{scenario_id}: concept {concept_id} has no mapped check")
-            accepted_coverage[concept_id].add(scenario_id)
-            scenario_contexts[concept_id].add(lab.get("practice_context", ""))
+            if status == "accepted":
+                accepted_coverage[concept_id].add(scenario_id)
+                scenario_contexts[concept_id].add(lab.get("practice_context", ""))
 
     labelled = {
         lab_id for lab_id, (lab, _) in labs.items()
@@ -128,6 +134,7 @@ def main():
         set() if fallback_generation_enabled else active_ids - accepted_ids_by_concept
     )
     strength_summary = ", ".join(f"{k}={strengths[k]}" for k in sorted(VALID_STRENGTH))
+    implemented_count = sum(entry.get("status") == "implemented" for entry in scenarios)
     scenario_sizes = [len(entry.get("concept_ids", [])) for entry in scenarios if entry.get("status") == "accepted"]
     average = (sum(scenario_sizes) / len(scenario_sizes)) if scenario_sizes else 0.0
     maximum = max(scenario_sizes, default=0)
@@ -141,7 +148,8 @@ def main():
         "Scenario coverage: "
         f"active={len(active_ids)}; accepted-covered={len(accepted_ids_by_concept)}; "
         f"fallback-only={len(fallback_only)}; without-practice={len(without_practice)}; "
-        f"accepted-scenarios={len(scenario_sizes)}; avg-concepts={average:.2f}; "
+        f"accepted-scenarios={len(scenario_sizes)}; implemented-scenarios={implemented_count}; "
+        f"avg-concepts={average:.2f}; "
         f"max-concepts={maximum}; accepted-single-context={one_context}; "
         f"fully-migrated-objectives={len(fully_migrated)}"
     )

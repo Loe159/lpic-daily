@@ -694,6 +694,18 @@ func TestRealKVMPhase2ReferenceLabs(t *testing.T) {
 				}
 			}
 			assertPhase2LabSolved(t, ctx, session)
+
+			if err := session.Reset(ctx); err != nil {
+				t.Fatalf("Reset() error = %v", err)
+			}
+			assertPhase2LabNotSolved(t, ctx, session)
+			runPhase2ReferenceSolution(t, ctx, backend, session.Instance, solution)
+			if authored.Definition.ID == "lpic1.102.2.grub-kernel-parameter" {
+				if err := backend.Reboot(ctx, session.Instance); err != nil {
+					t.Fatalf("Reboot() after reset error = %v", err)
+				}
+			}
+			assertPhase2LabSolved(t, ctx, session)
 		})
 	}
 	for id := range wanted {
