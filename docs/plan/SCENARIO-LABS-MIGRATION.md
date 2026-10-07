@@ -2,7 +2,11 @@
 
 Status: **In progress**
 
-Ce document définit la migration du curriculum pratique LPIC-Daily depuis les micro-labs générés par concept vers des scénarios réalistes de diagnostic, réparation et administration Linux.\n\n### Avancement du pilote\n\nLe premier lot implémente la matrice de couverture, son audit CI et le filtrage du scheduler, puis migre 103.1 vers cinq scénarios acceptés couvrant ses 12 concepts. Les fallbacks restent techniquement chargeables pour compatibilité historique mais ne sont plus proposés lorsqu'un scénario accepté couvre le concept.
+Ce document définit la migration du curriculum pratique LPIC-Daily depuis les micro-labs générés par concept vers des scénarios réalistes de diagnostic, réparation et administration Linux.
+
+### Avancement du pilote
+
+Le premier lot implémente la matrice de couverture, son audit CI et le filtrage du scheduler, puis migre 103.1 vers cinq scénarios acceptés couvrant ses 12 concepts. Les fallbacks restent techniquement chargeables pour compatibilité historique mais ne sont plus proposés lorsqu'un scénario accepté couvre le concept.
 
 Le scénario de référence est "lpic1.103.1.shell-environment-repair": un environnement est volontairement placé dans un état incorrect, l'apprenant doit investiguer librement, corriger le système, puis LPIC-Daily valide le comportement réel obtenu dans un environnement neuf.
 

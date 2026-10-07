@@ -9,4 +9,11 @@ grep -v 'API_TOKEN' /root/.bash_history > /root/.bash_history.clean
 mv /root/.bash_history.clean /root/.bash_history
 cd /root
 echo "$USER:$PWD" > /run/lpic/history-proof
-/usr/bin/bash --noprofile --rcfile /root/.bashrc -ic 'history -c; history -r; history -s '''echo "$USER:$PWD" > /run/lpic/history-proof'''; history -w'
+cat > /root/.lpic-history-update <<'EOF'
+history -c
+history -r
+history -s 'echo "$USER:$PWD" > /run/lpic/history-proof'
+history -w
+EOF
+/usr/bin/bash --noprofile --rcfile /root/.bashrc -ic 'source /root/.lpic-history-update'
+rm -f /root/.lpic-history-update

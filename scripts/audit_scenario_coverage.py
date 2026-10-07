@@ -122,13 +122,16 @@ def main():
 
     active_ids = set(active)
     accepted_ids_by_concept = set(accepted_coverage)
-    fallback_only = active_ids - accepted_ids_by_concept
-    without_practice = set()
+    fallback_generation_enabled = (ROOT / "internal" / "lab" / "generated.go").is_file()
+    fallback_only = active_ids - accepted_ids_by_concept if fallback_generation_enabled else set()
+    without_practice = (
+        set() if fallback_generation_enabled else active_ids - accepted_ids_by_concept
+    )
     strength_summary = ", ".join(f"{k}={strengths[k]}" for k in sorted(VALID_STRENGTH))
     scenario_sizes = [len(entry.get("concept_ids", [])) for entry in scenarios if entry.get("status") == "accepted"]
     average = (sum(scenario_sizes) / len(scenario_sizes)) if scenario_sizes else 0.0
     maximum = max(scenario_sizes, default=0)
-    one_context = sum(len(ids) == 1 for ids in accepted_coverage.values())
+    one_context = sum(len(contexts) == 1 for contexts in scenario_contexts.values())
     fully_migrated = [
         objective_id for objective_id, ids in active_by_objective.items()
         if ids and ids.issubset(accepted_ids_by_concept)
