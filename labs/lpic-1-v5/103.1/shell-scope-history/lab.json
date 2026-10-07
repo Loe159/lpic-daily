@@ -1,0 +1,124 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.shell-scope-history",
+  "title_fr": "Prouver portée, historique et expansion du shell",
+  "brief_fr": "Dans :shell, crée LOCAL_ONLY=inside sans export et exporte CHILD_VISIBLE=exported. Produis set-local.txt depuis set, env-local.txt depuis env (il doit rester vide), env-exported.txt depuis env et child-env.txt depuis un bash enfant. Exporte puis unset REMOVE_ME et prouve dans child-env.txt qu'il a disparu. Exécute /workspace/tools/outside-tool alors que son dossier n'est pas dans PATH et place sa sortie dans outside-result.txt. Exécute réellement « echo LPIC_HISTORY_MARKER », persiste l'historique avec history, puis produis expansion.txt contenant report:daily grâce à l'expansion de REPORT_NAME.",
+  "success_criteria_fr": [
+    "set voit la variable shell locale mais env ne la voit pas.",
+    "Une variable exportée atteint un processus enfant et unset la retire.",
+    "Une commande hors PATH est exécutée par chemin explicite.",
+    "L'historique persistant contient la commande marqueur.",
+    "echo développe correctement une variable shell."
+  ],
+  "debrief_fr": "set expose l'état du shell alors que env représente l'environnement transmis. export ajoute une variable à cet environnement et unset la retire. PATH ne bloque pas l'exécution par chemin explicite. L'historique doit être écrit sur disque pour survivre au shell.",
+  "objective_ids": [
+    "103.1"
+  ],
+  "concept_ids": [
+    "lpic1.103.1.set-env-et-portee-des-variables",
+    "lpic1.103.1.export-unset-et-processus-enfants",
+    "lpic1.103.1.execution-de-commandes-hors-path",
+    "lpic1.103.1.edition-et-persistance-de-l-historique",
+    "lpic1.103.1.echo-et-expansion-shell"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "estimated_minutes": 18,
+  "practice_context": "shell-scope-history",
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "baseline",
+    "writable_guest_paths": [
+      "/workspace",
+      "/run/lpic",
+      "/root"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "pids": 128,
+    "timeout_seconds": 1200,
+    "cpu_percent": 100
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "file-content-regex",
+      "path": "/run/lpic/set-local.txt",
+      "pattern": "^LOCAL_ONLY=inside\\n?$",
+      "concept_ids": [
+        "lpic1.103.1.set-env-et-portee-des-variables"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test -f /run/lpic/env-local.txt && test ! -s /run/lpic/env-local.txt && grep -qx CHILD_VISIBLE=exported /run/lpic/env-exported.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.1.set-env-et-portee-des-variables",
+        "lpic1.103.1.export-unset-et-processus-enfants"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "grep -qx CHILD_VISIBLE=exported /run/lpic/child-env.txt && ! grep -q '^REMOVE_ME=' /run/lpic/child-env.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.1.export-unset-et-processus-enfants"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/run/lpic/outside-result.txt",
+      "pattern": "^outside-ok\\n?$",
+      "concept_ids": [
+        "lpic1.103.1.execution-de-commandes-hors-path"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "grep -Fqx 'echo LPIC_HISTORY_MARKER' /root/.bash_history"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.1.edition-et-persistance-de-l-historique"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/run/lpic/expansion.txt",
+      "pattern": "^report:daily\\n?$",
+      "concept_ids": [
+        "lpic1.103.1.echo-et-expansion-shell"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.103.1.shell-scope-history.hint-1",
+    "lpic1.103.1.shell-scope-history.hint-2",
+    "lpic1.103.1.shell-scope-history.hint-3",
+    "lpic1.103.1.shell-scope-history.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable",
+  "requires_persistent_shell": true
+}

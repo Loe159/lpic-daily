@@ -36,6 +36,7 @@ RUN dnf -y install \
         nmap-ncat \
         openssh-clients \
         parted \
+        patchelf \
         plocate \
         procps-ng \
         rpm \

@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.3.dynamic-loader-diagnosis.hint-3",
+  "lab_id": "lpic1.102.3.dynamic-loader-diagnosis",
+  "level": 3,
+  "content_fr": "Préfixe seulement la commande ldd avec LD_LIBRARY_PATH=/workspace/lib pour observer l'override.",
+  "evidence_impact": "material"
+}

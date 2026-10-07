@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.3.dynamic-loader-diagnosis.hint-4",
+  "lab_id": "lpic1.102.3.dynamic-loader-diagnosis",
+  "level": 4,
+  "content_fr": "broken a été patché pour dépendre de liblpic_missing.so ; ldd doit la signaler « not found ».",
+  "evidence_impact": "solution-revealed"
+}
