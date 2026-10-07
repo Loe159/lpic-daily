@@ -23,7 +23,7 @@
   "practice_context": "grub-persistent-kernel-parameter",
   "environment": {
     "backend": "libvirt",
-    "image_ref": "fedora-44-x86_64-v2",
+    "image_ref": "fedora-44-x86_64-v3",
     "distribution": "fedora",
     "network": "none",
     "capability_profile": "full-machine",
