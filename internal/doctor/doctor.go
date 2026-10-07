@@ -160,7 +160,7 @@ func vmStorageCheck() Check {
 	}
 }
 
-const requiredPhase2VMImageID = "fedora-44-x86_64-v2"
+const requiredPhase2VMImageID = "fedora-44-x86_64-v3"
 
 func vmImageCatalogCheck() Check {
 	imageRoot, err := appstate.VMImageRoot()
