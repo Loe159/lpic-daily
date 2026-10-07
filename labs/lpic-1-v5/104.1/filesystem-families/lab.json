@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "id": "lpic1.104.1.filesystem-families",
   "title_fr": "Créer plusieurs familles de filesystems",
-  "brief_fr": "Cinq disques jetables sont attachés : /dev/vdb doit devenir XFS label LPICXFS, /dev/vdc VFAT label LPICVFAT, /dev/vdd exFAT label LPICEXFAT. Crée ensuite un filesystem Btrfs multi-device sur /dev/vde et /dev/vdf, label LPICBTRFS, monte-le sur /mnt/btrfs avec compression zstd et crée le subvolume /mnt/btrfs/data. Ne touche jamais /dev/vda.",
+  "brief_fr": "Quatre disques jetables sont attachés : /dev/vdb doit devenir XFS label LPICXFS. Sur /dev/vdc, crée une table GPT avec deux partitions puis formate /dev/vdc1 en VFAT label LPICVFAT et /dev/vdc2 en exFAT label LPICEXFAT. Crée ensuite un filesystem Btrfs multi-device sur /dev/vdd et /dev/vde, label LPICBTRFS, monte-le sur /mnt/btrfs avec compression zstd et crée le subvolume /mnt/btrfs/data. Ne touche jamais /dev/vda.",
   "success_criteria_fr": [
     "vdb est XFS.",
     "vdc est VFAT et vdd exFAT.",
@@ -40,12 +40,8 @@
           "size_mb": 512
         },
         {
-          "id": "vfat",
-          "size_mb": 512
-        },
-        {
-          "id": "exfat",
-          "size_mb": 512
+          "id": "fat-family",
+          "size_mb": 768
         },
         {
           "id": "btrfs-a",
@@ -80,8 +76,8 @@
     },
     {
       "type": "block-device-state",
-      "path": "/dev/vdc",
-      "device_type": "disk",
+      "path": "/dev/vdc1",
+      "device_type": "part",
       "filesystem": "vfat",
       "concept_ids": [
         "lpic1.104.1.vfat-exfat",
@@ -90,8 +86,8 @@
     },
     {
       "type": "block-device-state",
-      "path": "/dev/vdd",
-      "device_type": "disk",
+      "path": "/dev/vdc2",
+      "device_type": "part",
       "filesystem": "exfat",
       "concept_ids": [
         "lpic1.104.1.vfat-exfat",
@@ -100,7 +96,7 @@
     },
     {
       "type": "block-device-state",
-      "path": "/dev/vde",
+      "path": "/dev/vdd",
       "device_type": "disk",
       "filesystem": "btrfs",
       "mountpoint": "/mnt/btrfs",
@@ -111,7 +107,7 @@
     },
     {
       "type": "block-device-state",
-      "path": "/dev/vdf",
+      "path": "/dev/vde",
       "device_type": "disk",
       "filesystem": "btrfs",
       "concept_ids": [
@@ -123,7 +119,7 @@
       "argv": [
         "/usr/bin/bash",
         "-lc",
-        "btrfs filesystem show /mnt/btrfs | grep -q '/dev/vde' && btrfs filesystem show /mnt/btrfs | grep -q '/dev/vdf' && btrfs subvolume show /mnt/btrfs/data >/dev/null && findmnt -no OPTIONS /mnt/btrfs | tr ',' '\\n' | grep -Eq '^compress(=zstd(:[0-9]+)?)?$|^compress-force(=zstd(:[0-9]+)?)?$'"
+        "btrfs filesystem show /mnt/btrfs | grep -q '/dev/vdd' && btrfs filesystem show /mnt/btrfs | grep -q '/dev/vdd' && btrfs subvolume show /mnt/btrfs/data >/dev/null && findmnt -no OPTIONS /mnt/btrfs | tr ',' '\\n' | grep -Eq '^compress(=zstd(:[0-9]+)?)?$|^compress-force(=zstd(:[0-9]+)?)?$'"
       ],
       "expected_exit": 0,
       "concept_ids": [
