@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.2.incident-report-rebuild.hint-4",
+  "lab_id": "lpic1.103.2.incident-report-rebuild",
+  "level": 4,
+  "content_fr": "Filtre la colonne hôte des lignes ERROR, applique sort -u, transforme - en _, associe les hôtes originaux à owners.tsv, découpe error-teams.txt avec split -l 2 -d -a 2 et compte événements/hôtes dans metrics.txt.",
+  "evidence_impact": "solution-revealed"
+}
