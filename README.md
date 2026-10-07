@@ -21,7 +21,7 @@ Au lieu de simplement mémoriser des commandes, tu manipules de vrais environnem
 
 Le contenu est en français, avec les termes Linux conservés en anglais lorsqu’ils sont utilisés ainsi dans la pratique et dans LPIC.
 
-Le parcours embarqué couvre les **42 objectifs actifs de LPIC-1 v5.0**, soit les examens **101-500 et 102-500**. Chaque concept possède un cours ciblé, plusieurs questions dont du rappel libre, et au moins deux contextes de pratique. Les commandes, fichiers, opérateurs et ports explicitement examinables sont expliqués dans les cours et réutilisés dans les exercices.
+Le parcours embarqué couvre les **42 objectifs actifs de LPIC-1 v5.0**, soit les examens **101-500 et 102-500**. Chaque concept possède un cours ciblé, plusieurs questions dont du rappel libre, et au moins deux contextes de pratique. Pour l'examen **101-500, les 162 concepts disposent désormais d'au moins un lab authored à vérification d'état** ; les exercices générés restent de la pratique guidée et ne sont jamais présentés comme une preuve indépendante. Les commandes, fichiers, opérateurs et ports explicitement examinables sont expliqués dans les cours et réutilisés dans les exercices.
 
 ## Installation
 
