@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.7.fhs-search-recovery.hint-4",
+  "lab_id": "lpic1.104.7.fhs-search-recovery",
+  "level": 4,
+  "content_fr": "Déplace les quatre ressources vers /etc/acme, /var/log/acme, /srv/acme et /opt/acme/bin. Lance updatedb -l 0 -U catalog -o acme.db, find le guide, puis écris type -P, which et whereis bash dans command-report.txt.",
+  "evidence_impact": "solution-revealed"
+}

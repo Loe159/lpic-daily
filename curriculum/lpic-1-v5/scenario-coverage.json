@@ -10,7 +10,8 @@
     "103.7",
     "103.8",
     "104.5",
-    "104.6"
+    "104.6",
+    "104.7"
   ],
   "scenarios": [
     {
@@ -329,6 +330,22 @@
         "lpic1.104.6.liens-casses",
         "lpic1.104.6.difference-copie-lien",
         "lpic1.104.6.usages-administratifs"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.104.7.fhs-search-recovery",
+      "objective_ids": [
+        "104.7"
+      ],
+      "concept_ids": [
+        "lpic1.104.7.role-des-principaux-repertoires-fhs",
+        "lpic1.104.7.recherche-temps-reel-vs-base-locate",
+        "lpic1.104.7.mise-a-jour-base-locate",
+        "lpic1.104.7.localiser-binaire-source-man",
+        "lpic1.104.7.resolution-de-commande-shell"
       ],
       "backend": "podman",
       "status": "accepted",
