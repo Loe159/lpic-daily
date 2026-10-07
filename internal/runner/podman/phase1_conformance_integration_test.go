@@ -34,7 +34,7 @@ var phase1ReferenceSolutions = map[string]string{
 	"lpic1.103.6.priority-incident":            "labs/lpic-1-v5/103.6/priority-incident/reference-solution.sh",
 	"lpic1.103.5.stuck-worker":                 "labs/lpic-1-v5/103.5/stuck-worker/reference-solution.sh",
 	"lpic1.103.5.transfer-operator-session":    "labs/lpic-1-v5/103.5/transfer-operator-session/reference-solution.sh",
-	"lpic1.104.6.release-link-repair":           "labs/lpic-1-v5/104.6/release-link-repair/reference-solution.sh",
+	"lpic1.104.6.release-link-repair":          "labs/lpic-1-v5/104.6/release-link-repair/reference-solution.sh",
 	"lpic1.104.5.shared-dropbox":               "labs/lpic-1-v5/104.5/shared-dropbox/reference-solution.sh",
 	"lpic1.104.5.transfer-team-share-audit":    "labs/lpic-1-v5/104.5/transfer-team-share-audit/reference-solution.sh",
 }
