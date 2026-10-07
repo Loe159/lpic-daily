@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.environment-boundary-repair.hint-3",
+  "lab_id": "lpic1.103.1.environment-boundary-repair",
+  "level": 3,
+  "content_fr": "SERVICE_MODE doit être exportée, LOCAL_NOTE doit rester locale au shell et LEGACY_TOKEN doit être supprimée. Recharge ensuite un shell propre avant de produire le résumé.",
+  "evidence_impact": "material"
+}
