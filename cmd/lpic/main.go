@@ -1366,6 +1366,7 @@ func runInteractiveLabWithBackend(
 		fmt.Fprintln(stdout, "Commandes LPIC Daily : :shell  :status  :check  :hint  :reset  :quit")
 		if interactiveTerminal(stdin, stdout) {
 			fmt.Fprintln(stdout, "Le shell Linux va s'ouvrir. Quand tu as terminé tes modifications, tape exit ou Ctrl-D puis utilise :status ou :check au prompt lpic>.")
+			usedPersistentShell = true
 			result, err := runPersistentShell(
 				sessionCtx,
 				backend,
@@ -1375,10 +1376,15 @@ func runInteractiveLabWithBackend(
 				jobControlEvidence,
 			)
 			if err != nil {
-				return fmt.Errorf("interactive sandbox shell: %w", err)
+				if errors.Is(err, context.DeadlineExceeded) {
+					fmt.Fprintln(stdout, "\n[shell interrompu par timeout; le lab reste ouvert]")
+					fmt.Fprintln(stdout, "Utilise :shell pour rouvrir le shell sans recommencer le lab.")
+				} else {
+					return fmt.Errorf("interactive sandbox shell: %w", err)
+				}
+			} else {
+				fmt.Fprintln(stdout, "\n[retour LPIC Daily]")
 			}
-			usedPersistentShell = true
-			fmt.Fprintln(stdout, "\n[retour LPIC Daily]")
 			if result.ExitCode != 0 {
 				fmt.Fprintf(stderr, "[shell exit %d]\n", result.ExitCode)
 			}
@@ -1455,6 +1461,7 @@ func runInteractiveLabWithBackend(
 				continue
 			}
 			fmt.Fprintln(stdout, "Ouverture d'un shell persistant dans la sandbox. Tape exit ou Ctrl-D pour revenir.")
+			usedPersistentShell = true
 			result, err := runPersistentShell(
 				sessionCtx,
 				backend,
@@ -1464,9 +1471,13 @@ func runInteractiveLabWithBackend(
 				jobControlEvidence,
 			)
 			if err != nil {
+				if errors.Is(err, context.DeadlineExceeded) {
+					fmt.Fprintln(stdout, "\n[shell interrompu par timeout; le lab reste ouvert]")
+					fmt.Fprintln(stdout, "Tu peux relancer :shell immédiatement; l'état de la sandbox est conservé.")
+					continue
+				}
 				return fmt.Errorf("interactive sandbox shell: %w", err)
 			}
-			usedPersistentShell = true
 			fmt.Fprintln(stdout, "\n[retour LPIC Daily]")
 			if result.ExitCode != 0 {
 				fmt.Fprintf(stderr, "[shell exit %d]\n", result.ExitCode)
