@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.external-command-recovery.hint-3",
+  "lab_id": "lpic1.103.1.external-command-recovery",
+  "level": 3,
+  "content_fr": "Le binaire approuvé est sous /opt/lpic/approved/bin. Exécute-le par son chemin et protège l’argument REPORT_FILE contenant un espace.",
+  "evidence_impact": "material"
+}
