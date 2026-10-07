@@ -590,7 +590,6 @@ func TestGeneratedStandaloneCommandEvidenceRequiresCommandPosition(t *testing.T)
 	t.Fatal("no generated ps command-evidence check found")
 }
 
-
 func TestGeneratedStandaloneLabsStayConcreteAndConcise(t *testing.T) {
 	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
 	if err != nil {
