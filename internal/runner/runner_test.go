@@ -53,6 +53,15 @@ func TestPhase1CapabilityProfilesAreAllowlisted(t *testing.T) {
 		}
 	}
 
+	metadataProfile, err := runner.Phase1CapabilityProfile("metadata-db")
+	if err != nil {
+		t.Fatalf("metadata-db profile: %v", err)
+	}
+	if metadataProfile.Name != "metadata-db" ||
+		len(metadataProfile.Capabilities) != 1 ||
+		metadataProfile.Capabilities[0] != "CHOWN" {
+		t.Fatalf("metadata-db profile = %#v, want CHOWN only", metadataProfile)
+	}
 }
 
 func TestDefinitionRejectsUnsafeWritableGuestPaths(t *testing.T) {
