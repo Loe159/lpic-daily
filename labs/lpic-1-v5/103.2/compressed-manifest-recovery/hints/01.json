@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.2.compressed-manifest-recovery.hint-1",
+  "lab_id": "lpic1.103.2.compressed-manifest-recovery",
+  "level": 1,
+  "content_fr": "Vérifie d’abord le manifeste pour identifier précisément quelle archive est signalée en erreur avant de modifier quoi que ce soit.",
+  "evidence_impact": "none"
+}
