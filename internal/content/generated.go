@@ -212,13 +212,11 @@ func generatedExam101LessonBody(
 	}
 
 	return fmt.Sprintf(
-		"# %s\n\n"+
-			"## À retenir\n\n%s\n"+
+		"## À retenir\n\n%s\n"+
 			"## À essayer\n\n%s\n"+
 			"## Point d'attention\n\n%s\n\n"+
 			"## Vérifie-toi\n\n"+
 			"Explique en une phrase la différence ou le comportement étudié, puis cite la commande qui permet de le vérifier.\n",
-		concept.TitleFR,
 		anchors.String(),
 		examples.String(),
 		strings.TrimSpace(guide.Pitfalls),
