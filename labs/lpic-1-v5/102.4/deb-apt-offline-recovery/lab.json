@@ -32,7 +32,7 @@
   "practice_context": "deb-apt-offline-recovery",
   "environment": {
     "backend": "libvirt",
-    "image_ref": "debian-13-x86_64-v2",
+    "image_ref": "debian-13-x86_64-v3",
     "distribution": "debian",
     "network": "none",
     "capability_profile": "full-machine",
