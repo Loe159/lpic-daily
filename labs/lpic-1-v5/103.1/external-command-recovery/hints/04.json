@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.external-command-recovery.hint-4",
+  "lab_id": "lpic1.103.1.external-command-recovery",
+  "level": 4,
+  "content_fr": "Depuis un shell chargeant /root/.bashrc, lance /opt/lpic/approved/bin/report-status \"$REPORT_FILE\", puis écris ce chemin et ready sur deux lignes dans /run/lpic/external-command-summary.",
+  "evidence_impact": "solution-revealed"
+}
