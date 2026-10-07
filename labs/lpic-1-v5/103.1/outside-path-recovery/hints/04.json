@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.outside-path-recovery.hint-4",
+  "lab_id": "lpic1.103.1.outside-path-recovery",
+  "level": 4,
+  "content_fr": "Exécute directement `/opt/lpic/tools/reconcile` sans modifier PATH. Le programme doit créer `/run/lpic/reconcile-ok` avec la valeur `reconciled`.",
+  "evidence_impact": "solution-revealed"
+}
