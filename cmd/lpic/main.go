@@ -584,20 +584,20 @@ func runToday(args []string, stdout io.Writer) error {
 	if plan.Progress.Exam101.Total > 0 {
 		fmt.Fprintf(
 			stdout,
-			"101: %d/%d concepts complets · %d avec preuve pratique · %d commencés\n",
+			"101: %d/%d parcours complets · %d labs d'état vérifiés · %d commencés\n",
 			plan.Progress.Exam101.Complete,
 			plan.Progress.Exam101.Total,
-			plan.Progress.Exam101.Practical,
+			plan.Progress.Exam101.VerifiedPractical,
 			plan.Progress.Exam101.Started,
 		)
 	}
 	if plan.Progress.Exam102.Total > 0 {
 		fmt.Fprintf(
 			stdout,
-			"102: %d/%d concepts complets · %d avec preuve pratique · %d commencés\n",
+			"102: %d/%d parcours complets · %d labs d'état vérifiés · %d commencés\n",
 			plan.Progress.Exam102.Complete,
 			plan.Progress.Exam102.Total,
-			plan.Progress.Exam102.Practical,
+			plan.Progress.Exam102.VerifiedPractical,
 			plan.Progress.Exam102.Started,
 		)
 	}
