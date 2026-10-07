@@ -3,6 +3,7 @@
   "migrated_objective_ids": [
     "103.1",
     "103.2",
+    "103.3",
     "103.5",
     "104.5"
   ],
@@ -192,6 +193,36 @@
         "lpic1.103.2.lecture-compression-en-flux",
         "lpic1.103.2.checksums",
         "lpic1.103.2.flux-texte-ligne-octet"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "artifact"
+    },
+    {
+      "scenario_id": "lpic1.103.3.release-tree-recovery",
+      "objective_ids": [
+        "103.3"
+      ],
+      "concept_ids": [
+        "lpic1.103.3.creation-copie-deplacement-suppression",
+        "lpic1.103.3.recursivite-et-globbing",
+        "lpic1.103.3.recherche-par-metadonnees",
+        "lpic1.103.3.actions-find"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "state"
+    },
+    {
+      "scenario_id": "lpic1.103.3.backup-bundle-recovery",
+      "objective_ids": [
+        "103.3"
+      ],
+      "concept_ids": [
+        "lpic1.103.3.archives-tar-cpio",
+        "lpic1.103.3.copie-bas-niveau-dd",
+        "lpic1.103.3.compression-gzip-bzip2-xz",
+        "lpic1.103.3.detection-de-type"
       ],
       "backend": "podman",
       "status": "accepted",
