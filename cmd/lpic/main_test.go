@@ -819,6 +819,51 @@ func TestFailedLabCheckRecordsConceptGranularEvidence(t *testing.T) {
 	}
 }
 
+func TestLabStatusDoesNotRecordAttempt(t *testing.T) {
+	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
+
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("LoadAll() error = %v", err)
+	}
+	authored, err := findLab(labs, sharedDropboxID)
+	if err != nil {
+		t.Fatalf("findLab() error = %v", err)
+	}
+
+	var stdout, stderr bytes.Buffer
+	if err := runInteractiveLabWithBackend(
+		context.Background(),
+		authored,
+		&scriptedLabRunner{failChecks: true},
+		false,
+		strings.NewReader(":status\n:quit\n"),
+		&stdout,
+		&stderr,
+	); err != nil {
+		t.Fatalf("runInteractiveLabWithBackend() error = %v; stderr=%q", err, stderr.String())
+	}
+	if !strings.Contains(stdout.String(), "aucune tentative enregistrée") ||
+		!strings.Contains(stdout.String(), "Checks d'état validés") {
+		t.Fatalf("status output = %q", stdout.String())
+	}
+
+	store, err := openProgressStore(context.Background())
+	if err != nil {
+		t.Fatalf("open progress store: %v", err)
+	}
+	defer store.Close()
+	for _, conceptID := range authored.Definition.ConceptIDs {
+		events, err := store.EvidenceForConcept(context.Background(), conceptID)
+		if err != nil {
+			t.Fatalf("EvidenceForConcept(%s) error = %v", conceptID, err)
+		}
+		if len(events) != 0 {
+			t.Fatalf(":status recorded mastery evidence for %s: %#v", conceptID, events)
+		}
+	}
+}
+
 func TestPersistentShellRequirementBlocksStateOnlySuccess(t *testing.T) {
 	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
 
