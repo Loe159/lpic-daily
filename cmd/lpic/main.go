@@ -536,6 +536,26 @@ func runToday(args []string, stdout io.Writer) error {
 	}
 
 	fmt.Fprintln(stdout, "LPIC Daily — Aujourd'hui")
+	if plan.Progress.Exam101.Total > 0 {
+		fmt.Fprintf(
+			stdout,
+			"101: %d/%d concepts complets · %d avec preuve pratique · %d commencés\n",
+			plan.Progress.Exam101.Complete,
+			plan.Progress.Exam101.Total,
+			plan.Progress.Exam101.Practical,
+			plan.Progress.Exam101.Started,
+		)
+	}
+	if plan.Progress.Exam102.Total > 0 {
+		fmt.Fprintf(
+			stdout,
+			"102: %d/%d concepts complets · %d avec preuve pratique · %d commencés\n",
+			plan.Progress.Exam102.Complete,
+			plan.Progress.Exam102.Total,
+			plan.Progress.Exam102.Practical,
+			plan.Progress.Exam102.Started,
+		)
+	}
 	if len(plan.Items) == 0 {
 		fmt.Fprintln(stdout, "Aucune activité due dans le périmètre de contenu actuellement disponible.")
 		return nil
