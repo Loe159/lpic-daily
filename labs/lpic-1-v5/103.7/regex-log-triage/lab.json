@@ -1,0 +1,140 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.7.regex-log-triage",
+  "title_fr": "Trier un journal avec regex et sed",
+  "brief_fr": "Analyse corpus.txt et les noms sous /workspace/glob. Produis bre.txt avec « alpha 123 », ere.txt avec alpha/beta numériques, classes.txt avec la ligne commençant par une majuscule, quantified.txt avec « delta 42 », groups.txt avec beta ou gamma, search.txt avec les numéros des lignes contenant alpha sans tenir compte de la casse, et sed.txt où beta devient BETA. glob.txt doit montrer report?.log et regex.txt les noms correspondant à ^report[0-9]+\\.log$.",
+  "success_criteria_fr": [
+    "BRE et ERE sélectionnent correctement.",
+    "Classes, quantificateurs, ancres, groupes et alternatives sont exercés.",
+    "grep retrouve les lignes demandées.",
+    "sed transforme le flux.",
+    "Glob et regex produisent des ensembles distincts."
+  ],
+  "debrief_fr": "Le globbing est interprété par le shell sur des noms de fichiers ; les regex sont interprétées par grep/sed sur du texte. BRE et ERE diffèrent notamment sur +, {}, groupes et alternatives.",
+  "objective_ids": [
+    "103.7"
+  ],
+  "concept_ids": [
+    "lpic1.103.7.regex-basiques-etendues",
+    "lpic1.103.7.classes-de-caracteres",
+    "lpic1.103.7.quantificateurs-et-ancres",
+    "lpic1.103.7.groupes-alternatives",
+    "lpic1.103.7.recherche-de-lignes",
+    "lpic1.103.7.substitution-transformation-avec-sed",
+    "lpic1.103.7.difference-glob-vs-regex"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "estimated_minutes": 18,
+  "practice_context": "regex-log-triage",
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "baseline",
+    "writable_guest_paths": [
+      "/workspace",
+      "/run/lpic"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "pids": 128,
+    "timeout_seconds": 1200,
+    "cpu_percent": 100
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "file-content-regex",
+      "path": "/workspace/bre.txt",
+      "pattern": "^alpha 123\\n?$",
+      "concept_ids": [
+        "lpic1.103.7.regex-basiques-etendues"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/workspace/ere.txt",
+      "pattern": "^alpha 123\\nbeta 456\\n?$",
+      "concept_ids": [
+        "lpic1.103.7.regex-basiques-etendues",
+        "lpic1.103.7.groupes-alternatives"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/workspace/classes.txt",
+      "pattern": "^ALPHA 789\\n?$",
+      "concept_ids": [
+        "lpic1.103.7.classes-de-caracteres"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/workspace/quantified.txt",
+      "pattern": "^delta 42\\n?$",
+      "concept_ids": [
+        "lpic1.103.7.quantificateurs-et-ancres"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/workspace/groups.txt",
+      "pattern": "^beta 456\\ngamma abc\\n?$",
+      "concept_ids": [
+        "lpic1.103.7.groupes-alternatives"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/workspace/search.txt",
+      "pattern": "^1:alpha 123\\n3:ALPHA 789\\n?$",
+      "concept_ids": [
+        "lpic1.103.7.recherche-de-lignes"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "grep -qx 'BETA 456' /workspace/sed.txt && grep -qx 'alpha 123' /workspace/sed.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.7.substitution-transformation-avec-sed"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/workspace/glob.txt",
+      "pattern": "^report1\\.log\\nreportA\\.log\\n?$",
+      "concept_ids": [
+        "lpic1.103.7.difference-glob-vs-regex"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/workspace/regex.txt",
+      "pattern": "^report1\\.log\\nreport22\\.log\\n?$",
+      "concept_ids": [
+        "lpic1.103.7.difference-glob-vs-regex"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.103.7.regex-log-triage.hint-1",
+    "lpic1.103.7.regex-log-triage.hint-2",
+    "lpic1.103.7.regex-log-triage.hint-3",
+    "lpic1.103.7.regex-log-triage.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

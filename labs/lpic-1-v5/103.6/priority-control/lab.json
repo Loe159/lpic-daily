@@ -1,0 +1,119 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.6.priority-control",
+  "title_fr": "Contrôler la priorité de processus",
+  "brief_fr": "Un processus base tourne déjà et son PID est dans /run/lpic/base.pid. Abaisse sa priorité avec renice pour obtenir NI=15 et écris cette valeur observée avec ps dans observed.txt. Lance aussi trois sleeps durables : un sans nice (default.pid), un avec nice sans -n (nice-default.pid) et un avec nice -n 7 (explicit.pid). Utilise nohup pour qu'ils restent actifs après la fermeture du shell.",
+  "success_criteria_fr": [
+    "base atteint NI=15.",
+    "Un processus normal reste à NI=0.",
+    "nice sans valeur produit NI=10.",
+    "nice -n 7 produit NI=7.",
+    "ps observe la valeur finale demandée."
+  ],
+  "debrief_fr": "Une nice value plus grande correspond à une priorité CPU plus faible. nice agit au démarrage, renice sur un PID existant, et ps/top permettent d'observer NI.",
+  "objective_ids": [
+    "103.6"
+  ],
+  "concept_ids": [
+    "lpic1.103.6.nice-value-et-ordonnancement-utilisateur",
+    "lpic1.103.6.priorite-par-defaut",
+    "lpic1.103.6.demarrer-avec-une-priorite",
+    "lpic1.103.6.modifier-priorite-existante",
+    "lpic1.103.6.observer-priorite"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "estimated_minutes": 18,
+  "practice_context": "cpu-priority-incident",
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "process-lab",
+    "writable_guest_paths": [
+      "/run/lpic"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "pids": 128,
+    "timeout_seconds": 1200,
+    "cpu_percent": 100
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "pid=$(cat /run/lpic/base.pid); kill -0 \"$pid\" && test \"$(ps -o ni= -p \"$pid\" | tr -d ' ')\" = 15"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.6.nice-value-et-ordonnancement-utilisateur",
+        "lpic1.103.6.modifier-priorite-existante"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "pid=$(cat /run/lpic/default.pid); kill -0 \"$pid\" && test \"$(ps -o ni= -p \"$pid\" | tr -d ' ')\" = 0"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.6.priorite-par-defaut"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "pid=$(cat /run/lpic/nice-default.pid); kill -0 \"$pid\" && test \"$(ps -o ni= -p \"$pid\" | tr -d ' ')\" = 10"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.6.priorite-par-defaut",
+        "lpic1.103.6.demarrer-avec-une-priorite"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "pid=$(cat /run/lpic/explicit.pid); kill -0 \"$pid\" && test \"$(ps -o ni= -p \"$pid\" | tr -d ' ')\" = 7"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.6.nice-value-et-ordonnancement-utilisateur",
+        "lpic1.103.6.demarrer-avec-une-priorite"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/run/lpic/observed.txt",
+      "pattern": "^15\\n?$",
+      "concept_ids": [
+        "lpic1.103.6.observer-priorite"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.103.6.priority-control.hint-1",
+    "lpic1.103.6.priority-control.hint-2",
+    "lpic1.103.6.priority-control.hint-3",
+    "lpic1.103.6.priority-control.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

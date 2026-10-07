@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.6.link-release-repair.hint-1",
+  "lab_id": "lpic1.104.6.link-release-repair",
+  "level": 1,
+  "content_fr": "Compare inode, type de fichier et cible avec stat/readlink.",
+  "evidence_impact": "none"
+}

@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.6.priority-control.hint-3",
+  "lab_id": "lpic1.103.6.priority-control",
+  "level": 3,
+  "content_fr": "nice sans -n ajoute normalement 10. nohup permet au sleep de survivre à exit.",
+  "evidence_impact": "material"
+}

@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.6.link-release-repair.hint-3",
+  "lab_id": "lpic1.104.6.link-release-repair",
+  "level": 3,
+  "content_fr": "Une copie doit avoir le même contenu mais un inode différent ; test -L détecte aussi un symlink cassé.",
+  "evidence_impact": "material"
+}

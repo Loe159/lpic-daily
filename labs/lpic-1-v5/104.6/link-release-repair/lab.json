@@ -1,0 +1,125 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.6.link-release-repair",
+  "title_fr": "Réparer les liens d'un déploiement",
+  "brief_fr": "Dans /workspace, crée source.hard comme hard link de releases/v2/app, source.sym comme symlink relatif vers releases/v2/app, puis broken.sym vers missing-target sans créer la cible. Crée app.copy comme vraie copie indépendante. Enfin crée current comme symlink relatif vers releases/v2. Ne remplace pas les liens par des copies.",
+  "success_criteria_fr": [
+    "source.hard partage l'inode de la source.",
+    "source.sym conserve la cible relative.",
+    "broken.sym est réellement cassé.",
+    "app.copy conserve le contenu avec un inode différent.",
+    "current est un alias administratif fonctionnel vers v2."
+  ],
+  "debrief_fr": "Un hard link est un second nom du même inode et reste limité au même filesystem. Un symlink contient une cible textuelle et peut devenir cassé. Une copie crée un nouvel inode.",
+  "objective_ids": [
+    "104.6"
+  ],
+  "concept_ids": [
+    "lpic1.104.6.inode-et-hard-link",
+    "lpic1.104.6.symlink-et-cible",
+    "lpic1.104.6.limites-filesystem-directory-des-hard-links",
+    "lpic1.104.6.liens-casses",
+    "lpic1.104.6.difference-copie-lien",
+    "lpic1.104.6.usages-administratifs"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "estimated_minutes": 18,
+  "practice_context": "release-link-repair",
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "baseline",
+    "writable_guest_paths": [
+      "/workspace",
+      "/run/lpic"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "pids": 128,
+    "timeout_seconds": 1200,
+    "cpu_percent": 100
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test \"$(stat -c %i /workspace/releases/v2/app)\" = \"$(stat -c %i /workspace/source.hard)\" && test \"$(stat -c %h /workspace/releases/v2/app)\" -ge 2"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.6.inode-et-hard-link",
+        "lpic1.104.6.limites-filesystem-directory-des-hard-links"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test -L /workspace/source.sym && test \"$(readlink /workspace/source.sym)\" = releases/v2/app && test \"$(cat /workspace/source.sym)\" = version-2"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.6.symlink-et-cible"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test -L /workspace/broken.sym && test ! -e /workspace/broken.sym && test \"$(readlink /workspace/broken.sym)\" = missing-target"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.6.symlink-et-cible",
+        "lpic1.104.6.liens-casses"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "cmp -s /workspace/releases/v2/app /workspace/app.copy && test \"$(stat -c %i /workspace/releases/v2/app)\" != \"$(stat -c %i /workspace/app.copy)\""
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.6.inode-et-hard-link",
+        "lpic1.104.6.difference-copie-lien"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test -L /workspace/current && test \"$(readlink /workspace/current)\" = releases/v2 && test \"$(cat /workspace/current/app)\" = version-2"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.6.usages-administratifs"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.104.6.link-release-repair.hint-1",
+    "lpic1.104.6.link-release-repair.hint-2",
+    "lpic1.104.6.link-release-repair.hint-3",
+    "lpic1.104.6.link-release-repair.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

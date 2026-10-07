@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.7.regex-log-triage.hint-1",
+  "lab_id": "lpic1.103.7.regex-log-triage",
+  "level": 1,
+  "content_fr": "Teste chaque motif séparément sur corpus.txt avant de rediriger.",
+  "evidence_impact": "none"
+}

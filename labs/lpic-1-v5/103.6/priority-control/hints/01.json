@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.6.priority-control.hint-1",
+  "lab_id": "lpic1.103.6.priority-control",
+  "level": 1,
+  "content_fr": "Une nice value plus grande réduit la priorité CPU ; observe NI avant de modifier.",
+  "evidence_impact": "none"
+}
