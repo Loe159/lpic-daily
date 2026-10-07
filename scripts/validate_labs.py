@@ -107,6 +107,7 @@ def main():
             "baseline",
             "identity-files",
             "metadata-db",
+            "package-root",
             "process-lab",
         }:
             errors.append(
