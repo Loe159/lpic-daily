@@ -24,7 +24,7 @@
   "practice_context": "zypper-offline-workflow",
   "environment": {
     "backend": "libvirt",
-    "image_ref": "opensuse-leap-16.0-x86_64-v2",
+    "image_ref": "opensuse-leap-16.0-x86_64-v3",
     "distribution": "opensuse",
     "network": "none",
     "capability_profile": "full-machine",
