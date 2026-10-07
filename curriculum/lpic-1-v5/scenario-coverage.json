@@ -2,6 +2,7 @@
   "schema_version": "1.0.0",
   "migrated_objective_ids": [
     "103.1",
+    "103.2",
     "103.5",
     "104.5"
   ],
@@ -165,6 +166,36 @@
       "status": "accepted",
       "evidence_strength": "behavior",
       "transfer_group": "104.5-shared-permissions"
+    },
+    {
+      "scenario_id": "lpic1.103.2.incident-report-rebuild",
+      "objective_ids": [
+        "103.2"
+      ],
+      "concept_ids": [
+        "lpic1.103.2.flux-texte-ligne-octet",
+        "lpic1.103.2.selection-de-colonnes-lignes",
+        "lpic1.103.2.tri-dedoublonnage",
+        "lpic1.103.2.assemblage-et-decoupage",
+        "lpic1.103.2.transformations-simples"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "artifact"
+    },
+    {
+      "scenario_id": "lpic1.103.2.compressed-manifest-recovery",
+      "objective_ids": [
+        "103.2"
+      ],
+      "concept_ids": [
+        "lpic1.103.2.lecture-compression-en-flux",
+        "lpic1.103.2.checksums",
+        "lpic1.103.2.flux-texte-ligne-octet"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "artifact"
     }
   ]
 }
