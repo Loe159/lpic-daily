@@ -1356,6 +1356,7 @@ func runInteractiveLabWithBackend(
 
 	nextHint := nextHintIndex(authored.Hints, highestHintLevel)
 	usedPersistentShell := false
+	usedVMConsole := false
 	var jobControlEvidence *jobControlInteractionEvidence
 	if labRequiresJobControl(authored.Definition) {
 		jobControlEvidence = &jobControlInteractionEvidence{}
@@ -1480,6 +1481,7 @@ func runInteractiveLabWithBackend(
 			if err := runVMConsole(sessionCtx, backend, session.Instance, stdin, stdout); err != nil {
 				return fmt.Errorf("VM serial console: %w", err)
 			}
+			usedVMConsole = true
 			fmt.Fprintln(stdout, "\n[retour LPIC Daily]")
 			continue
 		case ":reboot":
@@ -1518,6 +1520,7 @@ func runInteractiveLabWithBackend(
 			// across resets/restarts and remains attached to the learning attempt.
 			nextHint = nextHintIndex(authored.Hints, highestHintLevel)
 			usedPersistentShell = false
+			usedVMConsole = false
 			jobControlEvidence.Reset()
 			fmt.Fprintln(stdout, "Lab réinitialisé dans son état de départ.")
 			continue
@@ -1548,6 +1551,9 @@ func runInteractiveLabWithBackend(
 			}
 			if labRequiresJobControl(authored.Definition) && !jobControlEvidence.Complete() {
 				fmt.Fprintln(stdout, "  À CORRIGER  job control — Ctrl-Z, jobs et un bg réussi sont encore attendus dans :shell")
+			}
+			if authored.Definition.RequiresVMConsole && !usedVMConsole {
+				fmt.Fprintln(stdout, "  À CORRIGER  console VM — ce lab exige un passage réel par :console")
 			}
 			fmt.Fprintf(stdout, "Checks d'état validés : %d/%d. Utilise :hint si tu es bloqué, puis :check pour enregistrer une tentative.\n", passedChecks, len(results))
 			continue
@@ -1586,6 +1592,16 @@ func runInteractiveLabWithBackend(
 				)
 				passed = false
 				markPersistentShellConceptFailure(authored.Definition, conceptResults)
+			}
+			if authored.Definition.RequiresVMConsole && !usedVMConsole {
+				fmt.Fprintf(
+					stdout,
+					"  %-11s %s.vm-console — ce lab exige un passage réel par :console\n",
+					"À CORRIGER",
+					authored.Definition.ID,
+				)
+				passed = false
+				markVMConsoleConceptFailure(authored.Definition, conceptResults)
 			}
 			passedChecks := 0
 			for _, result := range results {
@@ -1867,6 +1883,26 @@ func collectJobControlEvidence(
 	}
 	evidence.observeShellEvents(raw)
 	return nil
+}
+
+func markVMConsoleConceptFailure(
+	definition lab.Definition,
+	conceptResults map[string]learning.Result,
+) {
+	for _, target := range []string{
+		"lpic1.101.2.commandes-du-chargeur-de-demarrage",
+		"lpic1.102.2.interaction-au-menu-console-grub",
+	} {
+		for _, conceptID := range definition.ConceptIDs {
+			if conceptID == target {
+				conceptResults[conceptID] = learning.ResultFail
+				return
+			}
+		}
+	}
+	for _, conceptID := range definition.ConceptIDs {
+		conceptResults[conceptID] = learning.ResultFail
+	}
 }
 
 func markPersistentShellConceptFailure(
