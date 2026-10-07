@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.3.release-tree-recovery.hint-2",
+  "lab_id": "lpic1.103.3.release-tree-recovery",
+  "level": 2,
+  "content_fr": "Le glob *.conf suffit pour les configurations. Pour les temporaires et logs, find sait sélectionner par nom, mtime et taille.",
+  "evidence_impact": "material"
+}

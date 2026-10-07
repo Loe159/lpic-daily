@@ -1,0 +1,123 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.3.backup-bundle-recovery",
+  "title_fr": "Préparer un bundle de sauvegarde hors ligne",
+  "brief_fr": "Un transfert hors ligne doit contenir les configurations sous forme tar et cpio, une copie bit à bit d’un petit segment disque et trois payloads compressés dont les extensions ont été perdues. Identifie leurs formats, restaure les bons noms .gz/.bz2/.xz et reconstruis recovered.txt à partir de leur contenu.",
+  "success_criteria_fr": [
+    "config.tar contient config/a.conf et config/b.conf.",
+    "config.cpio contient les mêmes deux fichiers.",
+    "disk-slice.copy est identique octet pour octet à disk-slice.bin.",
+    "payload.gz, payload.bz2 et payload.xz ont les formats réellement attendus.",
+    "recovered.txt contient release-one, release-two et release-three dans cet ordre."
+  ],
+  "debrief_fr": "tar et cpio créent des archives avec des formats différents. dd réalise une copie bas niveau sans interpréter le contenu. file permet d’identifier un format par signature plutôt que par extension. gzip/bzip2/xz et leurs outils de lecture ou décompression permettent ensuite de restaurer les payloads.",
+  "objective_ids": [
+    "103.3"
+  ],
+  "concept_ids": [
+    "lpic1.103.3.archives-tar-cpio",
+    "lpic1.103.3.copie-bas-niveau-dd",
+    "lpic1.103.3.compression-gzip-bzip2-xz",
+    "lpic1.103.3.detection-de-type"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-accepted"
+  ],
+  "estimated_minutes": 12,
+  "practice_context": "backup-bundle-recovery",
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "baseline",
+    "writable_guest_paths": [
+      "/workspace"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "cpu_percent": 100,
+    "pids": 96,
+    "timeout_seconds": 1200
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "tar -tf /workspace/output/config.tar | grep -qx 'config/a.conf' && tar -tf /workspace/output/config.tar | grep -qx 'config/b.conf'"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.3.archives-tar-cpio"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "cpio -it < /workspace/output/config.cpio 2>/dev/null | grep -qx 'config/a.conf' && cpio -it < /workspace/output/config.cpio 2>/dev/null | grep -qx 'config/b.conf'"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.3.archives-tar-cpio"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/cmp",
+        "-s",
+        "/workspace/input/disk-slice.bin",
+        "/workspace/output/disk-slice.copy"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.3.copie-bas-niveau-dd"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test \"$(file -b --mime-type /workspace/output/payload.gz)\" = application/gzip && test \"$(file -b --mime-type /workspace/output/payload.bz2)\" = application/x-bzip2 && test \"$(file -b --mime-type /workspace/output/payload.xz)\" = application/x-xz"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.3.compression-gzip-bzip2-xz",
+        "lpic1.103.3.detection-de-type"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "printf 'release-one\\nrelease-two\\nrelease-three\\n' | cmp -s - /workspace/output/recovered.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.3.compression-gzip-bzip2-xz",
+        "lpic1.103.3.detection-de-type"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.103.3.backup-bundle-recovery.hint-1",
+    "lpic1.103.3.backup-bundle-recovery.hint-2",
+    "lpic1.103.3.backup-bundle-recovery.hint-3",
+    "lpic1.103.3.backup-bundle-recovery.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}
