@@ -159,12 +159,44 @@ func (model Dashboard) render() string {
 		width,
 	))
 	output.WriteString("\n")
+	if model.plan.Progress.Exam101.Total > 0 {
+		output.WriteString(clip(
+			fmt.Sprintf(
+				"101: %d/%d complets · %d pratiques",
+				model.plan.Progress.Exam101.Complete,
+				model.plan.Progress.Exam101.Total,
+				model.plan.Progress.Exam101.Practical,
+			),
+			width,
+		))
+		output.WriteString("\n")
+	}
+	if model.plan.Progress.Exam102.Total > 0 {
+		output.WriteString(clip(
+			fmt.Sprintf(
+				"102: %d/%d complets · %d pratiques",
+				model.plan.Progress.Exam102.Complete,
+				model.plan.Progress.Exam102.Total,
+				model.plan.Progress.Exam102.Practical,
+			),
+			width,
+		))
+		output.WriteString("\n")
+	}
 	output.WriteString(strings.Repeat("─", min(width, 72)))
 	output.WriteString("\n")
 
 	if len(model.plan.Items) == 0 {
 		output.WriteString("\n✓ Séance du jour terminée\n")
 		output.WriteString("Aucune révision n'est due pour le moment.\n")
+		if model.plan.Progress.Exam101.Total > 0 {
+			output.WriteString(fmt.Sprintf(
+				"Progression 101 : %d/%d concepts complets, %d avec preuve pratique.\n",
+				model.plan.Progress.Exam101.Complete,
+				model.plan.Progress.Exam101.Total,
+				model.plan.Progress.Exam101.Practical,
+			))
+		}
 		output.WriteString("LPIC Daily te proposera automatiquement les prochaines révisions et activités pratiques lorsqu'elles seront dues.\n")
 		output.WriteString("\nq quitter\n")
 		return output.String()
