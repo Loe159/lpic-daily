@@ -155,6 +155,26 @@ func TestPracticeDefaultsToQuestion(t *testing.T) {
 	}
 }
 
+func TestDashboardShowsVerifiedExamProgress(t *testing.T) {
+	model := NewDashboard(study.Plan{
+		Progress: study.Progress{
+			Exam101: study.ExamProgress{Total: 162, Complete: 41, VerifiedPractical: 92},
+		},
+		Items: []study.Item{{
+			ConceptID:             "first",
+			ConceptTitleFR:        "Premier",
+			ObjectiveID:           "103.1",
+			Kind:                  learning.SessionReview,
+			RecommendedQuestionID: "question.first",
+		}},
+	}, gamification.Snapshot{})
+
+	rendered := model.render()
+	if !strings.Contains(rendered, "101: 41/162 parcours · 92 labs vérifiés") {
+		t.Fatalf("render missing verified progress: %q", rendered)
+	}
+}
+
 func TestDashboardEmptyPlanShowsCompletedSession(t *testing.T) {
 	model := NewDashboard(study.Plan{}, gamification.Snapshot{XP: 198, CurrentStreakDays: 1})
 
