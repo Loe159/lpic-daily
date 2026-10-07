@@ -545,3 +545,18 @@ func TestGeneratedStandaloneLessonsStayConciseForEveryActiveConcept(t *testing.T
 		t.Fatalf("generated focused lessons = %d, want 280", generated)
 	}
 }
+
+func TestAuthoredLessonsStayReadable(t *testing.T) {
+	bundle, err := Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+	for _, lesson := range bundle.Lessons {
+		if strings.HasSuffix(lesson.ID, ".lesson.autonomous") {
+			continue
+		}
+		if words := len(strings.Fields(lesson.BodyMarkdown)); words > 220 {
+			t.Errorf("%s = %d words, want <= 220", lesson.ID, words)
+		}
+	}
+}
