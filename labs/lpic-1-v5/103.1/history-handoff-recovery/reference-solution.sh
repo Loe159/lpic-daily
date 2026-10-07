@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
-cat > /root/.bashrc <<'EOF'
-export HISTFILE=/root/.bash_history
+cat > /home/alice/.bashrc <<'EOF'
+export HISTFILE=/home/alice/.bash_history
 export HISTSIZE=2000
 export HISTFILESIZE=4000
 EOF
-grep -v 'API_TOKEN' /root/.bash_history > /root/.bash_history.clean
-mv /root/.bash_history.clean /root/.bash_history
-cd /root
-echo "$PWD" > /run/lpic/history-proof
-cat > /root/.lpic-history-update <<'EOF'
+grep -v 'API_TOKEN' /home/alice/.bash_history > /home/alice/.bash_history.clean
+mv /home/alice/.bash_history.clean /home/alice/.bash_history
+cat > /home/alice/.lpic-history-update <<'EOF'
+cd /home/alice
+echo "$USER:$PWD" > /run/lpic/history-proof
 history -c
 history -r
-history -s 'echo "$PWD" > /run/lpic/history-proof'
+history -s 'echo "$USER:$PWD" > /run/lpic/history-proof'
 history -w
 EOF
-/usr/bin/bash --noprofile --rcfile /root/.bashrc -ic 'source /root/.lpic-history-update'
-rm -f /root/.lpic-history-update
+chown alice:alice /home/alice/.bashrc /home/alice/.bash_history /home/alice/.lpic-history-update
+runuser -u alice -- env HOME=/home/alice bash --noprofile --rcfile /home/alice/.bashrc -ic 'source /home/alice/.lpic-history-update'
