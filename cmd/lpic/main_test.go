@@ -35,7 +35,7 @@ func TestTodayStartsWith1031AndCreatesLocalProgressStore(t *testing.T) {
 	output := stdout.String()
 	for _, want := range []string{
 		"LPIC Daily — Aujourd'hui",
-		"101: 0/162 concepts complets",
+		"101: 0/162 parcours complets",
 		"Nouveau · 103.1 · syntaxe shell et séquences de commandes",
 		"Cours conseillé: lpic1.103.1.lesson.shell-sequences",
 		"lpic1.103.1.syntaxe-shell-et-sequences-de-commandes.q.autonomous-recall",
