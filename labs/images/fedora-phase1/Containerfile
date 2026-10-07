@@ -36,6 +36,7 @@ RUN dnf -y install \
         nmap-ncat \
         openssh-clients \
         parted \
+        plocate \
         procps-ng \
         rpm \
         rsyslog \

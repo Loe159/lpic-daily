@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.7.fhs-search-recovery.hint-4",
+  "lab_id": "lpic1.104.7.fhs-search-recovery",
+  "level": 4,
+  "content_fr": "Classe etc/var/usr/local/srv, puis utilise updatedb/locate, find, whereis et enfin PATH + type/which.",
+  "evidence_impact": "solution-revealed"
+}

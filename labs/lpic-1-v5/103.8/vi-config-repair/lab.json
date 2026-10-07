@@ -1,0 +1,112 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.8.vi-config-repair",
+  "title_fr": "Réparer un fichier avec vi",
+  "brief_fr": "Dans :shell, ouvre /workspace/config.txt avec vi ou vim. Recherche beta, remplace sa valeur par new, supprime la ligne remove=this, duplique la ligne copy=shared, puis transforme anchor=end en anchor=before-end. Sauvegarde et quitte depuis Vim. Configure aussi EDITOR=vim de façon persistante dans /root/.bash_profile et produis /workspace/editor-tools.txt avec les chemins de vim puis nano. Le lab observe les interactions Vim dans la sandbox ; modifier le fichier uniquement avec sed ne suffit pas.",
+  "success_criteria_fr": [
+    "Le fichier final correspond exactement à la configuration demandée.",
+    "Une session Vim a réellement utilisé insertion, recherche, mouvement, yank/delete et sauvegarde.",
+    "EDITOR vaut vim dans un nouveau login shell.",
+    "vim et nano sont identifiés comme éditeurs disponibles."
+  ],
+  "debrief_fr": "vi alterne entre mode normal, insertion et ligne de commande. Les déplacements et opérateurs d/y/p évitent de quitter le clavier, / et ? recherchent, et :w/:q enregistrent ou quittent. EDITOR permet aux outils Unix de choisir un éditeur par défaut.",
+  "objective_ids": [
+    "103.8"
+  ],
+  "concept_ids": [
+    "lpic1.103.8.modes-normal-insertion-commande",
+    "lpic1.103.8.navigation",
+    "lpic1.103.8.insertion-remplacement",
+    "lpic1.103.8.suppression-copie-collage",
+    "lpic1.103.8.recherche",
+    "lpic1.103.8.sauvegarde-quitter",
+    "lpic1.103.8.editeur-par-defaut",
+    "lpic1.103.8.connaissance-nano-emacs-vim"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "estimated_minutes": 18,
+  "practice_context": "vi-config-repair",
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "baseline",
+    "writable_guest_paths": [
+      "/workspace",
+      "/run/lpic",
+      "/root"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "pids": 128,
+    "timeout_seconds": 1200,
+    "cpu_percent": 100
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "file-content-regex",
+      "path": "/workspace/config.txt",
+      "pattern": "^alpha=1\\nbeta=new\\ncopy=shared\\ncopy=shared\\nanchor=before-end\\n?$",
+      "concept_ids": [
+        "lpic1.103.8.navigation",
+        "lpic1.103.8.insertion-remplacement",
+        "lpic1.103.8.suppression-copie-collage"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test -s /run/lpic/vim-events && grep -qx insert /run/lpic/vim-events && grep -qx move /run/lpic/vim-events && grep -qx search /run/lpic/vim-events && grep -qx 'operator:y' /run/lpic/vim-events && grep -qx 'operator:d' /run/lpic/vim-events && grep -qx command /run/lpic/vim-events && grep -qx write /run/lpic/vim-events"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.8.modes-normal-insertion-commande",
+        "lpic1.103.8.navigation",
+        "lpic1.103.8.insertion-remplacement",
+        "lpic1.103.8.suppression-copie-collage",
+        "lpic1.103.8.recherche",
+        "lpic1.103.8.sauvegarde-quitter"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test \"$(/usr/bin/bash -lc 'printf %s \"$EDITOR\"')\" = vim"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.8.editeur-par-defaut"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/workspace/editor-tools.txt",
+      "pattern": "^/usr/bin/vim\\n/usr/bin/nano\\n?$",
+      "concept_ids": [
+        "lpic1.103.8.connaissance-nano-emacs-vim"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.103.8.vi-config-repair.hint-1",
+    "lpic1.103.8.vi-config-repair.hint-2",
+    "lpic1.103.8.vi-config-repair.hint-3",
+    "lpic1.103.8.vi-config-repair.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable",
+  "requires_persistent_shell": true
+}

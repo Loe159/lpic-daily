@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.8.vi-config-repair.hint-4",
+  "lab_id": "lpic1.103.8.vi-config-repair",
+  "level": 4,
+  "content_fr": "Le fichier final contient cinq lignes : alpha=1, beta=new, deux fois copy=shared, puis anchor=before-end. Configure ensuite export EDITOR=vim.",
+  "evidence_impact": "solution-revealed"
+}
