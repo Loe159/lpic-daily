@@ -46,7 +46,7 @@ La partie exécutable décrit environnement, ressources, setup **dans la sandbox
 
 Principes:
 - backend explicite `podman` ou `libvirt`;
-- un lab Podman utilise uniquement un profil de capacités prédéfini (`baseline`, `identity-files`, `process-lab`); un lab libvirt utilise `full-machine` et ne déclare pas de `writable_guest_paths`, car son état modifiable provient exclusivement des disques VM jetables;
+- un lab Podman utilise uniquement un profil de capacités prédéfini (`baseline`, `identity-files`, `metadata-db`, `process-lab`); un lab libvirt utilise `full-machine` et ne déclare pas de `writable_guest_paths`, car son état modifiable provient exclusivement des disques VM jetables;
 - réseau `none` ou `isolated`, jamais Internet implicite;
 - aucun host mount arbitraire dans le format;
 - setup exécuté uniquement dans la sandbox;
