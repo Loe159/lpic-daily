@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "images": [
     {
-      "id": "fedora-44-x86_64-v2",
+      "id": "fedora-44-x86_64-v3",
       "distribution": "fedora",
       "version": "44-1.7",
       "architecture": "x86_64",
@@ -75,10 +75,10 @@
         "dracut",
         "grub2-tools"
       ],
-      "recipe": "fedora-cloud-v2"
+      "recipe": "fedora-cloud-v3"
     },
     {
-      "id": "debian-13-x86_64-v2",
+      "id": "debian-13-x86_64-v3",
       "distribution": "debian",
       "version": "13-20260712-2537",
       "architecture": "x86_64",
@@ -146,10 +146,10 @@
         "debconf-utils",
         "tzdata"
       ],
-      "recipe": "debian-cloud-v2"
+      "recipe": "debian-cloud-v3"
     },
     {
-      "id": "opensuse-leap-16.0-x86_64-v2",
+      "id": "opensuse-leap-16.0-x86_64-v3",
       "distribution": "opensuse",
       "version": "16.0-build18.68",
       "architecture": "x86_64",
@@ -215,7 +215,7 @@
         "rpm-build",
         "createrepo_c"
       ],
-      "recipe": "opensuse-cloud-v2"
+      "recipe": "opensuse-cloud-v3"
     }
   ]
 }
