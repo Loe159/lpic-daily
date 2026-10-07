@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.child-environment-repair.hint-3",
+  "lab_id": "lpic1.103.1.child-environment-repair",
+  "level": 3,
+  "content_fr": "Corrige `/root/.bash_profile`, puis ouvre un nouveau login shell. Vérifie la portée avec `set`/`env` et génère l'audit avec les expansions de DEPLOY_ENV et SHELL_NOTE.",
+  "evidence_impact": "material"
+}
