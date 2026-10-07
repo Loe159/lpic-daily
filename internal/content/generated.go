@@ -188,38 +188,71 @@ func generatedLessonBody(
 	return generatedObjectiveLessonBody(objective, concept, guide)
 }
 
+func conciseStandaloneUsage(term string) string {
+	usage := strings.TrimSpace(standaloneTermUsage(term))
+	if usage == "" {
+		return ""
+	}
+	if separator := strings.Index(usage, " ; "); separator >= 0 {
+		usage = strings.TrimSpace(usage[:separator])
+	}
+	return usage
+}
+
+func generatedStandaloneLessonBody(
+	objective curriculum.Objective,
+	concept curriculum.Concept,
+) string {
+	var retained strings.Builder
+	for _, anchor := range concept.AnchorTerms {
+		fmt.Fprintf(
+			&retained,
+			"- `%s` — %s\n",
+			anchor,
+			standaloneTermExplanation(anchor, objective.ID),
+		)
+	}
+
+	var practice strings.Builder
+	seenPractice := make(map[string]struct{})
+	for _, anchor := range concept.AnchorTerms {
+		usage := conciseStandaloneUsage(anchor)
+		if usage == "" {
+			continue
+		}
+		if _, duplicate := seenPractice[usage]; duplicate {
+			continue
+		}
+		seenPractice[usage] = struct{}{}
+		fmt.Fprintf(&practice, "- `%s`\n", usage)
+		if len(seenPractice) == 3 {
+			break
+		}
+	}
+
+	var body strings.Builder
+	body.WriteString("## À retenir\n\n")
+	body.WriteString(strings.TrimSpace(retained.String()))
+	body.WriteByte('\n')
+	if practice.Len() != 0 {
+		body.WriteString("\n## À essayer\n\n")
+		body.WriteString(strings.TrimSpace(practice.String()))
+		body.WriteByte('\n')
+	}
+	if attention := standaloneConceptAttention(concept); attention != "" {
+		body.WriteString("\n## Attention\n\n")
+		body.WriteString(attention)
+		body.WriteByte('\n')
+	}
+	return body.String()
+}
+
 func generatedExam101LessonBody(
 	objective curriculum.Objective,
 	concept curriculum.Concept,
 	_ curriculum.ObjectiveStudyGuide,
 ) string {
-	var anchors strings.Builder
-	var examples strings.Builder
-	for _, anchor := range concept.AnchorTerms {
-		fmt.Fprintf(
-			&anchors,
-			"- `%s` — %s\n",
-			anchor,
-			standaloneTermExplanation(anchor, objective.ID),
-		)
-		if usage := standaloneTermUsage(anchor); usage != "" {
-			fmt.Fprintf(&examples, "- `%s`\n", usage)
-		}
-	}
-	if examples.Len() == 0 {
-		examples.WriteString("- Observe le système avec les repères ci-dessus et vérifie le résultat obtenu.\n")
-	}
-
-	return fmt.Sprintf(
-		"## À retenir\n\n%s\n"+
-			"## À essayer\n\n%s\n"+
-			"## Point d'attention\n\n%s\n\n"+
-			"## Vérifie-toi\n\n"+
-			"Explique en une phrase la différence ou le comportement étudié, puis cite la commande qui permet de le vérifier.\n",
-		anchors.String(),
-		examples.String(),
-		standaloneConceptAttention(concept),
-	)
+	return generatedStandaloneLessonBody(objective, concept)
 }
 
 func standaloneConceptAttention(concept curriculum.Concept) string {
@@ -229,62 +262,16 @@ func standaloneConceptAttention(concept curriculum.Concept) string {
 	case "lpic1.103.1.export-unset-et-processus-enfants":
 		return "`export` rend une variable disponible aux processus enfants ; `unset` la retire du shell courant."
 	default:
-		return fmt.Sprintf(
-			"Vérifie le comportement avec %s plutôt que de te fier uniquement au nom de l'outil.",
-			inlineCodeList(concept.AnchorTerms),
-		)
+		return ""
 	}
 }
 
 func generatedObjectiveLessonBody(
 	objective curriculum.Objective,
 	concept curriculum.Concept,
-	guide curriculum.ObjectiveStudyGuide,
+	_ curriculum.ObjectiveStudyGuide,
 ) string {
-	var anchorList strings.Builder
-	for _, anchor := range concept.AnchorTerms {
-		fmt.Fprintf(&anchorList, "- `%s` — %s", anchor, standaloneTermExplanation(anchor, objective.ID))
-		if usage := standaloneTermUsage(anchor); usage != "" {
-			fmt.Fprintf(&anchorList, "  \n  **À savoir pratiquer :** `%s`", usage)
-		}
-		anchorList.WriteByte('\n')
-	}
-	var termList strings.Builder
-	for _, term := range objective.TermsFilesUtilities {
-		fmt.Fprintf(&termList, "- `%s` — %s", term, standaloneTermExplanation(term, objective.ID))
-		if usage := standaloneTermUsage(term); usage != "" {
-			fmt.Fprintf(&termList, "  \n  **À savoir pratiquer :** `%s`", usage)
-		}
-		termList.WriteByte('\n')
-	}
-	var evidence strings.Builder
-	for _, item := range objective.AssessmentEvidence {
-		fmt.Fprintf(&evidence, "- %s\n", item)
-	}
-	return fmt.Sprintf(
-		"# %s\n\n"+
-			"Ce concept appartient à **%s — %s**. L'objectif est de savoir l'expliquer, le reconnaître dans un scénario d'examen et l'utiliser ou le diagnostiquer sur un système Linux.\n\n"+
-			"## Modèle mental\n\n%s\n\n"+
-			"## Focus sur ce concept\n\n"+
-			"Travaille particulièrement **%s**. Ces repères techniques sont propres à ce concept :\n\n%s\n"+
-			"Pour chacun, sache expliquer son rôle, l'utiliser ou l'inspecter et vérifier le résultat obtenu.\n\n"+
-			"## Mise en pratique\n\n%s\n\n"+
-			"## Pièges et distinctions\n\n%s\n\n"+
-			"## Termes, fichiers et utilitaires à connaître pour %s\n\n%s\n"+
-			"## Ce que l'examen peut te demander de démontrer\n\n%s\n"+
-			"Avant de continuer, reformule le concept sans relire le titre, cite au moins un outil ou fichier pertinent et décris comment tu vérifierais ton résultat.\n",
-		concept.TitleFR,
-		objective.ID,
-		objective.TitleFR,
-		guide.Overview,
-		concept.TitleFR,
-		anchorList.String(),
-		guide.Practice,
-		guide.Pitfalls,
-		objective.ID,
-		termList.String(),
-		evidence.String(),
-	)
+	return generatedStandaloneLessonBody(objective, concept)
 }
 
 func generatedRecallQuestion(
@@ -559,6 +546,12 @@ func standaloneTermUsage(term string) string {
 // safe deterministic command example.
 func PedagogicalTermUsage(term string) string {
 	return standaloneTermUsage(term)
+}
+
+// PedagogicalTermExplanation exposes the concise learner-facing definition used
+// by generated lessons and labs.
+func PedagogicalTermExplanation(term, objectiveID string) string {
+	return standaloneTermExplanation(term, objectiveID)
 }
 
 var standaloneTermUsages = map[string]string{

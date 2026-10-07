@@ -398,15 +398,8 @@ func TestExam101GeneratedPedagogyIsFocusedAndApplied(t *testing.T) {
 			t.Fatalf("missing focused lesson for Exam 101 concept %s", concept.ID)
 		}
 		if strings.HasSuffix(lesson.ID, ".lesson.autonomous") {
-			for _, heading := range []string{
-				"## À retenir",
-				"## À essayer",
-				"## Point d'attention",
-				"## Vérifie-toi",
-			} {
-				if !strings.Contains(lesson.BodyMarkdown, heading) {
-					t.Errorf("%s generated focused lesson missing %q", concept.ID, heading)
-				}
+			if !strings.Contains(lesson.BodyMarkdown, "## À retenir") {
+				t.Errorf("%s generated focused lesson missing concise retention section", concept.ID)
 			}
 		} else if !strings.Contains(lesson.BodyMarkdown, standaloneSupplementHeading) {
 			t.Errorf("%s authored focused lesson has no compact standalone supplement", concept.ID)
@@ -479,5 +472,91 @@ func TestExam101GeneratedPedagogyIsFocusedAndApplied(t *testing.T) {
 	}
 	if exam101Concepts != 162 {
 		t.Fatalf("Exam 101 concept count = %d, want 162", exam101Concepts)
+	}
+}
+
+func TestGeneratedStandaloneLessonsStayConciseForEveryActiveConcept(t *testing.T) {
+	bundle, err := Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("curriculum.Load() error = %v", err)
+	}
+
+	conceptByID := make(map[string]curriculum.Concept)
+	for _, concept := range curriculumBundle.Concepts.Concepts {
+		if concept.Active {
+			conceptByID[concept.ID] = concept
+		}
+	}
+
+	generated := 0
+	for _, lesson := range bundle.Lessons {
+		if lesson.Stage != "introduce" || len(lesson.ConceptIDs) != 1 ||
+			!strings.HasSuffix(lesson.ID, ".lesson.autonomous") {
+			continue
+		}
+		generated++
+		concept := conceptByID[lesson.ConceptIDs[0]]
+		if concept.ID == "" {
+			t.Fatalf("%s references an unknown concept", lesson.ID)
+		}
+		if !strings.Contains(lesson.BodyMarkdown, "## À retenir") {
+			t.Errorf("%s has no concise retention section", lesson.ID)
+		}
+		for _, anchor := range concept.AnchorTerms {
+			if !strings.Contains(lesson.BodyMarkdown, "`"+anchor+"`") {
+				t.Errorf("%s misses anchor %q", lesson.ID, anchor)
+			}
+			explanation := standaloneTermExplanation(anchor, concept.ObjectiveID)
+			if !strings.Contains(lesson.BodyMarkdown, explanation) {
+				t.Errorf("%s misses the specific explanation for %q", lesson.ID, anchor)
+			}
+		}
+		for _, filler := range []string{
+			"Ce concept appartient à",
+			"## Modèle mental",
+			"## Focus sur ce concept",
+			"## Mise en pratique",
+			"## Pièges et distinctions",
+			"## Termes, fichiers et utilitaires à connaître pour",
+			"## Ce que l'examen peut te demander de démontrer",
+			"Avant de continuer, reformule",
+			"## Vérifie-toi",
+		} {
+			if strings.Contains(lesson.BodyMarkdown, filler) {
+				t.Errorf("%s contains verbose generated filler %q", lesson.ID, filler)
+			}
+		}
+		nonEmptyLines := 0
+		for _, line := range strings.Split(lesson.BodyMarkdown, "\n") {
+			if strings.TrimSpace(line) != "" {
+				nonEmptyLines++
+			}
+		}
+		if maxLines := len(concept.AnchorTerms) + 7; nonEmptyLines > maxLines {
+			t.Errorf("%s has %d non-empty lines, want at most %d for %d anchors",
+				lesson.ID, nonEmptyLines, maxLines, len(concept.AnchorTerms))
+		}
+	}
+	if generated != 280 {
+		t.Fatalf("generated focused lessons = %d, want 280", generated)
+	}
+}
+
+func TestAuthoredLessonsStayReadable(t *testing.T) {
+	bundle, err := Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+	for _, lesson := range bundle.Lessons {
+		if strings.HasSuffix(lesson.ID, ".lesson.autonomous") {
+			continue
+		}
+		if words := len(strings.Fields(lesson.BodyMarkdown)); words > 220 {
+			t.Errorf("%s = %d words, want <= 220", lesson.ID, words)
+		}
 	}
 }

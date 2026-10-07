@@ -589,3 +589,89 @@ func TestGeneratedStandaloneCommandEvidenceRequiresCommandPosition(t *testing.T)
 	}
 	t.Fatal("no generated ps command-evidence check found")
 }
+
+func TestGeneratedStandaloneLabsStayConcreteAndConcise(t *testing.T) {
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("LoadAll() error = %v", err)
+	}
+	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("curriculum.Load() error = %v", err)
+	}
+
+	conceptByID := make(map[string]curriculum.Concept)
+	for _, concept := range curriculumBundle.Concepts.Concepts {
+		if concept.Active {
+			conceptByID[concept.ID] = concept
+		}
+	}
+
+	generated := 0
+	for _, authored := range labs {
+		if !strings.Contains(authored.Definition.ID, ".standalone-") {
+			continue
+		}
+		generated++
+		if len(authored.Definition.ConceptIDs) != 1 {
+			t.Fatalf("%s concept count = %d, want 1", authored.Definition.ID, len(authored.Definition.ConceptIDs))
+		}
+		concept := conceptByID[authored.Definition.ConceptIDs[0]]
+		brief := authored.Definition.BriefFR
+
+		for _, forbidden := range []string{
+			"pour montrer concrètement",
+			"Fais au moins une manipulation",
+			"Exercice spécifique indisponible",
+			"CONCEPT=",
+			"TERMS=",
+			"COMMAND=",
+			"OBSERVATION=",
+			"EXPLANATION=",
+			"lpic-daily-evidence",
+			"## Contexte de diagnostic",
+		} {
+			if strings.Contains(brief, forbidden) {
+				t.Errorf("%s contains generic/internal learner text %q", authored.Definition.ID, forbidden)
+			}
+		}
+		if strings.Contains(brief, "**") {
+			t.Errorf("%s still contains raw bold markdown in its brief", authored.Definition.ID)
+		}
+		if !strings.Contains(brief, "## À faire") || !strings.Contains(brief, "Quand tu as terminé, tape `:check`.") {
+			t.Errorf("%s does not use the compact learner format", authored.Definition.ID)
+		}
+		for _, anchor := range concept.AnchorTerms {
+			if !strings.Contains(brief, "`"+anchor+"`") {
+				t.Errorf("%s brief misses anchor %q", authored.Definition.ID, anchor)
+			}
+		}
+
+		if words := len(strings.Fields(brief)); words > 130 {
+			t.Errorf("%s brief = %d words, want <= 130", authored.Definition.ID, words)
+		}
+		if words := len(strings.Fields(authored.Definition.DebriefFR)); words > 80 {
+			t.Errorf("%s debrief = %d words, want <= 80", authored.Definition.ID, words)
+		}
+
+		for _, hint := range authored.Hints {
+			for _, forbidden := range []string{
+				"Fais une petite manipulation",
+				"Repars de la consigne",
+				"montre concrètement",
+				"CONCEPT=",
+				"TERMS=",
+			} {
+				if strings.Contains(hint.ContentFR, forbidden) {
+					t.Errorf("%s hint %d contains generic/internal text %q", authored.Definition.ID, hint.Level, forbidden)
+				}
+			}
+			if words := len(strings.Fields(hint.ContentFR)); words > 55 {
+				t.Errorf("%s hint %d = %d words, want <= 55", authored.Definition.ID, hint.Level, words)
+			}
+		}
+	}
+	if generated != 618 {
+		t.Fatalf("generated standalone labs = %d, want 618", generated)
+	}
+}
