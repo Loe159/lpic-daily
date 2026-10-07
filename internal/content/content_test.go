@@ -475,7 +475,6 @@ func TestExam101GeneratedPedagogyIsFocusedAndApplied(t *testing.T) {
 	}
 }
 
-
 func TestGeneratedStandaloneLessonsStayConciseForEveryActiveConcept(t *testing.T) {
 	bundle, err := Load(lpicdaily.BuiltinFS)
 	if err != nil {
