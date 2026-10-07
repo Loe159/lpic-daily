@@ -141,7 +141,10 @@
         "screen",
         "tmux",
         "hostname",
-        "sudo"
+        "sudo",
+        "debconf",
+        "debconf-utils",
+        "tzdata"
       ],
       "recipe": "debian-cloud-v2"
     },
@@ -208,7 +211,9 @@
         "screen",
         "tmux",
         "hostname",
-        "sudo"
+        "sudo",
+        "rpm-build",
+        "createrepo_c"
       ],
       "recipe": "opensuse-cloud-v2"
     }
