@@ -34,7 +34,7 @@
     "image_ref": "localhost/lpic-daily/fedora-phase1:1",
     "distribution": "fedora",
     "network": "none",
-    "capability_profile": "baseline",
+    "capability_profile": "package-root",
     "writable_guest_paths": [
       "/workspace"
     ]
