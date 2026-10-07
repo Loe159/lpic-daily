@@ -301,11 +301,17 @@ func validateDefinition(fsys fs.FS, base string, definition Definition) error {
 		if definition.Resources.MemoryMB < 256 {
 			return errors.New("libvirt lab requires at least 256 MiB of memory")
 		}
-		if definition.Setup.ExecutionScope != "none" {
-			return errors.New("libvirt Phase-2 lab setup execution scope must be none")
-		}
-		if definition.Setup.ScriptRef != "" {
-			return errors.New("libvirt setup=none must not declare script_ref")
+		switch definition.Setup.ExecutionScope {
+		case "none":
+			if definition.Setup.ScriptRef != "" {
+				return errors.New("libvirt setup=none must not declare script_ref")
+			}
+		case "sandbox":
+			if _, err := resolveLocalRef(base, definition.Setup.ScriptRef); err != nil {
+				return fmt.Errorf("invalid libvirt setup reference: %w", err)
+			}
+		default:
+			return fmt.Errorf("unsupported libvirt setup execution scope %q", definition.Setup.ExecutionScope)
 		}
 	}
 	if definition.ResetPolicy != "disposable" {
