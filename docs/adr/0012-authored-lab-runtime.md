@@ -55,12 +55,19 @@ Authored shell scripts are untrusted content. They are never passed to a host sh
 
 ## Full-machine setup semantics
 
-Phase-2 VM labs may use `setup.execution_scope = "none"`. In that mode the
-trusted image, firmware profile and disposable disks are the complete initial
-state and the runtime performs no guest command setup.
+Phase-2 VM labs may use either `setup.execution_scope = "none"` or
+`setup.execution_scope = "sandbox"`.
+
+With `none`, the trusted image, firmware profile and disposable disks are the
+complete initial state. With `sandbox`, the local setup script is executed
+inside the disposable guest through `Runner.Exec`.
+
+The libvirt runner now implements structured guest execution through QEMU Guest
+Agent and the image-owned `/usr/libexec/qemu-ga/fsfreeze-hook.d/lpic-daily-exec`
+helper. The runtime passes argv/environment as structured guest-agent fields,
+rejects TTY/stdin/working-directory requests on this transport, bounds agent
+responses and output, and never invokes a host shell. This satisfies the
+transport boundary that previously required all libvirt labs to use `none`.
 
 Podman labs continue to require `execution_scope = "sandbox"` plus a local
-setup script. Until a separately authenticated structured guest transport is
-implemented, libvirt labs are required to use `none`; this prevents the
-generic lab lifecycle from accidentally treating a VM like a container and
-calling `Runner.Exec`.
+setup script.
