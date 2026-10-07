@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.3.persistent-mount-recovery.hint-4",
+  "lab_id": "lpic1.104.3.persistent-mount-recovery",
+  "level": 4,
+  "content_fr": "Solution : mkfs.ext4 + mount/umount, ligne UUID=... dans fstab avec nodev, daemon-reload + start du mount unit ; puis mkfs.vfat, mount, marker, sync, umount.",
+  "evidence_impact": "solution-revealed"
+}

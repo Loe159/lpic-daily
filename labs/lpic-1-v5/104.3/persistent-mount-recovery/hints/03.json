@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.3.persistent-mount-recovery.hint-3",
+  "lab_id": "lpic1.104.3.persistent-mount-recovery",
+  "level": 3,
+  "content_fr": "Le nom de l'unité pour /srv/lpic-data est srv-lpic\\\\x2ddata.mount. Le support VFAT doit contenir marker.txt mais être démonté à la fin.",
+  "evidence_impact": "material"
+}

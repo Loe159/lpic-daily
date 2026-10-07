@@ -879,12 +879,11 @@ func TestExam102StaysLockedUntilEveryExam101ConceptCompletesCourseQuizAndLab(t *
 	}
 }
 
-func TestGeneratedGuidedLabRotatesToSecondPracticeContext(t *testing.T) {
+func TestGuidedFallbackUpgradesToStateVerifiedPractice(t *testing.T) {
 	curriculumBundle, contentBundle, labs := loadInputs(t)
 	now := time.Date(2026, 10, 10, 12, 0, 0, 0, time.UTC)
 	conceptID := "lpic1.103.2.flux-texte-ligne-octet"
 	diagnosticID := conceptID + ".standalone-diagnostic"
-	transferID := conceptID + ".standalone-transfer"
 	evidence := memoryEvidence{
 		conceptID: {
 			{
@@ -924,8 +923,8 @@ func TestGeneratedGuidedLabRotatesToSecondPracticeContext(t *testing.T) {
 	if len(plan.Items) != 1 {
 		t.Fatalf("items = %#v, want one due guided review", plan.Items)
 	}
-	if got := plan.Items[0].RecommendedLabID; got != transferID {
-		t.Fatalf("recommended lab = %q, want %q after diagnostic success", got, transferID)
+	if got := plan.Items[0].RecommendedLabID; got != "lpic1.103.2.text-pipeline-workbench" {
+		t.Fatalf("recommended lab = %q, want state-verified practice after guided diagnostic success", got)
 	}
 }
 

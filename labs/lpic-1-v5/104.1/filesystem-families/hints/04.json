@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.1.filesystem-families.hint-4",
+  "lab_id": "lpic1.104.1.filesystem-families",
+  "level": 4,
+  "content_fr": "Crée XFS sur vdb, partitionne vdc pour VFAT/exFAT, crée Btrfs sur vdd+vde, monte /dev/vdd sur /mnt/btrfs et crée le subvolume data.",
+  "evidence_impact": "solution-revealed"
+}

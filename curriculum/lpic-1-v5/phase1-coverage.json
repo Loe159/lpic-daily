@@ -220,7 +220,8 @@
       "surfaces": {
         "labs": [
           "lpic1.103.1.set-env-et-portee-des-variables.standalone-diagnostic",
-          "lpic1.103.1.set-env-et-portee-des-variables.standalone-transfer"
+          "lpic1.103.1.set-env-et-portee-des-variables.standalone-transfer",
+          "lpic1.103.1.shell-scope-history"
         ],
         "lessons": [
           "lpic1.103.1.set-env-et-portee-des-variables.lesson.autonomous"
@@ -232,7 +233,8 @@
       },
       "lab_contexts": [
         "103-1-c08-standalone-diagnostic",
-        "103-1-c08-standalone-transfer"
+        "103-1-c08-standalone-transfer",
+        "shell-scope-history"
       ],
       "focused_introduction_count": 1
     },
@@ -242,7 +244,8 @@
       "surfaces": {
         "labs": [
           "lpic1.103.1.export-unset-et-processus-enfants.standalone-diagnostic",
-          "lpic1.103.1.export-unset-et-processus-enfants.standalone-transfer"
+          "lpic1.103.1.export-unset-et-processus-enfants.standalone-transfer",
+          "lpic1.103.1.shell-scope-history"
         ],
         "lessons": [
           "lpic1.103.1.export-unset-et-processus-enfants.lesson.autonomous"
@@ -254,7 +257,8 @@
       },
       "lab_contexts": [
         "103-1-c09-standalone-diagnostic",
-        "103-1-c09-standalone-transfer"
+        "103-1-c09-standalone-transfer",
+        "shell-scope-history"
       ],
       "focused_introduction_count": 1
     },
@@ -264,7 +268,8 @@
       "surfaces": {
         "labs": [
           "lpic1.103.1.execution-de-commandes-hors-path.standalone-diagnostic",
-          "lpic1.103.1.execution-de-commandes-hors-path.standalone-transfer"
+          "lpic1.103.1.execution-de-commandes-hors-path.standalone-transfer",
+          "lpic1.103.1.shell-scope-history"
         ],
         "lessons": [
           "lpic1.103.1.execution-de-commandes-hors-path.lesson.autonomous"
@@ -276,7 +281,8 @@
       },
       "lab_contexts": [
         "103-1-c10-standalone-diagnostic",
-        "103-1-c10-standalone-transfer"
+        "103-1-c10-standalone-transfer",
+        "shell-scope-history"
       ],
       "focused_introduction_count": 1
     },
@@ -286,7 +292,8 @@
       "surfaces": {
         "labs": [
           "lpic1.103.1.edition-et-persistance-de-l-historique.standalone-diagnostic",
-          "lpic1.103.1.edition-et-persistance-de-l-historique.standalone-transfer"
+          "lpic1.103.1.edition-et-persistance-de-l-historique.standalone-transfer",
+          "lpic1.103.1.shell-scope-history"
         ],
         "lessons": [
           "lpic1.103.1.edition-et-persistance-de-l-historique.lesson.autonomous"
@@ -298,7 +305,8 @@
       },
       "lab_contexts": [
         "103-1-c11-standalone-diagnostic",
-        "103-1-c11-standalone-transfer"
+        "103-1-c11-standalone-transfer",
+        "shell-scope-history"
       ],
       "focused_introduction_count": 1
     },
@@ -308,7 +316,8 @@
       "surfaces": {
         "labs": [
           "lpic1.103.1.echo-et-expansion-shell.standalone-diagnostic",
-          "lpic1.103.1.echo-et-expansion-shell.standalone-transfer"
+          "lpic1.103.1.echo-et-expansion-shell.standalone-transfer",
+          "lpic1.103.1.shell-scope-history"
         ],
         "lessons": [
           "lpic1.103.1.echo-et-expansion-shell.lesson.autonomous"
@@ -320,7 +329,8 @@
       },
       "lab_contexts": [
         "103-1-c12-standalone-diagnostic",
-        "103-1-c12-standalone-transfer"
+        "103-1-c12-standalone-transfer",
+        "shell-scope-history"
       ],
       "focused_introduction_count": 1
     },

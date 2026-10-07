@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.shell-scope-history.hint-4",
+  "lab_id": "lpic1.103.1.shell-scope-history",
+  "level": 4,
+  "content_fr": "Produis les fichiers demandés depuis un même :shell ; la dernière preuve utilise REPORT_NAME=daily puis echo \"report:$REPORT_NAME\".",
+  "evidence_impact": "solution-revealed"
+}

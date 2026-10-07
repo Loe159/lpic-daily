@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.4.deb-apt-offline-recovery.hint-2",
+  "lab_id": "lpic1.102.4.deb-apt-offline-recovery",
+  "level": 2,
+  "content_fr": "APT et dpkg doivent tous deux modifier réellement l'état de nano : APT gère la couche haute, dpkg le fichier local.",
+  "evidence_impact": "material"
+}

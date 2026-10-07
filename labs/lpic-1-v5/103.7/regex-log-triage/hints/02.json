@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.7.regex-log-triage.hint-2",
+  "lab_id": "lpic1.103.7.regex-log-triage",
+  "level": 2,
+  "content_fr": "BRE peut exprimer « un ou plusieurs » avec [0-9][0-9]* ; ERE dispose de +, {n} et |.",
+  "evidence_impact": "material"
+}

@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.2.filesystem-maintenance.hint-4",
+  "lab_id": "lpic1.104.2.filesystem-maintenance",
+  "level": 4,
+  "content_fr": "La solution enchaîne mkfs/tune2fs/mount/df/du, un dd volontairement trop grand, umount+e2fsck, puis mkfs.xfs/xfs_info/umount/xfs_repair/xfs_db.",
+  "evidence_impact": "solution-revealed"
+}

@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.5.rpm-dnf-offline-recovery.hint-1",
+  "lab_id": "lpic1.102.5.rpm-dnf-offline-recovery",
+  "level": 1,
+  "content_fr": "Commence par travailler sur les fichiers RPM du repo sans les installer : qpi, rpm2cpio et -K.",
+  "evidence_impact": "none"
+}

@@ -1,0 +1,125 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.7.fhs-search-recovery",
+  "title_fr": "Classer et retrouver des fichiers selon le FHS",
+  "brief_fr": "Dans /workspace/fhs, classe les quatre fichiers staging selon leur rôle : app.conf sous etc/lpic/, app.log sous var/log/lpic/, app.bin sous usr/local/bin/app et payload.dat sous srv/lpic/. Dans searchroot, construis locate.db alors que seul needle-old.txt existe, crée ensuite needle-new.txt, puis produis find-result.txt (les deux fichiers), locate-before.txt (seulement l'ancien avec la base non mise à jour), mets la base à jour et produis locate-after.txt (les deux). Produis aussi whereis.txt pour bash, puis type.txt et which.txt pour la commande tool fournie dans /workspace/bin après avoir placé ce répertoire en tête du PATH.",
+  "success_criteria_fr": [
+    "Les fichiers sont classés dans une arborescence FHS cohérente.",
+    "find voit immédiatement le nouveau fichier alors que l'ancienne base locate ne le voit pas.",
+    "updatedb rend ensuite le nouveau fichier visible à locate.",
+    "whereis localise bash.",
+    "type et which résolvent la commande ajoutée au PATH."
+  ],
+  "debrief_fr": "Le FHS associe des rôles aux répertoires. find parcourt l'état courant du filesystem ; locate interroge une base construite par updatedb et peut donc être obsolète. whereis cible binaire/source/man tandis que type/which suivent la résolution de commande du shell.",
+  "objective_ids": [
+    "104.7"
+  ],
+  "concept_ids": [
+    "lpic1.104.7.role-des-principaux-repertoires-fhs",
+    "lpic1.104.7.recherche-temps-reel-vs-base-locate",
+    "lpic1.104.7.mise-a-jour-base-locate",
+    "lpic1.104.7.localiser-binaire-source-man",
+    "lpic1.104.7.resolution-de-commande-shell"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "estimated_minutes": 18,
+  "practice_context": "fhs-search-recovery",
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "metadata-db",
+    "writable_guest_paths": [
+      "/workspace"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "pids": 128,
+    "timeout_seconds": 1200,
+    "cpu_percent": 100
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "cmp -s /workspace/staging/app.conf /workspace/fhs/etc/lpic/app.conf && cmp -s /workspace/staging/app.log /workspace/fhs/var/log/lpic/app.log && cmp -s /workspace/staging/app.bin /workspace/fhs/usr/local/bin/app && cmp -s /workspace/staging/payload.dat /workspace/fhs/srv/lpic/payload.dat"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.7.role-des-principaux-repertoires-fhs"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/workspace/find-result.txt",
+      "pattern": "^needle-new\\.txt\\nneedle-old\\.txt\\n?$",
+      "concept_ids": [
+        "lpic1.104.7.recherche-temps-reel-vs-base-locate"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/workspace/locate-before.txt",
+      "pattern": "^needle-old\\.txt\\n?$",
+      "concept_ids": [
+        "lpic1.104.7.recherche-temps-reel-vs-base-locate",
+        "lpic1.104.7.mise-a-jour-base-locate"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/workspace/locate-after.txt",
+      "pattern": "^needle-new\\.txt\\nneedle-old\\.txt\\n?$",
+      "concept_ids": [
+        "lpic1.104.7.mise-a-jour-base-locate"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "grep -q '/usr/bin/bash' /workspace/whereis.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.7.localiser-binaire-source-man"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/workspace/type.txt",
+      "pattern": "^file\\n?$",
+      "concept_ids": [
+        "lpic1.104.7.resolution-de-commande-shell"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/workspace/which.txt",
+      "pattern": "^/workspace/bin/tool\\n?$",
+      "concept_ids": [
+        "lpic1.104.7.resolution-de-commande-shell"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.104.7.fhs-search-recovery.hint-1",
+    "lpic1.104.7.fhs-search-recovery.hint-2",
+    "lpic1.104.7.fhs-search-recovery.hint-3",
+    "lpic1.104.7.fhs-search-recovery.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

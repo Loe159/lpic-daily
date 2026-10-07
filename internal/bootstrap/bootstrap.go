@@ -22,7 +22,7 @@ import (
 const (
 	Phase1Image         = "localhost/lpic-daily/fedora-phase1:1"
 	Phase1BaseImage     = "registry.fedoraproject.org/fedora:44"
-	RequiredVMImageID   = "fedora-44-x86_64-v2"
+	RequiredVMImageID   = "fedora-44-x86_64-v3"
 	firstRunMarker      = "bootstrap-v1"
 	notificationService = "packaging/systemd/lpic-daily-notify.service"
 	notificationTimer   = "packaging/systemd/lpic-daily-notify.timer"

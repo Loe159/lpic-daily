@@ -1,0 +1,103 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.5.zypper-offline-workflow",
+  "title_fr": "Gérer un paquet avec Zypper hors ligne",
+  "brief_fr": "Un repository RPM local est préparé dans /opt/lpic/rpmrepo. Ajoute-le à Zypper sous l'alias lpic-local avec vérification GPG désactivée, rafraîchis uniquement ce dépôt puis installe lpic-zypper-demo. Produis /root/lpic-zypper/repos.txt avec zypper lr -u, search.txt avec zypper se -si lpic-zypper-demo et info.txt avec zypper info lpic-zypper-demo. Supprime ensuite le paquet avec zypper puis réinstalle-le depuis lpic-local afin que l'état final soit installé.",
+  "success_criteria_fr": [
+    "Le repository lpic-local pointe vers le dépôt local hors ligne.",
+    "Zypper rafraîchit et recherche réellement les métadonnées locales.",
+    "lpic-zypper-demo est installé, supprimé puis réinstallé via Zypper.",
+    "Les rapports lr/search/info reflètent l'état final."
+  ],
+  "debrief_fr": "Zypper est le gestionnaire haut niveau de l'écosystème openSUSE. Il gère repositories, métadonnées, résolution et transactions RPM ; rpm reste disponible pour interroger la base sous-jacente.",
+  "objective_ids": [
+    "102.5"
+  ],
+  "concept_ids": [
+    "lpic1.102.5.workflow-zypper-opensuse"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "estimated_minutes": 15,
+  "practice_context": "zypper-offline-workflow",
+  "environment": {
+    "backend": "libvirt",
+    "image_ref": "opensuse-leap-16.0-x86_64-v3",
+    "distribution": "opensuse",
+    "network": "none",
+    "capability_profile": "full-machine",
+    "writable_guest_paths": [],
+    "machine": {
+      "firmware": "uefi"
+    }
+  },
+  "resources": {
+    "memory_mb": 1024,
+    "pids": 192,
+    "timeout_seconds": 2400,
+    "cpu_percent": 100
+  },
+  "setup": {
+    "execution_scope": "none"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "zypper lr -u | grep -q 'lpic-local' && zypper lr -u | grep -q 'file:///opt/lpic/rpmrepo'"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.5.workflow-zypper-opensuse"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "rpm -q lpic-zypper-demo >/dev/null && test \"$(cat /usr/share/lpic-zypper-demo/state.txt)\" = zypper-demo"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.5.workflow-zypper-opensuse"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "grep -q 'lpic-local' /root/lpic-zypper/repos.txt && grep -q 'lpic-zypper-demo' /root/lpic-zypper/search.txt && grep -q 'lpic-zypper-demo' /root/lpic-zypper/info.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.5.workflow-zypper-opensuse"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "grep -E 'install.*lpic-zypper-demo|lpic-zypper-demo.*install' /var/log/zypp/history >/dev/null && grep -E 'remove.*lpic-zypper-demo|lpic-zypper-demo.*remove' /var/log/zypp/history >/dev/null"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.5.workflow-zypper-opensuse"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.102.5.zypper-offline-workflow.hint-1",
+    "lpic1.102.5.zypper-offline-workflow.hint-2",
+    "lpic1.102.5.zypper-offline-workflow.hint-3",
+    "lpic1.102.5.zypper-offline-workflow.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

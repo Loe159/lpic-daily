@@ -7,6 +7,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   foundation:
     runs-on: ubuntu-latest
@@ -115,11 +119,10 @@ jobs:
           done
           cat "$RUNNER_TEMP/podman-service.log"
           exit 1
-      - name: Run real Podman security and Phase-1 lab conformance tests
+      - name: Run real Podman runner security tests
         env:
           LPIC_DAILY_RUN_PODMAN_INTEGRATION: "1"
-        run: go test -tags=integration ./internal/runner/podman ./cmd/lpic -count=1 -v
-
+        run: go test -tags=integration ./internal/runner/podman -count=1 -v
   podman-security-fedora:
     runs-on: ubuntu-latest
     container:
@@ -175,8 +178,109 @@ jobs:
           done
           cat /tmp/lpic-daily-fedora-podman.log
           exit 1
-      - name: Run Fedora rootless Podman conformance tests
+      - name: Run Fedora rootless Podman runner tests
         env:
           XDG_RUNTIME_DIR: /run/user/1000
           LPIC_DAILY_RUN_PODMAN_INTEGRATION: "1"
-        run: go test -tags=integration ./internal/runner/podman ./cmd/lpic -count=1 -v
+        run: go test -tags=integration ./internal/runner/podman -count=1 -v
+
+  podman-lab-acceptance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Install rootless Podman prerequisites
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y podman uidmap slirp4netns fuse-overlayfs
+      - name: Build Phase-1 lab image
+        shell: bash
+        run: |
+          export XDG_RUNTIME_DIR="$RUNNER_TEMP/lpic-daily-runtime"
+          mkdir -p "$XDG_RUNTIME_DIR" "$HOME/.config/containers"
+          chmod 700 "$XDG_RUNTIME_DIR"
+          cat > "$HOME/.config/containers/containers.conf" <<'EOF'
+          [engine]
+          cgroup_manager="cgroupfs"
+          events_logger="file"
+          EOF
+          podman build -t localhost/lpic-daily/fedora-phase1:1 -f labs/images/fedora-phase1/Containerfile labs/images/fedora-phase1
+          echo "XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR" >> "$GITHUB_ENV"
+      - name: Start rootless Podman API
+        shell: bash
+        run: |
+          mkdir -p "$XDG_RUNTIME_DIR/podman"
+          podman system service --time=0 "unix://$XDG_RUNTIME_DIR/podman/podman.sock" >"$RUNNER_TEMP/podman-acceptance.log" 2>&1 &
+          for attempt in $(seq 1 30); do
+            if [ -S "$XDG_RUNTIME_DIR/podman/podman.sock" ]; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat "$RUNNER_TEMP/podman-acceptance.log"
+          exit 1
+      - name: Run authored Podman labs end to end
+        env:
+          LPIC_DAILY_RUN_PODMAN_INTEGRATION: "1"
+        run: go test -tags=integration ./cmd/lpic -count=1 -v -run 'TestPhase1ImageProvidesInteractiveEditorsAndTerminfo|TestAllAuthoredPodmanReferenceSolutionsPassStateChecks|TestShellEnvironmentRepairReferenceSolutionPassesEveryCheck|TestPrepareJobControlShellOnRootlessPodman'
+
+  podman-lab-acceptance-fedora:
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:44
+      options: --privileged
+    steps:
+      - name: Install Fedora rootless Podman prerequisites
+        run: |
+          dnf -y install git-core python3 tar gzip findutils podman shadow-utils
+          useradd --create-home --uid 1000 lpicci
+          printf 'lpicci:100000:65536\n' >> /etc/subuid
+          printf 'lpicci:100000:65536\n' >> /etc/subgid
+          chmod u+s /usr/bin/newuidmap /usr/bin/newgidmap
+          install -d -o lpicci -g lpicci -m 0700 /run/user/1000
+          install -d -o lpicci -g lpicci /home/lpicci/.config/containers
+          cat > /home/lpicci/.config/containers/containers.conf <<'EOF'
+          [engine]
+          cgroup_manager="cgroupfs"
+          events_logger="file"
+          EOF
+          cat > /home/lpicci/.config/containers/storage.conf <<'EOF'
+          [storage]
+          driver="vfs"
+          runroot="/run/user/1000/containers"
+          graphroot="/home/lpicci/.local/share/containers/storage"
+          EOF
+          chown -R lpicci:lpicci /home/lpicci/.config
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Build Phase-1 image with Fedora rootless Podman
+        run: |
+          runuser -u lpicci -- env HOME=/home/lpicci XDG_RUNTIME_DIR=/run/user/1000 \
+            podman build -t localhost/lpic-daily/fedora-phase1:1 \
+            -f labs/images/fedora-phase1/Containerfile labs/images/fedora-phase1
+      - name: Start Fedora rootless Podman API
+        run: |
+          runuser -u lpicci -- mkdir -p /run/user/1000/podman
+          runuser -u lpicci -- env HOME=/home/lpicci XDG_RUNTIME_DIR=/run/user/1000 \
+            podman system service --time=0 unix:///run/user/1000/podman/podman.sock \
+            >/tmp/lpic-daily-fedora-acceptance.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            if [ -S /run/user/1000/podman/podman.sock ]; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/lpic-daily-fedora-acceptance.log
+          exit 1
+      - name: Run authored Podman labs end to end on Fedora
+        env:
+          XDG_RUNTIME_DIR: /run/user/1000
+          LPIC_DAILY_RUN_PODMAN_INTEGRATION: "1"
+        run: go test -tags=integration ./cmd/lpic -count=1 -v -run 'TestPhase1ImageProvidesInteractiveEditorsAndTerminfo|TestAllAuthoredPodmanReferenceSolutionsPassStateChecks|TestShellEnvironmentRepairReferenceSolutionPassesEveryCheck|TestPrepareJobControlShellOnRootlessPodman'

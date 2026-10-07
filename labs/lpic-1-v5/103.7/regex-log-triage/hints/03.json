@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.7.regex-log-triage.hint-3",
+  "lab_id": "lpic1.103.7.regex-log-triage",
+  "level": 3,
+  "content_fr": "report?.log est un glob shell ; la regex travaille sur une liste de noms produite par une commande.",
+  "evidence_impact": "material"
+}

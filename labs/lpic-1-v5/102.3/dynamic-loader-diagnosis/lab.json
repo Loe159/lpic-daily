@@ -1,0 +1,121 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.3.dynamic-loader-diagnosis",
+  "title_fr": "Diagnostiquer le chargeur dynamique",
+  "brief_fr": "Dans /workspace, inspecte /usr/bin/true avec ldd dans ldd.txt. Produis search-paths.txt avec les répertoires vus par ldconfig -vN, cache-libc.txt depuis le cache ldconfig pour libc.so.6, puis override.txt en lançant ldd sur /usr/bin/true avec LD_LIBRARY_PATH=/workspace/lib. Enfin diagnostique /workspace/broken avec ldd dans missing.txt : ce binaire réclame volontairement liblpic_missing.so.",
+  "success_criteria_fr": [
+    "ldd montre les dépendances dynamiques réelles.",
+    "Les chemins et le cache du chargeur sont observés.",
+    "LD_LIBRARY_PATH force libc vers /workspace/lib.",
+    "Le binaire cassé est diagnostiqué avec une bibliothèque explicitement « not found »."
+  ],
+  "debrief_fr": "Le chargeur dynamique combine chemins standards, configuration ld.so, cache ldconfig et variables d'environnement. ldd permet d'observer la résolution et une entrée « not found » localise rapidement une dépendance manquante.",
+  "objective_ids": [
+    "102.3"
+  ],
+  "concept_ids": [
+    "lpic1.102.3.resolution-des-dependances-dynamiques",
+    "lpic1.102.3.chemins-de-recherche-du-chargeur-dynamique",
+    "lpic1.102.3.cache-ldconfig",
+    "lpic1.102.3.override-via-variables-d-environnement",
+    "lpic1.102.3.diagnostic-d-une-bibliotheque-manquante"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "estimated_minutes": 18,
+  "practice_context": "dynamic-loader-diagnosis",
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "baseline",
+    "writable_guest_paths": [
+      "/workspace"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "pids": 128,
+    "timeout_seconds": 1200,
+    "cpu_percent": 100
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "grep -q 'libc\\.so\\.6' /workspace/ldd.txt && grep -Eq 'ld-linux|ld64' /workspace/ldd.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.3.resolution-des-dependances-dynamiques"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "grep -Eq '/(usr/)?lib64' /workspace/search-paths.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.3.chemins-de-recherche-du-chargeur-dynamique"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "grep -q 'libc\\.so\\.6' /workspace/cache-libc.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.3.cache-ldconfig"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "grep -q '/workspace/lib/libc\\.so\\.6' /workspace/override.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.3.override-via-variables-d-environnement",
+        "lpic1.102.3.chemins-de-recherche-du-chargeur-dynamique"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "grep -Eq 'liblpic_missing\\.so.*not found' /workspace/missing.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.3.diagnostic-d-une-bibliotheque-manquante",
+        "lpic1.102.3.resolution-des-dependances-dynamiques"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.102.3.dynamic-loader-diagnosis.hint-1",
+    "lpic1.102.3.dynamic-loader-diagnosis.hint-2",
+    "lpic1.102.3.dynamic-loader-diagnosis.hint-3",
+    "lpic1.102.3.dynamic-loader-diagnosis.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

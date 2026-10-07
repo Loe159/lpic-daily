@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.1.filesystem-families.hint-3",
+  "lab_id": "lpic1.104.1.filesystem-families",
+  "level": 3,
+  "content_fr": "Btrfs peut être créé sur plusieurs devices dans une seule commande, puis monté avec -o compress=zstd.",
+  "evidence_impact": "material"
+}

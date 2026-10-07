@@ -1,0 +1,112 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.2.grub-recovery-layout",
+  "title_fr": "Préparer une entrée GRUB de récupération",
+  "brief_fr": "Ouvre :console pour observer réellement le menu/console GRUB. Crée sur le disque jetable /dev/vdb une table de partitions MBR (dos) avec une partition Linux, sans toucher /dev/vda. Ajoute dans /etc/grub.d/40_custom une entrée GRUB 2 nommée « LPIC Recovery » contenant au minimum une commande echo « LPIC recovery entry », puis régénère /boot/grub2/grub.cfg. Crée /root/lpic-grub/version.txt avec grub2-install --version et layout.txt indiquant grub2-config=present et legacy-menu=absent/present selon l'état réel.",
+  "success_criteria_fr": [
+    "La console GRUB a réellement été ouverte.",
+    "Le disque exercice utilise une table MBR/dos.",
+    "Une entrée alternative LPIC Recovery existe dans la configuration générée.",
+    "Les artefacts GRUB 2 et l'ancien menu.lst sont distingués explicitement."
+  ],
+  "debrief_fr": "GRUB Legacy utilisait notamment menu.lst/grub.conf alors que GRUB 2 génère grub.cfg depuis des sources comme /etc/default/grub et /etc/grub.d. MBR et UEFI/GPT sont des dimensions liées mais distinctes du bootloader lui-même. Une entrée de récupération fournit un chemin alternatif au démarrage.",
+  "objective_ids": [
+    "102.2"
+  ],
+  "concept_ids": [
+    "lpic1.102.2.grub-legacy-versus-grub-2",
+    "lpic1.102.2.entrees-alternatives-et-recuperation",
+    "lpic1.102.2.mbr-et-relation-avec-schema-de-boot",
+    "lpic1.102.2.interaction-au-menu-console-grub"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "estimated_minutes": 22,
+  "practice_context": "grub-recovery-layout",
+  "environment": {
+    "backend": "libvirt",
+    "image_ref": "fedora-44-x86_64-v3",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "full-machine",
+    "writable_guest_paths": [],
+    "machine": {
+      "firmware": "uefi",
+      "extra_disks": [
+        {
+          "id": "mbr-practice",
+          "size_mb": 256
+        }
+      ]
+    }
+  },
+  "resources": {
+    "memory_mb": 1024,
+    "pids": 192,
+    "timeout_seconds": 2400,
+    "cpu_percent": 100
+  },
+  "setup": {
+    "execution_scope": "none"
+  },
+  "checks": [
+    {
+      "type": "block-device-state",
+      "path": "/dev/vdb",
+      "device_type": "disk",
+      "partition_table": "dos",
+      "concept_ids": [
+        "lpic1.102.2.mbr-et-relation-avec-schema-de-boot"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "grep -q \"menuentry 'LPIC Recovery'\" /etc/grub.d/40_custom && grep -q 'LPIC Recovery' /boot/grub2/grub.cfg && grep -q 'LPIC recovery entry' /boot/grub2/grub.cfg"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.2.entrees-alternatives-et-recuperation",
+        "lpic1.102.2.interaction-au-menu-console-grub"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "grep -qi grub /root/lpic-grub/version.txt && grep -qx 'grub2-config=present' /root/lpic-grub/layout.txt && grep -Eq '^legacy-menu=(absent|present)$' /root/lpic-grub/layout.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.2.grub-legacy-versus-grub-2"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test -x /usr/sbin/grub2-install && test -f /boot/grub2/grub.cfg"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.2.grub-legacy-versus-grub-2",
+        "lpic1.102.2.interaction-au-menu-console-grub"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.102.2.grub-recovery-layout.hint-1",
+    "lpic1.102.2.grub-recovery-layout.hint-2",
+    "lpic1.102.2.grub-recovery-layout.hint-3",
+    "lpic1.102.2.grub-recovery-layout.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable",
+  "requires_vm_console": true
+}

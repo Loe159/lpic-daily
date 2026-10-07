@@ -153,5 +153,5 @@ func LaunchLab(ctx context.Context, executor Executor, labID string) error {
 	if labID == "" {
 		return errors.New("lab ID is required")
 	}
-	return launchTerminal(ctx, executor, "lab", "run", labID)
+	return launchTerminal(ctx, executor, "lab", "session", labID)
 }

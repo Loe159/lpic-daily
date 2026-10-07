@@ -1,0 +1,160 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.2.filesystem-maintenance",
+  "title_fr": "Diagnostiquer et maintenir ext4/XFS",
+  "brief_fr": "Deux disques jetables sont attachés. Formate /dev/vdb en ext4 label LPICMAINT, règle ses blocs réservés à 1% et son maximum de montages à 20. Monte-le sur /mnt/ext, crée 100 petits fichiers et un fichier de 8 MiB, puis capture df -P, df -Pi et du -sk dans /root/lpic-fs/. Provoque ensuite réellement un ENOSPC avec un gros fichier, conserve l'erreur dans enospc.txt, supprime ce fichier, démonte ext4, force un contrôle au prochain fsck puis exécute e2fsck -f -y. Sur /dev/vdc, crée XFS label LPICXFSMAINT, monte-le, crée sample.txt, capture xfs_info, démonte puis exécute xfs_repair -n et xfs_db en lecture seule.",
+  "success_criteria_fr": [
+    "Les rapports df/du montrent l'occupation blocs/inodes de l'ext4.",
+    "Un ENOSPC réel a été observé puis nettoyé.",
+    "ext4 est propre après e2fsck et conserve le tuning demandé.",
+    "XFS est valide et ses outils d'inspection/réparation hors ligne ont été utilisés.",
+    "Les outils nécessitant un filesystem démonté sont appliqués hors ligne."
+  ],
+  "debrief_fr": "df mesure l'espace du filesystem, du l'espace d'une arborescence et df -i les inodes. e2fsck/xfs_repair travaillent classiquement hors ligne, tune2fs modifie des paramètres ext, tandis que les outils XFS ont des rôles distincts. Un disque plein et une corruption peuvent produire des symptômes voisins qu'il faut mesurer avant d'agir.",
+  "objective_ids": [
+    "104.2"
+  ],
+  "concept_ids": [
+    "lpic1.104.2.occupation-blocs-inodes",
+    "lpic1.104.2.verification-ext",
+    "lpic1.104.2.reparation",
+    "lpic1.104.2.tuning-ext",
+    "lpic1.104.2.outils-xfs",
+    "lpic1.104.2.difference-outils-online-offline-selon-fs",
+    "lpic1.104.2.symptomes-de-corruption-espace-epuise"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "estimated_minutes": 25,
+  "practice_context": "filesystem-maintenance",
+  "environment": {
+    "backend": "libvirt",
+    "image_ref": "fedora-44-x86_64-v3",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "full-machine",
+    "writable_guest_paths": [],
+    "machine": {
+      "firmware": "uefi",
+      "extra_disks": [
+        {
+          "id": "ext",
+          "size_mb": 256
+        },
+        {
+          "id": "xfs",
+          "size_mb": 256
+        }
+      ]
+    }
+  },
+  "resources": {
+    "memory_mb": 1024,
+    "pids": 192,
+    "timeout_seconds": 2400,
+    "cpu_percent": 100
+  },
+  "setup": {
+    "execution_scope": "none"
+  },
+  "checks": [
+    {
+      "type": "block-device-state",
+      "path": "/dev/vdb",
+      "device_type": "disk",
+      "filesystem": "ext4",
+      "concept_ids": [
+        "lpic1.104.2.verification-ext",
+        "lpic1.104.2.reparation",
+        "lpic1.104.2.tuning-ext",
+        "lpic1.104.2.difference-outils-online-offline-selon-fs"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "grep -q '/mnt/ext' /root/lpic-fs/df-blocks.txt && grep -q '/mnt/ext' /root/lpic-fs/df-inodes.txt && grep -Eq '^[0-9]+[[:space:]]+/mnt/ext$' /root/lpic-fs/du.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.2.occupation-blocs-inodes"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "grep -qi 'No space left' /root/lpic-fs/enospc.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.2.symptomes-de-corruption-espace-epuise",
+        "lpic1.104.2.occupation-blocs-inodes"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "tune2fs -l /dev/vdb 2>/dev/null | grep -q '^Maximum mount count:[[:space:]]*20$' && test \"$(blkid -s LABEL -o value /dev/vdb)\" = LPICMAINT && e2fsck -fn /dev/vdb >/dev/null 2>&1"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.2.verification-ext",
+        "lpic1.104.2.reparation",
+        "lpic1.104.2.tuning-ext",
+        "lpic1.104.2.difference-outils-online-offline-selon-fs"
+      ]
+    },
+    {
+      "type": "block-device-state",
+      "path": "/dev/vdc",
+      "device_type": "disk",
+      "filesystem": "xfs",
+      "concept_ids": [
+        "lpic1.104.2.outils-xfs",
+        "lpic1.104.2.difference-outils-online-offline-selon-fs"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "grep -q 'meta-data=' /root/lpic-fs/xfs-info.txt && grep -qi 'magicnum' /root/lpic-fs/xfs-db.txt && grep -Eq 'No modify flag set|Phase 1|done' /root/lpic-fs/xfs-repair.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.2.outils-xfs",
+        "lpic1.104.2.reparation",
+        "lpic1.104.2.difference-outils-online-offline-selon-fs"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "! findmnt -rn /dev/vdb >/dev/null && ! findmnt -rn /dev/vdc >/dev/null"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.2.difference-outils-online-offline-selon-fs"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.104.2.filesystem-maintenance.hint-1",
+    "lpic1.104.2.filesystem-maintenance.hint-2",
+    "lpic1.104.2.filesystem-maintenance.hint-3",
+    "lpic1.104.2.filesystem-maintenance.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

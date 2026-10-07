@@ -1,0 +1,132 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.5.rpm-dnf-offline-recovery",
+  "title_fr": "Réparer des paquets RPM avec un dépôt DNF local",
+  "brief_fr": "Un dépôt RPM hors ligne est préparé dans /workspace/repo. Travaille dans la racine de test /workspace/root afin de ne jamais modifier le système du conteneur. Inspecte lpic-demo avec rpm -qpi et rpm2cpio, vérifie son intégrité avec rpm -K, puis installe lpic-helper et lpic-demo avec rpm --root. Liste les fichiers et identifie le paquet possédant /usr/bin/lpic-demo dans cette base RPM. Modifie volontairement /workspace/root/usr/bin/lpic-demo, capture rpm -V, restaure le paquet avec rpm -U --replacepkgs, puis supprime les deux paquets. Réinstalle enfin uniquement lpic-demo avec DNF --installroot depuis lpic-local : DNF doit résoudre lpic-helper automatiquement. Produis aussi repos.txt avec le dépôt local visible.",
+  "success_criteria_fr": [
+    "Le paquet RPM est inspecté sans installation et son payload est listé.",
+    "Les opérations rpm install/query/update/remove sont réellement exercées.",
+    "rpm -K et rpm -V distinguent intégrité du paquet et dérive d'un fichier installé.",
+    "DNF résout automatiquement la dépendance lpic-helper.",
+    "Le dépôt lpic-local est configuré et utilisé.",
+    "rpm -qf retrouve le propriétaire de /usr/bin/lpic-demo."
+  ],
+  "debrief_fr": "rpm manipule la base et les paquets RPM à bas niveau ; rpm2cpio inspecte leur payload, -K vérifie les digests/signatures et -V compare les fichiers installés à la base. DNF ajoute la résolution de dépendances et la gestion des repositories.",
+  "objective_ids": [
+    "102.5"
+  ],
+  "concept_ids": [
+    "lpic1.102.5.format-base-rpm",
+    "lpic1.102.5.installation-et-requetes-rpm",
+    "lpic1.102.5.signature-integrite",
+    "lpic1.102.5.resolution-des-dependances-via-gestionnaire-haut-niveau",
+    "lpic1.102.5.repositories-yum-dnf",
+    "lpic1.102.5.identifier-fichier-paquet"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "estimated_minutes": 22,
+  "practice_context": "rpm-dnf-offline-recovery",
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "package-root",
+    "writable_guest_paths": [
+      "/workspace"
+    ]
+  },
+  "resources": {
+    "memory_mb": 384,
+    "pids": 128,
+    "timeout_seconds": 1200,
+    "cpu_percent": 100
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "grep -q '^Name[[:space:]]*: lpic-demo' /workspace/query.txt && grep -q 'usr/bin/lpic-demo' /workspace/payload.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.5.format-base-rpm"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "rpm --root /workspace/root -q lpic-demo >/dev/null && rpm --root /workspace/root -q lpic-helper >/dev/null && grep -q '/usr/bin/lpic-demo' /workspace/files.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.5.installation-et-requetes-rpm",
+        "lpic1.102.5.resolution-des-dependances-via-gestionnaire-haut-niveau"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test -s /workspace/verify-broken.txt && test -f /workspace/verify-clean.txt && test ! -s /workspace/verify-clean.txt && grep -Eqi 'digest.*OK|OK' /workspace/package-check.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.5.signature-integrite"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/workspace/owner.txt",
+      "pattern": "^lpic-demo-1\\.0-1\\.noarch\\n?$",
+      "concept_ids": [
+        "lpic1.102.5.identifier-fichier-paquet",
+        "lpic1.102.5.installation-et-requetes-rpm"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "grep -q '^\\[lpic-local\\]' /workspace/lpic-local.repo && grep -q 'lpic-local' /workspace/repos.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.5.repositories-yum-dnf"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "rpm --root /workspace/root -q --whatrequires lpic-helper | grep -q '^lpic-demo' && test \"$(cat /workspace/root/usr/share/lpic-helper/state.txt)\" = helper-ok && /workspace/root/usr/bin/lpic-demo | grep -qx demo-ok"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.5.resolution-des-dependances-via-gestionnaire-haut-niveau"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.102.5.rpm-dnf-offline-recovery.hint-1",
+    "lpic1.102.5.rpm-dnf-offline-recovery.hint-2",
+    "lpic1.102.5.rpm-dnf-offline-recovery.hint-3",
+    "lpic1.102.5.rpm-dnf-offline-recovery.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

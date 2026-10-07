@@ -1,6 +1,7 @@
 package lab
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -58,14 +59,29 @@ func startAndSetup(ctx context.Context, authored Lab, backend runner.Runner, ins
 
 	switch authored.Definition.Setup.ExecutionScope {
 	case "sandbox":
+		var stdout, stderr bytes.Buffer
 		result, err := backend.Exec(ctx, instance, runner.ExecRequest{
-			Argv: []string{"/usr/bin/bash", "-eu", "-c", authored.SetupScript},
+			Argv:   []string{"/usr/bin/bash", "-eu", "-c", authored.SetupScript},
+			Stdout: &stdout,
+			Stderr: &stderr,
 		})
 		if err != nil {
-			return fmt.Errorf("run setup for %s: %w", authored.Definition.ID, err)
+			return fmt.Errorf(
+				"run setup for %s: %w; stdout=%q stderr=%q",
+				authored.Definition.ID,
+				err,
+				stdout.String(),
+				stderr.String(),
+			)
 		}
 		if result.ExitCode != 0 {
-			return fmt.Errorf("setup for %s exited with code %d", authored.Definition.ID, result.ExitCode)
+			return fmt.Errorf(
+				"setup for %s exited with code %d; stdout=%q stderr=%q",
+				authored.Definition.ID,
+				result.ExitCode,
+				stdout.String(),
+				stderr.String(),
+			)
 		}
 	case "none":
 		// The trusted VM image + disposable disks are the complete initial state.

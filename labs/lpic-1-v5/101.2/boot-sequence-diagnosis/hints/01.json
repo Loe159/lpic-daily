@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.2.boot-sequence-diagnosis.hint-1",
+  "lab_id": "lpic1.101.2.boot-sequence-diagnosis",
+  "level": 1,
+  "content_fr": "Commence par :console puis reviens avec Ctrl-]. Le premier objectif est seulement d'observer la chaîne de boot avant de modifier quoi que ce soit.",
+  "evidence_impact": "none"
+}

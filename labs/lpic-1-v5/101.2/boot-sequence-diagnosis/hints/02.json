@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.2.boot-sequence-diagnosis.hint-2",
+  "lab_id": "lpic1.101.2.boot-sequence-diagnosis",
+  "level": 2,
+  "content_fr": "Ajoute le token dans GRUB_CMDLINE_LINUX, régénère /boot/grub2/grub.cfg puis utilise :reboot ; modifier le fichier source sans reboot ne suffit pas.",
+  "evidence_impact": "material"
+}

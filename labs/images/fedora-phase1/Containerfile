@@ -36,8 +36,12 @@ RUN dnf -y install \
         nmap-ncat \
         openssh-clients \
         parted \
+        patchelf \
+        plocate \
         procps-ng \
         rpm \
+        rpm-build \
+        createrepo_c \
         rsyslog \
         screen \
         sed \
@@ -64,5 +68,15 @@ RUN dnf -y install \
 
 COPY --chmod=0755 report-status-approved /opt/lpic/approved/bin/report-status
 COPY --chmod=0755 report-status-shadow /opt/lpic/shadow/bin/report-status
+
+COPY lpic-helper.spec lpic-demo.spec /opt/lpic/specs/
+
+RUN install -d -m 0755 /opt/lpic/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS} /opt/lpic/rpmrepo \
+    && cp /opt/lpic/specs/*.spec /opt/lpic/rpmbuild/SPECS/ \
+    && rpmbuild --define '_topdir /opt/lpic/rpmbuild' -bb /opt/lpic/rpmbuild/SPECS/lpic-helper.spec >/dev/null \
+    && rpmbuild --define '_topdir /opt/lpic/rpmbuild' -bb /opt/lpic/rpmbuild/SPECS/lpic-demo.spec >/dev/null \
+    && cp /opt/lpic/rpmbuild/RPMS/noarch/*.rpm /opt/lpic/rpmrepo/ \
+    && createrepo_c /opt/lpic/rpmrepo >/dev/null \
+    && rm -rf /opt/lpic/rpmbuild /opt/lpic/specs
 
 CMD ["/usr/bin/sleep", "infinity"]

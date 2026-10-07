@@ -53,6 +53,30 @@ func TestPhase1CapabilityProfilesAreAllowlisted(t *testing.T) {
 		}
 	}
 
+	metadataProfile, err := runner.Phase1CapabilityProfile("metadata-db")
+	if err != nil {
+		t.Fatalf("metadata-db profile: %v", err)
+	}
+	if metadataProfile.Name != "metadata-db" ||
+		len(metadataProfile.Capabilities) != 1 ||
+		metadataProfile.Capabilities[0] != "CHOWN" {
+		t.Fatalf("metadata-db profile = %#v, want CHOWN only", metadataProfile)
+	}
+
+	packageProfile, err := runner.Phase1CapabilityProfile("package-root")
+	if err != nil {
+		t.Fatalf("package-root profile: %v", err)
+	}
+	wantPackage := []string{"CHOWN", "SYS_CHROOT"}
+	if packageProfile.Name != "package-root" ||
+		len(packageProfile.Capabilities) != len(wantPackage) {
+		t.Fatalf("package-root profile = %#v, want %v", packageProfile, wantPackage)
+	}
+	for index, capability := range wantPackage {
+		if packageProfile.Capabilities[index] != capability {
+			t.Fatalf("package-root capabilities = %v, want %v", packageProfile.Capabilities, wantPackage)
+		}
+	}
 }
 
 func TestDefinitionRejectsUnsafeWritableGuestPaths(t *testing.T) {

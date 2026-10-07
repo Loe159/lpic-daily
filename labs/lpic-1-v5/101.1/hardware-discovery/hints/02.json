@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.1.hardware-discovery.hint-2",
+  "lab_id": "lpic1.101.1.hardware-discovery",
+  "level": 2,
+  "content_fr": "udevadm info sur /dev/vda montre les propriétés udev ; busctl list doit montrer systemd sur D-Bus.",
+  "evidence_impact": "material"
+}

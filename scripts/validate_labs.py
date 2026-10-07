@@ -106,6 +106,8 @@ def main():
         if backend == "podman" and capability_profile not in {
             "baseline",
             "identity-files",
+            "metadata-db",
+            "package-root",
             "process-lab",
         }:
             errors.append(

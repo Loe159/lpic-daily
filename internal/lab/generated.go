@@ -277,23 +277,23 @@ func generatedStandaloneLab(
 
 func standaloneLabEnvironment(objective curriculum.Objective, variant int) (backend, imageRef, distribution string) {
 	if objective.ID == "102.4" {
-		return "libvirt", "debian-13-x86_64-v2", "debian"
+		return "libvirt", "debian-13-x86_64-v3", "debian"
 	}
 	if objective.ID == "102.5" && variant == 1 {
-		return "libvirt", "opensuse-leap-16.0-x86_64-v2", "opensuse"
+		return "libvirt", "opensuse-leap-16.0-x86_64-v3", "opensuse"
 	}
 	if strings.Contains(objective.RecommendedBackend, "podman") &&
 		strings.Contains(objective.RecommendedBackend, "libvirt") {
 		if variant == 0 {
 			return "podman", "localhost/lpic-daily/fedora-phase1:1", "fedora"
 		}
-		return "libvirt", "fedora-44-x86_64-v2", "fedora"
+		return "libvirt", "fedora-44-x86_64-v3", "fedora"
 	}
 	if strings.HasPrefix(objective.ID, "101.") ||
 		strings.HasPrefix(objective.ID, "109.") ||
 		objective.ID == "110.3" ||
 		strings.Contains(objective.RecommendedBackend, "libvirt") {
-		return "libvirt", "fedora-44-x86_64-v2", "fedora"
+		return "libvirt", "fedora-44-x86_64-v3", "fedora"
 	}
 	return "podman", "localhost/lpic-daily/fedora-phase1:1", "fedora"
 }

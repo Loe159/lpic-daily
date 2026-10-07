@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.6.link-release-repair.hint-2",
+  "lab_id": "lpic1.104.6.link-release-repair",
+  "level": 2,
+  "content_fr": "ln sans -s crée un hard link ; ln -s stocke une cible textuelle.",
+  "evidence_impact": "material"
+}

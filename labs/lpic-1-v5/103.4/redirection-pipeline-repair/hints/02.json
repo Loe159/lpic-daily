@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.4.redirection-pipeline-repair.hint-2",
+  "lab_id": "lpic1.103.4.redirection-pipeline-repair",
+  "level": 2,
+  "content_fr": "Teste emit.sh seul puis redirige stdout et stderr séparément.",
+  "evidence_impact": "material"
+}

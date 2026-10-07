@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.3.file-operations-recovery.hint-1",
+  "lab_id": "lpic1.103.3.file-operations-recovery",
+  "level": 1,
+  "content_fr": "Commence par obtenir l'arborescence finale avant recherche, archives et compression.",
+  "evidence_impact": "none"
+}

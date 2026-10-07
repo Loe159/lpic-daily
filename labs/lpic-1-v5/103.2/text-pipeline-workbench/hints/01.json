@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.2.text-pipeline-workbench.hint-1",
+  "lab_id": "lpic1.103.2.text-pipeline-workbench",
+  "level": 1,
+  "content_fr": "Découpe le problème en petits flux : inspecter, sélectionner, trier, assembler, transformer, vérifier puis décompresser.",
+  "evidence_impact": "none"
+}

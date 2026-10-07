@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.1.disk-layout-lvm.hint-2",
+  "lab_id": "lpic1.102.1.disk-layout-lvm",
+  "level": 2,
+  "content_fr": "Le swap peut utiliser le disque entier. Pour l'ESP, GPT + FAT32 + flag esp sont les trois éléments importants.",
+  "evidence_impact": "material"
+}

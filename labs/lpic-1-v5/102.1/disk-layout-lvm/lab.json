@@ -1,0 +1,157 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.1.disk-layout-lvm",
+  "title_fr": "Construire un plan de disques avec LVM et ESP",
+  "brief_fr": "Quatre disques jetables sont attachés. Sur /dev/vdb, crée une GPT avec trois partitions ext4 labellisées LPICVAR, LPICHOME et LPICBOOT, montées respectivement sous /mnt/layout/var, /mnt/layout/home et /mnt/layout/boot. Initialise /dev/vdc en swap label LPICSWAP et active-le. Sur /dev/vdd, crée une GPT avec une partition FAT32 marquée esp, label LPICESP. Enfin transforme /dev/vde en PV LVM, crée lpicvg puis un LV data de 256 MiB, formate-le ext4 et monte-le sur /mnt/layout/lvm-data.",
+  "success_criteria_fr": [
+    "Les espaces var/home/boot sont séparés et montés.",
+    "Le swap est créé et actif.",
+    "Une vraie ESP GPT/FAT32 porte le flag esp.",
+    "Le PV, VG et LV LVM existent et le LV est utilisable comme filesystem."
+  ],
+  "debrief_fr": "La séparation des points de montage limite les impacts de remplissage et adapte les politiques par usage. UEFI attend une ESP FAT, le swap est un espace distinct, et LVM ajoute une couche PV→VG→LV flexible au-dessus du stockage brut.",
+  "objective_ids": [
+    "102.1"
+  ],
+  "concept_ids": [
+    "lpic1.102.1.separer-var-home-et-boot-selon-usage",
+    "lpic1.102.1.swap-et-dimensionnement-conceptuel",
+    "lpic1.102.1.contraintes-boot-et-architecture",
+    "lpic1.102.1.efi-system-partition",
+    "lpic1.102.1.partitions-et-points-de-montage",
+    "lpic1.102.1.principes-de-base-lvm"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "estimated_minutes": 22,
+  "practice_context": "disk-layout-planning",
+  "environment": {
+    "backend": "libvirt",
+    "image_ref": "fedora-44-x86_64-v3",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "full-machine",
+    "writable_guest_paths": [],
+    "machine": {
+      "firmware": "uefi",
+      "extra_disks": [
+        {
+          "id": "layout",
+          "size_mb": 1024
+        },
+        {
+          "id": "swap",
+          "size_mb": 512
+        },
+        {
+          "id": "esp",
+          "size_mb": 256
+        },
+        {
+          "id": "lvm",
+          "size_mb": 768
+        }
+      ]
+    }
+  },
+  "resources": {
+    "memory_mb": 1024,
+    "pids": 192,
+    "timeout_seconds": 2400,
+    "cpu_percent": 100
+  },
+  "setup": {
+    "execution_scope": "none"
+  },
+  "checks": [
+    {
+      "type": "block-device-state",
+      "path": "/dev/vdb1",
+      "device_type": "part",
+      "filesystem": "ext4",
+      "mountpoint": "/mnt/layout/var",
+      "concept_ids": [
+        "lpic1.102.1.separer-var-home-et-boot-selon-usage",
+        "lpic1.102.1.partitions-et-points-de-montage"
+      ]
+    },
+    {
+      "type": "block-device-state",
+      "path": "/dev/vdb2",
+      "device_type": "part",
+      "filesystem": "ext4",
+      "mountpoint": "/mnt/layout/home",
+      "concept_ids": [
+        "lpic1.102.1.separer-var-home-et-boot-selon-usage",
+        "lpic1.102.1.partitions-et-points-de-montage"
+      ]
+    },
+    {
+      "type": "block-device-state",
+      "path": "/dev/vdb3",
+      "device_type": "part",
+      "filesystem": "ext4",
+      "mountpoint": "/mnt/layout/boot",
+      "concept_ids": [
+        "lpic1.102.1.separer-var-home-et-boot-selon-usage",
+        "lpic1.102.1.contraintes-boot-et-architecture",
+        "lpic1.102.1.partitions-et-points-de-montage"
+      ]
+    },
+    {
+      "type": "block-device-state",
+      "path": "/dev/vdc",
+      "device_type": "disk",
+      "filesystem": "swap",
+      "swap_active": true,
+      "concept_ids": [
+        "lpic1.102.1.swap-et-dimensionnement-conceptuel"
+      ]
+    },
+    {
+      "type": "block-device-state",
+      "path": "/dev/vdd1",
+      "device_type": "part",
+      "filesystem": "vfat",
+      "concept_ids": [
+        "lpic1.102.1.contraintes-boot-et-architecture",
+        "lpic1.102.1.efi-system-partition"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "parted -sm /dev/vdd print | grep -Eq '1:.*esp' && test \"$(blkid -s LABEL -o value /dev/vdd1)\" = LPICESP"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.1.efi-system-partition"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "pvs --noheadings -o vg_name /dev/vde | grep -qw lpicvg && vgs --noheadings -o vg_name lpicvg | grep -qw lpicvg && lvs --noheadings -o lv_name lpicvg | grep -qw data && findmnt -rn /mnt/layout/lvm-data >/dev/null"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.1.principes-de-base-lvm",
+        "lpic1.102.1.partitions-et-points-de-montage"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.102.1.disk-layout-lvm.hint-1",
+    "lpic1.102.1.disk-layout-lvm.hint-2",
+    "lpic1.102.1.disk-layout-lvm.hint-3",
+    "lpic1.102.1.disk-layout-lvm.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

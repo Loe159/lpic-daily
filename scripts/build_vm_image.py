@@ -97,7 +97,7 @@ EOF""",
     ]
     recipe = image["recipe"]
     distribution = image["distribution"]
-    if recipe == "fedora-cloud-v2":
+    if recipe == "fedora-cloud-v3":
         expected_distribution = "fedora"
         commands = [
             "grubby --update-kernel=ALL --args='console=tty0 console=ttyS0,115200n8'",
@@ -105,17 +105,38 @@ EOF""",
             """printf '%s\n' 'GRUB_TERMINAL_INPUT="console serial"' 'GRUB_TERMINAL_OUTPUT="console serial"' 'GRUB_SERIAL_COMMAND="serial --unit=0 --speed=115200 --word=8 --parity=no --stop=1"' 'GRUB_TIMEOUT_STYLE="menu"' 'GRUB_TIMEOUT="5"' >> /etc/default/grub""",
             "grub2-mkconfig -o /boot/grub2/grub.cfg",
         ]
-    elif recipe == "debian-cloud-v2":
+    elif recipe == "debian-cloud-v3":
         expected_distribution = "debian"
         commands = [
             """grep -q 'console=ttyS0,115200n8' /etc/default/grub || sed -i 's/^GRUB_CMDLINE_LINUX="/GRUB_CMDLINE_LINUX="console=tty0 console=ttyS0,115200n8 /' /etc/default/grub""",
             "update-grub",
+            "install -d -m 0755 /opt/lpic/packages",
+            "cd /opt/lpic/packages && apt-get download nano",
         ]
-    elif recipe == "opensuse-cloud-v2":
+    elif recipe == "opensuse-cloud-v3":
         expected_distribution = "opensuse"
         commands = [
             """grep -q 'console=ttyS0,115200n8' /etc/default/grub || sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT="/GRUB_CMDLINE_LINUX_DEFAULT="console=tty0 console=ttyS0,115200n8 /' /etc/default/grub""",
             "grub2-mkconfig -o /boot/grub2/grub.cfg",
+            "install -d -m 0755 /opt/lpic/rpmbuild/BUILD /opt/lpic/rpmbuild/BUILDROOT /opt/lpic/rpmbuild/RPMS /opt/lpic/rpmbuild/SOURCES /opt/lpic/rpmbuild/SPECS /opt/lpic/rpmbuild/SRPMS /opt/lpic/rpmrepo",
+            """cat > /opt/lpic/rpmbuild/SPECS/lpic-zypper-demo.spec <<'EOF'
+Name: lpic-zypper-demo
+Version: 1.0
+Release: 1
+Summary: LPIC Daily offline Zypper fixture
+License: MIT
+BuildArch: noarch
+%description
+LPIC Daily offline package-management fixture.
+%install
+mkdir -p %{buildroot}/usr/share/lpic-zypper-demo
+printf 'zypper-demo\\n' > %{buildroot}/usr/share/lpic-zypper-demo/state.txt
+%files
+/usr/share/lpic-zypper-demo/state.txt
+EOF""",
+            "rpmbuild --define '_topdir /opt/lpic/rpmbuild' -bb /opt/lpic/rpmbuild/SPECS/lpic-zypper-demo.spec",
+            "cp /opt/lpic/rpmbuild/RPMS/noarch/lpic-zypper-demo-*.rpm /opt/lpic/rpmrepo/",
+            "createrepo_c /opt/lpic/rpmrepo",
         ]
     else:
         raise SystemExit(f"unsupported build recipe {recipe!r}")

@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.3.file-operations-recovery.hint-4",
+  "lab_id": "lpic1.103.3.file-operations-recovery",
+  "level": 4,
+  "content_fr": "Une solution combine cp/mv/rm/mkdir, *.log, find -size/-exec, tar/cpio, dd, gzip/bzip2/xz et file.",
+  "evidence_impact": "solution-revealed"
+}

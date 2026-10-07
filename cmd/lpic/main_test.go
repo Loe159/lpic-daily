@@ -35,12 +35,21 @@ func TestTodayStartsWith1031AndCreatesLocalProgressStore(t *testing.T) {
 	output := stdout.String()
 	for _, want := range []string{
 		"LPIC Daily — Aujourd'hui",
+		"101: 0/162 parcours complets",
 		"Nouveau · 103.1 · syntaxe shell et séquences de commandes",
 		"Cours conseillé: lpic1.103.1.lesson.shell-sequences",
 		"lpic1.103.1.syntaxe-shell-et-sequences-de-commandes.q.autonomous-recall",
 	} {
 		if !strings.Contains(output, want) {
 			t.Fatalf("today output missing %q: %q", want, output)
+		}
+	}
+}
+
+func TestDoctorRejectsRepairOnlyFlagsWithoutFix(t *testing.T) {
+	for _, args := range [][]string{{"doctor", "--vm"}, {"doctor", "--yes"}} {
+		if err := runWithIO(args, strings.NewReader(""), &bytes.Buffer{}, &bytes.Buffer{}); err == nil {
+			t.Fatalf("runWithIO(%v) unexpectedly succeeded", args)
 		}
 	}
 }
@@ -816,6 +825,51 @@ func TestFailedLabCheckRecordsConceptGranularEvidence(t *testing.T) {
 	}
 	if stickyProjection.Stage != learning.StageUnseen || stickyProjection.Partials != 1 {
 		t.Fatalf("sticky projection = %#v, want unseen with one partial", stickyProjection)
+	}
+}
+
+func TestLabStatusDoesNotRecordAttempt(t *testing.T) {
+	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
+
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("LoadAll() error = %v", err)
+	}
+	authored, err := findLab(labs, sharedDropboxID)
+	if err != nil {
+		t.Fatalf("findLab() error = %v", err)
+	}
+
+	var stdout, stderr bytes.Buffer
+	if err := runInteractiveLabWithBackend(
+		context.Background(),
+		authored,
+		&scriptedLabRunner{failChecks: true},
+		false,
+		strings.NewReader(":status\n:quit\n"),
+		&stdout,
+		&stderr,
+	); err != nil {
+		t.Fatalf("runInteractiveLabWithBackend() error = %v; stderr=%q", err, stderr.String())
+	}
+	if !strings.Contains(stdout.String(), "aucune tentative enregistrée") ||
+		!strings.Contains(stdout.String(), "Checks d'état validés") {
+		t.Fatalf("status output = %q", stdout.String())
+	}
+
+	store, err := openProgressStore(context.Background())
+	if err != nil {
+		t.Fatalf("open progress store: %v", err)
+	}
+	defer store.Close()
+	for _, conceptID := range authored.Definition.ConceptIDs {
+		events, err := store.EvidenceForConcept(context.Background(), conceptID)
+		if err != nil {
+			t.Fatalf("EvidenceForConcept(%s) error = %v", conceptID, err)
+		}
+		if len(events) != 0 {
+			t.Fatalf(":status recorded mastery evidence for %s: %#v", conceptID, events)
+		}
 	}
 }
 

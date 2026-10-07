@@ -82,21 +82,14 @@ func runWithIO(args []string, stdin io.Reader, stdout, stderr io.Writer) error {
 		fmt.Fprintf(stdout, "builtin content OK: %d lessons; %d questions\n", len(contentBundle.Lessons), len(contentBundle.Questions))
 		return nil
 	case "doctor":
-		if _, err := curriculum.Load(lpicdaily.BuiltinFS); err != nil {
-			return fmt.Errorf("builtin curriculum: %w", err)
-		}
-		if _, err := lab.LoadAll(lpicdaily.BuiltinFS); err != nil {
-			return fmt.Errorf("builtin labs: %w", err)
-		}
-		if _, err := content.Load(lpicdaily.BuiltinFS); err != nil {
-			return fmt.Errorf("builtin content: %w", err)
-		}
-		for _, check := range doctor.Run().Checks {
-			fmt.Fprintf(stdout, "%-24s %-5s %s\n", check.Name, check.Status, check.Detail)
-		}
-		return nil
+		return runDoctor(args[1:], stdin, stdout, stderr)
 	case "today":
 		return runToday(args[1:], stdout)
+	case "continue":
+		if len(args) != 1 {
+			return fmt.Errorf("usage: lpic continue")
+		}
+		return runDashboard(stdin, stdout, stderr)
 	case "tui":
 		if len(args) != 1 {
 			return fmt.Errorf("usage: lpic tui")
@@ -231,6 +224,63 @@ func runDashboardLab(
 	fmt.Fprint(stdout, "Quand le lab est terminé, reviens ici et appuie sur Entrée pour actualiser la progression. ")
 	if _, err := readLine(stdin); err != nil {
 		return fmt.Errorf("wait for child lab completion: %w", err)
+	}
+	return nil
+}
+
+func runDoctor(args []string, stdin io.Reader, stdout, stderr io.Writer) error {
+	fix := false
+	prepareVM := false
+	assumeYes := false
+	for _, arg := range args {
+		switch arg {
+		case "--fix":
+			fix = true
+		case "--vm":
+			prepareVM = true
+		case "--yes", "-y":
+			assumeYes = true
+		case "help", "-h", "--help":
+			fmt.Fprintln(stdout, "Usage: lpic doctor [--fix] [--vm] [--yes]")
+			fmt.Fprintln(stdout, "  --fix  réparer les dépendances utilisateur/Podman simples avec confirmation")
+			fmt.Fprintln(stdout, "  --vm   avec --fix, préparer aussi KVM/libvirt et l'image VM")
+			return nil
+		default:
+			return fmt.Errorf("usage: lpic doctor [--fix] [--vm] [--yes]")
+		}
+	}
+	if prepareVM && !fix {
+		return errors.New("--vm requires --fix")
+	}
+	if assumeYes && !fix {
+		return errors.New("--yes requires --fix")
+	}
+
+	if fix {
+		if err := bootstrap.Install(context.Background(), lpicdaily.BuiltinFS, bootstrap.Options{
+			Stdin:     stdin,
+			Stdout:    stdout,
+			Stderr:    stderr,
+			PrepareVM: prepareVM,
+			AssumeYes: assumeYes,
+			FirstRun:  false,
+		}); err != nil {
+			return fmt.Errorf("doctor repair: %w", err)
+		}
+		fmt.Fprintln(stdout, "\nVérification après réparation :")
+	}
+
+	if _, err := curriculum.Load(lpicdaily.BuiltinFS); err != nil {
+		return fmt.Errorf("builtin curriculum: %w", err)
+	}
+	if _, err := lab.LoadAll(lpicdaily.BuiltinFS); err != nil {
+		return fmt.Errorf("builtin labs: %w", err)
+	}
+	if _, err := content.Load(lpicdaily.BuiltinFS); err != nil {
+		return fmt.Errorf("builtin content: %w", err)
+	}
+	for _, check := range doctor.Run().Checks {
+		fmt.Fprintf(stdout, "%-24s %-5s %s\n", check.Name, check.Status, check.Detail)
 	}
 	return nil
 }
@@ -531,6 +581,26 @@ func runToday(args []string, stdout io.Writer) error {
 	}
 
 	fmt.Fprintln(stdout, "LPIC Daily — Aujourd'hui")
+	if plan.Progress.Exam101.Total > 0 {
+		fmt.Fprintf(
+			stdout,
+			"101: %d/%d parcours complets · %d labs d'état vérifiés · %d commencés\n",
+			plan.Progress.Exam101.Complete,
+			plan.Progress.Exam101.Total,
+			plan.Progress.Exam101.VerifiedPractical,
+			plan.Progress.Exam101.Started,
+		)
+	}
+	if plan.Progress.Exam102.Total > 0 {
+		fmt.Fprintf(
+			stdout,
+			"102: %d/%d parcours complets · %d labs d'état vérifiés · %d commencés\n",
+			plan.Progress.Exam102.Complete,
+			plan.Progress.Exam102.Total,
+			plan.Progress.Exam102.VerifiedPractical,
+			plan.Progress.Exam102.Started,
+		)
+	}
 	if len(plan.Items) == 0 {
 		fmt.Fprintln(stdout, "Aucune activité due dans le périmètre de contenu actuellement disponible.")
 		return nil
@@ -981,6 +1051,28 @@ func runLabCommand(args []string, stdin io.Reader, stdout, stderr io.Writer) err
 		if err != nil {
 			return err
 		}
+		if interactiveTerminal(stdin, stdout) {
+			if launchErr := desktop.LaunchLab(context.Background(), desktop.OSExecutor{}, authored.Definition.ID); launchErr == nil {
+				printLab(authored, stdout)
+				fmt.Fprintln(stdout)
+				fmt.Fprintln(stdout, "Lab ouvert dans un nouveau terminal.")
+				fmt.Fprintln(stdout, "La consigne reste visible dans ce terminal pendant que tu travailles dans le terminal du lab.")
+				return nil
+			} else {
+				fmt.Fprintf(stderr, "warning: impossible d'ouvrir un terminal enfant; utilisation du terminal courant: %v\n", launchErr)
+			}
+		}
+		return runInteractiveLab(authored, stdin, stdout, stderr)
+	case "session":
+		// Internal entrypoint used by desktop.LaunchLab. Keeping it separate from
+		// "run" prevents the child terminal from recursively spawning another one.
+		if len(args) != 2 {
+			return fmt.Errorf("usage: lpic lab session <lab-id>")
+		}
+		authored, err := findLab(labs, args[1])
+		if err != nil {
+			return err
+		}
 		return runInteractiveLab(authored, stdin, stdout, stderr)
 	case "hint":
 		if len(args) != 3 {
@@ -1264,14 +1356,17 @@ func runInteractiveLabWithBackend(
 
 	nextHint := nextHintIndex(authored.Hints, highestHintLevel)
 	usedPersistentShell := false
+	usedVMConsole := false
 	var jobControlEvidence *jobControlInteractionEvidence
 	if labRequiresJobControl(authored.Definition) {
 		jobControlEvidence = &jobControlInteractionEvidence{}
 	}
 
 	if persistentShell {
+		fmt.Fprintln(stdout, "Commandes LPIC Daily : :shell  :status  :check  :hint  :reset  :quit")
 		if interactiveTerminal(stdin, stdout) {
-			fmt.Fprintln(stdout, "Ouverture du shell Linux interactif. Tape exit ou Ctrl-D pour revenir à LPIC Daily.")
+			fmt.Fprintln(stdout, "Le shell Linux va s'ouvrir. Quand tu as terminé tes modifications, tape exit ou Ctrl-D puis utilise :status ou :check au prompt lpic>.")
+			usedPersistentShell = true
 			result, err := runPersistentShell(
 				sessionCtx,
 				backend,
@@ -1281,20 +1376,24 @@ func runInteractiveLabWithBackend(
 				jobControlEvidence,
 			)
 			if err != nil {
-				return fmt.Errorf("interactive sandbox shell: %w", err)
+				if errors.Is(err, context.DeadlineExceeded) {
+					fmt.Fprintln(stdout, "\n[shell interrompu par timeout; le lab reste ouvert]")
+					fmt.Fprintln(stdout, "Utilise :shell pour rouvrir le shell sans recommencer le lab.")
+				} else {
+					return fmt.Errorf("interactive sandbox shell: %w", err)
+				}
+			} else {
+				fmt.Fprintln(stdout, "\n[retour LPIC Daily]")
 			}
-			usedPersistentShell = true
-			fmt.Fprintln(stdout, "\n[retour LPIC Daily]")
 			if result.ExitCode != 0 {
 				fmt.Fprintf(stderr, "[shell exit %d]\n", result.ExitCode)
 			}
 		} else {
 			fmt.Fprintln(stdout, "Terminal interactif indisponible : utilisation du mode commandes sandboxé.")
 		}
-		fmt.Fprintln(stdout, "Commandes LPIC Daily : :shell  :check  :hint  :reset  :quit")
 	} else {
 		fmt.Fprintln(stdout, "Mode commandes VM. Chaque ligne est exécutée dans la VM via QEMU Guest Agent.")
-		fmt.Fprintln(stdout, "Commandes LPIC Daily : :console  :reboot  :check  :hint  :reset  :quit")
+		fmt.Fprintln(stdout, "Commandes LPIC Daily : :console  :reboot  :status  :check  :hint  :reset  :quit")
 	}
 	fmt.Fprintln(stdout)
 
@@ -1362,6 +1461,7 @@ func runInteractiveLabWithBackend(
 				continue
 			}
 			fmt.Fprintln(stdout, "Ouverture d'un shell persistant dans la sandbox. Tape exit ou Ctrl-D pour revenir.")
+			usedPersistentShell = true
 			result, err := runPersistentShell(
 				sessionCtx,
 				backend,
@@ -1371,9 +1471,13 @@ func runInteractiveLabWithBackend(
 				jobControlEvidence,
 			)
 			if err != nil {
+				if errors.Is(err, context.DeadlineExceeded) {
+					fmt.Fprintln(stdout, "\n[shell interrompu par timeout; le lab reste ouvert]")
+					fmt.Fprintln(stdout, "Tu peux relancer :shell immédiatement; l'état de la sandbox est conservé.")
+					continue
+				}
 				return fmt.Errorf("interactive sandbox shell: %w", err)
 			}
-			usedPersistentShell = true
 			fmt.Fprintln(stdout, "\n[retour LPIC Daily]")
 			if result.ExitCode != 0 {
 				fmt.Fprintf(stderr, "[shell exit %d]\n", result.ExitCode)
@@ -1388,6 +1492,7 @@ func runInteractiveLabWithBackend(
 			if err := runVMConsole(sessionCtx, backend, session.Instance, stdin, stdout); err != nil {
 				return fmt.Errorf("VM serial console: %w", err)
 			}
+			usedVMConsole = true
 			fmt.Fprintln(stdout, "\n[retour LPIC Daily]")
 			continue
 		case ":reboot":
@@ -1426,8 +1531,42 @@ func runInteractiveLabWithBackend(
 			// across resets/restarts and remains attached to the learning attempt.
 			nextHint = nextHintIndex(authored.Hints, highestHintLevel)
 			usedPersistentShell = false
+			usedVMConsole = false
 			jobControlEvidence.Reset()
 			fmt.Fprintln(stdout, "Lab réinitialisé dans son état de départ.")
+			continue
+		case ":status":
+			statusCtx, cancelStatus := context.WithTimeout(sessionCtx, operationTimeout)
+			results, err := session.Evaluate(statusCtx)
+			cancelStatus()
+			if err != nil {
+				if errors.Is(err, context.DeadlineExceeded) {
+					fmt.Fprintf(stdout, "État interrompu après %s. Le lab reste ouvert; tu peux réessayer :status.\n", operationTimeout)
+					continue
+				}
+				return fmt.Errorf("evaluate lab status: %w", err)
+			}
+			passedChecks := 0
+			fmt.Fprintln(stdout, "État actuel (aucune tentative enregistrée) :")
+			for _, result := range results {
+				state := "OK"
+				if !result.Pass {
+					state = "À CORRIGER"
+				} else {
+					passedChecks++
+				}
+				fmt.Fprintf(stdout, "  %-11s %s — %s\n", state, result.CheckID, result.Detail)
+			}
+			if authored.Definition.NeedsPersistentShell && !usedPersistentShell {
+				fmt.Fprintln(stdout, "  À CORRIGER  interaction terminal — ce lab exige un passage par :shell")
+			}
+			if labRequiresJobControl(authored.Definition) && !jobControlEvidence.Complete() {
+				fmt.Fprintln(stdout, "  À CORRIGER  job control — Ctrl-Z, jobs et un bg réussi sont encore attendus dans :shell")
+			}
+			if authored.Definition.RequiresVMConsole && !usedVMConsole {
+				fmt.Fprintln(stdout, "  À CORRIGER  console VM — ce lab exige un passage réel par :console")
+			}
+			fmt.Fprintf(stdout, "Checks d'état validés : %d/%d. Utilise :hint si tu es bloqué, puis :check pour enregistrer une tentative.\n", passedChecks, len(results))
 			continue
 		case ":check":
 			passed := true
@@ -1465,14 +1604,28 @@ func runInteractiveLabWithBackend(
 				passed = false
 				markPersistentShellConceptFailure(authored.Definition, conceptResults)
 			}
+			if authored.Definition.RequiresVMConsole && !usedVMConsole {
+				fmt.Fprintf(
+					stdout,
+					"  %-11s %s.vm-console — ce lab exige un passage réel par :console\n",
+					"À CORRIGER",
+					authored.Definition.ID,
+				)
+				passed = false
+				markVMConsoleConceptFailure(authored.Definition, conceptResults)
+			}
+			passedChecks := 0
 			for _, result := range results {
 				state := "OK"
 				if !result.Pass {
 					state = "À CORRIGER"
 					passed = false
+				} else {
+					passedChecks++
 				}
 				fmt.Fprintf(stdout, "  %-11s %s — %s\n", state, result.CheckID, result.Detail)
 			}
+			fmt.Fprintf(stdout, "Checks d'état validés : %d/%d.\n", passedChecks, len(results))
 			persistedHintLevel, err := pendingLabHintLevel(sessionCtx, authored.Definition.ID)
 			if err != nil {
 				return fmt.Errorf("refresh lab disclosure before recording attempt: %w", err)
@@ -1743,6 +1896,26 @@ func collectJobControlEvidence(
 	return nil
 }
 
+func markVMConsoleConceptFailure(
+	definition lab.Definition,
+	conceptResults map[string]learning.Result,
+) {
+	for _, target := range []string{
+		"lpic1.101.2.commandes-du-chargeur-de-demarrage",
+		"lpic1.102.2.interaction-au-menu-console-grub",
+	} {
+		for _, conceptID := range definition.ConceptIDs {
+			if conceptID == target {
+				conceptResults[conceptID] = learning.ResultFail
+				return
+			}
+		}
+	}
+	for _, conceptID := range definition.ConceptIDs {
+		conceptResults[conceptID] = learning.ResultFail
+	}
+}
+
 func markPersistentShellConceptFailure(
 	definition lab.Definition,
 	conceptResults map[string]learning.Result,
@@ -2002,13 +2175,14 @@ func printUsage(out io.Writer) {
 Usage:
   lpic install [--yes] [--no-vm] configure notifications and lab dependencies
   lpic tui                       open the interactive daily dashboard
+  lpic continue                  resume the adaptive daily session
   lpic notify [--force]           send today's desktop notification once
   lpic assess                     run the Phase-1 initial recall assessment
   lpic today [--quick]           build today's adaptive session from local progress
   lpic learn <lesson-id>          read a lesson and record exposure when confirmed
   lpic question <question-id>     answer a deterministic question and record evidence
   lpic validate                  validate embedded curriculum and labs
-  lpic doctor                    check local prerequisites without changing the host
+  lpic doctor [--fix] [--vm]     check prerequisites; optionally repair with confirmation
   lpic labs                      list built-in labs (alias of "lpic lab list")
   lpic lab list                  list built-in labs
   lpic lab show <id>             show a lab without spoilers

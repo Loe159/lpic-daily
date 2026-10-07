@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.4.deb-apt-offline-recovery.hint-4",
+  "lab_id": "lpic1.102.4.deb-apt-offline-recovery",
+  "level": 4,
+  "content_fr": "Ordre possible : rapports APT, apt remove/install du .deb, dpkg -r/-i, dpkg-deb/dpkg -L/-S, apt-get -s upgrade, puis debconf-set-selections + dpkg-reconfigure.",
+  "evidence_impact": "solution-revealed"
+}

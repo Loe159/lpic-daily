@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.1.hardware-discovery.hint-1",
+  "lab_id": "lpic1.101.1.hardware-discovery",
+  "level": 1,
+  "content_fr": "Crée le dossier de rapports puis traite PCI, USB, stockage et sysfs indépendamment.",
+  "evidence_impact": "none"
+}

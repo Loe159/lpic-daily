@@ -1,0 +1,159 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.3.persistent-mount-recovery",
+  "title_fr": "Rendre un montage persistant et gérer un support amovible",
+  "brief_fr": "Deux disques jetables sont attachés. Formate /dev/vdb en ext4 label LPICDATA, monte-le manuellement, puis rends /srv/lpic-data persistant dans /etc/fstab en utilisant son UUID et l'option nodev. Recharge systemd et assure-toi que le mount unit est actif. Formate /dev/vdc en VFAT label LPICUSB, monte-le sur /media/lpic-removable, écris removable-ok dans marker.txt puis démonte-le proprement ; il doit rester démonté à la fin.",
+  "success_criteria_fr": [
+    "vdb est ext4 et monté sur /srv/lpic-data.",
+    "fstab référence l'UUID avec nodev.",
+    "Le mount unit systemd est actif.",
+    "vdc est VFAT label LPICUSB et reste démonté après avoir reçu marker.txt.",
+    "Les labels/UUID permettent d'identifier les volumes sans dépendre du nom /dev."
+  ],
+  "debrief_fr": "mount agit immédiatement, /etc/fstab décrit l'état persistant et systemd génère des unités .mount. UUID/labels sont plus stables que les noms de devices. Un support amovible doit être démonté avant retrait, notamment lorsqu'un processus peut encore l'utiliser.",
+  "objective_ids": [
+    "104.3"
+  ],
+  "concept_ids": [
+    "lpic1.104.3.montage-manuel",
+    "lpic1.104.3.fstab-persistant",
+    "lpic1.104.3.uuid-labels",
+    "lpic1.104.3.options-de-montage",
+    "lpic1.104.3.demontage-et-fichiers-occupes",
+    "lpic1.104.3.unites-mount-systemd",
+    "lpic1.104.3.peripheriques-amovibles"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "estimated_minutes": 22,
+  "practice_context": "persistent-mount-recovery",
+  "environment": {
+    "backend": "libvirt",
+    "image_ref": "fedora-44-x86_64-v3",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "full-machine",
+    "writable_guest_paths": [],
+    "machine": {
+      "firmware": "uefi",
+      "extra_disks": [
+        {
+          "id": "data",
+          "size_mb": 512
+        },
+        {
+          "id": "removable",
+          "size_mb": 256
+        }
+      ]
+    }
+  },
+  "resources": {
+    "memory_mb": 1024,
+    "pids": 192,
+    "timeout_seconds": 2400,
+    "cpu_percent": 100
+  },
+  "setup": {
+    "execution_scope": "none"
+  },
+  "checks": [
+    {
+      "type": "block-device-state",
+      "path": "/dev/vdb",
+      "device_type": "disk",
+      "filesystem": "ext4",
+      "mountpoint": "/srv/lpic-data",
+      "concept_ids": [
+        "lpic1.104.3.montage-manuel",
+        "lpic1.104.3.fstab-persistant"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "uuid=$(blkid -s UUID -o value /dev/vdb); awk -v u=\"UUID=$uuid\" '$1==u && $2==\"/srv/lpic-data\" && $3==\"ext4\" && $4 ~ /(^|,)nodev(,|$)/ {ok=1} END{exit !ok}' /etc/fstab"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.3.fstab-persistant",
+        "lpic1.104.3.uuid-labels",
+        "lpic1.104.3.options-de-montage"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test \"$(blkid -s LABEL -o value /dev/vdb)\" = LPICDATA && test \"$(blkid -s LABEL -o value /dev/vdc)\" = LPICUSB"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.3.uuid-labels",
+        "lpic1.104.3.peripheriques-amovibles"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "findmnt -no OPTIONS /srv/lpic-data | tr ',' '\\n' | grep -qx nodev"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.3.options-de-montage"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/systemctl",
+        "is-active",
+        "--quiet",
+        "srv-lpic\\x2ddata.mount"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.3.unites-mount-systemd",
+        "lpic1.104.3.fstab-persistant"
+      ]
+    },
+    {
+      "type": "block-device-state",
+      "path": "/dev/vdc",
+      "device_type": "disk",
+      "filesystem": "vfat",
+      "concept_ids": [
+        "lpic1.104.3.peripheriques-amovibles",
+        "lpic1.104.3.demontage-et-fichiers-occupes"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "! findmnt -rn /dev/vdc >/dev/null && mkdir -p /run/lpic-removable-check && mount -o ro /dev/vdc /run/lpic-removable-check && grep -qx removable-ok /run/lpic-removable-check/marker.txt; rc=$?; umount /run/lpic-removable-check; rmdir /run/lpic-removable-check; exit $rc"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.3.demontage-et-fichiers-occupes",
+        "lpic1.104.3.peripheriques-amovibles"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.104.3.persistent-mount-recovery.hint-1",
+    "lpic1.104.3.persistent-mount-recovery.hint-2",
+    "lpic1.104.3.persistent-mount-recovery.hint-3",
+    "lpic1.104.3.persistent-mount-recovery.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

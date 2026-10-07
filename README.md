@@ -21,7 +21,7 @@ Au lieu de simplement mémoriser des commandes, tu manipules de vrais environnem
 
 Le contenu est en français, avec les termes Linux conservés en anglais lorsqu’ils sont utilisés ainsi dans la pratique et dans LPIC.
 
-Le parcours embarqué couvre les **42 objectifs actifs de LPIC-1 v5.0**, soit les examens **101-500 et 102-500**. Chaque concept possède un cours ciblé, plusieurs questions dont du rappel libre, et au moins deux contextes de pratique. Les commandes, fichiers, opérateurs et ports explicitement examinables sont expliqués dans les cours et réutilisés dans les exercices.
+Le parcours embarqué couvre les **42 objectifs actifs de LPIC-1 v5.0**, soit les examens **101-500 et 102-500**. Chaque concept possède un cours ciblé, plusieurs questions dont du rappel libre, et au moins deux contextes de pratique. Pour l'examen **101-500, les 162 concepts disposent désormais d'au moins un lab authored à vérification d'état** ; les exercices générés restent de la pratique guidée et ne sont jamais présentés comme une preuve indépendante. Les commandes, fichiers, opérateurs et ports explicitement examinables sont expliqués dans les cours et réutilisés dans les exercices.
 
 ## Installation
 
@@ -68,6 +68,8 @@ Lance simplement :
 lpic
 ```
 
+Si tu as quitté une séance, `lpic continue` rouvre le dashboard à partir de ta progression locale. Un lab interrompu repart dans un environnement jetable propre ; les preuves déjà enregistrées sont conservées.
+
 Tu arrives sur le dashboard de ta séance du jour.
 
 Quelques commandes utiles :
@@ -79,6 +81,8 @@ lpic assess             # évaluation initiale
 lpic lab list           # voir les labs disponibles
 lpic lab run <lab-id>   # lancer un lab
 lpic doctor             # vérifier l'environnement
+lpic doctor --fix       # réparer les dépendances utilisateur/Podman simples avec confirmation
+lpic doctor --fix --vm  # préparer aussi KVM/libvirt et l'image VM
 lpic update             # mettre à jour depuis main
 ```
 
@@ -95,14 +99,15 @@ Les images VM sont préparées à la demande : LPIC Daily indique le télécharg
 Dans un lab :
 
 ```text
-:shell    ouvrir un shell persistant
-:check    vérifier ton travail
+:shell    ouvrir ou rouvrir le shell persistant
+:status   vérifier l'état sans enregistrer de tentative
+:check    vérifier et enregistrer ta tentative
 :hint     demander l'indice suivant
 :reset    recommencer le lab
 :quit     quitter et détruire l'environnement
 ```
 
-Les commandes du lab ne sont jamais exécutées directement sur ton système hôte en fallback.
+Les commandes du lab ne sont jamais exécutées directement sur ton système hôte en fallback. Si un shell interactif est interrompu par un timeout du backend, le lab reste ouvert et `:shell` permet de reprendre sans réinitialiser la sandbox.
 
 ## Progression et données
 

@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.5.zypper-offline-workflow.hint-3",
+  "lab_id": "lpic1.102.5.zypper-offline-workflow",
+  "level": 3,
+  "content_fr": "Fais une vraie transaction remove puis install : /var/log/zypp/history doit conserver les deux opérations.",
+  "evidence_impact": "material"
+}
