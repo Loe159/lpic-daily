@@ -397,15 +397,19 @@ func TestExam101GeneratedPedagogyIsFocusedAndApplied(t *testing.T) {
 		if !exists {
 			t.Fatalf("missing focused lesson for Exam 101 concept %s", concept.ID)
 		}
-		for _, heading := range []string{
-			"## À retenir",
-			"## À essayer",
-			"## Point d'attention",
-			"## Vérifie-toi",
-		} {
-			if !strings.Contains(lesson.BodyMarkdown, heading) {
-				t.Errorf("%s focused lesson missing %q", concept.ID, heading)
+		if strings.HasSuffix(lesson.ID, ".lesson.autonomous") {
+			for _, heading := range []string{
+				"## À retenir",
+				"## À essayer",
+				"## Point d'attention",
+				"## Vérifie-toi",
+			} {
+				if !strings.Contains(lesson.BodyMarkdown, heading) {
+					t.Errorf("%s generated focused lesson missing %q", concept.ID, heading)
+				}
 			}
+		} else if !strings.Contains(lesson.BodyMarkdown, standaloneSupplementHeading) {
+			t.Errorf("%s authored focused lesson has no compact standalone supplement", concept.ID)
 		}
 		if strings.Contains(lesson.BodyMarkdown, "## Termes, fichiers et utilitaires à connaître pour") {
 			t.Errorf("%s still uses the objective-wide term dump instead of focused Exam 101 pedagogy", concept.ID)
