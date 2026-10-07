@@ -45,10 +45,11 @@ type Item struct {
 }
 
 type ExamProgress struct {
-	Total     int
-	Started   int
-	Practical int
-	Complete  int
+	Total             int
+	Started           int
+	Practical         int
+	VerifiedPractical int
+	Complete          int
 }
 
 type Progress struct {
@@ -256,7 +257,7 @@ func summarizeProgress(
 		if len(events) > 0 {
 			target.Started++
 		}
-		lesson, question, practical := false, false, false
+		lesson, question, practical, verifiedPractical := false, false, false, false
 		for _, event := range events {
 			if event.Result != learning.ResultPass {
 				continue
@@ -268,10 +269,16 @@ func summarizeProgress(
 				question = true
 			case learning.ActivityLab:
 				practical = true
+				if !strings.Contains(event.SourceItemID, ".standalone-") {
+					verifiedPractical = true
+				}
 			}
 		}
 		if practical {
 			target.Practical++
+		}
+		if verifiedPractical {
+			target.VerifiedPractical++
 		}
 		if lesson && question && practical {
 			target.Complete++
