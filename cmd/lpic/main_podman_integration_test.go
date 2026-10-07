@@ -5,7 +5,11 @@ package main
 import (
 	"bytes"
 	"context"
+	"encoding/json"
+	"io/fs"
 	"os"
+	"path"
+	"strings"
 	"testing"
 	"time"
 
@@ -67,6 +71,94 @@ func TestPhase1ImageProvidesInteractiveEditorsAndTerminfo(t *testing.T) {
 	}
 	if result.ExitCode != 0 {
 		t.Fatalf("editor/terminfo probe exit = %d, want 0", result.ExitCode)
+	}
+}
+
+func TestAllAuthoredPodmanReferenceSolutionsPassStateChecks(t *testing.T) {
+	if os.Getenv("LPIC_DAILY_RUN_PODMAN_INTEGRATION") != "1" {
+		t.Skip("set LPIC_DAILY_RUN_PODMAN_INTEGRATION=1 to run real rootless Podman integration tests")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 8*time.Minute)
+	defer cancel()
+
+	backend, err := podmanrunner.Open(ctx, "")
+	if err != nil {
+		t.Fatalf("Open(rootless Podman) error = %v", err)
+	}
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("LoadAll() error = %v", err)
+	}
+
+	labPaths, err := fs.Glob(lpicdaily.BuiltinFS, "labs/lpic-1-v5/*/*/lab.json")
+	if err != nil {
+		t.Fatalf("Glob(authored labs) error = %v", err)
+	}
+	solutionByID := make(map[string]string, len(labPaths))
+	for _, labPath := range labPaths {
+		payload, err := fs.ReadFile(lpicdaily.BuiltinFS, labPath)
+		if err != nil {
+			t.Fatalf("ReadFile(%s) error = %v", labPath, err)
+		}
+		var definition lab.Definition
+		if err := json.Unmarshal(payload, &definition); err != nil {
+			t.Fatalf("Unmarshal(%s) error = %v", labPath, err)
+		}
+		if definition.ReferenceSolutionRef == "" {
+			continue
+		}
+		solutionPath := path.Join(path.Dir(labPath), definition.ReferenceSolutionRef)
+		solution, err := fs.ReadFile(lpicdaily.BuiltinFS, solutionPath)
+		if err != nil {
+			t.Fatalf("ReadFile(%s) error = %v", solutionPath, err)
+		}
+		solutionByID[definition.ID] = string(solution)
+	}
+
+	for _, authored := range labs {
+		if authored.Definition.Environment.Backend != "podman" ||
+			strings.Contains(authored.Definition.ID, ".standalone-") {
+			continue
+		}
+		solution, exists := solutionByID[authored.Definition.ID]
+		if !exists {
+			t.Fatalf("%s has no embedded reference solution", authored.Definition.ID)
+		}
+
+		t.Run(authored.Definition.ID, func(t *testing.T) {
+			session, err := lab.Start(ctx, authored, backend)
+			if err != nil {
+				t.Fatalf("Start() error = %v", err)
+			}
+			defer func() {
+				cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 30*time.Second)
+				defer cleanupCancel()
+				if err := session.Close(cleanupCtx); err != nil {
+					t.Errorf("Close() error = %v", err)
+				}
+			}()
+
+			result, err := backend.Exec(ctx, session.Instance, runner.ExecRequest{
+				Argv: []string{"/usr/bin/bash", "-eu", "-c", solution},
+			})
+			if err != nil {
+				t.Fatalf("execute reference solution error = %v", err)
+			}
+			if result.ExitCode != 0 {
+				t.Fatalf("reference solution exit = %d, want 0", result.ExitCode)
+			}
+
+			results, err := session.Evaluate(ctx)
+			if err != nil {
+				t.Fatalf("Evaluate() error = %v", err)
+			}
+			for _, check := range results {
+				if !check.Pass {
+					t.Errorf("check %s failed after reference solution: %s", check.CheckID, check.Detail)
+				}
+			}
+		})
 	}
 }
 
