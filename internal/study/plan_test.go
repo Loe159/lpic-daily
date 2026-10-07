@@ -879,12 +879,12 @@ func TestExam102StaysLockedUntilEveryExam101ConceptCompletesCourseQuizAndLab(t *
 	}
 }
 
-func TestGeneratedGuidedLabRotatesToSecondPracticeContext(t *testing.T) {
+func TestGeneratedGuidedLabYieldsToAcceptedScenario(t *testing.T) {
 	curriculumBundle, contentBundle, labs := loadInputs(t)
 	now := time.Date(2026, 10, 10, 12, 0, 0, 0, time.UTC)
 	conceptID := "lpic1.103.2.flux-texte-ligne-octet"
 	diagnosticID := conceptID + ".standalone-diagnostic"
-	transferID := conceptID + ".standalone-transfer"
+	acceptedID := "lpic1.103.2.compressed-manifest-recovery"
 	evidence := memoryEvidence{
 		conceptID: {
 			{
@@ -924,8 +924,8 @@ func TestGeneratedGuidedLabRotatesToSecondPracticeContext(t *testing.T) {
 	if len(plan.Items) != 1 {
 		t.Fatalf("items = %#v, want one due guided review", plan.Items)
 	}
-	if got := plan.Items[0].RecommendedLabID; got != transferID {
-		t.Fatalf("recommended lab = %q, want %q after diagnostic success", got, transferID)
+	if got := plan.Items[0].RecommendedLabID; got != acceptedID {
+		t.Fatalf("recommended lab = %q, want accepted scenario %q after diagnostic success", got, acceptedID)
 	}
 }
 
