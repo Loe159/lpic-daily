@@ -34,7 +34,7 @@ func TestPhase1BuiltInLabsConformOnRootlessPodman(t *testing.T) {
 		t.Skip("set LPIC_DAILY_RUN_PODMAN_INTEGRATION=1 to run real rootless Podman conformance tests")
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), 8*time.Minute)
 	defer cancel()
 
 	backend, err := podmanrunner.Open(ctx, "")

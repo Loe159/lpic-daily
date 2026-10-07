@@ -5,4 +5,4 @@ export SERVICE_MODE=production
 LOCAL_NOTE=operator-note
 unset LEGACY_TOKEN
 EOF
-/usr/bin/bash --noprofile --rcfile /root/.bashrc -ic 'printf "%s|%s|%s\n" "$SERVICE_MODE" "$LOCAL_NOTE" "$USER" > /run/lpic/env-summary'
+/usr/bin/bash --noprofile --rcfile /root/.bashrc -ic 'printf "%s|%s\n" "$SERVICE_MODE" "$LOCAL_NOTE" > /run/lpic/env-summary'

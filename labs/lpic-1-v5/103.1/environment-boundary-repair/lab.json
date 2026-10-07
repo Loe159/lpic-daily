@@ -2,12 +2,12 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.1.environment-boundary-repair",
   "title_fr": "Réparer la frontière entre shell et environnement",
-  "brief_fr": "Une relève d’astreinte lance des outils enfants avec un environnement pollué. Dans le shell interactif de root, SERVICE_MODE doit être exportée avec la valeur production, LOCAL_NOTE doit rester une variable du shell non transmise aux processus enfants et LEGACY_TOKEN ne doit plus exister. Produis ensuite /run/lpic/env-summary avec les valeurs développées SERVICE_MODE, LOCAL_NOTE et USER, séparées par |.",
+  "brief_fr": "Une relève d’astreinte lance des outils enfants avec un environnement pollué. Dans le shell interactif de root, SERVICE_MODE doit être exportée avec la valeur production, LOCAL_NOTE doit rester une variable du shell non transmise aux processus enfants et LEGACY_TOKEN ne doit plus exister. Produis ensuite /run/lpic/env-summary avec les valeurs développées SERVICE_MODE et LOCAL_NOTE, séparées par |.",
   "success_criteria_fr": [
     "SERVICE_MODE vaut production et est visible dans l’environnement d’un processus enfant.",
     "LOCAL_NOTE vaut operator-note dans le shell mais n’apparaît pas dans env.",
     "LEGACY_TOKEN est absente du shell et de l’environnement transmis.",
-    "env-summary contient production|operator-note|root à partir des valeurs réellement chargées."
+    "env-summary contient production|operator-note à partir des valeurs réellement chargées."
   ],
   "debrief_fr": "set expose les variables du shell tandis que env montre l’environnement transmis à un processus. export ajoute une variable à cet environnement et unset la retire du shell. L’expansion de variables produit ensuite le résumé attendu sans confondre valeur locale et valeur exportée.",
   "objective_ids": [
@@ -113,7 +113,7 @@
     {
       "type": "file-content-regex",
       "path": "/run/lpic/env-summary",
-      "pattern": "^production\\|operator-note\\|root\\n?$",
+      "pattern": "^production\\|operator-note\\n?$",
       "concept_ids": [
         "lpic1.103.1.echo-et-expansion-shell",
         "lpic1.103.1.variables-shell-environnement"
