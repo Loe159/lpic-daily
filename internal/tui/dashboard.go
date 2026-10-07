@@ -162,10 +162,10 @@ func (model Dashboard) render() string {
 	if model.plan.Progress.Exam101.Total > 0 {
 		output.WriteString(clip(
 			fmt.Sprintf(
-				"101: %d/%d complets · %d pratiques",
+				"101: %d/%d parcours · %d labs vérifiés",
 				model.plan.Progress.Exam101.Complete,
 				model.plan.Progress.Exam101.Total,
-				model.plan.Progress.Exam101.Practical,
+				model.plan.Progress.Exam101.VerifiedPractical,
 			),
 			width,
 		))
@@ -174,10 +174,10 @@ func (model Dashboard) render() string {
 	if model.plan.Progress.Exam102.Total > 0 {
 		output.WriteString(clip(
 			fmt.Sprintf(
-				"102: %d/%d complets · %d pratiques",
+				"102: %d/%d parcours · %d labs vérifiés",
 				model.plan.Progress.Exam102.Complete,
 				model.plan.Progress.Exam102.Total,
-				model.plan.Progress.Exam102.Practical,
+				model.plan.Progress.Exam102.VerifiedPractical,
 			),
 			width,
 		))
@@ -191,10 +191,10 @@ func (model Dashboard) render() string {
 		output.WriteString("Aucune révision n'est due pour le moment.\n")
 		if model.plan.Progress.Exam101.Total > 0 {
 			output.WriteString(fmt.Sprintf(
-				"Progression 101 : %d/%d concepts complets, %d avec preuve pratique.\n",
+				"Progression 101 : %d/%d parcours complets, %d avec lab d'état vérifié.\n",
 				model.plan.Progress.Exam101.Complete,
 				model.plan.Progress.Exam101.Total,
-				model.plan.Progress.Exam101.Practical,
+				model.plan.Progress.Exam101.VerifiedPractical,
 			))
 		}
 		output.WriteString("LPIC Daily te proposera automatiquement les prochaines révisions et activités pratiques lorsqu'elles seront dues.\n")
