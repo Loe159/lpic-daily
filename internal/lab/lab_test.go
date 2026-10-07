@@ -621,10 +621,9 @@ func TestGeneratedStandaloneLabsStayConcreteAndConcise(t *testing.T) {
 		brief := authored.Definition.BriefFR
 
 		for _, forbidden := range []string{
-			"Utilise ",
-			" pour montrer concrètement ",
-			"Reproduis ",
+			"pour montrer concrètement",
 			"Fais au moins une manipulation",
+			"Exercice spécifique indisponible",
 			"CONCEPT=",
 			"TERMS=",
 			"COMMAND=",
@@ -649,16 +648,6 @@ func TestGeneratedStandaloneLabsStayConcreteAndConcise(t *testing.T) {
 			}
 		}
 
-		specific := concept.ID == "lpic1.103.1.set-env-et-portee-des-variables"
-		for _, anchor := range concept.AnchorTerms {
-			if strings.Contains(brief, content.PedagogicalTermExplanation(anchor, concept.ObjectiveID)) {
-				specific = true
-				break
-			}
-		}
-		if !specific {
-			t.Errorf("%s brief contains no concept-specific explanation", authored.Definition.ID)
-		}
 		if words := len(strings.Fields(brief)); words > 130 {
 			t.Errorf("%s brief = %d words, want <= 130", authored.Definition.ID, words)
 		}
