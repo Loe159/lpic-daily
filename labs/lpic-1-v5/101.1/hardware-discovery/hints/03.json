@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.1.hardware-discovery.hint-3",
+  "lab_id": "lpic1.101.1.hardware-discovery",
+  "level": 3,
+  "content_fr": "Pour l'activation/désactivation, modprobe dummy est volontairement choisi comme module de test sans périphérique physique.",
+  "evidence_impact": "material"
+}

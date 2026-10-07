@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.1.disk-layout-lvm.hint-3",
+  "lab_id": "lpic1.102.1.disk-layout-lvm",
+  "level": 3,
+  "content_fr": "LVM suit PV→VG→LV : pvcreate /dev/vde, vgcreate, lvcreate, puis un filesystem sur le LV.",
+  "evidence_impact": "material"
+}

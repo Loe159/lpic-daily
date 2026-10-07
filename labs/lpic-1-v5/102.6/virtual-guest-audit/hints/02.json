@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.6.virtual-guest-audit.hint-2",
+  "lab_id": "lpic1.102.6.virtual-guest-audit",
+  "level": 2,
+  "content_fr": "Une image clonée ne doit pas conserver les mêmes machine-id et clés SSH ; vérifie leurs valeurs dans cette instance.",
+  "evidence_impact": "material"
+}

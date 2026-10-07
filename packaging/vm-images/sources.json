@@ -65,7 +65,11 @@
         "screen",
         "tmux",
         "hostname",
-        "sudo"
+        "sudo",
+        "pciutils",
+        "usbutils",
+        "lvm2",
+        "acpid"
       ],
       "recipe": "fedora-cloud-v2"
     },

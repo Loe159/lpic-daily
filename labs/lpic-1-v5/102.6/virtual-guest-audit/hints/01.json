@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.6.virtual-guest-audit.hint-1",
+  "lab_id": "lpic1.102.6.virtual-guest-audit",
+  "level": 1,
+  "content_fr": "Commence par systemd-detect-virt, lsblk et ip link pour caractériser l'instance.",
+  "evidence_impact": "none"
+}
