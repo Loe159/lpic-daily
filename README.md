@@ -107,7 +107,7 @@ Dans un lab :
 :quit     quitter et détruire l'environnement
 ```
 
-Les commandes du lab ne sont jamais exécutées directement sur ton système hôte en fallback.
+Les commandes du lab ne sont jamais exécutées directement sur ton système hôte en fallback. Si un shell interactif est interrompu par un timeout du backend, le lab reste ouvert et `:shell` permet de reprendre sans réinitialiser la sandbox.
 
 ## Progression et données
 
