@@ -68,6 +68,8 @@ Lance simplement :
 lpic
 ```
 
+Si tu as quitté une séance, `lpic continue` rouvre le dashboard à partir de ta progression locale. Un lab interrompu repart dans un environnement jetable propre ; les preuves déjà enregistrées sont conservées.
+
 Tu arrives sur le dashboard de ta séance du jour.
 
 Quelques commandes utiles :
@@ -95,8 +97,9 @@ Les images VM sont préparées à la demande : LPIC Daily indique le télécharg
 Dans un lab :
 
 ```text
-:shell    ouvrir un shell persistant
-:check    vérifier ton travail
+:shell    ouvrir ou rouvrir le shell persistant
+:status   vérifier l'état sans enregistrer de tentative
+:check    vérifier et enregistrer ta tentative
 :hint     demander l'indice suivant
 :reset    recommencer le lab
 :quit     quitter et détruire l'environnement
