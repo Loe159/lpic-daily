@@ -180,7 +180,7 @@ jobs:
           LPIC_DAILY_RUN_PODMAN_INTEGRATION: "1"
         run: go test -tags=integration ./internal/runner/podman -count=1 -v
 
-podman-lab-acceptance:
+  podman-lab-acceptance:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
