@@ -268,6 +268,16 @@ def main():
         )
         return 1
 
+    missing_verified = [
+        item["concept_id"] for item in concepts
+        if not item["surfaces"]["verified_labs"]
+    ]
+    if missing_verified:
+        print(
+            "Phase-3 state-verified lab coverage missing: "
+            + ", ".join(missing_verified)
+        )
+
     if args.check:
         return 0
 
@@ -323,6 +333,7 @@ def main():
         or missing_question
         or missing_lab
         or missing_advancement
+        or missing_verified
     ):
         return 1
 
