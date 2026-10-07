@@ -137,6 +137,7 @@ def audit():
             "questions": [],
             "introductions": [],
             "recall_questions": [],
+            "verified_labs": [],
         }
         for concept_id in ordered_concepts
     }
@@ -159,6 +160,8 @@ def audit():
                     )
                 if record["counts_for_coverage"]:
                     mapped[concept_id][surface].append(artifact_id)
+                    if surface == "labs" and ".standalone-" not in artifact_id:
+                        mapped[concept_id]["verified_labs"].append(artifact_id)
                 if record["focused_introduction"]:
                     mapped[concept_id]["introductions"].append(artifact_id)
                 if record["recall_question"]:
@@ -197,6 +200,7 @@ def audit():
                 "questions",
                 "introductions",
                 "recall_questions",
+                "verified_labs",
             )
         },
     } for concept_id in ordered_concepts]
@@ -221,6 +225,9 @@ def audit():
             for item in concepts
         ),
         "with_lab": sum(bool(item["surfaces"]["labs"]) for item in concepts),
+        "with_state_verified_lab": sum(
+            bool(item["surfaces"]["verified_labs"]) for item in concepts
+        ),
         "objectives_with_lab": sum(objective_with_lab.values()),
     }
     return summary, concepts
@@ -247,6 +254,7 @@ def main():
         f"{summary['with_question']} with daily question; "
         f"{summary['with_advancement_path']} with recall/practical advancement path; "
         f"{summary['with_lab']} with practical exercise coverage; "
+        f"{summary['with_state_verified_lab']} with authored state-verified lab coverage; "
         f"{summary['objectives_with_lab']} objectives with at least one lab"
     )
     duplicate_introductions = [
@@ -319,8 +327,10 @@ def main():
         return 1
 
     print(
-        "Phase-3 Exam-101 course/daily-question/practical-exercise coverage complete; "
-        "every concept has both recall and practical advancement paths."
+        "Phase-3 Exam-101 learning-surface coverage complete. "
+        f"{summary['with_state_verified_lab']}/{summary['concepts']} concepts currently have "
+        "an authored state-verified lab; remaining generated practical contexts stay guided "
+        "and do not claim independent mastery."
     )
     return 0
 
