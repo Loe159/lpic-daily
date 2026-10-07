@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.2.filesystem-maintenance.hint-1",
+  "lab_id": "lpic1.104.2.filesystem-maintenance",
+  "level": 1,
+  "content_fr": "Sépare mesure, saturation, maintenance ext4 puis maintenance XFS ; ne lance jamais fsck sur un filesystem monté.",
+  "evidence_impact": "none"
+}

@@ -69,7 +69,9 @@
         "pciutils",
         "usbutils",
         "lvm2",
-        "acpid"
+        "acpid",
+        "cloud-init",
+        "openssh-server"
       ],
       "recipe": "fedora-cloud-v2"
     },
