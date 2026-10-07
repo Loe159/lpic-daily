@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.environment-boundary-repair.hint-4",
+  "lab_id": "lpic1.103.1.environment-boundary-repair",
+  "level": 4,
+  "content_fr": "Dans /root/.bashrc, exporte SERVICE_MODE=production, affecte LOCAL_NOTE=operator-note sans export et unset LEGACY_TOKEN. Ouvre ensuite un shell avec ce rcfile et écris les trois valeurs développées dans /run/lpic/env-summary.",
+  "evidence_impact": "solution-revealed"
+}
