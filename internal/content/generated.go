@@ -42,7 +42,6 @@ func synthesizeStandaloneContent(
 			continue
 		}
 		objective := objectiveByID[concept.ObjectiveID]
-		guide := guideByObjective[concept.ObjectiveID]
 		supplement := standaloneSupplement(objective, concept)
 		if !strings.Contains(lesson.BodyMarkdown, standaloneSupplementHeading) {
 			lesson.BodyMarkdown = strings.TrimRight(lesson.BodyMarkdown, "\n") + "\n\n" + supplement
