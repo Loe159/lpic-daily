@@ -1,0 +1,94 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.2.compressed-manifest-recovery",
+  "title_fr": "Réparer un manifeste d’archives compressées",
+  "brief_fr": "Trois fragments de journal sont livrés en gzip, bzip2 et xz. Le manifeste SHA-256 signale à tort le dernier fragment comme corrompu. Vérifie les flux, reconstruis le manifeste, assemble les données dans /workspace/output/audit.txt puis publie ses empreintes MD5, SHA-256 et SHA-512 dans checksums.txt.",
+  "success_criteria_fr": [
+    "Le manifeste SHA-256 valide les trois archives compressées.",
+    "audit.txt contient les cinq lignes des trois fragments dans l’ordre day1, day2, day3.",
+    "checksums.txt contient les empreintes MD5, SHA256 et SHA512 exactes de audit.txt."
+  ],
+  "debrief_fr": "zcat, bzcat et xzcat permettent de lire des données compressées en flux sans extraction persistante. Les commandes md5sum, sha256sum et sha512sum calculent des empreintes ; avec -c, sha256sum peut vérifier un manifeste. Le résultat final reste indépendant de l’outil exact utilisé pour concaténer les flux.",
+  "objective_ids": [
+    "103.2"
+  ],
+  "concept_ids": [
+    "lpic1.103.2.lecture-compression-en-flux",
+    "lpic1.103.2.checksums",
+    "lpic1.103.2.flux-texte-ligne-octet"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-accepted"
+  ],
+  "estimated_minutes": 10,
+  "practice_context": "compressed-manifest-recovery",
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "baseline",
+    "writable_guest_paths": [
+      "/workspace"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "cpu_percent": 100,
+    "pids": 96,
+    "timeout_seconds": 1200
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "cd / && sha256sum -c /workspace/input/manifest.sha256 >/dev/null"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.2.checksums"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "printf 'alpha\\nbeta\\ngamma\\ndelta\\nepsilon\\n' | cmp -s - /workspace/output/audit.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.2.lecture-compression-en-flux",
+        "lpic1.103.2.flux-texte-ligne-octet"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test \"$(sed -n 's/^MD5 //p' /workspace/output/checksums.txt)\" = \"$(md5sum /workspace/output/audit.txt | awk '{print $1}')\" && test \"$(sed -n 's/^SHA256 //p' /workspace/output/checksums.txt)\" = \"$(sha256sum /workspace/output/audit.txt | awk '{print $1}')\" && test \"$(sed -n 's/^SHA512 //p' /workspace/output/checksums.txt)\" = \"$(sha512sum /workspace/output/audit.txt | awk '{print $1}')\""
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.2.checksums"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.103.2.compressed-manifest-recovery.hint-1",
+    "lpic1.103.2.compressed-manifest-recovery.hint-2",
+    "lpic1.103.2.compressed-manifest-recovery.hint-3",
+    "lpic1.103.2.compressed-manifest-recovery.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}
