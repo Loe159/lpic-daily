@@ -18,8 +18,11 @@ import (
 )
 
 var phase1ReferenceSolutions = map[string]string{
-	"lpic1.103.1.shell-environment-repair":  "labs/lpic-1-v5/103.1/shell-environment-repair/reference-solution.sh",
-	"lpic1.103.1.transfer-shell-handoff":    "labs/lpic-1-v5/103.1/transfer-shell-handoff/reference-solution.sh",
+	"lpic1.103.1.shell-environment-repair":   "labs/lpic-1-v5/103.1/shell-environment-repair/reference-solution.sh",
+	"lpic1.103.1.transfer-shell-handoff":     "labs/lpic-1-v5/103.1/transfer-shell-handoff/reference-solution.sh",
+	"lpic1.103.1.child-environment-repair":   "labs/lpic-1-v5/103.1/child-environment-repair/reference-solution.sh",
+	"lpic1.103.1.outside-path-recovery":      "labs/lpic-1-v5/103.1/outside-path-recovery/reference-solution.sh",
+	"lpic1.103.1.history-persistence-repair": "labs/lpic-1-v5/103.1/history-persistence-repair/reference-solution.sh",
 	"lpic1.103.5.stuck-worker":              "labs/lpic-1-v5/103.5/stuck-worker/reference-solution.sh",
 	"lpic1.103.5.transfer-operator-session": "labs/lpic-1-v5/103.5/transfer-operator-session/reference-solution.sh",
 	"lpic1.104.5.shared-dropbox":            "labs/lpic-1-v5/104.5/shared-dropbox/reference-solution.sh",
