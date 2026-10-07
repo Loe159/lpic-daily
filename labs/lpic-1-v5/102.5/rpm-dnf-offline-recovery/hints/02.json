@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.5.rpm-dnf-offline-recovery.hint-2",
+  "lab_id": "lpic1.102.5.rpm-dnf-offline-recovery",
+  "level": 2,
+  "content_fr": "rpm -V compare l'état installé à la base RPM. Fais une dérive volontaire, capture-la, puis restaure avec -U --replacepkgs.",
+  "evidence_impact": "material"
+}

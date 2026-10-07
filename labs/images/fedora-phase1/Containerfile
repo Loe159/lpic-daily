@@ -40,6 +40,8 @@ RUN dnf -y install \
         plocate \
         procps-ng \
         rpm \
+        rpm-build \
+        createrepo_c \
         rsyslog \
         screen \
         sed \
