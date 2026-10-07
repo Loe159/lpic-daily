@@ -65,7 +65,7 @@ func TestRealKVMIsolationScenarioAndCrashReaping(t *testing.T) {
 	if err != nil {
 		t.Fatalf("LoadImageCatalog() error = %v", err)
 	}
-	image, err := catalog.Resolve("fedora-44-x86_64-v2", imageRoot)
+	image, err := catalog.Resolve("fedora-44-x86_64-v3", imageRoot)
 	if err != nil {
 		t.Fatalf("resolve Fedora test image: %v", err)
 	}
@@ -127,7 +127,7 @@ func TestRealKVMIsolationScenarioAndCrashReaping(t *testing.T) {
 	defer cancel()
 	definition := runner.Definition{
 		LabID:             "integration.kvm.peer-a",
-		ImageRef:          "fedora-44-x86_64-v2",
+		ImageRef:          "fedora-44-x86_64-v3",
 		Distribution:      "fedora",
 		Network:           runner.NetworkIsolated,
 		CapabilityProfile: "full-machine",
