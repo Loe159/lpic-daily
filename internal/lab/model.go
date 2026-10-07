@@ -13,6 +13,7 @@ type Definition struct {
 	EstimatedMinutes     int               `json:"estimated_minutes"`
 	PracticeContext      string            `json:"practice_context,omitempty"`
 	NeedsPersistentShell bool              `json:"requires_persistent_shell,omitempty"`
+	RequiresVMConsole    bool              `json:"requires_vm_console,omitempty"`
 	Environment          Environment       `json:"environment"`
 	Resources            Resources         `json:"resources"`
 	Setup                Setup             `json:"setup"`
