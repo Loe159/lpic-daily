@@ -86,7 +86,7 @@ func TestLaunchLabUsesConfiguredLauncherAndBinary(t *testing.T) {
 			"-e",
 			"/home/test/.local/bin/lpic",
 			"lab",
-			"run",
+			"session",
 			"lpic1.103.1.shell-environment-repair",
 		},
 	}
