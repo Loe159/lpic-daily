@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 mkdir -p /workspace/release
-cp -R /workspace/source/app /workspace/release/app
+cp -a /workspace/source/app /workspace/release/app
 mkdir -p /workspace/release/config /workspace/release/large-logs
 mv /workspace/release/app/conf/*.conf /workspace/release/config/
 rmdir /workspace/release/app/conf
