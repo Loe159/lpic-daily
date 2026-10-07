@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.history-persistence-repair.hint-3",
+  "lab_id": "lpic1.103.1.history-persistence-repair",
+  "level": 3,
+  "content_fr": "Rétablis `/root/.bash_history`, retire l'entrée dangereuse, ajoute `echo maintenance-complete`, puis vérifie depuis un shell neuf que `history -r` relit bien cette entrée.",
+  "evidence_impact": "material"
+}

@@ -23,26 +23,40 @@
     },
     "objectiveIds": {
       "type": "array",
-      "items": { "$ref": "#/$defs/objectiveId" },
+      "items": {
+        "$ref": "#/$defs/objectiveId"
+      },
       "minItems": 1,
       "uniqueItems": true
     },
     "conceptIds": {
       "type": "array",
-      "items": { "$ref": "#/$defs/conceptId" },
+      "items": {
+        "$ref": "#/$defs/conceptId"
+      },
       "minItems": 1,
       "uniqueItems": true
     },
     "labels": {
       "type": "array",
       "items": {
-        "enum": ["lpic-required", "lpic-legacy", "modern-practice"]
+        "enum": [
+          "lpic-required",
+          "lpic-legacy",
+          "modern-practice",
+          "scenario-accepted"
+        ]
       },
       "minItems": 1,
       "uniqueItems": true
     },
     "distribution": {
-      "enum": ["generic", "fedora", "debian", "opensuse"]
+      "enum": [
+        "generic",
+        "fedora",
+        "debian",
+        "opensuse"
+      ]
     }
   }
 }

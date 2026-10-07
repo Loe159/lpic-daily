@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.outside-path-recovery.hint-1",
+  "lab_id": "lpic1.103.1.outside-path-recovery",
+  "level": 1,
+  "content_fr": "Distingue deux questions : « la commande est-elle résolue par le shell ? » et « l'exécutable existe-t-il quelque part sur le système ? »",
+  "evidence_impact": "none"
+}

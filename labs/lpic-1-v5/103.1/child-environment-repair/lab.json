@@ -1,0 +1,107 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.child-environment-repair",
+  "title_fr": "Réparer l'environnement transmis à un processus enfant",
+  "brief_fr": "Un wrapper de maintenance démarre avec un environnement incohérent. Dans un nouveau login shell, SHELL_NOTE doit rester locale au shell, DEPLOY_ENV doit être transmise aux processus enfants et STALE_TOKEN ne doit plus être exportée. Produis aussi /run/lpic/env-audit avec exactement une ligne `deploy=production note=operator note`.",
+  "success_criteria_fr": [
+    "SHELL_NOTE existe dans le shell mais n'apparaît pas dans son environnement exporté.",
+    "DEPLOY_ENV=production est visible depuis un processus enfant.",
+    "STALE_TOKEN est absente de l'environnement.",
+    "env-audit reflète correctement les expansions attendues."
+  ],
+  "debrief_fr": "Une variable shell n'est pas automatiquement une variable d'environnement. export la propage aux enfants, unset la retire du shell courant, et env montre l'environnement transmis. L'expansion dans echo dépend du quoting utilisé.",
+  "objective_ids": [
+    "103.1"
+  ],
+  "concept_ids": [
+    "lpic1.103.1.set-env-et-portee-des-variables",
+    "lpic1.103.1.export-unset-et-processus-enfants",
+    "lpic1.103.1.echo-et-expansion-shell",
+    "lpic1.103.1.variables-shell-environnement",
+    "lpic1.103.1.quoting-escaping"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-accepted"
+  ],
+  "estimated_minutes": 12,
+  "practice_context": "child-environment-repair",
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "baseline",
+    "writable_guest_paths": [
+      "/root",
+      "/run/lpic"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "pids": 96,
+    "timeout_seconds": 1200,
+    "cpu_percent": 100
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test \"${SHELL_NOTE:-}\" = \"operator note\" && ! env | grep -q '^SHELL_NOTE='"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.1.set-env-et-portee-des-variables"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test \"$(/usr/bin/env | sed -n 's/^DEPLOY_ENV=//p')\" = production && test \"$(/usr/bin/bash -c 'printf %s \"${DEPLOY_ENV:-}\"')\" = production"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.1.export-unset-et-processus-enfants",
+        "lpic1.103.1.variables-shell-environnement"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "! env | grep -q '^STALE_TOKEN='"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.1.export-unset-et-processus-enfants"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/run/lpic/env-audit",
+      "pattern": "^deploy=production note=operator note\\n?$",
+      "concept_ids": [
+        "lpic1.103.1.echo-et-expansion-shell",
+        "lpic1.103.1.quoting-escaping"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.103.1.child-environment-repair.hint-1",
+    "lpic1.103.1.child-environment-repair.hint-2",
+    "lpic1.103.1.child-environment-repair.hint-3",
+    "lpic1.103.1.child-environment-repair.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

@@ -1,0 +1,95 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.history-persistence-repair",
+  "title_fr": "Réparer un historique Bash persistant",
+  "brief_fr": "Le poste d'astreinte ne conserve plus correctement l'historique entre deux shells. Rétablis un historique persistant dans `/root/.bash_history` avec HISTSIZE=1000 et HISTFILESIZE=2000. L'ancienne commande dangereuse ne doit plus rester dans l'historique et l'entrée `echo maintenance-complete` doit être disponible après rechargement de l'historique dans un nouveau shell.",
+  "success_criteria_fr": [
+    "Un nouveau login shell utilise `/root/.bash_history` avec les tailles demandées.",
+    "L'entrée dangereuse a disparu du fichier persistant.",
+    "L'entrée de maintenance est relue par le builtin history dans un nouveau shell."
+  ],
+  "debrief_fr": "HISTFILE choisit le fichier persistant, HISTSIZE limite l'historique en mémoire et HISTFILESIZE limite le fichier. `history -r` recharge le fichier et `history -w` peut réécrire l'état courant ; modifier seulement le shell courant ne suffit pas.",
+  "objective_ids": [
+    "103.1"
+  ],
+  "concept_ids": [
+    "lpic1.103.1.edition-et-persistance-de-l-historique",
+    "lpic1.103.1.historique"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-accepted"
+  ],
+  "estimated_minutes": 10,
+  "practice_context": "history-persistence-repair",
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "baseline",
+    "writable_guest_paths": [
+      "/root",
+      "/run/lpic"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "pids": 96,
+    "timeout_seconds": 1200,
+    "cpu_percent": 100
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test \"${HISTFILE:-}\" = /root/.bash_history && test \"${HISTSIZE:-}\" = 1000 && test \"${HISTFILESIZE:-}\" = 2000"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.1.edition-et-persistance-de-l-historique",
+        "lpic1.103.1.historique"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "! grep -Fqx 'rm -rf /tmp/reports' /root/.bash_history && grep -Fqx 'echo maintenance-complete' /root/.bash_history"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.1.edition-et-persistance-de-l-historique"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -o history; history -c; history -r /root/.bash_history; history | grep -Fq 'echo maintenance-complete'"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.1.edition-et-persistance-de-l-historique",
+        "lpic1.103.1.historique"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.103.1.history-persistence-repair.hint-1",
+    "lpic1.103.1.history-persistence-repair.hint-2",
+    "lpic1.103.1.history-persistence-repair.hint-3",
+    "lpic1.103.1.history-persistence-repair.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

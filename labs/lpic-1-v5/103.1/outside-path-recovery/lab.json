@@ -1,0 +1,92 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.outside-path-recovery",
+  "title_fr": "Exécuter un outil de maintenance hors du PATH",
+  "brief_fr": "Un outil de rapprochement est présent sur la machine mais n'est volontairement pas exposé dans le PATH standard. Sans modifier le PATH global, retrouve l'exécutable fiable et lance-le afin qu'il produise /run/lpic/reconcile-ok. À la fin, `reconcile` ne doit toujours pas être résolu par son nom seul dans un nouveau login shell.",
+  "success_criteria_fr": [
+    "L'outil fiable est exécuté depuis son emplacement réel alors qu'il reste hors PATH.",
+    "Le PATH standard n'est pas modifié pour contourner le diagnostic.",
+    "Le marqueur produit par l'outil confirme son exécution."
+  ],
+  "debrief_fr": "Une commande peut être exécutée par chemin absolu ou relatif même si elle n'est pas dans PATH. `type`, `which` et la recherche dans le système permettent de distinguer résolution de commande et présence réelle d'un exécutable.",
+  "objective_ids": [
+    "103.1"
+  ],
+  "concept_ids": [
+    "lpic1.103.1.execution-de-commandes-hors-path",
+    "lpic1.103.1.path-et-resolution-de-commande",
+    "lpic1.103.1.documentation-et-identification-d-une-commande"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-accepted"
+  ],
+  "estimated_minutes": 10,
+  "practice_context": "outside-path-recovery",
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "baseline",
+    "writable_guest_paths": [
+      "/root",
+      "/run/lpic",
+      "/opt/lpic/tools"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "pids": 96,
+    "timeout_seconds": 1200,
+    "cpu_percent": 100
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "! command -v reconcile >/dev/null 2>&1"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.1.execution-de-commandes-hors-path",
+        "lpic1.103.1.path-et-resolution-de-commande"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test -x /opt/lpic/tools/reconcile"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.1.documentation-et-identification-d-une-commande"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/run/lpic/reconcile-ok",
+      "pattern": "^reconciled\\n?$",
+      "concept_ids": [
+        "lpic1.103.1.execution-de-commandes-hors-path"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.103.1.outside-path-recovery.hint-1",
+    "lpic1.103.1.outside-path-recovery.hint-2",
+    "lpic1.103.1.outside-path-recovery.hint-3",
+    "lpic1.103.1.outside-path-recovery.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

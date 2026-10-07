@@ -140,13 +140,26 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 
 	labs := make(map[string][]string)
 	labContexts := make(map[string]string, len(input.Labs))
+	scenarioLabs := make(map[string]bool, len(input.Labs))
+	scenarioCovered := make(map[string]bool)
 	for _, authored := range input.Labs {
 		labContexts[authored.Definition.ID] = authored.Definition.PracticeContext
+		acceptedScenario := slices.Contains(authored.Definition.Labels, "scenario-accepted")
+		scenarioLabs[authored.Definition.ID] = acceptedScenario
 		for _, conceptID := range authored.Definition.ConceptIDs {
-			if _, wanted := scopeConcepts[conceptID]; wanted {
-				labs[conceptID] = append(labs[conceptID], authored.Definition.ID)
+			if _, wanted := scopeConcepts[conceptID]; !wanted {
+				continue
+			}
+			labs[conceptID] = append(labs[conceptID], authored.Definition.ID)
+			if acceptedScenario {
+				scenarioCovered[conceptID] = true
 			}
 		}
+	}
+	for conceptID := range scenarioCovered {
+		labs[conceptID] = slices.DeleteFunc(labs[conceptID], func(labID string) bool {
+			return !scenarioLabs[labID]
+		})
 	}
 
 	plan := Plan{

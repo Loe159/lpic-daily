@@ -2,6 +2,7 @@ package study_test
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
@@ -129,8 +130,13 @@ func TestFreshPlanStartsWithFocused1031Introduction(t *testing.T) {
 	if item.RecommendedQuestionID != "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes.q.autonomous-recall" {
 		t.Fatalf("recommended question = %q", item.RecommendedQuestionID)
 	}
-	if len(item.LabIDs) < 4 || item.RecommendedLabID != "lpic1.103.1.shell-environment-repair" {
+	if len(item.LabIDs) != 2 || item.RecommendedLabID != "lpic1.103.1.shell-environment-repair" {
 		t.Fatalf("first shell syntax concept lab recommendation = %#v", item)
+	}
+	for _, labID := range item.LabIDs {
+		if strings.Contains(labID, ".standalone-") {
+			t.Fatalf("scenario-covered concept still exposes fallback lab %q", labID)
+		}
 	}
 }
 
@@ -711,8 +717,8 @@ func TestIndependentConceptRecommendsUnusedTransferLab(t *testing.T) {
 	if len(plan.Items) != 1 || plan.Items[0].ConceptID != conceptID {
 		t.Fatalf("items = %#v, want due independent review", plan.Items)
 	}
-	if got := plan.Items[0].RecommendedLabID; got != "lpic1.103.1.transfer-shell-handoff" {
-		t.Fatalf("recommended lab = %q, want unused transfer context", got)
+	if got := plan.Items[0].RecommendedLabID; got != "lpic1.103.1.outside-path-recovery" {
+		t.Fatalf("recommended lab = %q, want unused scenario context", got)
 	}
 }
 
@@ -814,8 +820,8 @@ func TestIndependentConceptSkipsUnusedLabIDInAlreadyUsedPracticeContext(t *testi
 	if len(plan.Items) != 1 {
 		t.Fatalf("items = %#v, want one due review", plan.Items)
 	}
-	if got := plan.Items[0].RecommendedLabID; got != "lpic1.103.1.transfer-shell-handoff" {
-		t.Fatalf("recommended lab = %q, want materially different practice context", got)
+	if got := plan.Items[0].RecommendedLabID; got != "lpic1.103.1.outside-path-recovery" {
+		t.Fatalf("recommended lab = %q, want materially different scenario context", got)
 	}
 }
 

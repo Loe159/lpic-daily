@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.child-environment-repair.hint-2",
+  "lab_id": "lpic1.103.1.child-environment-repair",
+  "level": 2,
+  "content_fr": "Inspecte l'initialisation du login shell. SHELL_NOTE doit rester locale, DEPLOY_ENV doit être exportée et l'ancienne variable ne doit plus faire partie de l'environnement.",
+  "evidence_impact": "material"
+}

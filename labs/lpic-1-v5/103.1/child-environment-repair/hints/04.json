@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.child-environment-repair.hint-4",
+  "lab_id": "lpic1.103.1.child-environment-repair",
+  "level": 4,
+  "content_fr": "Dans `.bash_profile`, garde `SHELL_NOTE=\"operator note\"` non exportée, exporte `DEPLOY_ENV=production`, supprime STALE_TOKEN avec `unset`, puis écris l'audit via `echo \"deploy=$DEPLOY_ENV note=$SHELL_NOTE\"`.",
+  "evidence_impact": "solution-revealed"
+}
