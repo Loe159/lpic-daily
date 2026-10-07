@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.history-persistence-repair.hint-2",
+  "lab_id": "lpic1.103.1.history-persistence-repair",
+  "level": 2,
+  "content_fr": "Le problème concerne à la fois la configuration persistante du login shell et le fichier utilisé par Bash. Vérifie HISTFILE, HISTSIZE, HISTFILESIZE et le contenu de `.bash_history`.",
+  "evidence_impact": "material"
+}
