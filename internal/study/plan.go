@@ -44,9 +44,22 @@ type Item struct {
 	PreferLab             bool
 }
 
+type ExamProgress struct {
+	Total     int
+	Started   int
+	Practical int
+	Complete  int
+}
+
+type Progress struct {
+	Exam101 ExamProgress
+	Exam102 ExamProgress
+}
+
 type Plan struct {
 	GeneratedAt time.Time
 	Items       []Item
+	Progress    Progress
 }
 
 func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
@@ -152,6 +165,7 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 	plan := Plan{
 		GeneratedAt: session.GeneratedAt,
 		Items:       make([]Item, 0, len(session.Items)),
+		Progress:    summarizeProgress(input.Curriculum, scopeConcepts, evidenceByConcept),
 	}
 	for _, scheduled := range session.Items {
 		title, exists := conceptTitles[scheduled.ConceptID]
@@ -206,6 +220,64 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 		plan.Items = append(plan.Items, item)
 	}
 	return plan, nil
+}
+
+func summarizeProgress(
+	bundle *curriculum.Bundle,
+	scopeConcepts map[string]struct{},
+	evidenceByConcept map[string][]learning.EvidenceEvent,
+) Progress {
+	examByObjective := make(map[string]string, len(bundle.Objectives.Objectives))
+	for _, objective := range bundle.Objectives.Objectives {
+		if objective.Active {
+			examByObjective[objective.ID] = objective.Exam
+		}
+	}
+
+	var progress Progress
+	for _, concept := range bundle.Concepts.Concepts {
+		if !concept.Active {
+			continue
+		}
+		if _, inScope := scopeConcepts[concept.ID]; !inScope {
+			continue
+		}
+		var target *ExamProgress
+		switch examByObjective[concept.ObjectiveID] {
+		case "101":
+			target = &progress.Exam101
+		case "102":
+			target = &progress.Exam102
+		default:
+			continue
+		}
+		target.Total++
+		events := evidenceByConcept[concept.ID]
+		if len(events) > 0 {
+			target.Started++
+		}
+		lesson, question, practical := false, false, false
+		for _, event := range events {
+			if event.Result != learning.ResultPass {
+				continue
+			}
+			switch event.ActivityKind {
+			case learning.ActivityLesson:
+				lesson = true
+			case learning.ActivityQuestion:
+				question = true
+			case learning.ActivityLab:
+				practical = true
+			}
+		}
+		if practical {
+			target.Practical++
+		}
+		if lesson && question && practical {
+			target.Complete++
+		}
+	}
+	return progress
 }
 
 func completeObjectiveReadiness(
