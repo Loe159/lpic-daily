@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.child-environment-repair.hint-1",
+  "lab_id": "lpic1.103.1.child-environment-repair",
+  "level": 1,
+  "content_fr": "Compare ce que voit le shell avec ce que montre `env` dans un nouveau login shell. Une variable présente dans le shell n'est pas forcément transmise aux enfants.",
+  "evidence_impact": "none"
+}
