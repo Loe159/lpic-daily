@@ -69,46 +69,14 @@ RUN dnf -y install \
 COPY --chmod=0755 report-status-approved /opt/lpic/approved/bin/report-status
 COPY --chmod=0755 report-status-shadow /opt/lpic/shadow/bin/report-status
 
+COPY lpic-helper.spec lpic-demo.spec /opt/lpic/specs/
+
 RUN install -d -m 0755 /opt/lpic/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS} /opt/lpic/rpmrepo \
-    && cat > /opt/lpic/rpmbuild/SPECS/lpic-helper.spec <<'EOF'
-Name: lpic-helper
-Version: 1.0
-Release: 1
-Summary: LPIC Daily helper fixture
-License: MIT
-BuildArch: noarch
-%description
-Offline dependency fixture.
-%install
-mkdir -p %{buildroot}/usr/share/lpic-helper
-printf 'helper-ok\n' > %{buildroot}/usr/share/lpic-helper/state.txt
-%files
-/usr/share/lpic-helper/state.txt
-EOF
-RUN cat > /opt/lpic/rpmbuild/SPECS/lpic-demo.spec <<'EOF'
-Name: lpic-demo
-Version: 1.0
-Release: 1
-Summary: LPIC Daily RPM fixture
-License: MIT
-BuildArch: noarch
-Requires: lpic-helper >= 1.0
-%description
-Offline RPM practice fixture.
-%install
-mkdir -p %{buildroot}/usr/bin
-cat > %{buildroot}/usr/bin/lpic-demo <<'SCRIPT'
-#!/usr/bin/env bash
-printf 'demo-ok\n'
-SCRIPT
-chmod 0755 %{buildroot}/usr/bin/lpic-demo
-%files
-/usr/bin/lpic-demo
-EOF
-RUN rpmbuild --define '_topdir /opt/lpic/rpmbuild' -bb /opt/lpic/rpmbuild/SPECS/lpic-helper.spec >/dev/null \
+    && cp /opt/lpic/specs/*.spec /opt/lpic/rpmbuild/SPECS/ \
+    && rpmbuild --define '_topdir /opt/lpic/rpmbuild' -bb /opt/lpic/rpmbuild/SPECS/lpic-helper.spec >/dev/null \
     && rpmbuild --define '_topdir /opt/lpic/rpmbuild' -bb /opt/lpic/rpmbuild/SPECS/lpic-demo.spec >/dev/null \
     && cp /opt/lpic/rpmbuild/RPMS/noarch/*.rpm /opt/lpic/rpmrepo/ \
     && createrepo_c /opt/lpic/rpmrepo >/dev/null \
-    && rm -rf /opt/lpic/rpmbuild
+    && rm -rf /opt/lpic/rpmbuild /opt/lpic/specs
 
 CMD ["/usr/bin/sleep", "infinity"]
