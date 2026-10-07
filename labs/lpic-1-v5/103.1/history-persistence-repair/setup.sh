@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
+install -d -m 0755 /run/lpic
+rm -rf /root/.bash_history
 cat > /root/.bash_profile <<'EOF'
 export HISTFILE=/run/lpic/transient-history
 export HISTSIZE=1
