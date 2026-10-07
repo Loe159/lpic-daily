@@ -1,0 +1,112 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.2.incident-report-rebuild",
+  "title_fr": "Reconstruire un rapport d’incident",
+  "brief_fr": "Le rapport d’erreurs d’une équipe a été perdu. À partir de events.tsv et owners.tsv, reconstruis sous /workspace/output la liste triée des hôtes en erreur avec les tirets normalisés en _, le rapport hôte|équipe, deux lots de ce rapport et un petit compteur errors/unique_hosts.",
+  "success_criteria_fr": [
+    "error-hosts.txt contient db_01, web_01 et web_02, une seule fois et dans cet ordre.",
+    "error-teams.txt associe db-01 à data et web-01/web-02 à frontend.",
+    "Le rapport hôte|équipe est découpé en deux lots de deux lignes maximum.",
+    "metrics.txt indique 4 événements ERROR et 3 hôtes uniques."
+  ],
+  "debrief_fr": "Les filtres texte se composent bien : cut/awk sélectionnent, sort et uniq ordonnent et dédupliquent, tr ou sed normalisent, paste/awk assemblent des colonnes, split découpe un résultat et wc compte les lignes. Le checker valide seulement les artefacts finaux, donc une autre composition correcte reste valide.",
+  "objective_ids": [
+    "103.2"
+  ],
+  "concept_ids": [
+    "lpic1.103.2.flux-texte-ligne-octet",
+    "lpic1.103.2.selection-de-colonnes-lignes",
+    "lpic1.103.2.tri-dedoublonnage",
+    "lpic1.103.2.assemblage-et-decoupage",
+    "lpic1.103.2.transformations-simples"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-accepted"
+  ],
+  "estimated_minutes": 12,
+  "practice_context": "incident-report-rebuild",
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "baseline",
+    "writable_guest_paths": [
+      "/workspace"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "cpu_percent": 100,
+    "pids": 96,
+    "timeout_seconds": 1200
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "printf 'db_01\\nweb_01\\nweb_02\\n' | cmp -s - /workspace/output/error-hosts.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.2.selection-de-colonnes-lignes",
+        "lpic1.103.2.tri-dedoublonnage",
+        "lpic1.103.2.transformations-simples"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "printf 'db-01|data\\nweb-01|frontend\\nweb-02|frontend\\n' | cmp -s - /workspace/output/error-teams.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.2.selection-de-colonnes-lignes",
+        "lpic1.103.2.assemblage-et-decoupage"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "printf 'db-01|data\\nweb-01|frontend\\n' | cmp -s - /workspace/output/chunks/error-00 && printf 'web-02|frontend\\n' | cmp -s - /workspace/output/chunks/error-01"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.2.assemblage-et-decoupage"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "printf 'errors=4\\nunique_hosts=3\\n' | cmp -s - /workspace/output/metrics.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.2.flux-texte-ligne-octet",
+        "lpic1.103.2.selection-de-colonnes-lignes"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.103.2.incident-report-rebuild.hint-1",
+    "lpic1.103.2.incident-report-rebuild.hint-2",
+    "lpic1.103.2.incident-report-rebuild.hint-3",
+    "lpic1.103.2.incident-report-rebuild.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}
