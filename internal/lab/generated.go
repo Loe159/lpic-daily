@@ -432,7 +432,7 @@ func generatedStandaloneHints(labID string, concept curriculum.Concept) []Hint {
 	firstExplanation := content.PedagogicalTermExplanation(firstAnchor, concept.ObjectiveID)
 
 	level1 := "Commence par repérer `" + firstAnchor + "` : " + firstExplanation
-	level2 := "Cherche un résultat observable qui confirme cette définition."
+	level2 := "Vérifie que ton exemple correspond bien à `" + firstAnchor + "` : " + firstExplanation
 	level4 := "Reprends exactement les repères " + standaloneAnchorList(concept) + " et vérifie-les un par un."
 	if len(examples) != 0 {
 		level1 = "Commence par `" + examples[0].Command + "`."
