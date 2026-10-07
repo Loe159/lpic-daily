@@ -1239,3 +1239,37 @@ func TestAcceptedScenarioSuppressesGeneratedFallbackAfterGuidedSuccess(t *testin
 		t.Fatalf("recommended lab = %q, want accepted scenario instead of generated fallback", got)
 	}
 }
+
+func TestImplementedScenarioIsHiddenFromScheduler(t *testing.T) {
+	curriculumBundle, contentBundle, labs := loadInputs(t)
+	var draft lab.Lab
+	for _, authored := range labs {
+		if authored.Definition.ID == "lpic1.103.1.shell-environment-repair" {
+			draft = authored
+			break
+		}
+	}
+	if draft.Definition.ID == "" {
+		t.Fatal("shell-environment-repair lab not found")
+	}
+	draft.Definition.ID = "lpic1.103.1.implemented-draft"
+	draft.Definition.Labels = []string{"lpic-required", "scenario-implemented"}
+	labs = append(labs, draft)
+
+	now := time.Date(2026, 10, 7, 18, 0, 0, 0, time.UTC)
+	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
+		Now: now, Curriculum: curriculumBundle, Content: contentBundle, Labs: labs,
+		Evidence: memoryEvidence{}, Policy: learning.DefaultSessionPolicy(),
+	})
+	if err != nil {
+		t.Fatalf("BuildPlan() error = %v", err)
+	}
+	if len(plan.Items) == 0 {
+		t.Fatal("plan is empty")
+	}
+	for _, labID := range plan.Items[0].LabIDs {
+		if labID == draft.Definition.ID {
+			t.Fatalf("implemented-only scenario leaked into scheduler: %#v", plan.Items[0].LabIDs)
+		}
+	}
+}

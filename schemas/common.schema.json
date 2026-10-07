@@ -36,7 +36,7 @@
     "labels": {
       "type": "array",
       "items": {
-        "enum": ["lpic-required", "lpic-legacy", "modern-practice", "scenario-accepted"]
+        "enum": ["lpic-required", "lpic-legacy", "modern-practice", "scenario-accepted", "scenario-implemented"]
       },
       "minItems": 1,
       "uniqueItems": true

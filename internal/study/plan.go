@@ -142,6 +142,9 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 	labContexts := make(map[string]string, len(input.Labs))
 	acceptedLabIDs := make(map[string]bool, len(input.Labs))
 	for _, authored := range input.Labs {
+		if slices.Contains(authored.Definition.Labels, "scenario-implemented") {
+			continue
+		}
 		labContexts[authored.Definition.ID] = authored.Definition.PracticeContext
 		acceptedLabIDs[authored.Definition.ID] = slices.Contains(authored.Definition.Labels, "scenario-accepted")
 		for _, conceptID := range authored.Definition.ConceptIDs {
@@ -308,6 +311,9 @@ func schedulableScope(
 	}
 	practical := make(map[string]bool)
 	for _, authored := range labs {
+		if slices.Contains(authored.Definition.Labels, "scenario-implemented") {
+			continue
+		}
 		for _, conceptID := range authored.Definition.ConceptIDs {
 			practical[conceptID] = true
 		}
