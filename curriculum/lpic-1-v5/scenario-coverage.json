@@ -7,6 +7,8 @@
     "103.4",
     "103.5",
     "103.6",
+    "103.7",
+    "103.8",
     "104.5"
   ],
   "scenarios": [
@@ -272,6 +274,43 @@
         "lpic1.103.6.demarrer-avec-une-priorite",
         "lpic1.103.6.modifier-priorite-existante",
         "lpic1.103.6.observer-priorite"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "state"
+    },
+    {
+      "scenario_id": "lpic1.103.7.auth-log-filter-repair",
+      "objective_ids": [
+        "103.7"
+      ],
+      "concept_ids": [
+        "lpic1.103.7.regex-basiques-etendues",
+        "lpic1.103.7.classes-de-caracteres",
+        "lpic1.103.7.quantificateurs-et-ancres",
+        "lpic1.103.7.groupes-alternatives",
+        "lpic1.103.7.recherche-de-lignes",
+        "lpic1.103.7.substitution-transformation-avec-sed",
+        "lpic1.103.7.difference-glob-vs-regex"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "artifact"
+    },
+    {
+      "scenario_id": "lpic1.103.8.minimal-editor-repair",
+      "objective_ids": [
+        "103.8"
+      ],
+      "concept_ids": [
+        "lpic1.103.8.modes-normal-insertion-commande",
+        "lpic1.103.8.navigation",
+        "lpic1.103.8.insertion-remplacement",
+        "lpic1.103.8.suppression-copie-collage",
+        "lpic1.103.8.recherche",
+        "lpic1.103.8.sauvegarde-quitter",
+        "lpic1.103.8.editeur-par-defaut",
+        "lpic1.103.8.connaissance-nano-emacs-vim"
       ],
       "backend": "podman",
       "status": "accepted",
