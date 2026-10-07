@@ -11,7 +11,7 @@ Manual workflow:
 ```bash
 sudo scripts/provision_vm_storage.sh
 python3 scripts/validate_vm_image_sources.py
-python3 scripts/build_vm_image.py fedora-44-x86_64-v2 \
+python3 scripts/build_vm_image.py fedora-44-x86_64-v3 \
   --image-root "/var/lib/libvirt/images/lpic-daily/$(id -u)/images"
 ```
 
