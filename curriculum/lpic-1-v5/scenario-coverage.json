@@ -9,7 +9,8 @@
     "103.6",
     "103.7",
     "103.8",
-    "104.5"
+    "104.5",
+    "104.6"
   ],
   "scenarios": [
     {
@@ -315,6 +316,23 @@
       "backend": "podman",
       "status": "accepted",
       "evidence_strength": "state"
+    },
+    {
+      "scenario_id": "lpic1.104.6.release-link-repair",
+      "objective_ids": [
+        "104.6"
+      ],
+      "concept_ids": [
+        "lpic1.104.6.inode-et-hard-link",
+        "lpic1.104.6.symlink-et-cible",
+        "lpic1.104.6.limites-filesystem-directory-des-hard-links",
+        "lpic1.104.6.liens-casses",
+        "lpic1.104.6.difference-copie-lien",
+        "lpic1.104.6.usages-administratifs"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "behavior"
     }
   ]
 }
