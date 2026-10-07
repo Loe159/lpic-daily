@@ -202,6 +202,7 @@
                 "enum": [
                   "baseline",
                   "identity-files",
+                  "metadata-db",
                   "process-lab"
                 ]
               },
