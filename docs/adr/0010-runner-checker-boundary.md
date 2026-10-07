@@ -32,6 +32,7 @@ Initial profiles are intentionally narrow:
 - `baseline`: no extra capabilities;
 - `identity-files`: `CHOWN`, `FOWNER`, `FSETID` (nécessaire pour poser SGID sur un répertoire appartenant à un autre groupe dans le user namespace rootless);
 - `metadata-db`: `CHOWN` uniquement, pour permettre à `updatedb`/plocate d'ajuster l'ownership de sa base dans un tmpfs sandboxé sans rendre le reste du système inscriptible;
+- `package-root`: `CHOWN`, `SYS_CHROOT`, uniquement pour exercer RPM/DNF dans un installroot jetable sous `/workspace` sans rendre `/usr`, `/var` ou `/etc` inscriptibles;
 - `process-lab`: `KILL`.
 
 The concrete Podman adapter must drop capabilities by default and map only these approved additions. Adding a capability profile requires security review.
