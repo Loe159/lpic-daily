@@ -23,6 +23,10 @@ var phase1CapabilityProfiles = map[string]CapabilityProfile{
 		Name:         "metadata-db",
 		Capabilities: []string{"CHOWN"},
 	},
+	"package-root": {
+		Name:         "package-root",
+		Capabilities: []string{"CHOWN", "SYS_CHROOT"},
+	},
 	"process-lab": {
 		Name:         "process-lab",
 		Capabilities: []string{"KILL"},
