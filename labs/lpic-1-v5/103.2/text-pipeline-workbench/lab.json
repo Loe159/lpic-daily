@@ -1,0 +1,150 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.2.text-pipeline-workbench",
+  "title_fr": "Transformer et vérifier un jeu de données texte",
+  "brief_fr": "Dans /workspace, transforme input.txt sans modifier l'original. Produis line-count.txt et octets.txt pour inspecter le flux, selected.txt pour les deux premiers noms, unique.txt pour les noms triés et dédupliqués, pasted.txt et chunk-0/chunk-1, transformed.txt en majuscules avec ALPHA remplacé par A, sha256.txt vérifiable, puis reconstruis input.txt depuis les trois archives dans from-gzip.txt, from-bzip2.txt et from-xz.txt.",
+  "success_criteria_fr": [
+    "Le comptage, la vue octale et la sélection correspondent au flux source.",
+    "Le tri, paste et split produisent les états attendus.",
+    "tr/sed produisent la transformation demandée.",
+    "Le checksum SHA-256 est vérifiable.",
+    "Les trois lectures compressées restituent exactement le flux original."
+  ],
+  "debrief_fr": "Les outils de 103.2 se composent sur des flux. La validation compare les états obtenus plutôt qu'une syntaxe imposée : sélection, tri, découpage, transformation, checksum et décompression doivent rester reproductibles.",
+  "objective_ids": [
+    "103.2"
+  ],
+  "concept_ids": [
+    "lpic1.103.2.flux-texte-ligne-octet",
+    "lpic1.103.2.selection-de-colonnes-lignes",
+    "lpic1.103.2.tri-dedoublonnage",
+    "lpic1.103.2.assemblage-et-decoupage",
+    "lpic1.103.2.transformations-simples",
+    "lpic1.103.2.checksums",
+    "lpic1.103.2.lecture-compression-en-flux"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "estimated_minutes": 18,
+  "practice_context": "text-incident-workbench",
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "baseline",
+    "writable_guest_paths": [
+      "/workspace"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "pids": 128,
+    "timeout_seconds": 1200,
+    "cpu_percent": 100
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "file-content-regex",
+      "path": "/workspace/line-count.txt",
+      "pattern": "^4\\n?$",
+      "concept_ids": [
+        "lpic1.103.2.flux-texte-ligne-octet"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test -s /workspace/octets.txt && grep -Eq '[0-9a-f]{2}' /workspace/octets.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.2.flux-texte-ligne-octet"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/workspace/selected.txt",
+      "pattern": "^alpha\\nbeta\\n?$",
+      "concept_ids": [
+        "lpic1.103.2.selection-de-colonnes-lignes"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/workspace/unique.txt",
+      "pattern": "^alpha\\nbeta\\ngamma\\n?$",
+      "concept_ids": [
+        "lpic1.103.2.tri-dedoublonnage"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/workspace/pasted.txt",
+      "pattern": "^red\\t1\\nblue\\t2\\n?$",
+      "concept_ids": [
+        "lpic1.103.2.assemblage-et-decoupage"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test \"$(cat /workspace/chunk-0)\" = red && test \"$(cat /workspace/chunk-1)\" = blue"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.2.assemblage-et-decoupage"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/workspace/transformed.txt",
+      "pattern": "^A:3\\nBETA:1\\nA:2\\nGAMMA:2\\n?$",
+      "concept_ids": [
+        "lpic1.103.2.transformations-simples"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "cd /workspace && sha256sum -c sha256.txt >/dev/null"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.2.checksums"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "cmp -s /workspace/input.txt /workspace/from-gzip.txt && cmp -s /workspace/input.txt /workspace/from-bzip2.txt && cmp -s /workspace/input.txt /workspace/from-xz.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.2.lecture-compression-en-flux"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.103.2.text-pipeline-workbench.hint-1",
+    "lpic1.103.2.text-pipeline-workbench.hint-2",
+    "lpic1.103.2.text-pipeline-workbench.hint-3",
+    "lpic1.103.2.text-pipeline-workbench.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

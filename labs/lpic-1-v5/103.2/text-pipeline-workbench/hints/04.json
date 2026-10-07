@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.2.text-pipeline-workbench.hint-4",
+  "lab_id": "lpic1.103.2.text-pipeline-workbench",
+  "level": 4,
+  "content_fr": "Une solution possible utilise wc/od, sed+cut, cut|sort|uniq, paste, split, tr|sed, sha256sum puis zcat/bzcat/xzcat.",
+  "evidence_impact": "solution-revealed"
+}
