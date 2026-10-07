@@ -115,10 +115,19 @@ jobs:
           done
           cat "$RUNNER_TEMP/podman-service.log"
           exit 1
-      - name: Run real Podman security and Phase-1 lab conformance tests
+      - name: Run real Podman runner security tests
         env:
           LPIC_DAILY_RUN_PODMAN_INTEGRATION: "1"
-        run: go test -tags=integration ./internal/runner/podman ./cmd/lpic -count=1 -v
+        run: go test -tags=integration ./internal/runner/podman -count=1 -v
+      - name: Reset Podman runtime before lab acceptance
+        shell: bash
+        run: |
+          podman system prune -a -f --volumes
+          podman build -t localhost/lpic-daily/fedora-phase1:1 -f labs/images/fedora-phase1/Containerfile labs/images/fedora-phase1
+      - name: Run real Podman lab acceptance tests
+        env:
+          LPIC_DAILY_RUN_PODMAN_INTEGRATION: "1"
+        run: go test -tags=integration ./cmd/lpic -count=1 -v
 
   podman-security-fedora:
     runs-on: ubuntu-latest
@@ -175,8 +184,17 @@ jobs:
           done
           cat /tmp/lpic-daily-fedora-podman.log
           exit 1
-      - name: Run Fedora rootless Podman conformance tests
+      - name: Run Fedora rootless Podman runner tests
         env:
           XDG_RUNTIME_DIR: /run/user/1000
           LPIC_DAILY_RUN_PODMAN_INTEGRATION: "1"
-        run: go test -tags=integration ./internal/runner/podman ./cmd/lpic -count=1 -v
+        run: go test -tags=integration ./internal/runner/podman -count=1 -v
+      - name: Reset Fedora rootless Podman runtime before lab acceptance
+        run: |
+          runuser -u lpicci -- env HOME=/home/lpicci XDG_RUNTIME_DIR=/run/user/1000 podman system prune -a -f --volumes
+          runuser -u lpicci -- env HOME=/home/lpicci XDG_RUNTIME_DIR=/run/user/1000             podman build -t localhost/lpic-daily/fedora-phase1:1             -f labs/images/fedora-phase1/Containerfile labs/images/fedora-phase1
+      - name: Run Fedora rootless Podman lab acceptance tests
+        env:
+          XDG_RUNTIME_DIR: /run/user/1000
+          LPIC_DAILY_RUN_PODMAN_INTEGRATION: "1"
+        run: go test -tags=integration ./cmd/lpic -count=1 -v
