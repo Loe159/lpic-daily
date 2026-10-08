@@ -45,7 +45,7 @@ func TestPhase1BuiltInLabsConformOnRootlessPodman(t *testing.T) {
 		t.Skip("set LPIC_DAILY_RUN_PODMAN_INTEGRATION=1 to run real rootless Podman conformance tests")
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 8*time.Minute)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	backend, err := podmanrunner.Open(ctx, "")
@@ -66,6 +66,8 @@ func TestPhase1BuiltInLabsConformOnRootlessPodman(t *testing.T) {
 		seen[authored.Definition.ID] = true
 		authored := authored
 		t.Run(authored.Definition.ID, func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(ctx, 2*time.Minute)
+			defer cancel()
 			solution, err := fs.ReadFile(lpicdaily.BuiltinFS, solutionPath)
 			if err != nil {
 				t.Fatalf("read reference solution: %v", err)
