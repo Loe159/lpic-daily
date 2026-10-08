@@ -6,9 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"slices"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -1158,11 +1158,10 @@ func TestSuccessfulLabAttemptCountRequiresEveryMappedConcept(t *testing.T) {
 	}
 }
 
-
 func TestLabShellCommandReaderInterceptsHostControls(t *testing.T) {
 	var commands []string
 	reader := &labShellCommandReader{
-		input: strings.NewReader("env\r:check\r:hint\r:help\r:quit\r"),
+		input:     strings.NewReader("env\r:check\r:hint\r:help\r:quit\r"),
 		lineStart: true,
 		onCommand: func(command string) (bool, error) {
 			commands = append(commands, command)
@@ -1185,7 +1184,7 @@ func TestLabShellCommandReaderPreservesShellInputAndRejectsForgedCommands(t *tes
 	var commands []string
 	input := "echo hello\r:check-not-real\r:check\r"
 	reader := &labShellCommandReader{
-		input: strings.NewReader(input),
+		input:     strings.NewReader(input),
 		lineStart: true,
 		onCommand: func(command string) (bool, error) {
 			commands = append(commands, command)
@@ -1207,7 +1206,7 @@ func TestLabShellCommandReaderPreservesShellInputAndRejectsForgedCommands(t *tes
 func TestLabShellCommandReaderHandlesBackspaceAndLongInput(t *testing.T) {
 	var called []string
 	reader := &labShellCommandReader{
-		input: strings.NewReader(":checx\b\bk\r"+":"+strings.Repeat("x", 80)+"\r"),
+		input:     strings.NewReader(":checkx\b\r" + ":" + strings.Repeat("x", 80) + "\r"),
 		lineStart: true,
 		onCommand: func(command string) (bool, error) {
 			called = append(called, command)
