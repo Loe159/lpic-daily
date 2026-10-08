@@ -216,6 +216,11 @@ func runDashboardLab(
 	stdin io.Reader,
 	stdout, stderr io.Writer,
 ) error {
+	baselineAttempts, err := successfulLabAttemptCount(ctx, authored)
+	if err != nil {
+		return fmt.Errorf("read lab progress before launch: %w", err)
+	}
+
 	printLab(authored, stdout)
 	fmt.Fprintln(stdout)
 	if err := desktop.LaunchLab(ctx, desktop.OSExecutor{}, authored.Definition.ID); err != nil {
@@ -229,11 +234,93 @@ func runDashboardLab(
 
 	fmt.Fprintln(stdout, "Lab ouvert dans un nouveau terminal.")
 	fmt.Fprintln(stdout, "Garde cette fenêtre ouverte : la consigne reste visible ici pendant que tu travailles dans le terminal du lab.")
-	fmt.Fprint(stdout, "Quand le lab est terminé, reviens ici et appuie sur Entrée pour actualiser la progression. ")
-	if _, err := readLine(stdin); err != nil {
-		return fmt.Errorf("wait for child lab completion: %w", err)
+	return waitForDashboardLabCompletion(ctx, authored, baselineAttempts, stdin, stdout)
+}
+
+func waitForDashboardLabCompletion(
+	ctx context.Context,
+	authored lab.Lab,
+	baselineAttempts int,
+	stdin io.Reader,
+	stdout io.Writer,
+) error {
+	for {
+		fmt.Fprint(
+			stdout,
+			"Termine le lab avec :check dans le terminal enfant. Après « Progression enregistrée », reviens ici et appuie seulement sur Entrée. ",
+		)
+		line, err := readLine(stdin)
+		if err != nil {
+			return fmt.Errorf("wait for child lab completion: %w", err)
+		}
+
+		if command := strings.TrimSpace(line); command != "" {
+			if command == ":check" {
+				fmt.Fprintln(stdout, ":check doit être saisi dans le terminal enfant du lab, pas dans cette fenêtre.")
+			} else {
+				fmt.Fprintf(stdout, "%q n'est pas une commande du terminal parent.\n", command)
+			}
+			continue
+		}
+
+		attempts, err := successfulLabAttemptCount(ctx, authored)
+		if err != nil {
+			return fmt.Errorf("refresh child lab progress: %w", err)
+		}
+		if attempts <= baselineAttempts {
+			fmt.Fprintln(
+				stdout,
+				"Aucune réussite enregistrée pour ce lab. Retourne dans le terminal enfant, lance :check et attends « Progression enregistrée ».",
+			)
+			continue
+		}
+
+		fmt.Fprintln(stdout, "Progression du lab détectée.")
+		return nil
 	}
-	return nil
+}
+
+func successfulLabAttemptCount(ctx context.Context, authored lab.Lab) (int, error) {
+	conceptIDs := authored.Definition.ConceptIDs
+	if len(conceptIDs) == 0 {
+		return 0, errors.New("lab has no concept mapping")
+	}
+
+	store, err := openProgressStore(ctx)
+	if err != nil {
+		return 0, err
+	}
+	defer store.Close()
+
+	successesByTime := make(map[string]int)
+	for _, conceptID := range conceptIDs {
+		events, err := store.EvidenceForConcept(ctx, conceptID)
+		if err != nil {
+			return 0, fmt.Errorf("load evidence for %s: %w", conceptID, err)
+		}
+
+		seenForConcept := make(map[string]struct{})
+		for _, event := range events {
+			if event.ActivityKind != learning.ActivityLab ||
+				event.SourceItemID != authored.Definition.ID ||
+				event.Result != learning.ResultPass {
+				continue
+			}
+			key := event.OccurredAt.UTC().Format(time.RFC3339Nano)
+			seenForConcept[key] = struct{}{}
+		}
+		for key := range seenForConcept {
+			successesByTime[key]++
+		}
+	}
+
+	count := 0
+	for _, conceptCount := range successesByTime {
+		if conceptCount == len(conceptIDs) {
+			count++
+		}
+	}
+	return count, nil
 }
 
 func runInstall(args []string, stdin io.Reader, stdout, stderr io.Writer) error {
