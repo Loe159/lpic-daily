@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
-install -d -m 0755 /run/lpic
-install -d -m 0755 /home/alice
+install -d -m 0777 /run/lpic
+runuser -u alice -- /usr/bin/bash -eu <<'ALICE'
 cat > /home/alice/.bashrc <<'EOF'
 export HISTFILE=/home/alice/.bash_history
 export HISTSIZE=25
@@ -12,6 +12,4 @@ pwd
 export API_TOKEN=should-not-stay
 echo old
 EOF
-chmod 0666 /home/alice/.bashrc /home/alice/.bash_history
-touch /run/lpic/history-proof
-chmod 0666 /run/lpic/history-proof
+ALICE
