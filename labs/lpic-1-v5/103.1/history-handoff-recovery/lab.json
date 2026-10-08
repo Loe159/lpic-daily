@@ -2,12 +2,12 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.1.history-handoff-recovery",
   "title_fr": "Rendre l’historique de relève durable",
-  "brief_fr": "Le compte alice perd rapidement son historique et conserve encore une ancienne ligne contenant API_TOKEN. Porte son historique interactif à HISTSIZE=2000 et HISTFILESIZE=4000, retire toute trace d’API_TOKEN, puis produis /run/lpic/history-proof avec la valeur développée alice:/home/alice. La commande qui produit ce fichier doit être persistée dans .bash_history et visible depuis un nouveau shell.",
+  "brief_fr": "Le compte opérateur root perd rapidement son historique et conserve une ancienne ligne contenant API_TOKEN. Porte son historique interactif à HISTSIZE=2000 et HISTFILESIZE=4000, retire toute trace d’API_TOKEN, puis produis /run/lpic/history-proof avec la valeur développée root:/root. La commande qui produit ce fichier doit être persistée dans .bash_history et visible depuis un nouveau shell.",
   "success_criteria_fr": [
-    "Un nouveau shell interactif d’alice utilise HISTSIZE=2000 et HISTFILESIZE=4000.",
-    "/home/alice/.bash_history ne contient plus API_TOKEN.",
-    "history-proof contient alice:/home/alice issu d’une expansion shell.",
-    "Un nouveau shell d’alice recharge une entrée d’historique liée à history-proof."
+    "Un nouveau shell interactif de root utilise HISTSIZE=2000 et HISTFILESIZE=4000.",
+    "/root/.bash_history ne contient plus API_TOKEN.",
+    "history-proof contient alice:/root issu d’une expansion shell.",
+    "Un nouveau shell de root recharge une entrée d’historique liée à history-proof."
   ],
   "debrief_fr": "HISTSIZE limite l’historique chargé en mémoire et HISTFILESIZE celui conservé sur disque. history permet de relire, modifier et réécrire l’historique persistant. Une nouvelle session ne voit une commande précédente que si l’état a réellement été écrit dans .bash_history. L’expansion de PWD est évaluée par le shell avant l’écriture du résultat.",
   "objective_ids": [
@@ -32,7 +32,7 @@
     "network": "none",
     "capability_profile": "baseline",
     "writable_guest_paths": [
-      "/home/alice",
+      "/root",
       "/run/lpic"
     ]
   },
@@ -50,16 +50,13 @@
     {
       "type": "command-exit",
       "argv": [
-        "/usr/bin/runuser",
-        "-u",
-        "alice",
-        "--",
         "/usr/bin/env",
-        "HOME=/home/alice",
+        "HOME=/root",
+        "USER=root",
         "/usr/bin/bash",
         "--noprofile",
         "--rcfile",
-        "/home/alice/.bashrc",
+        "/root/.bashrc",
         "-ic",
         "test \"$HISTSIZE\" = 2000 && test \"$HISTFILESIZE\" = 4000"
       ],
@@ -75,7 +72,7 @@
         "/usr/bin/grep",
         "-q",
         "API_TOKEN",
-        "/home/alice/.bash_history"
+        "/root/.bash_history"
       ],
       "expected_exit": 1,
       "concept_ids": [
@@ -85,7 +82,7 @@
     {
       "type": "file-content-regex",
       "path": "/run/lpic/history-proof",
-      "pattern": "^alice:/home/alice\\n?$",
+      "pattern": "^root:/root\\n?$",
       "concept_ids": [
         "lpic1.103.1.echo-et-expansion-shell"
       ]
@@ -93,16 +90,13 @@
     {
       "type": "command-exit",
       "argv": [
-        "/usr/bin/runuser",
-        "-u",
-        "alice",
-        "--",
         "/usr/bin/env",
-        "HOME=/home/alice",
+        "HOME=/root",
+        "USER=root",
         "/usr/bin/bash",
         "--noprofile",
         "--rcfile",
-        "/home/alice/.bashrc",
+        "/root/.bashrc",
         "-ic",
         "history -c; history -r; history | grep -q 'history-proof'"
       ],
