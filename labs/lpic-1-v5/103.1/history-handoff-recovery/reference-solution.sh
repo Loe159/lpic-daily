@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+runuser -u alice -- /usr/bin/bash -eu <<'ALICE'
 cat > /home/alice/.bashrc <<'EOF'
 export HISTFILE=/home/alice/.bash_history
 export HISTSIZE=2000
@@ -15,5 +16,5 @@ history -r
 history -s 'echo "$USER:$PWD" > /run/lpic/history-proof'
 history -w
 EOF
-chmod 0666 /home/alice/.bashrc /home/alice/.bash_history /home/alice/.lpic-history-update
-runuser -u alice -- env HOME=/home/alice bash --noprofile --rcfile /home/alice/.bashrc -ic 'source /home/alice/.lpic-history-update'
+HOME=/home/alice /usr/bin/bash --noprofile --rcfile /home/alice/.bashrc -ic 'source /home/alice/.lpic-history-update'
+ALICE
