@@ -1622,6 +1622,9 @@ func runInteractiveLabWithBackend(
 				return fmt.Errorf("interactive sandbox shell: %w", err)
 			}
 			usedPersistentShell = true
+			if shellCompleted || shellQuit {
+				return nil
+			}
 			fmt.Fprintln(stdout, "\n[retour LPIC Daily]")
 			if result.ExitCode != 0 {
 				fmt.Fprintf(stderr, "[shell exit %d]\n", result.ExitCode)
