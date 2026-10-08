@@ -18,6 +18,7 @@ import (
 )
 
 var phase1ReferenceSolutions = map[string]string{
+	"lpic1.103.1.child-environment-handoff": "labs/lpic-1-v5/103.1/child-environment-handoff/reference-solution.sh",
 	"lpic1.103.1.shell-environment-repair":  "labs/lpic-1-v5/103.1/shell-environment-repair/reference-solution.sh",
 	"lpic1.103.1.transfer-shell-handoff":    "labs/lpic-1-v5/103.1/transfer-shell-handoff/reference-solution.sh",
 	"lpic1.103.5.stuck-worker":              "labs/lpic-1-v5/103.5/stuck-worker/reference-solution.sh",
