@@ -1356,7 +1356,6 @@ func runInteractiveLabWithBackend(
 		jobControlEvidence = &jobControlInteractionEvidence{}
 	}
 
-
 	// Keep the host as the sole authority for checks, hints and progress writes.
 	// Input typed at the sandbox Bash prompt is handled on the host side.
 	scanner := bufio.NewScanner(stdin)
@@ -1512,7 +1511,9 @@ func runInteractiveLabWithBackend(
 		switch command {
 		case ":check":
 			if jobControlEvidence != nil {
-				if err := collectJobControlEvidence(sessionCtx, backend, session.Instance, jobControlEvidence); err != nil { return false, err }
+				if err := collectJobControlEvidence(sessionCtx, backend, session.Instance, jobControlEvidence); err != nil {
+					return false, err
+				}
 			}
 			ok, err := checkLab()
 			if ok {
@@ -1548,7 +1549,9 @@ func runInteractiveLabWithBackend(
 				return fmt.Errorf("interactive sandbox shell: %w", err)
 			}
 			usedPersistentShell = true
-			if shellCompleted || shellQuit { return nil }
+			if shellCompleted || shellQuit {
+				return nil
+			}
 			fmt.Fprintln(stdout, "\n[retour LPIC Daily]")
 			if result.ExitCode != 0 {
 				fmt.Fprintf(stderr, "[shell exit %d]\n", result.ExitCode)
@@ -1595,7 +1598,9 @@ func runInteractiveLabWithBackend(
 		case ":quit", ":q", "exit":
 			return nil
 		case ":hint":
-			if err := showHint(); err != nil { return err }
+			if err := showHint(); err != nil {
+				return err
+			}
 			continue
 		case ":shell":
 			if !persistentShell {
@@ -1676,8 +1681,12 @@ func runInteractiveLabWithBackend(
 			continue
 		case ":check":
 			ok, err := checkLab()
-			if err != nil { return err }
-			if ok { return nil }
+			if err != nil {
+				return err
+			}
+			if ok {
+				return nil
+			}
 			continue
 		}
 
@@ -1909,13 +1918,15 @@ func (evidence *jobControlInteractionEvidence) observeShellEvents(raw []byte) {
 
 type ctrlZObservingTerminalReader struct {
 	file     *os.File
-	reader io.Reader
+	reader   io.Reader
 	evidence *jobControlInteractionEvidence
 }
 
 func (reader *ctrlZObservingTerminalReader) Read(buffer []byte) (int, error) {
 	source := reader.reader
-	if source == nil { source = reader.file }
+	if source == nil {
+		source = reader.file
+	}
 	n, err := source.Read(buffer)
 	for _, value := range buffer[:n] {
 		if value == 0x1a && reader.evidence != nil {
@@ -2203,7 +2214,7 @@ func runPersistentShell(
 	}
 
 	shellInput := io.Reader(&labShellCommandReader{
-		input: stdinFile,
+		input:     stdinFile,
 		lineStart: true,
 		onCommand: func(command string) (bool, error) {
 			if err := terminal.Restore(stdinFile, state); err != nil {
@@ -2254,14 +2265,13 @@ func runPersistentShell(
 	return result, nil
 }
 
-
 type labShellCommandReader struct {
-	input io.Reader
+	input     io.Reader
 	onCommand func(string) (bool, error)
-	prefix []byte
-	pending []byte
+	prefix    []byte
+	pending   []byte
 	lineStart bool
-	stop bool
+	stop      bool
 }
 
 func (reader *labShellCommandReader) Read(buffer []byte) (int, error) {
@@ -2271,10 +2281,14 @@ func (reader *labShellCommandReader) Read(buffer []byte) (int, error) {
 			reader.pending = reader.pending[n:]
 			return n, nil
 		}
-		if reader.stop { return 0, io.EOF }
+		if reader.stop {
+			return 0, io.EOF
+		}
 		var one [1]byte
 		n, err := reader.input.Read(one[:])
-		if n == 0 { return 0, err }
+		if n == 0 {
+			return 0, err
+		}
 		ch := one[0]
 		if len(reader.prefix) != 0 {
 			if ch == '\r' || ch == '\n' {
@@ -2284,7 +2298,9 @@ func (reader *labShellCommandReader) Read(buffer []byte) (int, error) {
 				switch command {
 				case ":check", ":hint", ":help", ":quit":
 					stop, err := reader.onCommand(command)
-					if err != nil { return 0, err }
+					if err != nil {
+						return 0, err
+					}
 					if stop {
 						reader.stop = true
 						reader.pending = []byte("exit\r")
