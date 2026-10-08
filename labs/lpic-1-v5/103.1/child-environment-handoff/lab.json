@@ -1,0 +1,72 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.child-environment-handoff",
+  "title_fr": "Corriger l’environnement transmis à un processus enfant",
+  "brief_fr": "Un worker lancé depuis ce shell doit recevoir REPORT_ENV=production, mais REPORT_DEBUG ne doit pas lui être transmis. Au démarrage, l’état est volontairement mauvais : REPORT_ENV existe seulement dans le shell courant et REPORT_DEBUG fuit dans l’environnement. Corrige l’environnement courant, puis lance start-report-worker. :check vérifie uniquement ce que le processus enfant a réellement reçu.",
+  "success_criteria_fr": [
+    "Le worker enfant reçoit REPORT_ENV=production.",
+    "Le worker enfant ne reçoit pas REPORT_DEBUG."
+  ],
+  "debrief_fr": "set affiche notamment les variables du shell courant ; il ne les transmet pas. export marque une variable pour qu’elle soit copiée dans l’environnement des futurs processus enfants. unset supprime la variable du shell courant, donc les enfants lancés ensuite ne peuvent plus l’hériter. Une modification faite dans un processus enfant ne remonte pas vers son parent.",
+  "objective_ids": [
+    "103.1"
+  ],
+  "concept_ids": [
+    "lpic1.103.1.set-env-et-portee-des-variables",
+    "lpic1.103.1.export-unset-et-processus-enfants"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice"
+  ],
+  "estimated_minutes": 8,
+  "practice_context": "child-environment-handoff",
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "baseline",
+    "writable_guest_paths": [
+      "/root",
+      "/run/lpic"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "pids": 96,
+    "timeout_seconds": 1200,
+    "cpu_percent": 100
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "file-content-regex",
+      "path": "/run/lpic/worker-env",
+      "pattern": "(?m)^REPORT_ENV=production$",
+      "concept_ids": [
+        "lpic1.103.1.set-env-et-portee-des-variables",
+        "lpic1.103.1.export-unset-et-processus-enfants"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/run/lpic/worker-env",
+      "pattern": "(?m)^REPORT_DEBUG=<unset>$",
+      "concept_ids": [
+        "lpic1.103.1.export-unset-et-processus-enfants"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.103.1.child-environment-handoff.hint-1",
+    "lpic1.103.1.child-environment-handoff.hint-2",
+    "lpic1.103.1.child-environment-handoff.hint-3",
+    "lpic1.103.1.child-environment-handoff.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}
