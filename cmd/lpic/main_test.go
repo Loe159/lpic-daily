@@ -17,6 +17,7 @@ import (
 	"github.com/Loe159/lpic-daily/internal/lab"
 	"github.com/Loe159/lpic-daily/internal/learning"
 	"github.com/Loe159/lpic-daily/internal/runner"
+	"github.com/Loe159/lpic-daily/internal/study"
 )
 
 const (
