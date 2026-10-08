@@ -1362,6 +1362,7 @@ func runInteractiveLabWithBackend(
 	scanner := bufio.NewScanner(stdin)
 	scanner.Buffer(make([]byte, 4096), 256<<10)
 	shellCompleted := false
+	shellQuit := false
 	showHint := func() error {
 		if nextHint >= len(authored.Hints) {
 			fmt.Fprintln(stdout, "Aucun indice supplémentaire.")
@@ -1510,6 +1511,9 @@ func runInteractiveLabWithBackend(
 	shellCommands := func(command string) (bool, error) {
 		switch command {
 		case ":check":
+			if jobControlEvidence != nil {
+				if err := collectJobControlEvidence(sessionCtx, backend, session.Instance, jobControlEvidence); err != nil { return false, err }
+			}
 			ok, err := checkLab()
 			if ok {
 				shellCompleted = true
@@ -1521,6 +1525,7 @@ func runInteractiveLabWithBackend(
 			fmt.Fprintln(stdout, "LPIC Daily : :check (valider), :hint (indice), :help (aide), :quit (quitter).")
 			return false, nil
 		case ":quit":
+			shellQuit = true
 			return true, nil
 		}
 		return false, nil
@@ -1528,7 +1533,8 @@ func runInteractiveLabWithBackend(
 
 	if persistentShell {
 		if interactiveTerminal(stdin, stdout) {
-			fmt.Fprintln(stdout, "Ouverture du shell Linux interactif. Tape exit ou Ctrl-D pour revenir à LPIC Daily.")
+			fmt.Fprintln(stdout, "Shell Linux · commandes LPIC Daily : :check  :hint  :help  :quit")
+			usedPersistentShell = true
 			result, err := runPersistentShell(
 				sessionCtx,
 				backend,
@@ -1542,7 +1548,7 @@ func runInteractiveLabWithBackend(
 				return fmt.Errorf("interactive sandbox shell: %w", err)
 			}
 			usedPersistentShell = true
-			if shellCompleted { return nil }
+			if shellCompleted || shellQuit { return nil }
 			fmt.Fprintln(stdout, "\n[retour LPIC Daily]")
 			if result.ExitCode != 0 {
 				fmt.Fprintf(stderr, "[shell exit %d]\n", result.ExitCode)
@@ -1596,7 +1602,8 @@ func runInteractiveLabWithBackend(
 				fmt.Fprintln(stdout, "Le shell PTY n'est pas disponible pour ce backend ; utilise le mode commandes.")
 				continue
 			}
-			fmt.Fprintln(stdout, "Ouverture d'un shell persistant dans la sandbox. Tape exit ou Ctrl-D pour revenir.")
+			fmt.Fprintln(stdout, "Shell Linux · commandes LPIC Daily : :check  :hint  :help  :quit")
+			usedPersistentShell = true
 			result, err := runPersistentShell(
 				sessionCtx,
 				backend,
