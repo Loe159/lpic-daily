@@ -61,7 +61,7 @@ func startAndSetup(ctx context.Context, authored Lab, backend runner.Runner, ins
 	case "sandbox":
 		var output bytes.Buffer
 		result, err := backend.Exec(ctx, instance, runner.ExecRequest{
-			Argv: []string{"/usr/bin/bash", "-eu", "-c", authored.SetupScript},
+			Argv:   []string{"/usr/bin/bash", "-eu", "-c", authored.SetupScript},
 			Stdout: &output,
 			Stderr: &output,
 		})
