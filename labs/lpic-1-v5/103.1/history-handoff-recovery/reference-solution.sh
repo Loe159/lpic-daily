@@ -15,5 +15,5 @@ history -r
 history -s 'echo "$USER:$PWD" > /run/lpic/history-proof'
 history -w
 EOF
-chown alice:alice /home/alice/.bashrc /home/alice/.bash_history /home/alice/.lpic-history-update
+chmod 0666 /home/alice/.bashrc /home/alice/.bash_history /home/alice/.lpic-history-update
 runuser -u alice -- env HOME=/home/alice bash --noprofile --rcfile /home/alice/.bashrc -ic 'source /home/alice/.lpic-history-update'
