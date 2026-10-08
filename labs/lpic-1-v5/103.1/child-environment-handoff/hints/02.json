@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.child-environment-handoff.hint-2",
+  "lab_id": "lpic1.103.1.child-environment-handoff",
+  "level": 2,
+  "content_fr": "REPORT_ENV est déjà définie dans le shell mais n’est pas exportée. REPORT_DEBUG est exportée alors qu’elle doit disparaître avant de lancer le worker.",
+  "evidence_impact": "material"
+}
