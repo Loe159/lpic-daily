@@ -1356,6 +1356,176 @@ func runInteractiveLabWithBackend(
 		jobControlEvidence = &jobControlInteractionEvidence{}
 	}
 
+
+	// Keep the host as the sole authority for checks, hints and progress writes.
+	// Input typed at the sandbox Bash prompt is handled on the host side.
+	scanner := bufio.NewScanner(stdin)
+	scanner.Buffer(make([]byte, 4096), 256<<10)
+	shellCompleted := false
+	showHint := func() error {
+		if nextHint >= len(authored.Hints) {
+			fmt.Fprintln(stdout, "Aucun indice supplémentaire.")
+			return nil
+		}
+		hint := authored.Hints[nextHint]
+		solutionRevealed := hint.EvidenceImpact == "solution-revealed"
+		if err := recordLabDisclosure(
+			sessionCtx,
+			authored.Definition.ID,
+			hint.Level,
+			solutionRevealed,
+		); err != nil {
+			return fmt.Errorf("record hint disclosure: %w", err)
+		}
+		nextHint++
+		if hint.Level > highestHintLevel {
+			highestHintLevel = hint.Level
+		}
+		fmt.Fprintf(stdout, "Indice %d/4 : %s\n", hint.Level, lpicui.RenderMarkdown(hint.ContentFR))
+		if solutionRevealed {
+			fmt.Fprintln(stdout, "Cet indice révèle la solution et réduira la force de la preuve pratique.")
+		}
+		return nil
+
+	}
+	checkLab := func() (bool, error) {
+		if !reflectionRecorded {
+			recorded, err := collectStandaloneReflection(
+				sessionCtx,
+				scanner,
+				stdout,
+				backend,
+				session.Instance,
+				authored.Definition,
+				lastLearnerCommand,
+			)
+			if err != nil {
+				return false, fmt.Errorf("record learner conclusion: %w", err)
+			}
+			reflectionRecorded = recorded
+		}
+		passed := true
+		checkCtx, cancelCheck := context.WithTimeout(sessionCtx, operationTimeout)
+		results, err := session.Evaluate(checkCtx)
+		cancelCheck()
+		if err != nil {
+			if errors.Is(err, context.DeadlineExceeded) {
+				fmt.Fprintf(stdout, "Validation interrompue après %s. Le lab reste ouvert; tu peux réessayer :check.\n", operationTimeout)
+				return false, nil
+			}
+			return false, fmt.Errorf("evaluate lab: %w", err)
+		}
+		conceptResults, err := study.LabConceptResults(authored, results)
+		if err != nil {
+			return false, fmt.Errorf("derive per-concept lab results: %w", err)
+		}
+		requiresJobControl := labRequiresJobControl(authored.Definition)
+		if authored.Definition.NeedsPersistentShell && !usedPersistentShell {
+			fmt.Fprintf(
+				stdout,
+				"  %-11s %s.persistent-shell — ce lab exige un passage par :shell pour valider l'interaction terminal réelle\n",
+				"À CORRIGER",
+				authored.Definition.ID,
+			)
+			passed = false
+			markPersistentShellConceptFailure(authored.Definition, conceptResults)
+		} else if requiresJobControl && !jobControlEvidence.Complete() {
+			fmt.Fprintf(
+				stdout,
+				"  %-11s %s.job-control — la validation exige Ctrl-Z, une observation avec jobs et un bg réussi dans :shell\n",
+				"À CORRIGER",
+				authored.Definition.ID,
+			)
+			passed = false
+			markPersistentShellConceptFailure(authored.Definition, conceptResults)
+		}
+		for _, result := range results {
+			state := "OK"
+			if !result.Pass {
+				state = "À CORRIGER"
+				passed = false
+			}
+			fmt.Fprintf(stdout, "  %-11s %s — %s\n", state, result.CheckID, result.Detail)
+		}
+		persistedHintLevel, err := pendingLabHintLevel(sessionCtx, authored.Definition.ID)
+		if err != nil {
+			return false, fmt.Errorf("refresh lab disclosure before recording attempt: %w", err)
+		}
+		if persistedHintLevel > highestHintLevel {
+			highestHintLevel = persistedHintLevel
+			nextHint = nextHintIndex(authored.Hints, highestHintLevel)
+		}
+		store, err := openProgressStore(sessionCtx)
+		if err != nil {
+			return false, fmt.Errorf("lab attempt progress could not be opened: %w", err)
+		}
+		now := time.Now()
+		if passed {
+			fmt.Fprintln(stdout, "\nLab réussi.")
+			fmt.Fprintln(stdout, authored.Definition.DebriefFR)
+
+			recordErr := study.RecordLab(sessionCtx, store, authored, highestHintLevel, now)
+			if recordErr != nil {
+				_ = store.Close()
+				return false, fmt.Errorf("lab succeeded but progress could not be recorded: %w", recordErr)
+			}
+			if err := store.ClearLabDisclosure(sessionCtx, authored.Definition.ID); err != nil {
+				_ = store.Close()
+				return false, fmt.Errorf("lab succeeded but disclosure state could not be cleared: %w", err)
+			}
+			fmt.Fprintln(stdout, "Progression enregistrée.")
+			recordGamificationBestEffort(
+				sessionCtx,
+				store,
+				gamification.EventLabPassed,
+				now,
+				map[string]string{"source_item_id": authored.Definition.ID},
+				stdout,
+			)
+			if closeErr := store.Close(); closeErr != nil {
+				return false, fmt.Errorf("lab succeeded but progress store could not be closed: %w", closeErr)
+			}
+			return true, nil
+		}
+
+		recordErr := study.RecordLabConceptResults(
+			sessionCtx,
+			store,
+			authored,
+			conceptResults,
+			highestHintLevel,
+			now,
+		)
+		if recordErr != nil {
+			_ = store.Close()
+			return false, fmt.Errorf("failed lab attempt could not be recorded: %w", recordErr)
+		}
+		if closeErr := store.Close(); closeErr != nil {
+			return false, fmt.Errorf("failed lab attempt store could not be closed: %w", closeErr)
+		}
+		fmt.Fprintln(stdout, "\nTentative enregistrée.")
+		return false, nil
+
+	}
+	shellCommands := func(command string) (bool, error) {
+		switch command {
+		case ":check":
+			ok, err := checkLab()
+			if ok {
+				shellCompleted = true
+			}
+			return ok, err
+		case ":hint":
+			return false, showHint()
+		case ":help":
+			fmt.Fprintln(stdout, "LPIC Daily : :check (valider), :hint (indice), :help (aide), :quit (quitter).")
+			return false, nil
+		case ":quit":
+			return true, nil
+		}
+		return false, nil
+	}
+
 	if persistentShell {
 		if interactiveTerminal(stdin, stdout) {
 			fmt.Fprintln(stdout, "Ouverture du shell Linux interactif. Tape exit ou Ctrl-D pour revenir à LPIC Daily.")
@@ -1366,11 +1536,13 @@ func runInteractiveLabWithBackend(
 				stdin,
 				stdout,
 				jobControlEvidence,
+				shellCommands,
 			)
 			if err != nil {
 				return fmt.Errorf("interactive sandbox shell: %w", err)
 			}
 			usedPersistentShell = true
+			if shellCompleted { return nil }
 			fmt.Fprintln(stdout, "\n[retour LPIC Daily]")
 			if result.ExitCode != 0 {
 				fmt.Fprintf(stderr, "[shell exit %d]\n", result.ExitCode)
@@ -1391,9 +1563,6 @@ func runInteractiveLabWithBackend(
 		commandStdout = sanitizedTerminalWriter{destination: stdout}
 		commandStderr = sanitizedTerminalWriter{destination: stderr}
 	}
-
-	scanner := bufio.NewScanner(stdin)
-	scanner.Buffer(make([]byte, 4096), 256<<10)
 
 	for {
 		if err := sessionCtx.Err(); err != nil {
@@ -1420,28 +1589,7 @@ func runInteractiveLabWithBackend(
 		case ":quit", ":q", "exit":
 			return nil
 		case ":hint":
-			if nextHint >= len(authored.Hints) {
-				fmt.Fprintln(stdout, "Aucun indice supplémentaire.")
-				continue
-			}
-			hint := authored.Hints[nextHint]
-			solutionRevealed := hint.EvidenceImpact == "solution-revealed"
-			if err := recordLabDisclosure(
-				sessionCtx,
-				authored.Definition.ID,
-				hint.Level,
-				solutionRevealed,
-			); err != nil {
-				return fmt.Errorf("record hint disclosure: %w", err)
-			}
-			nextHint++
-			if hint.Level > highestHintLevel {
-				highestHintLevel = hint.Level
-			}
-			fmt.Fprintf(stdout, "Indice %d/4 : %s\n", hint.Level, lpicui.RenderMarkdown(hint.ContentFR))
-			if solutionRevealed {
-				fmt.Fprintln(stdout, "Cet indice révèle la solution et réduira la force de la preuve pratique.")
-			}
+			if err := showHint(); err != nil { return err }
 			continue
 		case ":shell":
 			if !persistentShell {
@@ -1456,6 +1604,7 @@ func runInteractiveLabWithBackend(
 				stdin,
 				stdout,
 				jobControlEvidence,
+				shellCommands,
 			)
 			if err != nil {
 				return fmt.Errorf("interactive sandbox shell: %w", err)
@@ -1519,121 +1668,9 @@ func runInteractiveLabWithBackend(
 			fmt.Fprintln(stdout, "Lab réinitialisé dans son état de départ.")
 			continue
 		case ":check":
-			if !reflectionRecorded {
-				recorded, err := collectStandaloneReflection(
-					sessionCtx,
-					scanner,
-					stdout,
-					backend,
-					session.Instance,
-					authored.Definition,
-					lastLearnerCommand,
-				)
-				if err != nil {
-					return fmt.Errorf("record learner conclusion: %w", err)
-				}
-				reflectionRecorded = recorded
-			}
-			passed := true
-			checkCtx, cancelCheck := context.WithTimeout(sessionCtx, operationTimeout)
-			results, err := session.Evaluate(checkCtx)
-			cancelCheck()
-			if err != nil {
-				if errors.Is(err, context.DeadlineExceeded) {
-					fmt.Fprintf(stdout, "Validation interrompue après %s. Le lab reste ouvert; tu peux réessayer :check.\n", operationTimeout)
-					continue
-				}
-				return fmt.Errorf("evaluate lab: %w", err)
-			}
-			conceptResults, err := study.LabConceptResults(authored, results)
-			if err != nil {
-				return fmt.Errorf("derive per-concept lab results: %w", err)
-			}
-			requiresJobControl := labRequiresJobControl(authored.Definition)
-			if authored.Definition.NeedsPersistentShell && !usedPersistentShell {
-				fmt.Fprintf(
-					stdout,
-					"  %-11s %s.persistent-shell — ce lab exige un passage par :shell pour valider l'interaction terminal réelle\n",
-					"À CORRIGER",
-					authored.Definition.ID,
-				)
-				passed = false
-				markPersistentShellConceptFailure(authored.Definition, conceptResults)
-			} else if requiresJobControl && !jobControlEvidence.Complete() {
-				fmt.Fprintf(
-					stdout,
-					"  %-11s %s.job-control — la validation exige Ctrl-Z, une observation avec jobs et un bg réussi dans :shell\n",
-					"À CORRIGER",
-					authored.Definition.ID,
-				)
-				passed = false
-				markPersistentShellConceptFailure(authored.Definition, conceptResults)
-			}
-			for _, result := range results {
-				state := "OK"
-				if !result.Pass {
-					state = "À CORRIGER"
-					passed = false
-				}
-				fmt.Fprintf(stdout, "  %-11s %s — %s\n", state, result.CheckID, result.Detail)
-			}
-			persistedHintLevel, err := pendingLabHintLevel(sessionCtx, authored.Definition.ID)
-			if err != nil {
-				return fmt.Errorf("refresh lab disclosure before recording attempt: %w", err)
-			}
-			if persistedHintLevel > highestHintLevel {
-				highestHintLevel = persistedHintLevel
-				nextHint = nextHintIndex(authored.Hints, highestHintLevel)
-			}
-			store, err := openProgressStore(sessionCtx)
-			if err != nil {
-				return fmt.Errorf("lab attempt progress could not be opened: %w", err)
-			}
-			now := time.Now()
-			if passed {
-				fmt.Fprintln(stdout, "\nLab réussi.")
-				fmt.Fprintln(stdout, authored.Definition.DebriefFR)
-
-				recordErr := study.RecordLab(sessionCtx, store, authored, highestHintLevel, now)
-				if recordErr != nil {
-					_ = store.Close()
-					return fmt.Errorf("lab succeeded but progress could not be recorded: %w", recordErr)
-				}
-				if err := store.ClearLabDisclosure(sessionCtx, authored.Definition.ID); err != nil {
-					_ = store.Close()
-					return fmt.Errorf("lab succeeded but disclosure state could not be cleared: %w", err)
-				}
-				fmt.Fprintln(stdout, "Progression enregistrée.")
-				recordGamificationBestEffort(
-					sessionCtx,
-					store,
-					gamification.EventLabPassed,
-					now,
-					map[string]string{"source_item_id": authored.Definition.ID},
-					stdout,
-				)
-				if closeErr := store.Close(); closeErr != nil {
-					return fmt.Errorf("lab succeeded but progress store could not be closed: %w", closeErr)
-				}
-				return nil
-			}
-
-			recordErr := study.RecordLabConceptResults(
-				sessionCtx,
-				store,
-				authored,
-				conceptResults,
-				highestHintLevel,
-				now,
-			)
-			if recordErr != nil {
-				_ = store.Close()
-				return fmt.Errorf("failed lab attempt could not be recorded: %w", recordErr)
-			}
-			if closeErr := store.Close(); closeErr != nil {
-				return fmt.Errorf("failed lab attempt store could not be closed: %w", closeErr)
-			}
-			fmt.Fprintln(stdout, "\nTentative enregistrée.")
+			ok, err := checkLab()
+			if err != nil { return err }
+			if ok { return nil }
 			continue
 		}
 
@@ -1865,11 +1902,14 @@ func (evidence *jobControlInteractionEvidence) observeShellEvents(raw []byte) {
 
 type ctrlZObservingTerminalReader struct {
 	file     *os.File
+	reader io.Reader
 	evidence *jobControlInteractionEvidence
 }
 
 func (reader *ctrlZObservingTerminalReader) Read(buffer []byte) (int, error) {
-	n, err := reader.file.Read(buffer)
+	source := reader.reader
+	if source == nil { source = reader.file }
+	n, err := source.Read(buffer)
 	for _, value := range buffer[:n] {
 		if value == 0x1a && reader.evidence != nil {
 			reader.evidence.sawCtrlZ = true
@@ -2155,10 +2195,23 @@ func runPersistentShell(
 		"TERM": "xterm-256color",
 	}
 
-	shellInput := io.Reader(stdinFile)
+	shellInput := io.Reader(&labShellCommandReader{
+		input: stdinFile,
+		lineStart: true,
+		onCommand: func(command string) (bool, error) {
+			if err := terminal.Restore(stdinFile, state); err != nil {
+				return false, err
+			}
+			stop, commandErr := onCommand(command)
+			if _, err := terminal.MakeRaw(stdinFile); err != nil {
+				return false, errors.Join(commandErr, err)
+			}
+			return stop, commandErr
+		},
+	})
 	shellArgv := []string{"/usr/bin/bash", "-l"}
 	if evidence != nil {
-		shellInput = &ctrlZObservingTerminalReader{file: stdinFile, evidence: evidence}
+		shellInput = &ctrlZObservingTerminalReader{file: stdinFile, reader: shellInput, evidence: evidence}
 		shellArgv = []string{"/usr/bin/bash", "--noprofile", "--rcfile", jobControlShellRCPath, "-i"}
 	}
 
@@ -2192,6 +2245,68 @@ func runPersistentShell(
 		return runner.ExecResult{}, execErr
 	}
 	return result, nil
+}
+
+
+type labShellCommandReader struct {
+	input io.Reader
+	onCommand func(string) (bool, error)
+	prefix []byte
+	pending []byte
+	lineStart bool
+	stop bool
+}
+
+func (reader *labShellCommandReader) Read(buffer []byte) (int, error) {
+	for {
+		if len(reader.pending) > 0 {
+			n := copy(buffer, reader.pending)
+			reader.pending = reader.pending[n:]
+			return n, nil
+		}
+		if reader.stop { return 0, io.EOF }
+		var one [1]byte
+		n, err := reader.input.Read(one[:])
+		if n == 0 { return 0, err }
+		ch := one[0]
+		if len(reader.prefix) != 0 {
+			if ch == '\r' || ch == '\n' {
+				command := string(reader.prefix)
+				reader.prefix = nil
+				reader.lineStart = true
+				switch command {
+				case ":check", ":hint", ":help", ":quit":
+					stop, err := reader.onCommand(command)
+					if err != nil { return 0, err }
+					if stop {
+						reader.stop = true
+						reader.pending = []byte("exit\r")
+					}
+					continue
+				default:
+					reader.pending = append([]byte(command), ch)
+					continue
+				}
+			}
+			if ch == 127 || ch == 8 {
+				reader.prefix = reader.prefix[:len(reader.prefix)-1]
+				continue
+			}
+			reader.prefix = append(reader.prefix, ch)
+			if len(reader.prefix) > 64 {
+				reader.pending = reader.prefix
+				reader.prefix = nil
+				reader.lineStart = false
+			}
+			continue
+		}
+		if reader.lineStart && ch == ':' {
+			reader.prefix = []byte{':'}
+			continue
+		}
+		reader.lineStart = ch == '\n' || ch == '\r'
+		reader.pending = []byte{ch}
+	}
 }
 
 func sendLatestResize(destination chan runner.TerminalSize, size runner.TerminalSize) {
