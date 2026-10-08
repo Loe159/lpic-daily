@@ -1063,7 +1063,6 @@ func TestUpdateHelpDoesNotRunUpdater(t *testing.T) {
 	}
 }
 
-
 func TestDashboardLabParentRejectsCheckAndWaitsForRecordedSuccess(t *testing.T) {
 	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
 
