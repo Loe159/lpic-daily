@@ -2153,6 +2153,7 @@ func runPersistentShell(
 	stdin io.Reader,
 	stdout io.Writer,
 	evidence *jobControlInteractionEvidence,
+	onCommand func(string) (bool, error),
 ) (result runner.ExecResult, returnErr error) {
 	stdinFile, ok := stdin.(*os.File)
 	if !ok || !terminal.IsTerminal(stdinFile) {
