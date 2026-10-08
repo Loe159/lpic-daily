@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -1154,5 +1155,72 @@ func TestSuccessfulLabAttemptCountRequiresEveryMappedConcept(t *testing.T) {
 	}
 	if count != 0 {
 		t.Fatalf("successfulLabAttemptCount() = %d, want 0 for a partial concept pass", count)
+	}
+}
+
+func TestLabShellCommandReaderInterceptsHostControls(t *testing.T) {
+	var commands []string
+	reader := &labShellCommandReader{
+		input:     strings.NewReader("env\r:check\r:hint\r:help\r:quit\r"),
+		lineStart: true,
+		onCommand: func(command string) (bool, error) {
+			commands = append(commands, command)
+			return command == ":quit", nil
+		},
+	}
+	data, err := io.ReadAll(reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := string(data); got != "env\rexit\r" {
+		t.Fatalf("sandbox received %q, want normal command and controlled exit", got)
+	}
+	if want := []string{":check", ":hint", ":help", ":quit"}; !slices.Equal(commands, want) {
+		t.Fatalf("host commands = %q, want %q", commands, want)
+	}
+}
+
+func TestLabShellCommandReaderPreservesShellInputAndRejectsForgedCommands(t *testing.T) {
+	var commands []string
+	input := "echo hello\r:check-not-real\r:check\r"
+	reader := &labShellCommandReader{
+		input:     strings.NewReader(input),
+		lineStart: true,
+		onCommand: func(command string) (bool, error) {
+			commands = append(commands, command)
+			return false, nil
+		},
+	}
+	data, err := io.ReadAll(reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got, want := string(data), "echo hello\r:check-not-real\r"; got != want {
+		t.Fatalf("sandbox input = %q, want %q", got, want)
+	}
+	if want := []string{":check"}; !slices.Equal(commands, want) {
+		t.Fatalf("intercepted = %q, want %q", commands, want)
+	}
+}
+
+func TestLabShellCommandReaderHandlesBackspaceAndLongInput(t *testing.T) {
+	var called []string
+	reader := &labShellCommandReader{
+		input:     strings.NewReader(":checkx\b\r" + ":" + strings.Repeat("x", 80) + "\r"),
+		lineStart: true,
+		onCommand: func(command string) (bool, error) {
+			called = append(called, command)
+			return false, nil
+		},
+	}
+	data, err := io.ReadAll(reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got, want := string(data), ":"+strings.Repeat("x", 80)+"\r"; got != want {
+		t.Fatalf("forwarded input = %q, want %q", got, want)
+	}
+	if len(called) != 1 || called[0] != ":check" {
+		t.Fatalf("intercepted commands = %q", called)
 	}
 }
