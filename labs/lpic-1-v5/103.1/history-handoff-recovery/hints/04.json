@@ -3,6 +3,6 @@
   "id": "lpic1.103.1.history-handoff-recovery.hint-4",
   "lab_id": "lpic1.103.1.history-handoff-recovery",
   "level": 4,
-  "content_fr": "Mets HISTSIZE=2000 et HISTFILESIZE=4000 pour root, supprime les lignes API_TOKEN, crée history-proof avec l’expansion de USER et PWD depuis /root, puis utilise history -s et history -w pour rendre cette commande visible dans une nouvelle session.",
+  "content_fr": "Mets HISTSIZE=2000 et HISTFILESIZE=4000 dans le shell de maintenance, supprime les lignes API_TOKEN, crée history-proof avec l’expansion de USER et PWD depuis /run/lpic, puis utilise history -s et history -w pour rendre cette commande visible dans une nouvelle session.",
   "evidence_impact": "solution-revealed"
 }
