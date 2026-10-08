@@ -29,7 +29,8 @@
     "capability_profile": "baseline",
     "writable_guest_paths": [
       "/root",
-      "/run/lpic"
+      "/run/lpic",
+      "/usr/local/bin"
     ]
   },
   "resources": {
