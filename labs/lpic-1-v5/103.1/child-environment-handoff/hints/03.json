@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.child-environment-handoff.hint-3",
+  "lab_id": "lpic1.103.1.child-environment-handoff",
+  "level": 3,
+  "content_fr": "Rends REPORT_ENV exportée, supprime REPORT_DEBUG du shell courant, puis vérifie avec env avant de relancer start-report-worker.",
+  "evidence_impact": "material"
+}
