@@ -244,12 +244,13 @@ func waitForDashboardLabCompletion(
 	stdin io.Reader,
 	stdout io.Writer,
 ) error {
+	reader := bufio.NewReader(stdin)
 	for {
 		fmt.Fprint(
 			stdout,
 			"Termine le lab avec :check dans le terminal enfant. Après « Progression enregistrée », reviens ici et appuie seulement sur Entrée. ",
 		)
-		line, err := readLine(stdin)
+		line, err := readLine(reader)
 		if err != nil {
 			return fmt.Errorf("wait for child lab completion: %w", err)
 		}
