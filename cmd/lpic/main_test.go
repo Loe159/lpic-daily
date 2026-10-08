@@ -1128,17 +1128,17 @@ func TestSuccessfulLabAttemptCountRequiresEveryMappedConcept(t *testing.T) {
 	}
 	at := time.Now()
 	event := learning.EvidenceEvent{
-		EventID:          "partial-lab-success",
-		OccurredAt:       at,
-		ConceptID:        authored.Definition.ConceptIDs[0],
-		ObjectiveIDs:     append([]string(nil), authored.Definition.ObjectiveIDs...),
-		SourceItemID:     authored.Definition.ID,
-		ActivityKind:     learning.ActivityLab,
-		EvidenceKind:     learning.EvidenceIndependentPractice,
-		Result:           learning.ResultPass,
-		Distribution:     authored.Definition.Environment.Distribution,
-		PracticeContext:  authored.Definition.PracticeContext,
-		AttemptIndex:     1,
+		EventID:         "partial-lab-success",
+		OccurredAt:      at,
+		ConceptID:       authored.Definition.ConceptIDs[0],
+		ObjectiveIDs:    append([]string(nil), authored.Definition.ObjectiveIDs...),
+		SourceItemID:    authored.Definition.ID,
+		ActivityKind:    learning.ActivityLab,
+		EvidenceKind:    learning.EvidenceIndependentPractice,
+		Result:          learning.ResultPass,
+		Distribution:    authored.Definition.Environment.Distribution,
+		PracticeContext: authored.Definition.PracticeContext,
+		AttemptIndex:    1,
 	}
 	if err := store.AppendEvidence(context.Background(), event); err != nil {
 		_ = store.Close()
