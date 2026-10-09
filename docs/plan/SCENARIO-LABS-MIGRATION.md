@@ -85,6 +85,12 @@ Deux incidents réels supplémentaires sont `implemented`, **sans acceptation ru
 
 **Couverture LPIC-101 : 80/162 acceptés, 57/162 uniquement implémentés, 25/162 non couverts.** L'objectif 102.5 atteint **7/7 concepts implémentés**, mais il n'est pas accepté. Les tests à effectuer sont : build de l'image, setup → checks rouges → solution Zypper → checks verts → reset rouge, contrôle de l'isolation et revue pédagogique. Ni CI ni test KVM n'ont été exécutés pour ce lot.
 
+### Lot complémentaire — 9 octobre 2026 (contrôleur PCI de stockage)
+
+`101.1.pci-archive-controller-recovery` est **implemented**, non testé en KVM. Le setup prépare un vrai disque virtio secondaire avec données conservées, désassocie **uniquement** sa fonction PCI du pilote dans la VM éphémère, puis déclenche un échec observable d'un service systemd. La récupération doit restaurer la visibilité dans `/proc`, `/sys`, `/dev`, le rattachement PCI et l'accès au volume intact. La recette Fedora ajoute `pciutils` pour `lspci` ; reconstruction nécessaire.
+
+**Couverture LPIC-101 : 80 acceptés, 60 uniquement implémentés, 22 sans scénario.** Nouveaux concepts 101.1 : les trois interfaces de périphériques, le bus PCI, l'activation/désactivation d'un contrôleur. Les notions USB, modules spécifiques et familles de stockage ne sont **pas** considérées couvertes par cet incident. Validation restante : setup rouge, solution verte, reset rouge, absence d'impact sur le disque système et tests libvirt/CI. Rien de cela n'est revendiqué comme exécuté.
+
 ## 1. Pourquoi cette migration
 
 Le curriculum contient actuellement 309 concepts actifs:

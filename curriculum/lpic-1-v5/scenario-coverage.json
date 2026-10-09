@@ -707,6 +707,20 @@
       "backend": "libvirt",
       "status": "implemented",
       "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.101.1.pci-archive-controller-recovery",
+      "objective_ids": [
+        "101.1"
+      ],
+      "concept_ids": [
+        "lpic1.101.1.role-de-proc-sys-et-dev",
+        "lpic1.101.1.bus-pci-et-usb",
+        "lpic1.101.1.activation-desactivation-peripheriques-integres"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
     }
   ]
 }

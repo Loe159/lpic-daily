@@ -70,7 +70,8 @@
         "glibc-devel",
         "lvm2",
         "rpm-build",
-        "createrepo_c"
+        "createrepo_c",
+        "pciutils"
       ],
       "recipe": "fedora-cloud-v2"
     },
