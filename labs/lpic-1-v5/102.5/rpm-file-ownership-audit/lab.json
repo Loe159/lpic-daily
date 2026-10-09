@@ -19,7 +19,8 @@
   ],
   "labels": [
     "lpic-required",
-    "modern-practice"
+    "modern-practice",
+    "scenario-implemented"
   ],
   "estimated_minutes": 10,
   "practice_context": "rpm-file-ownership-audit",
