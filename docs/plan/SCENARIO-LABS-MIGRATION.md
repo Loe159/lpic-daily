@@ -58,6 +58,19 @@ Quatre incidents supplémentaires sont `implemented` :
 
 Note sur les images : la recette Fedora doit maintenant être reconstruite avec `exfatprogs`, `gcc`, `glibc-devel` et `lvm2`, et la recette Debian avec `debconf`, avant les tests de lab correspondants.
 
+### Lot suivant — 9 octobre 2026 (partitionnement, démarrage, udev et DNF)
+
+Nouveaux scénarios `implemented` :
+- `102.1.home-log-swap-isolation` : répartir les données de `/home` et les journaux applicatifs sur de vrais volumes ext4 distincts, activer du swap dimensionné et conserver les données ; contrôles de montages, fstab et swap actifs ;
+- `102.1.uefi-rescue-media-recovery` : réparer la signature GPT d'une partition EFI existante sans la reformater, monter le support et vérifier la préservation d'un véritable exécutable EFI ;
+- `101.1.backup-device-udev-recovery` : identifier un périphérique de stockage par ses propriétés udev et restaurer un lien stable dans `/dev` ; vérification de la base udev et du service client ;
+- `102.5.offline-dnf-agent-recovery` : réparer une source DNF `file://` hors ligne et installer des RPM réels avec résolution de dépendance ; la recette VM Fedora ajoute `rpm-build` et `createrepo_c`.
+
+Scénario existant désormais référencé dans la matrice :
+- `102.2.grub-kernel-parameter` : le marqueur artificiel `lpic_daily_boot` a été remplacé par des paramètres réels `loglevel=7` et `systemd.show_status=yes` ; les checks portent sur la configuration BLS Fedora et les paramètres observés **après redémarrage**, avec un rattachement explicite au concept 101.2 des paramètres noyau au boot. Le scénario requiert la commande de redémarrage du lab en fin de réparation.
+
+**Couverture LPIC-101 de la matrice au 9 octobre 2026** : **80/162 concepts acceptés**, **54/162 uniquement implémentés sans acceptation**, **28/162 concepts sans scénario**. **102.1 est implémenté à 6/6** ; le topic 102.2 ne couvre encore que 2/6, 101.1 2/8 et 102.5 5/7. Une vérification statique des cinq définitions (correspondance entre objectifs, concepts et checks ; cohérence des backends et statuts ; présence de quatre références d'indices) ne signale aucune incohérence. **Aucune validation KVM ou CI n'a été effectuée**. Les recettes VM modifiées nécessitent leur reconstruction avant l'exécution des nouveaux scénarios, et toutes les preuves marquées `implemented` restent à éprouver (état initial rouge, référence verte, reset et review pédagogique).
+
 ## 1. Pourquoi cette migration
 
 Le curriculum contient actuellement 309 concepts actifs:
