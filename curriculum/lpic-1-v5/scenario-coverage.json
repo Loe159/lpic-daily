@@ -577,6 +577,19 @@
       "backend": "libvirt",
       "status": "implemented",
       "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.102.3.shared-library-cache-recovery",
+      "objective_ids": [
+        "102.3"
+      ],
+      "concept_ids": [
+        "lpic1.102.3.chemins-de-recherche-du-chargeur-dynamique",
+        "lpic1.102.3.cache-ldconfig"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
     }
   ]
 }

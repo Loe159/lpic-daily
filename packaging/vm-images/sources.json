@@ -65,7 +65,9 @@
         "screen",
         "tmux",
         "hostname",
-        "sudo"
+        "sudo",
+        "gcc",
+        "glibc-devel"
       ],
       "recipe": "fedora-cloud-v2"
     },
