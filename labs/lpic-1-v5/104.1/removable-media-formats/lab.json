@@ -1,0 +1,102 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.1.removable-media-formats",
+  "title_fr": "Rétablir l'import depuis deux supports amovibles",
+  "brief_fr": "Le poste d'import d'un atelier ne reconnaît plus ses deux supports de transfert après leur remplacement. Le terminal ancien n'accepte que FAT32, tandis que le terminal récent utilise exFAT pour les fichiers volumineux. Deux disques de remplacement vierges sont raccordés à la VM (/dev/vdb et /dev/vdc). Rétablis un espace de transfert fonctionnel pour chaque terminal sous /srv/media/legacy et /srv/media/modern. Préserve impérativement le disque système /dev/vda.",
+  "success_criteria_fr": [
+    "Le support ancien (/dev/vdb) utilise réellement FAT32 et est accessible en lecture-écriture sous /srv/media/legacy.",
+    "Le support récent (/dev/vdc) utilise réellement exFAT et est accessible en lecture-écriture sous /srv/media/modern.",
+    "Les deux supports sont indépendants ; le disque système n'est pas modifié."
+  ],
+  "debrief_fr": "VFAT (FAT32) assure une large compatibilité avec les appareils anciens mais limite la taille d'un fichier à 4 Gio. exFAT convient aux supports modernes et aux gros fichiers. mkfs.vfat et mkfs.exfat créent des systèmes de fichiers distincts ; blkid et findmnt confirment le format effectivement détecté et monté. Les travaux ont lieu sur les disques vierges fournis, pas sur le disque système.",
+  "objective_ids": [
+    "104.1"
+  ],
+  "concept_ids": [
+    "lpic1.104.1.vfat-exfat"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-implemented"
+  ],
+  "estimated_minutes": 12,
+  "practice_context": "removable-media-formats",
+  "environment": {
+    "backend": "libvirt",
+    "image_ref": "fedora-44-x86_64-v2",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "full-machine",
+    "writable_guest_paths": [],
+    "machine": {
+      "firmware": "uefi",
+      "extra_disks": [
+        {
+          "id": "legacy",
+          "size_mb": 256
+        },
+        {
+          "id": "modern",
+          "size_mb": 256
+        }
+      ]
+    }
+  },
+  "resources": {
+    "memory_mb": 1024,
+    "cpu_percent": 100,
+    "pids": 128,
+    "timeout_seconds": 1500
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test \"$(blkid -s TYPE -o value /dev/vdb)\" = vfat && test \"$(findmnt -n --mountpoint /srv/media/legacy -o FSTYPE)\" = vfat && test \"$(findmnt -n --mountpoint /srv/media/legacy -o SOURCE)\" = /dev/vdb"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.1.vfat-exfat"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test \"$(blkid -s TYPE -o value /dev/vdc)\" = exfat && test \"$(findmnt -n --mountpoint /srv/media/modern -o FSTYPE)\" = exfat && test \"$(findmnt -n --mountpoint /srv/media/modern -o SOURCE)\" = /dev/vdc"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.1.vfat-exfat"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -e; for folder in /srv/media/legacy /srv/media/modern; do test -d \"$folder\"; probe=$(mktemp \"$folder/.lpic-write-check.XXXXXX\"); test -f \"$probe\"; rm \"$probe\"; done"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.1.vfat-exfat"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.104.1.removable-media-formats.hint-1",
+    "lpic1.104.1.removable-media-formats.hint-2",
+    "lpic1.104.1.removable-media-formats.hint-3",
+    "lpic1.104.1.removable-media-formats.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

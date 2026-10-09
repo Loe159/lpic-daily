@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.1.removable-media-formats.hint-1",
+  "lab_id": "lpic1.104.1.removable-media-formats",
+  "level": 1,
+  "content_fr": "Vérifie quels périphériques correspondent aux supports neufs, puis examine leurs formats actuels. Le disque système ne fait pas partie du diagnostic.",
+  "evidence_impact": "none"
+}

@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.1.removable-media-formats.hint-4",
+  "lab_id": "lpic1.104.1.removable-media-formats",
+  "level": 4,
+  "content_fr": "Utilise mkfs.vfat -F 32 sur /dev/vdb et mkfs.exfat sur /dev/vdc, puis monte ces disques respectivement sous /srv/media/legacy et /srv/media/modern. Contrôle avec blkid et findmnt.",
+  "evidence_impact": "solution-revealed"
+}

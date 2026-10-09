@@ -540,6 +540,18 @@
       "backend": "libvirt",
       "status": "implemented",
       "evidence_strength": "state"
+    },
+    {
+      "scenario_id": "lpic1.104.1.removable-media-formats",
+      "objective_ids": [
+        "104.1"
+      ],
+      "concept_ids": [
+        "lpic1.104.1.vfat-exfat"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
     }
   ]
 }
