@@ -552,6 +552,19 @@
       "backend": "libvirt",
       "status": "implemented",
       "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.102.4.relay-package-dependency-repair",
+      "objective_ids": [
+        "102.4"
+      ],
+      "concept_ids": [
+        "lpic1.102.4.dependances",
+        "lpic1.102.4.inspection-d-un-paquet-et-de-ses-fichiers"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
     }
   ]
 }

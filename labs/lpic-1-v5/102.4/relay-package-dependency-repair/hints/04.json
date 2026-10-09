@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.4.relay-package-dependency-repair.hint-4",
+  "lab_id": "lpic1.102.4.relay-package-dependency-repair",
+  "level": 4,
+  "content_fr": "Installe lpic-relay-runtime_1.0_all.deb avec dpkg -i depuis /opt/lpic-debs, puis termine la configuration avec dpkg --configure lpic-relay-agent.",
+  "evidence_impact": "solution-revealed"
+}
