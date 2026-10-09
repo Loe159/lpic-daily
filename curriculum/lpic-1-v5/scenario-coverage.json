@@ -715,8 +715,7 @@
       ],
       "concept_ids": [
         "lpic1.101.1.role-de-proc-sys-et-dev",
-        "lpic1.101.1.bus-pci-et-usb",
-        "lpic1.101.1.activation-desactivation-peripheriques-integres"
+        "lpic1.101.1.ressources-et-identification-du-materiel"
       ],
       "backend": "libvirt",
       "status": "implemented",

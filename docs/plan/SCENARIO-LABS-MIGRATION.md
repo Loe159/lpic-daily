@@ -89,7 +89,7 @@ Deux incidents réels supplémentaires sont `implemented`, **sans acceptation ru
 
 `101.1.pci-archive-controller-recovery` est **implemented**, non testé en KVM. Le setup prépare un vrai disque virtio secondaire avec données conservées, désassocie **uniquement** sa fonction PCI du pilote dans la VM éphémère, puis déclenche un échec observable d'un service systemd. La récupération doit restaurer la visibilité dans `/proc`, `/sys`, `/dev`, le rattachement PCI et l'accès au volume intact. La recette Fedora ajoute `pciutils` pour `lspci` ; reconstruction nécessaire.
 
-**Couverture LPIC-101 : 80 acceptés, 60 uniquement implémentés, 22 sans scénario.** Nouveaux concepts 101.1 : les trois interfaces de périphériques, le bus PCI, l'activation/désactivation d'un contrôleur. Les notions USB, modules spécifiques et familles de stockage ne sont **pas** considérées couvertes par cet incident. Validation restante : setup rouge, solution verte, reset rouge, absence d'impact sur le disque système et tests libvirt/CI. Rien de cela n'est revendiqué comme exécuté.
+**Couverture LPIC-101 : 80 acceptés, 58 uniquement implémentés, 24 sans scénario.** Nouveau concept explicitement démontré : le rôle de /proc, /sys et /dev ; l'identification de ressources matérielles est renforcée. Cet incident PCI ne prouve pas à lui seul l'objectif complet « bus PCI et USB » ni celui de l'activation des périphériques intégrés au firmware : ils restent **non couverts**, de même que la manipulation USB, les modules spécifiques et les familles de stockage. Validation restante : setup rouge, solution verte, reset rouge, absence d'impact sur le disque système et tests libvirt/CI. Rien de cela n'est revendiqué comme exécuté.
 
 ## 1. Pourquoi cette migration
 
