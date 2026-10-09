@@ -1,0 +1,80 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.3.graceful-reboot-data-preservation",
+  "title_fr": "graceful reboot data preservation",
+  "brief_fr": "Après une maintenance, le serveur doit redémarrer pour appliquer ses mises à jour, mais un agent d'archivage reste actif. Sa configuration d'arrêt actuelle risque de lui faire perdre son état de reprise. Corrige cette situation et effectue un vrai redémarrage propre avec la commande du terminal parent. Préserve les données enregistrées et ne stoppe pas les services indispensables à la VM.",
+  "success_criteria_fr": [
+    "Un véritable redémarrage de la VM a eu lieu.",
+    "Le processus d'archivage a enregistré sa terminaison propre avant le redémarrage.",
+    "La reprise des données reste possible et le service est de nouveau actif après démarrage."
+  ],
+  "debrief_fr": "Lors d'un reboot ordonné, systemd arrête les services avec le signal configuré, attend leur sortie, synchronise les écritures puis relance le système. SIGKILL ne permet pas au programme de réaliser son traitement de fin. Le changement de boot-id ainsi que le marqueur écrit par le service en phase d'arrêt distinguent un vrai reboot propre d'une simple modification de fichier.",
+  "objective_ids": [
+    "101.3"
+  ],
+  "concept_ids": [
+    "lpic1.101.3.arret-redemarrage-propre"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-implemented"
+  ],
+  "estimated_minutes": 13,
+  "practice_context": "101.3.graceful-reboot-data-preservation",
+  "environment": {
+    "backend": "libvirt",
+    "image_ref": "fedora-44-x86_64-v2",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "full-machine",
+    "writable_guest_paths": [],
+    "machine": {
+      "firmware": "uefi"
+    }
+  },
+  "resources": {
+    "memory_mb": 1024,
+    "cpu_percent": 100,
+    "pids": 128,
+    "timeout_seconds": 2700
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -e; test \"$(cat /proc/sys/kernel/random/boot_id)\" != \"$(cat /var/lib/lpic-reboot/initial-boot-id)\"; systemctl is-active --quiet lpic-reboot-worker.service"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.101.3.arret-redemarrage-propre"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -e; grep -Fxq 'worker=stopped-with-sigterm' /var/lib/lpic-reboot/clean-exit; grep -Fxq 'archive-checkpoint=preserve-27' /var/lib/lpic-reboot/checkpoint.txt; systemctl is-active --quiet qemu-guest-agent.service"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.101.3.arret-redemarrage-propre"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.101.3.graceful-reboot-data-preservation.hint-1",
+    "lpic1.101.3.graceful-reboot-data-preservation.hint-2",
+    "lpic1.101.3.graceful-reboot-data-preservation.hint-3",
+    "lpic1.101.3.graceful-reboot-data-preservation.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

@@ -119,6 +119,15 @@ La vérification réelle du pilote `virtio-pci` dans `101.1.pci-archive-controll
 
 **Couverture LPIC-101 : 80 acceptés, 64 uniquement implémentés, 18 sans scénario.** Ce mapping n'est ni une preuve de périphériques USB ni une preuve de l'activation matérielle par le firmware.
 
+### Lot complémentaire — 9 octobre 2026 (reboot, initramfs et MBR)
+
+Trois incidents KVM sont **implemented**, sans acceptation runtime :
+- `101.3.graceful-reboot-data-preservation` : un worker est configuré pour recevoir SIGKILL ; l'apprenant doit préparer un arrêt propre, redémarrer **réellement** avec `:reboot`, puis prouver le changement de boot-id et le point de reprise conservé.
+- `101.2.initramfs-rescue-boot-recovery` : réparation d'une entrée BLS de secours avec une image initramfs générée par dracut, vérifiée par lsinitrd, puis un vrai démarrage via GRUB 2 vers systemd. L'entrée normale est préservée.
+- `102.2.bios-mbr-rescue-bootcode` : réinstallation du code GRUB 2 BIOS sur un **disque secondaire** MBR, sans altération de la table de partitions ni du manifeste ext4. Le check est structurel uniquement ; un véritable boot BIOS reste nécessaire avant toute acceptation.
+
+La recette Fedora ajoute explicitement `dracut`, `grub2-tools`, `grub2-pc-modules` et `grub2-pc`. Elle doit être reconstruite avant test. **Couverture LPIC-101 : 80 acceptés, 68 uniquement implémentés, 14 sans scénario.** Aucun test KVM ni CI n'est exécuté dans ce lot. Toutes les références doivent encore être éprouvées, ainsi que les resets, la sécurité du disque système et le reboot réel.
+
 ## 1. Pourquoi cette migration
 
 Le curriculum contient actuellement 309 concepts actifs:

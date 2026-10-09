@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.2.initramfs-rescue-boot-recovery.hint-3",
+  "lab_id": "lpic1.101.2.initramfs-rescue-boot-recovery",
+  "level": 3,
+  "content_fr": "dracut peut inclure un profil de diagnostic depuis /etc/lpic-initramfs/payload ; vérifie le contenu avec lsinitrd. Il faut ensuite sélectionner l'entrée avant le reboot.",
+  "evidence_impact": "material"
+}

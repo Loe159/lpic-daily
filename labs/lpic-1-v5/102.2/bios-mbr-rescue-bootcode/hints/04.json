@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.2.bios-mbr-rescue-bootcode.hint-4",
+  "lab_id": "lpic1.102.2.bios-mbr-rescue-bootcode",
+  "level": 4,
+  "content_fr": "Sur la VM jetable, utilise grub2-install --target=i386-pc --boot-directory=/mnt/lpic-bios-rescue/boot /dev/vdb. Vérifie ensuite la signature MBR, les fichiers GRUB et le manifeste de données.",
+  "evidence_impact": "solution-revealed"
+}

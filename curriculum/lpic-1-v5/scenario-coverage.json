@@ -782,6 +782,43 @@
       "backend": "libvirt",
       "status": "implemented",
       "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.101.3.graceful-reboot-data-preservation",
+      "objective_ids": [
+        "101.3"
+      ],
+      "concept_ids": [
+        "lpic1.101.3.arret-redemarrage-propre"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.101.2.initramfs-rescue-boot-recovery",
+      "objective_ids": [
+        "101.2"
+      ],
+      "concept_ids": [
+        "lpic1.101.2.role-de-initramfs",
+        "lpic1.101.2.sequence-firmware-bootloader-kernel-initramfs-init-systemd"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.102.2.bios-mbr-rescue-bootcode",
+      "objective_ids": [
+        "102.2"
+      ],
+      "concept_ids": [
+        "lpic1.102.2.mbr-et-relation-avec-schema-de-boot"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "state"
     }
   ]
 }

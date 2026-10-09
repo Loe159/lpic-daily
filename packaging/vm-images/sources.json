@@ -74,7 +74,11 @@
         "pciutils",
         "kmod",
         "kernel-modules-extra",
-        "NetworkManager"
+        "NetworkManager",
+        "dracut",
+        "grub2-tools",
+        "grub2-pc-modules",
+        "grub2-pc"
       ],
       "recipe": "fedora-cloud-v2"
     },

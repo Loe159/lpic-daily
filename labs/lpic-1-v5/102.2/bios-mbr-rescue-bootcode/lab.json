@@ -1,0 +1,98 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.2.bios-mbr-rescue-bootcode",
+  "title_fr": "bios mbr rescue bootcode",
+  "brief_fr": "Un ancien support de dépannage, destiné à une machine BIOS, contient toujours sa partition ext4 et son manifeste de récupération. Une restauration a effacé son code d'amorçage et il n'est plus utilisable comme support de secours. Réinstalle le chargeur BIOS sur ce disque secondaire en préservant intégralement la table de partitions et le manifeste ; ne modifie jamais le disque système de la VM.",
+  "success_criteria_fr": [
+    "Le disque de secours conserve sa table MBR et sa partition de données d'origine.",
+    "Un code de démarrage GRUB 2 BIOS est effectivement présent dans le secteur d'amorçage du disque secondaire.",
+    "Le répertoire du chargeur contient les fichiers de démarrage attendus et le manifeste de récupération reste intact."
+  ],
+  "debrief_fr": "Le MBR associe les premiers octets de code d'amorçage, quatre entrées de partitions et la signature 0x55AA. Sur un disque BIOS doté d'un schéma msdos, grub2-install peut écrire le code de démarrage et embarquer core.img dans l'espace d'alignement avant la première partition. Cela ne prouve pas un boot de ce disque : l'acceptation complète nécessitera un essai d'amorçage BIOS réel.",
+  "objective_ids": [
+    "102.2"
+  ],
+  "concept_ids": [
+    "lpic1.102.2.mbr-et-relation-avec-schema-de-boot"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-implemented"
+  ],
+  "estimated_minutes": 18,
+  "practice_context": "102.2.bios-mbr-rescue-bootcode",
+  "environment": {
+    "backend": "libvirt",
+    "image_ref": "fedora-44-x86_64-v2",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "full-machine",
+    "writable_guest_paths": [],
+    "machine": {
+      "firmware": "uefi",
+      "extra_disks": [
+        {
+          "id": "rescue",
+          "size_mb": 256
+        }
+      ]
+    }
+  },
+  "resources": {
+    "memory_mb": 1024,
+    "cpu_percent": 100,
+    "pids": 128,
+    "timeout_seconds": 2700
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -e; test \"$(lsblk -no PTTYPE /dev/vdb | head -1)\" = dos; test \"$(sfdisk -d /dev/vdb | sed -n '/^\\/dev\\/vdb1[[:space:]]/p')\" = \"$(cat /var/lib/lpic-mbr-rescue/partition-snapshot)\"; test \"$(dd if=/dev/vdb bs=1 skip=510 count=2 status=none | od -An -tx1 | tr -d ' \\n')\" = 55aa"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.2.mbr-et-relation-avec-schema-de-boot"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -e; dd if=/dev/vdb bs=440 count=1 status=none | strings | grep -Fq GRUB; test -s /mnt/lpic-bios-rescue/boot/grub2/i386-pc/core.img; test -s /mnt/lpic-bios-rescue/boot/grub2/grub.cfg"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.2.mbr-et-relation-avec-schema-de-boot"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -e; mountpoint -q /mnt/lpic-bios-rescue; grep -Fxq 'recovery-index=preserve-93' /mnt/lpic-bios-rescue/index.txt; test \"$(blkid -s LABEL -o value /dev/vdb1)\" = LPICBIOS"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.2.mbr-et-relation-avec-schema-de-boot"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.102.2.bios-mbr-rescue-bootcode.hint-1",
+    "lpic1.102.2.bios-mbr-rescue-bootcode.hint-2",
+    "lpic1.102.2.bios-mbr-rescue-bootcode.hint-3",
+    "lpic1.102.2.bios-mbr-rescue-bootcode.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}
