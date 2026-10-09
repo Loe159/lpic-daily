@@ -1,23 +1,27 @@
 {
   "schema_version": "1.0.0",
   "id": "lpic1.102.2.grub-kernel-parameter",
-  "title_fr": "Rendre un paramètre noyau persistant avec GRUB 2",
-  "brief_fr": "La VM Fedora démarre avec GRUB 2 visible sur la console série, mais le paramètre noyau lpic_daily_boot=phase2 est volontairement absent de sa configuration persistante. Utilise :console pour observer le chemin de boot si nécessaire, ajoute le paramètre, régénère grub.cfg puis redémarre avec :reboot. Le résultat doit être effectif au boot suivant.",
+  "title_fr": "Rétablir les messages de diagnostic au démarrage",
+  "brief_fr": "Depuis une maintenance, le serveur démarre mais les messages utiles au diagnostic du noyau et de systemd ne sont plus suffisamment visibles pendant son initialisation. L'exploitation demande le niveau de journalisation noyau 7 et l'affichage de l'état de démarrage systemd lors des prochains boots. Corrige cette configuration de manière persistante et constate qu'elle est effectivement utilisée après un vrai redémarrage de la VM. Préserve les autres paramètres noyau et la console série.",
   "success_criteria_fr": [
-    "La configuration GRUB 2 générée contient lpic_daily_boot=phase2.",
-    "Après :reboot, /proc/cmdline contient lpic_daily_boot=phase2."
+    "Les paramètres de diagnostic sont présents dans la configuration persistante du chargeur d'amorçage.",
+    "Le chargeur dispose d'une configuration actualisée avec ces paramètres.",
+    "Après redémarrage, le noyau et systemd démarrent réellement avec les paramètres demandés."
   ],
-  "debrief_fr": "La console série rend le bootloader observable avant userland, mais la réussite dépend de l'état persistant : modifier le fichier source ne suffit pas, GRUB 2 doit disposer d'une configuration régénérée puis un redémarrage réel doit charger le nouveau paramètre. Le checker observe la configuration générée et l'état du noyau après boot, sans imposer une suite de commandes.",
+  "debrief_fr": "Les paramètres noyau sont transmis par GRUB au moment du boot. Sur Fedora, les entrées BLS et les options gérées par grubby doivent être cohérentes avec la configuration GRUB générée. Un fichier source modifié ne prouve pas que le noyau a reçu les options : /proc/cmdline, après un vrai redémarrage, permet de vérifier l'effet final.",
   "objective_ids": [
-    "102.2"
+    "102.2",
+    "101.2"
   ],
   "concept_ids": [
     "lpic1.102.2.emplacement-configuration-du-bootloader",
-    "lpic1.102.2.generation-de-configuration-grub-2"
+    "lpic1.102.2.generation-de-configuration-grub-2",
+    "lpic1.101.2.parametres-noyau-au-boot"
   ],
   "labels": [
     "lpic-required",
-    "modern-practice"
+    "modern-practice",
+    "scenario-implemented"
   ],
   "estimated_minutes": 20,
   "practice_context": "grub-persistent-kernel-parameter",
@@ -45,10 +49,9 @@
     {
       "type": "command-exit",
       "argv": [
-        "/usr/bin/grep",
-        "-q",
-        "^GRUB_CMDLINE_LINUX=.*lpic_daily_boot=phase2",
-        "/etc/default/grub"
+        "/usr/bin/bash",
+        "-lc",
+        "grep -Eq '^GRUB_CMDLINE_LINUX=.*loglevel=7.*systemd.show_status=yes' /etc/default/grub || grep -Eq '^GRUB_CMDLINE_LINUX=.*systemd.show_status=yes.*loglevel=7' /etc/default/grub"
       ],
       "expected_exit": 0,
       "concept_ids": [
@@ -59,27 +62,25 @@
     {
       "type": "command-exit",
       "argv": [
-        "/usr/bin/grep",
-        "-q",
-        "lpic_daily_boot=phase2",
-        "/boot/grub2/grub.cfg"
+        "/usr/bin/bash",
+        "-lc",
+        "grep -Fq 'loglevel=7' /boot/grub2/grub.cfg && grep -Fq 'systemd.show_status=yes' /boot/grub2/grub.cfg"
       ],
       "expected_exit": 0,
       "concept_ids": [
-        "lpic1.102.2.emplacement-configuration-du-bootloader",
         "lpic1.102.2.generation-de-configuration-grub-2"
       ]
     },
     {
       "type": "command-exit",
       "argv": [
-        "/usr/bin/grep",
-        "-qw",
-        "lpic_daily_boot=phase2",
-        "/proc/cmdline"
+        "/usr/bin/bash",
+        "-lc",
+        "tr ' ' '\\n' < /proc/cmdline | grep -Fxq 'loglevel=7' && tr ' ' '\\n' < /proc/cmdline | grep -Fxq 'systemd.show_status=yes'"
       ],
       "expected_exit": 0,
       "concept_ids": [
+        "lpic1.101.2.parametres-noyau-au-boot",
         "lpic1.102.2.emplacement-configuration-du-bootloader"
       ]
     }
