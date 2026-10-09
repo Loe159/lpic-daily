@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "id": "lpic1.104.6.release-link-repair",
   "title_fr": "Réparer les liens d’une release",
-  "brief_fr": "Une release a été renommée et le pointeur current est cassé. Sous /workspace/releases, conserve app-v2.conf comme fichier de référence, crée un hard link archive-v2.conf vers le même inode, une copie indépendante snapshot-v2.conf, et répare le symlink /workspace/current.conf vers la nouvelle release. Vérifie aussi qu’un hard link vers un répertoire et qu’un hard link entre /workspace et /run/lpic sont refusés, puis note ces deux résultats dans limitations.txt.",
+  "brief_fr": "Depuis le déploiement de la version 2, le service lit une configuration introuvable et le mécanisme de sauvegarde de la release ne protège plus correctement ses fichiers. Diagnostique les références sous /workspace et restaure une configuration courante utilisable. L’archivage doit partager les données de la release active tandis que le snapshot doit rester indépendant. Préserve les fichiers de référence et documente dans limitations.txt les restrictions des liens physiques que tu constates.",
   "success_criteria_fr": [
     "archive-v2.conf et app-v2.conf partagent le même inode et le même contenu.",
     "snapshot-v2.conf a le même contenu mais un inode différent.",

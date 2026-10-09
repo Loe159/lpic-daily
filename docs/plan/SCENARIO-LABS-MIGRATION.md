@@ -50,6 +50,10 @@ Ordre de grandeur visé:
 
 Ces nombres sont des budgets, pas des quotas. Un scénario ne doit jamais absorber artificiellement des concepts uniquement pour réduire le nombre total de labs.
 
+## Règle éditoriale obligatoire — consignes orientées incident
+
+Toute consigne de lab doit décrire un contexte opérationnel, un symptôme observable, une mission exprimée en état ou comportement attendu et les contraintes de sécurité ou de conservation. Elle ne doit pas fournir une procédure, une liste ordonnée de manipulations, les commandes à utiliser ou les chemins précis à découvrir. Les critères de validation restent testables, mais n'imposent pas le chemin de résolution. Les indices progressifs portent les détails techniques nécessaires, et la solution de référence reste séparée. Cette règle s'applique à la migration et aux futures contributions ; toute consigne de type checklist de commandes doit être réécrite avant acceptation.
+
 ## 3. Principe pédagogique
 
 Un vrai lab LPIC-Daily suit cette boucle:
