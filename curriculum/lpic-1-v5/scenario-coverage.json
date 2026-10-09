@@ -473,6 +473,31 @@
       "backend": "libvirt",
       "status": "implemented",
       "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.104.3.busy-removable-volume",
+      "objective_ids": [
+        "104.3"
+      ],
+      "concept_ids": [
+        "lpic1.104.3.demontage-et-fichiers-occupes",
+        "lpic1.104.3.peripheriques-amovibles"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.104.3.mount-unit-incident",
+      "objective_ids": [
+        "104.3"
+      ],
+      "concept_ids": [
+        "lpic1.104.3.unites-mount-systemd"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
     }
   ]
 }

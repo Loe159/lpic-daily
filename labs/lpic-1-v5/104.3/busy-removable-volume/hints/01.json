@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.3.busy-removable-volume.hint-1",
+  "lab_id": "lpic1.104.3.busy-removable-volume",
+  "level": 1,
+  "content_fr": "Examine le point de montage et le message produit par une tentative de démontage normale.",
+  "evidence_impact": "none"
+}

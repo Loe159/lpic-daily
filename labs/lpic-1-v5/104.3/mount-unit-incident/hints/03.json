@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.3.mount-unit-incident.hint-3",
+  "lab_id": "lpic1.104.3.mount-unit-incident",
+  "level": 3,
+  "content_fr": "Le volume existe : le problème concerne son identification dans What, pas son formatage. Recharge la configuration après modification.",
+  "evidence_impact": "material"
+}
