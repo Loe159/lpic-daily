@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.1.btrfs-pool-report-recovery.hint-4",
+  "lab_id": "lpic1.104.1.btrfs-pool-report-recovery",
+  "level": 4,
+  "content_fr": "Réactive compress=zstd sur /srv/pool (remount) et crée un véritable sous-volume avec btrfs subvolume create /srv/pool/reports. Vérifie avec findmnt et btrfs subvolume show.",
+  "evidence_impact": "solution-revealed"
+}

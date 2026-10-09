@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.1.btrfs-pool-report-recovery.hint-3",
+  "lab_id": "lpic1.104.1.btrfs-pool-report-recovery",
+  "level": 3,
+  "content_fr": "L'espace de rapports doit être un sous-volume Btrfs ; les options du montage doivent également activer la compression zstd.",
+  "evidence_impact": "material"
+}

@@ -10,7 +10,8 @@
   ],
   "debrief_fr": "Les métadonnées d'un volume XFS se consultent avec les outils XFS (xfs_admin, xfs_db, xfs_repair). Une modification de certaines métadonnées impose le démontage préalable ; xfs_repair doit être utilisé hors ligne. Recréer le système de fichiers détruirait les données de l'archive.",
   "objective_ids": [
-    "104.1"
+    "104.1",
+    "104.2"
   ],
   "concept_ids": [
     "lpic1.104.1.xfs",
