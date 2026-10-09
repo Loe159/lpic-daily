@@ -632,6 +632,19 @@
       "backend": "libvirt",
       "status": "implemented",
       "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.102.1.uefi-rescue-media-recovery",
+      "objective_ids": [
+        "102.1"
+      ],
+      "concept_ids": [
+        "lpic1.102.1.efi-system-partition",
+        "lpic1.102.1.contraintes-boot-et-architecture"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "state"
     }
   ]
 }
