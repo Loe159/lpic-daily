@@ -1,0 +1,113 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.1.lvm-capacity-recovery",
+  "title_fr": "Rendre exploitable une extension de stockage LVM",
+  "brief_fr": "Le serveur de traitement a reçu un disque supplémentaire, mais l'application ne dispose toujours d'aucun espace de données disponible sous /srv/app-data. Le disque /dev/vdb est neuf ; l'administrateur doit l'intégrer dans une architecture LVM, afin de pouvoir étendre le stockage ultérieurement. Remets un volume de données ext4 en service sous /srv/app-data, avec au moins 256 MiB utiles. Préserve absolument le disque système /dev/vda.",
+  "success_criteria_fr": [
+    "Le nouveau disque possède une partition utilisée comme volume physique LVM.",
+    "Un groupe de volumes et un volume logique de données existent réellement et le volume logique a une taille d'au moins 256 MiB.",
+    "Le volume logique ext4 est monté sur /srv/app-data et accepte de nouvelles écritures."
+  ],
+  "debrief_fr": "LVM sépare le volume physique (PV), le groupe de volumes (VG) et le volume logique (LV). Un LV présente un périphérique bloc qui peut recevoir un système de fichiers et être monté comme un disque ordinaire. Les commandes pvs/vgs/lvs et findmnt permettent de contrôler les différentes couches sans se limiter à vérifier un simple répertoire.",
+  "objective_ids": [
+    "102.1"
+  ],
+  "concept_ids": [
+    "lpic1.102.1.principes-de-base-lvm",
+    "lpic1.102.1.partitions-et-points-de-montage"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-implemented"
+  ],
+  "estimated_minutes": 17,
+  "practice_context": "lvm-capacity-recovery",
+  "environment": {
+    "backend": "libvirt",
+    "image_ref": "fedora-44-x86_64-v2",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "full-machine",
+    "writable_guest_paths": [],
+    "machine": {
+      "firmware": "uefi",
+      "extra_disks": [
+        {
+          "id": "capacity",
+          "size_mb": 512
+        }
+      ]
+    }
+  },
+  "resources": {
+    "memory_mb": 1024,
+    "cpu_percent": 100,
+    "pids": 128,
+    "timeout_seconds": 2100
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test -b /dev/vdb1 && test \"$(lsblk -dn -o TYPE /dev/vdb1)\" = part && pvs --noheadings -o vg_name /dev/vdb1 | grep -Fq lpicvg"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.1.principes-de-base-lvm",
+        "lpic1.102.1.partitions-et-points-de-montage"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test -b /dev/lpicvg/data && test \"$(lvs --noheadings -o lv_size --units b --nosuffix /dev/lpicvg/data | awk '{printf \"%.0f\", $1}')\" -ge 268435456 && test \"$(blkid -s TYPE -o value /dev/lpicvg/data)\" = ext4"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.1.principes-de-base-lvm"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "src=$(findmnt -n --mountpoint /srv/app-data -o SOURCE 2>/dev/null); test -n \"$src\" && test \"$(readlink -f \"$src\")\" = \"$(readlink -f /dev/lpicvg/data)\" && test \"$(findmnt -n --mountpoint /srv/app-data -o FSTYPE)\" = ext4"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.1.partitions-et-points-de-montage",
+        "lpic1.102.1.principes-de-base-lvm"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test -d /srv/app-data && probe=$(mktemp /srv/app-data/.lpic-write.XXXXXX) && test -f \"$probe\" && rm -f \"$probe\""
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.1.partitions-et-points-de-montage"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.102.1.lvm-capacity-recovery.hint-1",
+    "lpic1.102.1.lvm-capacity-recovery.hint-2",
+    "lpic1.102.1.lvm-capacity-recovery.hint-3",
+    "lpic1.102.1.lvm-capacity-recovery.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

@@ -590,6 +590,19 @@
       "backend": "libvirt",
       "status": "implemented",
       "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.102.1.lvm-capacity-recovery",
+      "objective_ids": [
+        "102.1"
+      ],
+      "concept_ids": [
+        "lpic1.102.1.principes-de-base-lvm",
+        "lpic1.102.1.partitions-et-points-de-montage"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
     }
   ]
 }

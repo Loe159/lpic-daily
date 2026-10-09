@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.1.lvm-capacity-recovery.hint-2",
+  "lab_id": "lpic1.102.1.lvm-capacity-recovery",
+  "level": 2,
+  "content_fr": "Une partition nue ne fournit pas encore une architecture LVM ; examine les couches PV, VG et LV et l'espace disponible.",
+  "evidence_impact": "material"
+}

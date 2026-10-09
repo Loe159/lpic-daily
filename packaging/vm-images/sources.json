@@ -67,7 +67,8 @@
         "hostname",
         "sudo",
         "gcc",
-        "glibc-devel"
+        "glibc-devel",
+        "lvm2"
       ],
       "recipe": "fedora-cloud-v2"
     },
