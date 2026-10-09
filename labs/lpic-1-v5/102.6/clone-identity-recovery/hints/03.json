@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.6.clone-identity-recovery.hint-3",
+  "lab_id": "lpic1.102.6.clone-identity-recovery",
+  "level": 3,
+  "content_fr": "Pour la copie node-b, il faut générer un nouvel identifiant machine et une nouvelle paire de clés hôte.",
+  "evidence_impact": "none"
+}

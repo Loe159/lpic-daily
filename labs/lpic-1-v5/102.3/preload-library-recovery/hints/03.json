@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.3.preload-library-recovery.hint-3",
+  "lab_id": "lpic1.102.3.preload-library-recovery",
+  "level": 3,
+  "content_fr": "Une bibliothèque ELF du système peut servir de cible valide pour cette dépendance d’exercice.",
+  "evidence_impact": "none"
+}

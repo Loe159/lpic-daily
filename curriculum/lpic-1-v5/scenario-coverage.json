@@ -379,6 +379,33 @@
       "backend": "podman",
       "status": "accepted",
       "evidence_strength": "state"
+    },
+    {
+      "scenario_id": "lpic1.102.6.clone-identity-recovery",
+      "objective_ids": [
+        "102.6"
+      ],
+      "concept_ids": [
+        "lpic1.102.6.images-clones-et-templates",
+        "lpic1.102.6.identites-devant-etre-regenerees-lors-d-un-clonage"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "state"
+    },
+    {
+      "scenario_id": "lpic1.102.3.preload-library-recovery",
+      "objective_ids": [
+        "102.3"
+      ],
+      "concept_ids": [
+        "lpic1.102.3.resolution-des-dependances-dynamiques",
+        "lpic1.102.3.override-via-variables-d-environnement",
+        "lpic1.102.3.diagnostic-d-une-bibliotheque-manquante"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "state"
     }
   ]
 }

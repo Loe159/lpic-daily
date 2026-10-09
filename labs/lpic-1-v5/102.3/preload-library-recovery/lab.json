@@ -1,0 +1,99 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.3.preload-library-recovery",
+  "title_fr": "Réparer une dépendance de démarrage",
+  "brief_fr": "L’outil local /workspace/bin/run-report refuse de démarrer : son environnement demande une bibliothèque partagée absente. Remets en état les fichiers de la release sous /workspace sans désactiver le chargement de la bibliothèque. Le programme doit fonctionner depuis un nouveau shell et les anciennes données doivent rester intactes.",
+  "success_criteria_fr": [
+    "La bibliothèque de la release est chargeable par le linker dynamique.",
+    "Le lanceur conserve sa dépendance et démarre correctement.",
+    "Les données du rapport sont préservées."
+  ],
+  "debrief_fr": "Le chargeur dynamique résout les bibliothèques ELF lors du démarrage. LD_PRELOAD permet de charger une bibliothèque supplémentaire ; un fichier absent ou non ELF bloque le lancement. ldd et file peuvent aider à diagnostiquer les dépendances.",
+  "objective_ids": [
+    "102.3"
+  ],
+  "concept_ids": [
+    "lpic1.102.3.resolution-des-dependances-dynamiques",
+    "lpic1.102.3.override-via-variables-d-environnement",
+    "lpic1.102.3.diagnostic-d-une-bibliotheque-manquante"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-accepted"
+  ],
+  "estimated_minutes": 10,
+  "practice_context": "preload-library-recovery",
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "baseline",
+    "writable_guest_paths": [
+      "/workspace"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "cpu_percent": 100,
+    "pids": 96,
+    "timeout_seconds": 1200
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test -L /workspace/vendor/libreport.so && test -r /workspace/vendor/libreport.so && file -L /workspace/vendor/libreport.so | grep -q ELF"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.3.resolution-des-dependances-dynamiques",
+        "lpic1.102.3.override-via-variables-d-environnement",
+        "lpic1.102.3.diagnostic-d-une-bibliotheque-manquante"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test \"$(/workspace/bin/run-report 2>/dev/null)\" = 'report=green'"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.3.resolution-des-dependances-dynamiques",
+        "lpic1.102.3.override-via-variables-d-environnement",
+        "lpic1.102.3.diagnostic-d-une-bibliotheque-manquante"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "grep -q 'LD_PRELOAD=/workspace/vendor/libreport.so' /workspace/bin/run-report && grep -qx 'report=green' /workspace/data/report.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.3.resolution-des-dependances-dynamiques",
+        "lpic1.102.3.override-via-variables-d-environnement",
+        "lpic1.102.3.diagnostic-d-une-bibliotheque-manquante"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.102.3.preload-library-recovery.hint-1",
+    "lpic1.102.3.preload-library-recovery.hint-2",
+    "lpic1.102.3.preload-library-recovery.hint-3",
+    "lpic1.102.3.preload-library-recovery.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}
