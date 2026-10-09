@@ -13,7 +13,7 @@ cat > /tmp/lpic-wall-receiver.c <<'EOF'
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
-#include <sys/utmpx.h>
+#include <utmpx.h>
 #include <sys/time.h>
 #include <unistd.h>
 static volatile sig_atomic_t running = 1;
@@ -27,10 +27,6 @@ int main(int argc, char **argv) {
     if (strncmp(tty, "/dev/pts/", 9) != 0) return 2;
     snprintf(dest, sizeof dest, "/run/lpic-wall/tty-%s", name);
     snprintf(logpath, sizeof logpath, "/var/lib/lpic-wall/received-%s.log", name);
-    FILE *line = fopen(dest, "w");
-    if (!line) return 3;
-    fprintf(line, "%s\n", tty);
-    fclose(line);
     int log = open(logpath, O_CREAT | O_TRUNC | O_WRONLY, 0644);
     if (log < 0) return 4;
     struct utmpx entry;
@@ -40,11 +36,22 @@ int main(int argc, char **argv) {
     snprintf(entry.ut_id, sizeof entry.ut_id, "lw%s", name);
     snprintf(entry.ut_line, sizeof entry.ut_line, "%s", tty + 5);
     snprintf(entry.ut_user, sizeof entry.ut_user, "lpic-operator");
-    gettimeofday((struct timeval *)&entry.ut_tv, NULL);
+    struct timeval tv;
+    if (gettimeofday(&tv, NULL) != 0) return 5;
+    entry.ut_tv.tv_sec = tv.tv_sec;
+    entry.ut_tv.tv_usec = tv.tv_usec;
     setutxent();
     if (!pututxline(&entry)) return 5;
     endutxent();
-    signal(SIGTERM, stop);
+    FILE *line = fopen(dest, "w");
+    if (!line) return 3;
+    fprintf(line, "%s\n", tty);
+    fclose(line);
+    struct sigaction action;
+    memset(&action, 0, sizeof action);
+    action.sa_handler = stop;
+    sigemptyset(&action.sa_mask);
+    sigaction(SIGTERM, &action, NULL);
     char buf[1024];
     while (running) {
         ssize_t n = read(master, buf, sizeof buf);
