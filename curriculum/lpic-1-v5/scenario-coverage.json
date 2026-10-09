@@ -406,6 +406,20 @@
       "backend": "podman",
       "status": "implemented",
       "evidence_strength": "state"
+    },
+    {
+      "scenario_id": "lpic1.102.5.rpm-file-ownership-audit",
+      "objective_ids": [
+        "102.5"
+      ],
+      "concept_ids": [
+        "lpic1.102.5.format-base-rpm",
+        "lpic1.102.5.installation-et-requetes-rpm",
+        "lpic1.102.5.identifier-fichier-paquet"
+      ],
+      "backend": "podman",
+      "status": "implemented",
+      "evidence_strength": "artifact"
     }
   ]
 }

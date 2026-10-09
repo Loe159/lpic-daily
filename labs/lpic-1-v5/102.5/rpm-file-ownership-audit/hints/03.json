@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.5.rpm-file-ownership-audit.hint-3",
+  "lab_id": "lpic1.102.5.rpm-file-ownership-audit",
+  "level": 3,
+  "content_fr": "Utilise rpm -qf pour chaque binaire et rpm -ql pour le contenu de bash.",
+  "evidence_impact": "none"
+}

@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.5.rpm-file-ownership-audit.hint-2",
+  "lab_id": "lpic1.102.5.rpm-file-ownership-audit",
+  "level": 2,
+  "content_fr": "Il faut identifier le paquet propriétaire d’un fichier, puis obtenir les fichiers livrés par un paquet.",
+  "evidence_impact": "none"
+}
