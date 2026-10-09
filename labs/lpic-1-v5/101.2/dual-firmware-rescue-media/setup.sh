@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-for cmd in parted mkfs.ext4 mkfs.vfat sfdisk blkid; do command -v "$cmd" >/dev/null; done
+for cmd in parted mkfs.ext4 mkfs.vfat sfdisk blkid grub2-install; do command -v "$cmd" >/dev/null; done
 test -d /sys/firmware/efi
 test -b /dev/vdb && test -b /dev/vdc
 install -d -m 0755 /mnt/lpic-bios-rescue /mnt/lpic-efi-rescue /var/lib/lpic-dual-firmware
@@ -12,6 +12,9 @@ mkfs.ext4 -F -q -L LPICBIOS /dev/vdb1
 mkfs.vfat -F32 -n LPICUEFI /dev/vdc1
 mount /dev/vdb1 /mnt/lpic-bios-rescue
 mount /dev/vdc1 /mnt/lpic-efi-rescue
+install -d -m 0755 /mnt/lpic-bios-rescue/boot/grub2
+grub2-install --target=i386-pc --boot-directory=/mnt/lpic-bios-rescue/boot --recheck /dev/vdb
+test -s /mnt/lpic-bios-rescue/boot/grub2/i386-pc/core.img
 printf 'legacy-inventory=retain-35\n' > /mnt/lpic-bios-rescue/manifest.txt
 printf 'efi-inventory=retain-35\n' > /mnt/lpic-efi-rescue/manifest.txt
 mountpoint -q /boot/efi || mount /boot/efi

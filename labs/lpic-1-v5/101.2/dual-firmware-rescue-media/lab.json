@@ -4,11 +4,11 @@
   "title_fr": "Rétablir le support de démarrage UEFI sans toucher au disque BIOS",
   "brief_fr": "L'équipe conserve deux supports de dépannage : un ancien disque partitionné pour des machines BIOS et un nouveau support destiné aux machines UEFI. Sur cette VM UEFI, les fichiers EFI du nouveau support sont intacts, mais son emplacement n'est plus reconnu comme partition système EFI. Rétablis la découverte du support UEFI en conservant le contenu des deux disques, sans modifier le disque système.",
   "success_criteria_fr": [
-    "Le disque historique garde sa table de partitions MBR et ses données.",
+    "Le disque historique conserve sa table MBR, son chargeur BIOS GRUB 2 et ses données.",
     "Le support récent conserve une table GPT et sa partition FAT32 est à nouveau reconnue comme partition système EFI.",
     "Le chargeur UEFI et son contenu d'origine sont conservés et accessibles depuis le volume."
   ],
-  "debrief_fr": "BIOS charge traditionnellement le code du MBR d'un disque à partitions msdos ; UEFI lit un exécutable EFI sur une partition système EFI (ESP), généralement FAT32 sur GPT. La différence se vérifie dans la table de partitions, l'identifiant de type GPT et l'arborescence EFI, pas par la simple extension .efi. Un code de boot valide ou une ESP reconnue ne garantissent pas à eux seuls qu'un firmware externe choisira ce support.",
+  "debrief_fr": "BIOS charge traditionnellement le code de GRUB 2 contenu dans le MBR d'un disque à partitions msdos ; UEFI lit un exécutable EFI sur une partition système EFI (ESP), généralement FAT32 sur GPT. La différence se vérifie dans la table de partitions, l'identifiant de type GPT et l'arborescence EFI, pas par la simple extension .efi. Un code de boot valide ou une ESP reconnue ne garantissent pas à eux seuls qu'un firmware externe choisira ce support.",
   "objective_ids": [
     "101.2"
   ],
@@ -59,7 +59,7 @@
       "argv": [
         "/usr/bin/bash",
         "-lc",
-        "set -e; test -d /sys/firmware/efi; test \"$(lsblk -no PTTYPE /dev/vdb | head -1)\" = dos; test \"$(lsblk -no PTTYPE /dev/vdc | head -1)\" = gpt; test \"$(sfdisk -d /dev/vdb | sed -n '/^\\/dev\\/vdb1[[:space:]]/p')\" = \"$(cat /var/lib/lpic-dual-firmware/legacy-partition)\""
+        "set -e; test -d /sys/firmware/efi; test \"$(lsblk -no PTTYPE /dev/vdb | head -1)\" = dos; test \"$(lsblk -no PTTYPE /dev/vdc | head -1)\" = gpt; test \"$(sfdisk -d /dev/vdb | sed -n '/^\\/dev\\/vdb1[[:space:]]/p')\" = \"$(cat /var/lib/lpic-dual-firmware/legacy-partition)\"; test -s /mnt/lpic-bios-rescue/boot/grub2/i386-pc/core.img; dd if=/dev/vdb bs=440 count=1 status=none | strings | grep -Fq GRUB"
       ],
       "expected_exit": 0,
       "concept_ids": [

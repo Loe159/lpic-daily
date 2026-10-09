@@ -144,7 +144,7 @@ Deux nouveaux scénarios `implemented`, sans essais KVM :
 
 ### Lot complémentaire — 9 octobre 2026 (supports BIOS et UEFI)
 
-`101.2.dual-firmware-rescue-media` est **implemented** : la VM UEFI présente deux disques de secours réels, un disque à table MBR historique et un disque GPT contenant un volume FAT32 et un exécutable EFI conservé. Un mauvais type GPT rend l'ESP méconnaissable ; le diagnostic consiste à réparer **uniquement le type de partition UEFI**, tout en préservant le manifeste MBR et le contenu des deux volumes. Le lab vérifie les véritables signatures de partition, le GUID EFI, le montage et l'intégrité des données. **Ce n'est pas un essai d'amorçage firmware d'un support externe**, donc il reste à valider.
+`101.2.dual-firmware-rescue-media` est **implemented** : la VM UEFI présente deux disques de secours réels, un disque MBR doté d'un vrai chargeur GRUB BIOS et un disque GPT contenant un volume FAT32 et un exécutable EFI conservé. Un mauvais type GPT rend l'ESP méconnaissable ; le diagnostic consiste à réparer **uniquement le type de partition UEFI**, tout en préservant le manifeste MBR et le contenu des deux volumes. Le lab vérifie les véritables signatures de partition, le GUID EFI, le montage et l'intégrité des données. **Ce n'est pas un essai d'amorçage firmware d'un support externe**, donc il reste à valider.
 
 **Couverture LPIC-101 : 80 acceptés, 72 uniquement implémentés, 10 sans scénario.** Les validations réelles sur KVM, l'absence de modification du disque système et les tests setup rouge / référence verte / reset rouge restent nécessaires. Aucune CI ni essai VM revendiqué.
 
