@@ -73,7 +73,8 @@
         "createrepo_c",
         "pciutils",
         "kmod",
-        "kernel-modules-extra"
+        "kernel-modules-extra",
+        "NetworkManager"
       ],
       "recipe": "fedora-cloud-v2"
     },

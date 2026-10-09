@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.6.virtual-disk-network-recovery.hint-3",
+  "lab_id": "lpic1.102.6.virtual-disk-network-recovery",
+  "level": 3,
+  "content_fr": "Deux ressources distinctes sont à réparer : le volume ext4 défini par LABEL dans fstab et la connexion NetworkManager de l'interface virtuelle.",
+  "evidence_impact": "material"
+}

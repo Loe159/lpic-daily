@@ -107,6 +107,12 @@ Deux nouveaux scénarios `implemented`, sans validation runtime :
 
 **Couverture LPIC-101 : 80 acceptés, 62 uniquement implémentés, 20 sans scénario.** La CI, les essais de reboot/VM, les checks négatifs, la solution de référence et les resets restent à exécuter avant toute acceptation. Le lab GRUB doit être relancé via le terminal parent pour la vérification du boot.
 
+### Lot complémentaire — 9 octobre 2026 (récupération des ressources virtuelles)
+
+`102.6.virtual-disk-network-recovery` est **implemented** : un disque ext4 secondaire avec son journal intact et une interface NetworkManager déconnectée doivent être remis en service sur un véritable réseau libvirt **isolé**, sans Internet. La recette Fedora ajoute explicitement `NetworkManager`, et doit être reconstruite avant l'essai.
+
+**Couverture LPIC-101 : 80 acceptés, 63 uniquement implémentés, 19 sans scénario.** Ce lab n'est pas une preuve de pilotes de périphériques, de conteneurs ou de cloud-init : il couvre uniquement les ressources virtuelles de stockage et de réseau. Les tests VM, les états rouge/vert/reset, la sécurité du réseau et la CI restent à effectuer.
+
 ## 1. Pourquoi cette migration
 
 Le curriculum contient actuellement 309 concepts actifs:

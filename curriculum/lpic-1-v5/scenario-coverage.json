@@ -768,6 +768,18 @@
       "backend": "libvirt",
       "status": "implemented",
       "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.102.6.virtual-disk-network-recovery",
+      "objective_ids": [
+        "102.6"
+      ],
+      "concept_ids": [
+        "lpic1.102.6.ressources-virtuelles-block-network"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
     }
   ]
 }
