@@ -4,11 +4,10 @@
   "title_fr": "Rétablir les messages de diagnostic au démarrage",
   "brief_fr": "Depuis une maintenance, le serveur démarre mais les messages utiles au diagnostic du noyau et de systemd ne sont plus suffisamment visibles pendant son initialisation. L'exploitation demande le niveau de journalisation noyau 7 et l'affichage de l'état de démarrage systemd lors des prochains boots. Corrige cette configuration de manière persistante et constate qu'elle est effectivement utilisée après un vrai redémarrage de la VM. Préserve les autres paramètres noyau et la console série.",
   "success_criteria_fr": [
-    "Les paramètres de diagnostic sont présents dans la configuration persistante du chargeur d'amorçage.",
-    "Le chargeur dispose d'une configuration actualisée avec ces paramètres.",
-    "Après redémarrage, le noyau et systemd démarrent réellement avec les paramètres demandés."
+    "Les entrées GRUB 2 réellement utilisées par le chargeur contiennent les paramètres de diagnostic souhaités.",
+    "Après un vrai redémarrage, le noyau et systemd démarrent avec les paramètres attendus et la console série reste utilisable."
   ],
-  "debrief_fr": "Les paramètres noyau sont transmis par GRUB au moment du boot. Sur Fedora, les entrées BLS et les options gérées par grubby doivent être cohérentes avec la configuration GRUB générée. Un fichier source modifié ne prouve pas que le noyau a reçu les options : /proc/cmdline, après un vrai redémarrage, permet de vérifier l'effet final.",
+  "debrief_fr": "Fedora utilise des entrées de démarrage BLS ; les options effectives peuvent être stockées dans les entrées plutôt que recopiées littéralement dans grub.cfg. grubby --info=DEFAULT vérifie l'entrée réellement sélectionnée. /proc/cmdline, observé après reboot, prouve que le noyau reçoit les paramètres. Une mise à jour des entrées sans redémarrage n'est pas une validation complète.",
   "objective_ids": [
     "102.2",
     "101.2"
@@ -51,7 +50,7 @@
       "argv": [
         "/usr/bin/bash",
         "-lc",
-        "grep -Eq '^GRUB_CMDLINE_LINUX=.*loglevel=7.*systemd.show_status=yes' /etc/default/grub || grep -Eq '^GRUB_CMDLINE_LINUX=.*systemd.show_status=yes.*loglevel=7' /etc/default/grub"
+        "test -s /boot/grub2/grub.cfg && grubby --info=DEFAULT | grep -Fq 'loglevel=7' && grubby --info=DEFAULT | grep -Fq 'systemd.show_status=yes'"
       ],
       "expected_exit": 0,
       "concept_ids": [
@@ -64,24 +63,13 @@
       "argv": [
         "/usr/bin/bash",
         "-lc",
-        "grep -Fq 'loglevel=7' /boot/grub2/grub.cfg && grep -Fq 'systemd.show_status=yes' /boot/grub2/grub.cfg"
-      ],
-      "expected_exit": 0,
-      "concept_ids": [
-        "lpic1.102.2.generation-de-configuration-grub-2"
-      ]
-    },
-    {
-      "type": "command-exit",
-      "argv": [
-        "/usr/bin/bash",
-        "-lc",
         "tr ' ' '\\n' < /proc/cmdline | grep -Fxq 'loglevel=7' && tr ' ' '\\n' < /proc/cmdline | grep -Fxq 'systemd.show_status=yes'"
       ],
       "expected_exit": 0,
       "concept_ids": [
-        "lpic1.101.2.parametres-noyau-au-boot",
-        "lpic1.102.2.emplacement-configuration-du-bootloader"
+        "lpic1.102.2.emplacement-configuration-du-bootloader",
+        "lpic1.102.2.generation-de-configuration-grub-2",
+        "lpic1.101.2.parametres-noyau-au-boot"
       ]
     }
   ],

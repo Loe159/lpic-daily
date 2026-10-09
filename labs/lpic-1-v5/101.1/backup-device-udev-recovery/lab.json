@@ -69,7 +69,7 @@
       "argv": [
         "/usr/bin/bash",
         "-lc",
-        "udevadm info --query=property --name=/dev/vdb | grep -E '^DEVLINKS=.*(^|[[:space:]])/dev/lpic-backup([[:space:]]|$)'"
+        "udevadm info --query=property --name=/dev/vdb | awk -F= '/^DEVLINKS=/ {n=split($2,v,\" \"); for(i=1;i<=n;i++) if(v[i]==\"/dev/lpic-backup\")found=1} END{exit !found}'"
       ],
       "expected_exit": 0,
       "concept_ids": [
