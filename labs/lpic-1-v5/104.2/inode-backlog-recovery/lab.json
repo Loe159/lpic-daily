@@ -1,0 +1,95 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.2.inode-backlog-recovery",
+  "title_fr": "Assainir un spool saturé en petits fichiers",
+  "brief_fr": "Le serveur de rapports signale « No space left on device » malgré une consommation en Mo modérée. Examine l’occupation en blocs et en inodes, puis nettoie uniquement les anciens accusés de réception sous /workspace/spool/ack/stale. Conserve les accusés récents, les rapports et l’archive de référence : le service doit retrouver une file d’attente exploitable.",
+  "success_criteria_fr": [
+    "Les anciens accusés sont entièrement supprimés, sans effacer les répertoires utiles.",
+    "Les accusés récents et les rapports de production sont préservés sans altération.",
+    "L’archive de référence est toujours intacte ; le nettoyage cible les nombreux petits fichiers plutôt que les gros fichiers utiles."
+  ],
+  "debrief_fr": "df -h mesure l’espace en blocs et df -i le nombre d’inodes disponibles. De nombreux fichiers minuscules peuvent épuiser les inodes sans remplir les blocs. Une erreur ENOSPC n’implique donc pas forcément un gros fichier à supprimer. du aide à comparer les volumes et find à cibler les fichiers obsolètes. Le contrôle porte sur l’état final et la conservation des données.",
+  "objective_ids": [
+    "104.2"
+  ],
+  "concept_ids": [
+    "lpic1.104.2.occupation-blocs-inodes",
+    "lpic1.104.2.symptomes-de-corruption-espace-epuise"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-accepted"
+  ],
+  "estimated_minutes": 9,
+  "practice_context": "inode-backlog-recovery",
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "baseline",
+    "writable_guest_paths": [
+      "/workspace"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "cpu_percent": 100,
+    "pids": 96,
+    "timeout_seconds": 1200
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test -d /workspace/spool/ack/stale && test -z \"$(find /workspace/spool/ack/stale -type f -print -quit)\""
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.2.occupation-blocs-inodes",
+        "lpic1.104.2.symptomes-de-corruption-espace-epuise"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test \"$(find /workspace/spool/ack/recent -maxdepth 1 -type f | wc -l)\" -eq 3 && for n in 1 2 3; do grep -qx \"ack=current-$n\" /workspace/spool/ack/recent/current-$n.ack || exit 1; done"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.2.occupation-blocs-inodes",
+        "lpic1.104.2.symptomes-de-corruption-espace-epuise"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "grep -qx 'report=production' /workspace/reports/current.txt && grep -qx 'do-not-delete=reference-archive' /workspace/archive/reference.tar.note && test -s /workspace/archive/reference.bin"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.2.occupation-blocs-inodes",
+        "lpic1.104.2.symptomes-de-corruption-espace-epuise"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.104.2.inode-backlog-recovery.hint-1",
+    "lpic1.104.2.inode-backlog-recovery.hint-2",
+    "lpic1.104.2.inode-backlog-recovery.hint-3",
+    "lpic1.104.2.inode-backlog-recovery.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

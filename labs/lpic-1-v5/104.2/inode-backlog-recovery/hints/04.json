@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.2.inode-backlog-recovery.hint-4",
+  "lab_id": "lpic1.104.2.inode-backlog-recovery",
+  "level": 4,
+  "content_fr": "Commande possible : find /workspace/spool/ack/stale -type f -delete. Vérifie ensuite les accusés récents et les rapports.",
+  "evidence_impact": "solution-revealed"
+}

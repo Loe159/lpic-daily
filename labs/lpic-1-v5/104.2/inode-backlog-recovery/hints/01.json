@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.2.inode-backlog-recovery.hint-1",
+  "lab_id": "lpic1.104.2.inode-backlog-recovery",
+  "level": 1,
+  "content_fr": "Compare l’occupation en blocs et en inodes avant d’effacer des données. Quel répertoire rassemble le plus de fichiers ?",
+  "evidence_impact": "none"
+}

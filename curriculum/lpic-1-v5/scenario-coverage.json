@@ -366,6 +366,19 @@
       "backend": "libvirt",
       "status": "implemented",
       "evidence_strength": "state"
+    },
+    {
+      "scenario_id": "lpic1.104.2.inode-backlog-recovery",
+      "objective_ids": [
+        "104.2"
+      ],
+      "concept_ids": [
+        "lpic1.104.2.occupation-blocs-inodes",
+        "lpic1.104.2.symptomes-de-corruption-espace-epuise"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "state"
     }
   ]
 }
