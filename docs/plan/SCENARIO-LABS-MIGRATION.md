@@ -50,6 +50,14 @@ Quatre incidents supplémentaires sont `implemented` :
 
 État de couverture LPIC-101 après le lot, selon `scenario-coverage.json` : **80/162 acceptés**, **41/162 supplémentaires implémentés sans validation runtime**, **41/162 non encore couverts**. Les objectifs **104.1 (8/8)**, **102.3 (5/5)** et **102.4 (7/7)** sont maintenant entièrement implémentés mais **pas acceptés**. Contrôle statique du mapping concepts/checks et des métadonnées des quatre nouveaux labs : aucune incohérence. **Ni CI ni tests réels Podman/KVM n'ont été exécutés pour ces scénarios**. Les recettes d'image modifiées devront être reconstruites et revérifiées avant l'acceptation.
 
+### Complément du lot — 9 octobre 2026 (extension LVM)
+
+`102.1.lvm-capacity-recovery` est désormais `implemented` : un disque additionnel doit être intégré comme partition/PV, VG et LV pour rétablir le point de montage ext4 de l'application. La recette VM Fedora inclut `lvm2`. La validation doit porter sur les véritables volumes bloc et le montage, et non sur un fichier de preuve.
+
+**Couverture matricielle actuelle LPIC-101 : 80/162 concepts acceptés, 43/162 uniquement implémentés, 39/162 sans scénario.** Ce compteur résulte de la matrice et des fichiers de concepts ; il ne représente pas un taux de réussite aux tests. Les cinq scénarios de ce lot ont passé une revue statique de leurs correspondances concept/check/backend/labels, sans anomalie constatée. Les quatre niveaux d'indices, setups, références et validations réelles nécessitent toujours l'exécution de la suite de tests. **CI et essais de VM non exécutés à cette étape.**
+
+Note sur les images : la recette Fedora doit maintenant être reconstruite avec `exfatprogs`, `gcc`, `glibc-devel` et `lvm2`, et la recette Debian avec `debconf`, avant les tests de lab correspondants.
+
 ## 1. Pourquoi cette migration
 
 Le curriculum contient actuellement 309 concepts actifs:
