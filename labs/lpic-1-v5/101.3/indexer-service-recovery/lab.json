@@ -1,0 +1,92 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.3.indexer-service-recovery",
+  "title_fr": "Remettre en service l'indexeur après maintenance",
+  "brief_fr": "Depuis la dernière maintenance, l'indexeur de journaux ne démarre plus sur la VM, alors qu'il doit rester opérationnel après chaque démarrage. Les journaux du serveur sont disponibles, mais l'unité système de cet indexeur est en échec. Diagnostique et rétablis son fonctionnement, sans masquer l'échec ni supprimer son activation automatique ou sa dépendance de démarrage.",
+  "success_criteria_fr": [
+    "L'unité lpic-indexer.service fonctionne réellement et reste active.",
+    "Le service est toujours activé pour les prochains démarrages.",
+    "L'ordre de démarrage défini pour le service est préservé."
+  ],
+  "debrief_fr": "systemctl status et journalctl -u permettent de diagnostiquer un service systemd. Une unité peut être enabled mais failed : activation au démarrage et fonctionnement courant sont deux états distincts. Après correction de la configuration d'une unité, systemctl daemon-reload recharge ses fichiers.",
+  "objective_ids": [
+    "101.3"
+  ],
+  "concept_ids": [
+    "lpic1.101.3.services-et-dependances-de-demarrage"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-implemented"
+  ],
+  "estimated_minutes": 12,
+  "practice_context": "indexer-service-recovery",
+  "environment": {
+    "backend": "libvirt",
+    "image_ref": "fedora-44-x86_64-v2",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "full-machine",
+    "writable_guest_paths": [],
+    "machine": {
+      "firmware": "uefi"
+    }
+  },
+  "resources": {
+    "memory_mb": 1024,
+    "cpu_percent": 100,
+    "pids": 128,
+    "timeout_seconds": 1500
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "systemctl is-active --quiet lpic-indexer.service && test \"$(systemctl show -p LoadState --value lpic-indexer.service)\" = loaded"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.101.3.services-et-dependances-de-demarrage"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "systemctl is-enabled --quiet lpic-indexer.service"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.101.3.services-et-dependances-de-demarrage"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "systemctl show -p After --value lpic-indexer.service | tr ' ' '\\n' | grep -Fxq 'network.target' && systemctl show -p Wants --value lpic-indexer.service | tr ' ' '\\n' | grep -Fxq 'network.target'"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.101.3.services-et-dependances-de-demarrage"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.101.3.indexer-service-recovery.hint-1",
+    "lpic1.101.3.indexer-service-recovery.hint-2",
+    "lpic1.101.3.indexer-service-recovery.hint-3",
+    "lpic1.101.3.indexer-service-recovery.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}
