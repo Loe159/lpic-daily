@@ -46,6 +46,7 @@ def main():
 
     errors = []
     accepted_coverage = defaultdict(set)
+    implemented_coverage = defaultdict(set)
     scenario_contexts = defaultdict(set)
     strengths = Counter()
     accepted_ids = set()
@@ -105,6 +106,8 @@ def main():
             if status == "accepted":
                 accepted_coverage[concept_id].add(scenario_id)
                 scenario_contexts[concept_id].add(lab.get("practice_context", ""))
+            elif status == "implemented":
+                implemented_coverage[concept_id].add(scenario_id)
 
     labelled = {
         lab_id for lab_id, (lab, _) in labs.items()
@@ -128,6 +131,12 @@ def main():
 
     active_ids = set(active)
     accepted_ids_by_concept = set(accepted_coverage)
+    implemented_only_ids = set(implemented_coverage) - accepted_ids_by_concept
+    no_scenario_ids = active_ids - accepted_ids_by_concept - set(implemented_coverage)
+    exam101_ids = {
+        cid for cid, concept in active.items()
+        if concept["objective_id"].split(".", 1)[0] in {"101", "102", "103", "104"}
+    }
     fallback_generation_enabled = (ROOT / "internal" / "lab" / "generated.go").is_file()
     fallback_only = active_ids - accepted_ids_by_concept if fallback_generation_enabled else set()
     without_practice = (
@@ -154,6 +163,13 @@ def main():
         f"fully-migrated-objectives={len(fully_migrated)}"
     )
     print(f"Evidence strength: {strength_summary}")
+    print(
+        "Exam 101 scenario migration: "
+        f"accepted-covered={len(exam101_ids & accepted_ids_by_concept)}; "
+        f"implemented-only={len(exam101_ids & implemented_only_ids)}; "
+        f"not-implemented={len(exam101_ids & no_scenario_ids)}; "
+        f"active={len(exam101_ids)}"
+    )
     if fully_migrated:
         print("Migrated objectives: " + ", ".join(sorted(fully_migrated)))
 

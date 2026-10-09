@@ -148,6 +148,23 @@ Deux nouveaux scénarios `implemented`, sans essais KVM :
 
 **Couverture LPIC-101 : 80 acceptés, 72 uniquement implémentés, 10 sans scénario.** Les validations réelles sur KVM, l'absence de modification du disque système et les tests setup rouge / référence verte / reset rouge restent nécessaires. Aucune CI ni essai VM revendiqué.
 
+### Remaining migration blockers — 9 octobre 2026
+
+Les **10 concepts du LPIC-101 sans scénario** ne doivent pas être considérés comme implémentés par simple rapprochement de mots-clés. Préparer les moyens d'évaluation suivants avant d'écrire des tests de conformité :
+
+| Concepts encore sans scénario | Critère de preuve manquant |
+| --- | --- |
+| 101.1 — bus PCI/USB et manipulation USB | Dispositif USB réellement énuméré / déconnecté / réattaché ; `lsusb`, `udevadm` et sysfs doivent suivre le même matériel ; prévoir un périphérique USB virtuel contrôlé par la VM et un cycle hotplug reproductible. |
+| 101.1 — familles de stockage | Comparaison sur de **vrais** périphériques de types différents (p. ex. NVMe, SCSI/virtio, amovible) exposés par libvirt ; ajouter au contrat du runner les bus requis plutôt que ré-étiqueter deux images loopback. |
+| 101.1 — activation/désactivation de périphériques intégrés | Tester un changement de contrôleur dans un firmware ou hyperviseur équivalent et le rattachement au noyau, pas simplement la création d'un lien sous /dev. |
+| 101.2 — SysVinit vs systemd et Upstart historique | Environnements isolés adaptés aux anciens init (ou preuve décisionnelle explicitement justifiée) ; ne pas faire passer un service systemd seul pour une exécution Upstart. |
+| 101.3 — mode mono-utilisateur/récupération | Démarrer réellement en rescue/emergency tout en préservant un canal fiable de contrôle et de reset de la VM ; valider la cible active et le retour à un mode normal. |
+| 101.3 — événements ACPI | Générer un **vrai** événement bouton/alimentation côté hyperviseur et observer le traitement par l'OS invité ; un simple fichier de log ACPI simulé ne compte pas. |
+| 102.2 — GRUB Legacy vs GRUB 2 | Mettre à disposition un environnement legacy pertinent ou des images de supports de démarrage réellement différenciées ; l'utilisation de deux entrées GRUB 2 n'est pas une preuve de GRUB Legacy. |
+| 102.2 / 101.2 — interaction au menu/console GRUB et commandes du chargeur | Capture de console série au démarrage, saisie dans le menu/éditeur GRUB et validation d'une modification **temporaire** dans `/proc/cmdline` sans modification de la configuration persistante. |
+
+Ces prérequis impliquent probablement des évolutions ciblées du runner VM et de son harnais d'acceptation. Les 72 concepts uniquement `implemented` constituent en parallèle une dette distincte : ils ne pourront être promus à `accepted` qu'après setup → échec attendu, solution de référence → succès, reset → nouvel échec, review pédagogique et contrôle de l'isolation. Les retours d'échec de KVM / Podman doivent être corrigés **avant** la fusion.
+
 ## 1. Pourquoi cette migration
 
 Le curriculum contient actuellement 309 concepts actifs:
