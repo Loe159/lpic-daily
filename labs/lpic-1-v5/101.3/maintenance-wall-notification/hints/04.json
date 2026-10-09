@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.3.maintenance-wall-notification.hint-4",
+  "lab_id": "lpic1.101.3.maintenance-wall-notification",
+  "level": 4,
+  "content_fr": "Envoie le texte demandé à wall, par exemple avec printf '%s\\n' 'Maintenance du stockage a 18h : terminer les operations en cours.' | wall. Vérifie ensuite les deux destinataires.",
+  "evidence_impact": "solution-revealed"
+}

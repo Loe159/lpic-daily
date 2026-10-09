@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.3.maintenance-wall-notification.hint-1",
+  "lab_id": "lpic1.101.3.maintenance-wall-notification",
+  "level": 1,
+  "content_fr": "Les deux opérateurs restent sur des terminaux distincts. Vérifie leur présence puis identifie un outil Linux de diffusion aux utilisateurs connectés.",
+  "evidence_impact": "none"
+}

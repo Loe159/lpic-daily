@@ -128,6 +128,12 @@ Trois incidents KVM sont **implemented**, sans acceptation runtime :
 
 La recette Fedora ajoute explicitement `dracut`, `grub2-tools`, `grub2-pc-modules` et `grub2-pc`. Elle doit être reconstruite avant test. **Couverture LPIC-101 : 80 acceptés, 68 uniquement implémentés, 14 sans scénario.** Aucun test KVM ni CI n'est exécuté dans ce lot. Toutes les références doivent encore être éprouvées, ainsi que les resets, la sécurité du disque système et le reboot réel.
 
+### Lot complémentaire — 9 octobre 2026 (notification multi-session)
+
+`101.3.maintenance-wall-notification` est **implemented** : un récepteur isolé construit deux pseudo-terminaux réels enregistrés dans utmp ; l'apprenant doit diffuser un même avis aux deux sessions avec `wall` ou une méthode réellement équivalente. Le check lit les caractères réellement reçus par chaque PTY, pas une attestation écrite par l'apprenant ; les deux récepteurs doivent rester actifs. La recette Fedora comporte déjà `gcc` et `glibc-devel`.
+
+**Couverture LPIC-101 : 80 acceptés, 69 uniquement implémentés, 13 sans scénario.** Il faut impérativement tester dans la VM si Fedora `wall` trouve les sessions utmp synthétiques et transmet les caractères aux deux PTY. En cas d'échec, ce scénario doit être corrigé plutôt que marqué accepted. La CI, les tests red/green/reset et la vérification de l'isolation restent à effectuer.
+
 ## 1. Pourquoi cette migration
 
 Le curriculum contient actuellement 309 concepts actifs:
