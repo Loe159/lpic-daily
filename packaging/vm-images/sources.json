@@ -71,7 +71,9 @@
         "lvm2",
         "rpm-build",
         "createrepo_c",
-        "pciutils"
+        "pciutils",
+        "kmod",
+        "kernel-modules-extra"
       ],
       "recipe": "fedora-cloud-v2"
     },

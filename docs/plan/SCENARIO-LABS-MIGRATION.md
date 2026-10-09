@@ -91,6 +91,14 @@ Deux incidents réels supplémentaires sont `implemented`, **sans acceptation ru
 
 **Couverture LPIC-101 : 80 acceptés, 58 uniquement implémentés, 24 sans scénario.** Nouveau concept explicitement démontré : le rôle de /proc, /sys et /dev ; l'identification de ressources matérielles est renforcée. Cet incident PCI ne prouve pas à lui seul l'objectif complet « bus PCI et USB » ni celui de l'activation des périphériques intégrés au firmware : ils restent **non couverts**, de même que la manipulation USB, les modules spécifiques et les familles de stockage. Validation restante : setup rouge, solution verte, reset rouge, absence d'impact sur le disque système et tests libvirt/CI. Rien de cela n'est revendiqué comme exécuté.
 
+### Lot complémentaire — 9 octobre 2026 (module noyau et maintenance)
+
+Deux incidents KVM supplémentaires **implemented**, non acceptés :
+- `101.1.ramdisk-module-recovery` : rétablir un vrai module `brd`, reconstruire un système de fichiers RAM éphémère et récupérer un cache depuis une source durable ; la recette Fedora ajoute `kmod` et `kernel-modules-extra`. Ne revendique pas la connaissance de toute l'interface USB.
+- `101.3.graceful-maintenance-transition` : arrêter proprement un vrai worker systemd via une cible applicative, prouver le traitement de SIGTERM et préserver QEMU Guest Agent. Ne revendique ni `shutdown` réel ni modes SysV.
+
+**Couverture LPIC-101 : 80 acceptés, 60 uniquement implémentés, 22 sans scénario.** Les deux nouveaux scénarios nécessitent la reconstruction de l'image Fedora et l'exécution setup rouge → référence verte → reset rouge ; aucune CI ni KVM n'est déclarée exécutée.
+
 ## 1. Pourquoi cette migration
 
 Le curriculum contient actuellement 309 concepts actifs:
