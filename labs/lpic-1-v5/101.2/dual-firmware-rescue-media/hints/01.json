@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.2.dual-firmware-rescue-media.hint-1",
+  "lab_id": "lpic1.101.2.dual-firmware-rescue-media",
+  "level": 1,
+  "content_fr": "Compare les tables de partitions des deux supports et identifie celui dont le firmware UEFI attend les fichiers.",
+  "evidence_impact": "none"
+}

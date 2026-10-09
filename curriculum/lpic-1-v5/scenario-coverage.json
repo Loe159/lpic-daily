@@ -855,6 +855,18 @@
       "backend": "libvirt",
       "status": "implemented",
       "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.101.2.dual-firmware-rescue-media",
+      "objective_ids": [
+        "101.2"
+      ],
+      "concept_ids": [
+        "lpic1.101.2.bios-versus-uefi"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "state"
     }
   ]
 }
