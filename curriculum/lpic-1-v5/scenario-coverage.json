@@ -645,6 +645,19 @@
       "backend": "libvirt",
       "status": "implemented",
       "evidence_strength": "state"
+    },
+    {
+      "scenario_id": "lpic1.101.1.backup-device-udev-recovery",
+      "objective_ids": [
+        "101.1"
+      ],
+      "concept_ids": [
+        "lpic1.101.1.ressources-et-identification-du-materiel",
+        "lpic1.101.1.sysfs-udev-et-d-bus-comme-couches-de-decouverte-gestion"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
     }
   ]
 }
