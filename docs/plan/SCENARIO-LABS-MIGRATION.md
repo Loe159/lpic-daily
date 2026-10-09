@@ -10,6 +10,23 @@ Le premier lot implémente la matrice de couverture, son audit CI et le filtrage
 
 Le scénario de référence est "lpic1.103.1.shell-environment-repair": un environnement est volontairement placé dans un état incorrect, l'apprenant doit investiguer librement, corriger le système, puis LPIC-Daily valide le comportement réel obtenu dans un environnement neuf.
 
+## Point d'avancement — 9 octobre 2026 (branche `scenario-migration-1031`)
+
+Couverture LPIC-101 (162 concepts actifs, chiffres issus de la matrice) :
+- **80** concepts disposent d'un scénario `accepted` (topic 103 complet et 104.5 à 104.7).
+- **24** concepts supplémentaires figurent dans des scénarios `implemented`, **non encore acceptés** (notamment 101.3, 102.3/102.5/102.6, 104.1 à 104.3).
+- **58** concepts n'ont pas encore de scénario `accepted` ou `implemented`.
+
+Nouveaux scénarios de ce lot :
+- `104.2.offline-ext-audit-recovery` : contrôle, réparation et réglage réels d'une image ext4 hors ligne (Podman, 3 concepts) ;
+- `104.3.archive-mount-recovery` : restauration d'un vrai montage et de la persistance fstab/UUID (KVM, 4 concepts) ;
+- `101.3.default-target-recovery` : correction de la cible systemd par défaut (KVM, 1 concept) ;
+- `101.3.indexer-service-recovery` : correction d'un service systemd défaillant (KVM, 1 concept).
+
+Les instructions des agents sont harmonisées dans `AGENTS.md`, `labs/AGENTS.md`, `curriculum/AGENTS.md`, `.agents/skills/author-lab/SKILL.md` et `docs/CONTRIBUTING_WITH_AGENTS.md`. **Incident réel, symptomatique, mission de récupération et preuve d'état** sont désormais le modèle exigé. Les scénarios ne peuvent pas être considérés `accepted` avant exécution du setup, test négatif, solution de référence, reset, review pédagogique et contrôle du backend. Ce lot est un travail d'**implémentation**, sans revendication de tests Podman/KVM ou de CI verte.
+
+Prochaines zones de migration : complément 104.1–104.3 (avec KVM pour les systèmes réels), 102.1–102.6 (APT/Dpkg, RPM/DNF, boot, libs et virtualisation), puis 101.1–101.3 (découverte matériel, démarrage et services). Ne pas déclarer tout le 101 migré tant que la preuve 162/162 n'est pas établie.
+
 ## 1. Pourquoi cette migration
 
 Le curriculum contient actuellement 309 concepts actifs:
