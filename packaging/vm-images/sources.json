@@ -125,6 +125,7 @@
         "vim-tiny",
         "nano",
         "dpkg",
+        "debconf",
         "apt",
         "cups-client",
         "bsd-mailx",

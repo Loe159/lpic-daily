@@ -565,6 +565,18 @@
       "backend": "libvirt",
       "status": "implemented",
       "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.102.4.collector-config-recovery",
+      "objective_ids": [
+        "102.4"
+      ],
+      "concept_ids": [
+        "lpic1.102.4.reconfiguration"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
     }
   ]
 }

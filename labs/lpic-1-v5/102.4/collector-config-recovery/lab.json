@@ -1,0 +1,80 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.4.collector-config-recovery",
+  "title_fr": "Rétablir la configuration d'un collecteur Debian",
+  "brief_fr": "Le collecteur d'événements d'un serveur Debian ne démarre plus depuis une intervention. Son paquet est pourtant bien installé, et ses données de production doivent être conservées. La configuration active semble avoir été remplacée par des valeurs obsolètes. Rétablis le fonctionnement normal à partir du paquet déjà présent sur la machine, sans désinstaller le service ni accéder à Internet.",
+  "success_criteria_fr": [
+    "L'agent demeure correctement installé dans la base dpkg.",
+    "La configuration prévue par le paquet est restaurée et l'agent fonctionne.",
+    "Le lot d'événements préexistant n'est pas modifié."
+  ],
+  "debrief_fr": "Sur Debian, dpkg-reconfigure relance la phase de configuration d'un paquet déjà installé, contrairement à dpkg --configure qui termine surtout une installation inachevée. Les scripts de maintenance peuvent remettre une configuration opérationnelle en état sans toucher aux données de l'application.",
+  "objective_ids": [
+    "102.4"
+  ],
+  "concept_ids": [
+    "lpic1.102.4.reconfiguration"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-implemented"
+  ],
+  "estimated_minutes": 9,
+  "practice_context": "collector-config-recovery",
+  "environment": {
+    "backend": "libvirt",
+    "image_ref": "debian-13-x86_64-v2",
+    "distribution": "debian",
+    "network": "none",
+    "capability_profile": "full-machine",
+    "writable_guest_paths": [],
+    "machine": {
+      "firmware": "uefi"
+    }
+  },
+  "resources": {
+    "memory_mb": 1024,
+    "cpu_percent": 100,
+    "pids": 128,
+    "timeout_seconds": 1200
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test \"$(dpkg-query -W -f='${Status}' lpic-collector-agent)\" = 'install ok installed' && test \"$(/usr/local/bin/lpic-collector-agent)\" = 'collector=ready'"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.4.reconfiguration"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "grep -Fxq 'mode=collect' /etc/lpic-collector/agent.conf && grep -Fxq 'endpoint=unix-local' /etc/lpic-collector/agent.conf && grep -Fxq 'retain=customer-batch-991' /var/lib/lpic-collector/batch.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.4.reconfiguration"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.102.4.collector-config-recovery.hint-1",
+    "lpic1.102.4.collector-config-recovery.hint-2",
+    "lpic1.102.4.collector-config-recovery.hint-3",
+    "lpic1.102.4.collector-config-recovery.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

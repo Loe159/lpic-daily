@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.4.collector-config-recovery.hint-2",
+  "lab_id": "lpic1.102.4.collector-config-recovery",
+  "level": 2,
+  "content_fr": "Le paquet est déjà en état installed. Le défaut concerne ses paramètres, non une dépendance ou un téléchargement manquant.",
+  "evidence_impact": "material"
+}
