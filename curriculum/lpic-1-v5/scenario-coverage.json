@@ -498,6 +498,35 @@
       "backend": "libvirt",
       "status": "implemented",
       "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.104.1.xfs-archive-label-recovery",
+      "objective_ids": [
+        "104.1"
+      ],
+      "concept_ids": [
+        "lpic1.104.1.xfs",
+        "lpic1.104.2.outils-xfs",
+        "lpic1.104.2.difference-outils-online-offline-selon-fs"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.102.4.offline-apt-repository-recovery",
+      "objective_ids": [
+        "102.4"
+      ],
+      "concept_ids": [
+        "lpic1.102.4.roles-respectifs-dpkg-et-apt",
+        "lpic1.102.4.installation-mise-a-jour-suppression",
+        "lpic1.102.4.sources-et-metadonnees",
+        "lpic1.102.4.identifier-quel-paquet-fournit-possede-un-fichier"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
     }
   ]
 }

@@ -1,0 +1,103 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.1.xfs-archive-label-recovery",
+  "title_fr": "Retrouver une archive XFS après une maintenance",
+  "brief_fr": "Un serveur n'arrive plus à monter son volume d'archives après le remplacement d'un contrôleur. Les données sont encore présentes sur /dev/vdb, mais le montage /srv/xfsarchive échoue parce que l'identité du volume ne correspond plus à la configuration. Rétablis le volume XFS et l'accès aux archives, sans reformater ni toucher au disque système.",
+  "success_criteria_fr": [
+    "Le volume /dev/vdb demeure en XFS avec l'identité attendue par la configuration.",
+    "L'archive est effectivement remontée et son contenu est accessible.",
+    "Les données existantes sont conservées."
+  ],
+  "debrief_fr": "Les métadonnées d'un volume XFS se consultent avec les outils XFS (xfs_admin, xfs_db, xfs_repair). Une modification de certaines métadonnées impose le démontage préalable ; xfs_repair doit être utilisé hors ligne. Recréer le système de fichiers détruirait les données de l'archive.",
+  "objective_ids": [
+    "104.1"
+  ],
+  "concept_ids": [
+    "lpic1.104.1.xfs",
+    "lpic1.104.2.outils-xfs",
+    "lpic1.104.2.difference-outils-online-offline-selon-fs"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-implemented"
+  ],
+  "estimated_minutes": 15,
+  "practice_context": "xfs-archive-label-recovery",
+  "environment": {
+    "backend": "libvirt",
+    "image_ref": "fedora-44-x86_64-v2",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "full-machine",
+    "writable_guest_paths": [],
+    "machine": {
+      "firmware": "uefi",
+      "extra_disks": [
+        {
+          "id": "archive",
+          "size_mb": 512
+        }
+      ]
+    }
+  },
+  "resources": {
+    "memory_mb": 1024,
+    "cpu_percent": 100,
+    "pids": 128,
+    "timeout_seconds": 1800
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test \"$(blkid -s TYPE -o value /dev/vdb)\" = xfs && test \"$(blkid -s LABEL -o value /dev/vdb)\" = archive2026"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.1.xfs",
+        "lpic1.104.2.outils-xfs",
+        "lpic1.104.2.difference-outils-online-offline-selon-fs"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test \"$(findmnt -n --mountpoint /srv/xfsarchive -o FSTYPE)\" = xfs && test \"$(findmnt -n --mountpoint /srv/xfsarchive -o SOURCE)\" = /dev/vdb"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.1.xfs",
+        "lpic1.104.2.difference-outils-online-offline-selon-fs"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "grep -Fxq 'archive-id=INC-9012' /srv/xfsarchive/manifest.txt && grep -Eq '^LABEL=archive2026[[:space:]]+/srv/xfsarchive[[:space:]]+xfs[[:space:]]+' /etc/fstab"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.2.outils-xfs"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.104.1.xfs-archive-label-recovery.hint-1",
+    "lpic1.104.1.xfs-archive-label-recovery.hint-2",
+    "lpic1.104.1.xfs-archive-label-recovery.hint-3",
+    "lpic1.104.1.xfs-archive-label-recovery.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

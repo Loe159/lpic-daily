@@ -1,0 +1,97 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.4.offline-apt-repository-recovery",
+  "title_fr": "Rétablir un agent depuis le dépôt Debian local",
+  "brief_fr": "Le serveur Debian d'alertes est isolé d'Internet pour maintenance. Après une modification de configuration, l'installation de l'agent local échoue et la commande /usr/local/bin/lpic-alert-agent est absente. Un dépôt de paquets interne est présent sur la machine. Diagnostique le problème de dépôt et remets l'agent en service, sans activer le réseau ni toucher aux logiciels déjà en production.",
+  "success_criteria_fr": [
+    "Le dépôt local redevient accessible au gestionnaire de paquets.",
+    "L'agent d'alerte est réellement installé comme paquet Debian et s'exécute correctement.",
+    "Le paquet propriétaire de l'exécutable peut être identifié dans la base locale."
+  ],
+  "debrief_fr": "APT exploite les sources et leurs index pour retrouver les paquets et gérer leur installation ; dpkg conserve le suivi des paquets et des fichiers installés. Dans un environnement isolé, une source file: permet une installation locale sans téléchargement extérieur. Une copie manuelle du script ne remplace pas son installation dans la base dpkg.",
+  "objective_ids": [
+    "102.4"
+  ],
+  "concept_ids": [
+    "lpic1.102.4.roles-respectifs-dpkg-et-apt",
+    "lpic1.102.4.installation-mise-a-jour-suppression",
+    "lpic1.102.4.sources-et-metadonnees",
+    "lpic1.102.4.identifier-quel-paquet-fournit-possede-un-fichier"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-implemented"
+  ],
+  "estimated_minutes": 16,
+  "practice_context": "offline-apt-repository-recovery",
+  "environment": {
+    "backend": "libvirt",
+    "image_ref": "debian-13-x86_64-v2",
+    "distribution": "debian",
+    "network": "none",
+    "capability_profile": "full-machine",
+    "writable_guest_paths": [],
+    "machine": {
+      "firmware": "uefi"
+    }
+  },
+  "resources": {
+    "memory_mb": 1024,
+    "cpu_percent": 100,
+    "pids": 128,
+    "timeout_seconds": 1800
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "grep -Fqx 'deb [trusted=yes] file:/opt/lpic-repo ./' /etc/apt/sources.list.d/lpic-local.list && apt-cache policy lpic-alert-agent | grep -Fq 'file:/opt/lpic-repo'"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.4.sources-et-metadonnees",
+        "lpic1.102.4.roles-respectifs-dpkg-et-apt"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "dpkg-query -W -f='${Status} ${Version}\\n' lpic-alert-agent | grep -Fxq 'install ok installed 1.0' && test \"$(/usr/local/bin/lpic-alert-agent)\" = 'alert-agent=ready'"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.4.installation-mise-a-jour-suppression",
+        "lpic1.102.4.roles-respectifs-dpkg-et-apt"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "dpkg-query -S /usr/local/bin/lpic-alert-agent | grep -Fq 'lpic-alert-agent: /usr/local/bin/lpic-alert-agent'"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.4.identifier-quel-paquet-fournit-possede-un-fichier"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.102.4.offline-apt-repository-recovery.hint-1",
+    "lpic1.102.4.offline-apt-repository-recovery.hint-2",
+    "lpic1.102.4.offline-apt-repository-recovery.hint-3",
+    "lpic1.102.4.offline-apt-repository-recovery.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

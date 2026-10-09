@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.4.offline-apt-repository-recovery.hint-4",
+  "lab_id": "lpic1.102.4.offline-apt-repository-recovery",
+  "level": 4,
+  "content_fr": "Corrige le chemin du dépôt dans /etc/apt/sources.list.d/lpic-local.list vers file:/opt/lpic-repo, lance apt-get update puis apt-get install lpic-alert-agent. Contrôle l'appartenance du fichier avec dpkg-query -S.",
+  "evidence_impact": "solution-revealed"
+}
