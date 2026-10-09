@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.3.default-target-recovery.hint-2",
+  "lab_id": "lpic1.101.3.default-target-recovery",
+  "level": 2,
+  "content_fr": "L'information est gérée par systemd et consultable sans redémarrer la machine.",
+  "evidence_impact": "material"
+}

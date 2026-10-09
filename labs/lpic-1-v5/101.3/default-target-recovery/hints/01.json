@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.3.default-target-recovery.hint-1",
+  "lab_id": "lpic1.101.3.default-target-recovery",
+  "level": 1,
+  "content_fr": "Inspecte la cible prévue pour le prochain démarrage plutôt que l'état immédiat des services.",
+  "evidence_impact": "none"
+}
