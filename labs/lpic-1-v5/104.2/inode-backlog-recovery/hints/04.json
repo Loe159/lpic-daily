@@ -3,6 +3,6 @@
   "id": "lpic1.104.2.inode-backlog-recovery.hint-4",
   "lab_id": "lpic1.104.2.inode-backlog-recovery",
   "level": 4,
-  "content_fr": "Commande possible : find /workspace/spool/ack/stale -type f -delete. Vérifie ensuite les accusés récents et les rapports.",
+  "content_fr": "Nettoie uniquement les fichiers sous /srv/lpic-spool/ack/stale (par exemple avec find ... -type f -delete) et vérifie ensuite df -i.",
   "evidence_impact": "solution-revealed"
 }

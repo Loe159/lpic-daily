@@ -1,14 +1,14 @@
 {
   "schema_version": "1.0.0",
   "id": "lpic1.104.2.inode-backlog-recovery",
-  "title_fr": "Assainir un spool saturé en petits fichiers",
-  "brief_fr": "Le serveur de rapports signale « No space left on device » malgré une consommation en Mo modérée. Examine l’occupation en blocs et en inodes, puis nettoie uniquement les anciens accusés de réception sous /workspace/spool/ack/stale. Conserve les accusés récents, les rapports et l’archive de référence : le service doit retrouver une file d’attente exploitable.",
+  "title_fr": "Réparer un spool saturé malgré l'espace libre",
+  "brief_fr": "Le collecteur d'alertes du serveur retourne « No space left on device » dès qu'il reçoit un nouvel accusé de réception. Pourtant, le volume /srv/lpic-spool affiche encore de l'espace en octets. Les événements récents doivent être conservés, tandis que les anciens accusés déjà traités sont jetables. Identifie la cause réelle de cette panne et rétablis la réception sans reformater ni remplacer le volume.",
   "success_criteria_fr": [
-    "Les anciens accusés sont entièrement supprimés, sans effacer les répertoires utiles.",
-    "Les accusés récents et les rapports de production sont préservés sans altération.",
-    "L’archive de référence est toujours intacte ; le nettoyage cible les nombreux petits fichiers plutôt que les gros fichiers utiles."
+    "Le volume ext4 demeure monté et dispose à nouveau d'inodes libres pour les nouvelles écritures.",
+    "Les accusés anciens déjà traités ont été nettoyés sans supprimer les accusés récents.",
+    "Le dossier de réception redevient utilisable, avec ses données utiles intactes."
   ],
-  "debrief_fr": "df -h mesure l’espace en blocs et df -i le nombre d’inodes disponibles. De nombreux fichiers minuscules peuvent épuiser les inodes sans remplir les blocs. Une erreur ENOSPC n’implique donc pas forcément un gros fichier à supprimer. du aide à comparer les volumes et find à cibler les fichiers obsolètes. Le contrôle porte sur l’état final et la conservation des données.",
+  "debrief_fr": "df -h mesure les blocs disponibles, alors que df -i mesure les inodes. Un grand nombre de petits fichiers peut épuiser les inodes avant les blocs et provoquer ENOSPC. Le diagnostic évite une suppression de fichiers volumineux mais utiles ; find peut aider au nettoyage ciblé et l'état final est vérifié sur le vrai système de fichiers de la VM.",
   "objective_ids": [
     "104.2"
   ],
@@ -21,23 +21,30 @@
     "modern-practice",
     "scenario-implemented"
   ],
-  "estimated_minutes": 9,
+  "estimated_minutes": 12,
   "practice_context": "inode-backlog-recovery",
   "environment": {
-    "backend": "podman",
-    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "backend": "libvirt",
+    "image_ref": "fedora-44-x86_64-v2",
     "distribution": "fedora",
     "network": "none",
-    "capability_profile": "baseline",
-    "writable_guest_paths": [
-      "/workspace"
-    ]
+    "capability_profile": "full-machine",
+    "writable_guest_paths": [],
+    "machine": {
+      "firmware": "uefi",
+      "extra_disks": [
+        {
+          "id": "spool",
+          "size_mb": 256
+        }
+      ]
+    }
   },
   "resources": {
-    "memory_mb": 256,
+    "memory_mb": 1024,
     "cpu_percent": 100,
-    "pids": 96,
-    "timeout_seconds": 1200
+    "pids": 128,
+    "timeout_seconds": 1800
   },
   "setup": {
     "execution_scope": "sandbox",
@@ -49,7 +56,7 @@
       "argv": [
         "/usr/bin/bash",
         "-lc",
-        "test -d /workspace/spool/ack/stale && test -z \"$(find /workspace/spool/ack/stale -type f -print -quit)\""
+        "test \"$(findmnt --mountpoint /srv/lpic-spool -n -o SOURCE)\" = '/dev/vdb' && test \"$(findmnt --mountpoint /srv/lpic-spool -n -o FSTYPE)\" = 'ext4' && df -Pi /srv/lpic-spool | awk 'END {exit !($4 > 30)}'"
       ],
       "expected_exit": 0,
       "concept_ids": [
@@ -62,7 +69,7 @@
       "argv": [
         "/usr/bin/bash",
         "-lc",
-        "test \"$(find /workspace/spool/ack/recent -maxdepth 1 -type f | wc -l)\" -eq 3 && for n in 1 2 3; do grep -qx \"ack=current-$n\" /workspace/spool/ack/recent/current-$n.ack || exit 1; done"
+        "test -d /srv/lpic-spool/ack/stale && test -z \"$(find /srv/lpic-spool/ack/stale -type f -print -quit)\""
       ],
       "expected_exit": 0,
       "concept_ids": [
@@ -75,7 +82,20 @@
       "argv": [
         "/usr/bin/bash",
         "-lc",
-        "grep -qx 'report=production' /workspace/reports/current.txt && grep -qx 'do-not-delete=reference-archive' /workspace/archive/reference.tar.note && test -s /workspace/archive/reference.bin"
+        "test \"$(find /srv/lpic-spool/ack/recent -maxdepth 1 -type f | wc -l)\" -eq 3 && for n in 1 2 3; do grep -qx \"ack=current-$n\" \"/srv/lpic-spool/ack/recent/current-$n.ack\" || exit 1; done"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.2.occupation-blocs-inodes",
+        "lpic1.104.2.symptomes-de-corruption-espace-epuise"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test -d /srv/lpic-spool/ack/recent && test -f /srv/lpic-spool/README.txt && grep -qx 'service=collector' /srv/lpic-spool/README.txt"
       ],
       "expected_exit": 0,
       "concept_ids": [

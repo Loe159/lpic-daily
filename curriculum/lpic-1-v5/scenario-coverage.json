@@ -376,9 +376,9 @@
         "lpic1.104.2.occupation-blocs-inodes",
         "lpic1.104.2.symptomes-de-corruption-espace-epuise"
       ],
-      "backend": "podman",
+      "backend": "libvirt",
       "status": "implemented",
-      "evidence_strength": "state"
+      "evidence_strength": "behavior"
     },
     {
       "scenario_id": "lpic1.102.6.clone-identity-recovery",

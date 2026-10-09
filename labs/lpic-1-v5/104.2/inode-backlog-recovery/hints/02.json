@@ -3,6 +3,6 @@
   "id": "lpic1.104.2.inode-backlog-recovery.hint-2",
   "lab_id": "lpic1.104.2.inode-backlog-recovery",
   "level": 2,
-  "content_fr": "Inspecte /workspace/spool/ack : seuls les accusés obsolètes sont jetables. La branche recent et /workspace/reports sont à conserver.",
+  "content_fr": "Confronte df -h et df -i sur le point de montage, puis inspecte le spool des accusés.",
   "evidence_impact": "material"
 }
