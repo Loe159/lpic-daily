@@ -21,6 +21,8 @@ Nouveaux scénarios de ce lot :
 - `104.2.offline-ext-audit-recovery` : contrôle, réparation et réglage réels d'une image ext4 hors ligne (Podman, 3 concepts) ;
 - `104.3.archive-mount-recovery` : restauration d'un vrai montage et de la persistance fstab/UUID (KVM, 4 concepts) ;
 - `101.3.default-target-recovery` : correction de la cible systemd par défaut (KVM, 1 concept) ;
+- `101.3.indexer-service-recovery` : remise en marche d'un vrai service systemd en échec (KVM, 1 concept) ;
+- `104.2.inode-backlog-recovery` : remplacement de la pseudo-saturation Podman par un volume ext4 KVM dont les inodes sont effectivement épuisés (2 concepts).
 - `101.3.indexer-service-recovery` : correction d'un service systemd défaillant (KVM, 1 concept).
 
 Les instructions des agents sont harmonisées dans `AGENTS.md`, `labs/AGENTS.md`, `curriculum/AGENTS.md`, `.agents/skills/author-lab/SKILL.md` et `docs/CONTRIBUTING_WITH_AGENTS.md`. **Incident réel, symptomatique, mission de récupération et preuve d'état** sont désormais le modèle exigé. Les scénarios ne peuvent pas être considérés `accepted` avant exécution du setup, test négatif, solution de référence, reset, review pédagogique et contrôle du backend. Ce lot est un travail d'**implémentation**, sans revendication de tests Podman/KVM ou de CI verte.
