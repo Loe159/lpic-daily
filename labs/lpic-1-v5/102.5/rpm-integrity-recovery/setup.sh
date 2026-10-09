@@ -18,7 +18,10 @@ BuildArch: noarch
 Offline LPIC RPM integrity practice fixture.
 %install
 mkdir -p %{buildroot}/usr/local/bin
-printf '#!/bin/sh\\nprintf "ledger=ready\\n"\\n' > %{buildroot}/usr/local/bin/lpic-ledger-watch
+cat > %{buildroot}/usr/local/bin/lpic-ledger-watch <<'LPIC_AGENT'
+#!/bin/sh
+printf 'ledger=ready\n'
+LPIC_AGENT
 chmod 0755 %{buildroot}/usr/local/bin/lpic-ledger-watch
 %files
 /usr/local/bin/lpic-ledger-watch
