@@ -40,6 +40,16 @@ Cinq nouveaux incidents `implemented` (à exécuter sur les VM réelles avant ac
 
 Couverture matricielle LPIC-101 après ce lot : **80 acceptés, 35 uniquement implémentés, 47 sans scénario**, total **162**. Les objectifs `104.2` et `104.3` sont entièrement **implémentés (7/7)** mais ne sont **pas acceptés** ; `104.1` a 7/8 concepts implémentés. Ce compteur ne valide ni le comportement du runner ni la qualité pédagogique. Il reste à exécuter chaque setup, les checks négatifs, la solution de référence, le reset et l'essai en conditions réelles. En particulier, KVM/Podman et la CI n'ont pas été exécutés pour ces ajouts.
 
+### Lot suivant — 9 octobre 2026 (formats, paquets Debian et chargeur dynamique)
+
+Quatre incidents supplémentaires sont `implemented` :
+- `104.1.removable-media-formats` : deux disques de remplacement réels, récupération des montages VFAT/FAT32 et exFAT ; la recette Fedora ajoute `exfatprogs`.
+- `102.4.relay-package-dependency-repair` : paquet Debian laissé `unpacked` par une dépendance absente, archive de dépendance locale à installer et agent à configurer, avec inventaire `dpkg` vérifié.
+- `102.4.collector-config-recovery` : paquet Debian installé mais configuration corrompue ; phase de reconfiguration exploitable sans toucher aux données ; la recette Debian ajoute `debconf`.
+- `102.3.shared-library-cache-recovery` : programme ELF lié à une bibliothèque fournisseur déplaçée, réparation de la recherche système et du cache `ldconfig` ; la recette Fedora ajoute les outils de compilation nécessaires au setup (`gcc`, `glibc-devel`).
+
+État de couverture LPIC-101 après le lot, selon `scenario-coverage.json` : **80/162 acceptés**, **41/162 supplémentaires implémentés sans validation runtime**, **41/162 non encore couverts**. Les objectifs **104.1 (8/8)**, **102.3 (5/5)** et **102.4 (7/7)** sont maintenant entièrement implémentés mais **pas acceptés**. Contrôle statique du mapping concepts/checks et des métadonnées des quatre nouveaux labs : aucune incohérence. **Ni CI ni tests réels Podman/KVM n'ont été exécutés pour ces scénarios**. Les recettes d'image modifiées devront être reconstruites et revérifiées avant l'acceptation.
+
 ## 1. Pourquoi cette migration
 
 Le curriculum contient actuellement 309 concepts actifs:
