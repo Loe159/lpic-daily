@@ -134,6 +134,14 @@ La recette Fedora ajoute explicitement `dracut`, `grub2-tools`, `grub2-pc-module
 
 **Couverture LPIC-101 : 80 acceptés, 69 uniquement implémentés, 13 sans scénario.** Il faut impérativement tester dans la VM si Fedora `wall` trouve les sessions utmp synthétiques et transmet les caractères aux deux PTY. En cas d'échec, ce scénario doit être corrigé plutôt que marqué accepted. La CI, les tests red/green/reset et la vérification de l'isolation restent à effectuer.
 
+### Lot complémentaire — 9 octobre 2026 (isolation des conteneurs et compatibilité runlevel)
+
+Deux nouveaux scénarios `implemented`, sans essais KVM :
+- `102.6.guest-container-isolation-recovery` : un processus conteneurisé Podman partage initialement les espaces PID et réseau de sa VM ; l'apprenant rétablit l'isolation et les checks comparent les espaces de noms effectifs, le noyau partagé et le système d'initialisation réel. L'image OCI minimale est compilée dans la VM depuis un binaire statique ; la recette Fedora ajoute `podman` et `glibc-static`.
+- `101.3.runlevel-compatibility-recovery` : une cible `graphical.target` activée à tort doit être remplacée par `multi-user.target` en fonctionnement et au prochain boot. La compatibilité `runlevel` vérifie la correspondance SysV niveau 3 sans altérer `/etc/inittab`. Ce scénario prouve le couple de cibles et l'interface SysV, **pas** le fonctionnement historique d'Upstart.
+
+**Couverture LPIC-101 : 80/162 acceptés, 71/162 uniquement implémentés, 11/162 sans scénario.** Les images doivent être reconstruites et chaque scénario doit subir setup rouge, solution de référence verte, reset, validation QGA et revue pédagogique. Les commandes Podman dans cette expérience s'exécutent **uniquement dans la VM jetable**, jamais sur l'hôte. Ni CI ni tests VM ne sont revendiqués à ce stade.
+
 ## 1. Pourquoi cette migration
 
 Le curriculum contient actuellement 309 concepts actifs:

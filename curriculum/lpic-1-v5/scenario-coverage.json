@@ -831,6 +831,30 @@
       "backend": "libvirt",
       "status": "implemented",
       "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.102.6.guest-container-isolation-recovery",
+      "objective_ids": [
+        "102.6"
+      ],
+      "concept_ids": [
+        "lpic1.102.6.vm-versus-conteneur-applicatif-systeme"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.101.3.runlevel-compatibility-recovery",
+      "objective_ids": [
+        "101.3"
+      ],
+      "concept_ids": [
+        "lpic1.101.3.runlevels-sysv-et-targets-systemd"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
     }
   ]
 }

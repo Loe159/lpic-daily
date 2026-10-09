@@ -78,7 +78,10 @@
         "dracut",
         "grub2-tools",
         "grub2-pc-modules",
-        "grub2-pc"
+        "grub2-pc",
+        "podman",
+        "glibc-static",
+        "systemd-udev"
       ],
       "recipe": "fedora-cloud-v2"
     },

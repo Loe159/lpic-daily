@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.3.runlevel-compatibility-recovery.hint-1",
+  "lab_id": "lpic1.101.3.runlevel-compatibility-recovery",
+  "level": 1,
+  "content_fr": "Compare la cible active et la cible par défaut de systemd, ainsi que le niveau retourné par l'interface historique.",
+  "evidence_impact": "none"
+}

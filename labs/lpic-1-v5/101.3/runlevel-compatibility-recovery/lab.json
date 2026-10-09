@@ -1,0 +1,80 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.3.runlevel-compatibility-recovery",
+  "title_fr": "Rétablir le niveau de service multi-utilisateur",
+  "brief_fr": "Une ancienne procédure de maintenance attend un fonctionnement en mode multi-utilisateur (niveau 3), mais une modification a laissé la VM sur une cible de démarrage graphique inadaptée. Le service de contrôle doit retrouver son mode de fonctionnement normal tout en conservant l'accès au système et aux services d'administration. Rétablis la cible actuelle et celle des prochains démarrages sans redémarrer la machine.",
+  "success_criteria_fr": [
+    "La cible systemd multi-utilisateur est active et reste la cible par défaut.",
+    "L'interface de compatibilité des niveaux d'exécution rapporte le niveau multi-utilisateur attendu.",
+    "Les services nécessaires à la gestion de la VM restent accessibles."
+  ],
+  "debrief_fr": "Sur systemd, multi-user.target est la cible correspondant au niveau d'exécution traditionnel 3 de SysVinit, alors que graphical.target correspond au niveau 5. Les commandes historiques runlevel et telinit sont des interfaces de compatibilité ; le choix persistant est géré par systemctl set-default. /etc/inittab ne définit pas la cible systemd.",
+  "objective_ids": [
+    "101.3"
+  ],
+  "concept_ids": [
+    "lpic1.101.3.runlevels-sysv-et-targets-systemd"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-implemented"
+  ],
+  "estimated_minutes": 12,
+  "practice_context": "101.3.runlevel-compatibility-recovery",
+  "environment": {
+    "backend": "libvirt",
+    "image_ref": "fedora-44-x86_64-v2",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "full-machine",
+    "writable_guest_paths": [],
+    "machine": {
+      "firmware": "uefi"
+    }
+  },
+  "resources": {
+    "memory_mb": 1536,
+    "cpu_percent": 100,
+    "pids": 256,
+    "timeout_seconds": 2100
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test \"$(systemctl get-default)\" = multi-user.target && systemctl is-active --quiet multi-user.target && ! systemctl is-active --quiet graphical.target"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.101.3.runlevels-sysv-et-targets-systemd"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -e; command -v runlevel >/dev/null; test \"$(runlevel | awk '{print $2}')\" = 3; systemctl is-active --quiet qemu-guest-agent.service; test -d /run/systemd/system"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.101.3.runlevels-sysv-et-targets-systemd"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.101.3.runlevel-compatibility-recovery.hint-1",
+    "lpic1.101.3.runlevel-compatibility-recovery.hint-2",
+    "lpic1.101.3.runlevel-compatibility-recovery.hint-3",
+    "lpic1.101.3.runlevel-compatibility-recovery.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}
