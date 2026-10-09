@@ -1,8 +1,8 @@
 {
   "schema_version": "1.0.0",
   "id": "lpic1.104.1.partition-filesystems",
-  "title_fr": "Partitionner un disque et créer ses filesystems",
-  "brief_fr": "Un nouveau disque /dev/vdb de 512 MiB est attaché à la VM. Initialise-le en GPT, crée une partition ext4 pour les données et une seconde partition destinée au swap. Ne touche pas au disque système /dev/vda.",
+  "title_fr": "Préparer le disque de remplacement d'un serveur",
+  "brief_fr": "Un serveur de traitement vient de recevoir un second disque vierge de 512 MiB (/dev/vdb). Le service ne dispose plus de volume de données ni de zone d'échange pour absorber ses pics de charge. L'architecture attend une table GPT, un volume de données ext4 d'environ 384 MiB et une zone swap avec le reste du disque. Rétablis ces ressources sans toucher au disque système /dev/vda.",
   "success_criteria_fr": [
     "/dev/vdb utilise une table de partitions GPT.",
     "/dev/vdb1 est une partition formatée en ext4.",
@@ -21,7 +21,8 @@
   ],
   "labels": [
     "lpic-required",
-    "modern-practice"
+    "modern-practice",
+    "scenario-implemented"
   ],
   "estimated_minutes": 20,
   "practice_context": "partition-filesystems",
