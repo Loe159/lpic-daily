@@ -671,6 +671,30 @@
       "backend": "libvirt",
       "status": "implemented",
       "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.101.2.boot-journal-persistence",
+      "objective_ids": [
+        "101.2"
+      ],
+      "concept_ids": [
+        "lpic1.101.2.diagnostic-des-evenements-de-boot"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.102.5.rpm-integrity-recovery",
+      "objective_ids": [
+        "102.5"
+      ],
+      "concept_ids": [
+        "lpic1.102.5.signature-integrite"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
     }
   ]
 }

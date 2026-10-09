@@ -71,6 +71,14 @@ Scénario existant désormais référencé dans la matrice :
 
 **Couverture LPIC-101 de la matrice au 9 octobre 2026** : **80/162 concepts acceptés**, **54/162 uniquement implémentés sans acceptation**, **28/162 concepts sans scénario**. **102.1 est implémenté à 6/6** ; le topic 102.2 ne couvre encore que 2/6, 101.1 2/8 et 102.5 5/7. Une vérification statique des cinq définitions (correspondance entre objectifs, concepts et checks ; cohérence des backends et statuts ; présence de quatre références d'indices) ne signale aucune incohérence. **Aucune validation KVM ou CI n'a été effectuée**. Les recettes VM modifiées nécessitent leur reconstruction avant l'exécution des nouveaux scénarios, et toutes les preuves marquées `implemented` restent à éprouver (état initial rouge, référence verte, reset et review pédagogique).
 
+### Lot suivant — 9 octobre 2026 (journaux de boot et intégrité RPM)
+
+Deux incidents réels supplémentaires sont `implemented`, **sans acceptation runtime** :
+- `101.2.boot-journal-persistence` : le serveur perd ses journaux entre deux redémarrages ; correction de `systemd-journald`, transfert des événements encore volatils et preuve après `:reboot` que le journal du démarrage précédent est lisible ;
+- `102.5.rpm-integrity-recovery` : un paquet réellement installé est altéré et une des deux archives de restauration est corrompue. Vérification RPM (`rpm -V`, `rpm -K`) et signature détachée GPG (`gpgv`) puis restauration par RPM. La signature détachée est une fixture pédagogique, **pas** une signature RPM native incorporée : vérifier ce périmètre lors de la revue.
+
+**Couverture LPIC-101 d'après la matrice** : **80/162 acceptés, 56/162 uniquement implémentés, 26/162 sans scénario**. Le check du premier lab exige un nouveau boot-id ; sa référence ne peut devenir verte qu'après un reboot réel de la VM. Le second lab exige `rpm-build` et `gnupg2` dans la recette Fedora déjà déclarée. Le setup, le test rouge, la référence, le reset et l'isolation doivent être exercés dans KVM avant d'annoncer l'acceptation. CI non exécutée dans ce lot.
+
 ## 1. Pourquoi cette migration
 
 Le curriculum contient actuellement 309 concepts actifs:
