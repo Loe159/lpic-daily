@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "id": "lpic1.102.2.bios-mbr-rescue-bootcode",
-  "title_fr": "bios mbr rescue bootcode",
+  "title_fr": "Récupérer l'amorçage d'un disque de secours BIOS",
   "brief_fr": "Un ancien support de dépannage, destiné à une machine BIOS, contient toujours sa partition ext4 et son manifeste de récupération. Une restauration a effacé son code d'amorçage et il n'est plus utilisable comme support de secours. Réinstalle le chargeur BIOS sur ce disque secondaire en préservant intégralement la table de partitions et le manifeste ; ne modifie jamais le disque système de la VM.",
   "success_criteria_fr": [
     "Le disque de secours conserve sa table MBR et sa partition de données d'origine.",

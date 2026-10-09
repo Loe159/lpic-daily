@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "id": "lpic1.101.2.initramfs-rescue-boot-recovery",
-  "title_fr": "initramfs rescue boot recovery",
+  "title_fr": "Réparer le démarrage de secours via initramfs",
   "brief_fr": "Une VM Fedora possède une entrée de démarrage de secours préparée pour diagnostiquer un incident de stockage, mais son image d'initialisation est manquante. Le démarrage normal reste disponible. Répare l'entrée de secours et vérifie son démarrage effectif via le terminal parent, sans remplacer l'image d'initialisation ni le noyau actuellement utilisés par l'entrée normale.",
   "success_criteria_fr": [
     "L'entrée de secours référence une image initramfs valide contenant le profil nécessaire au diagnostic.",
