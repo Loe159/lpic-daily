@@ -377,7 +377,7 @@
         "lpic1.104.2.symptomes-de-corruption-espace-epuise"
       ],
       "backend": "podman",
-      "status": "accepted",
+      "status": "implemented",
       "evidence_strength": "state"
     },
     {
@@ -390,7 +390,7 @@
         "lpic1.102.6.identites-devant-etre-regenerees-lors-d-un-clonage"
       ],
       "backend": "podman",
-      "status": "accepted",
+      "status": "implemented",
       "evidence_strength": "state"
     },
     {
@@ -404,7 +404,7 @@
         "lpic1.102.3.diagnostic-d-une-bibliotheque-manquante"
       ],
       "backend": "podman",
-      "status": "accepted",
+      "status": "implemented",
       "evidence_strength": "state"
     }
   ]
