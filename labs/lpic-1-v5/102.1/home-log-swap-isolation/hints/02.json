@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.1.home-log-swap-isolation.hint-2",
+  "lab_id": "lpic1.102.1.home-log-swap-isolation",
+  "level": 2,
+  "content_fr": "Les données actuelles de /home et /var/log/lpic doivent être conservées avant de rendre leurs nouveaux volumes visibles. Le swap est une ressource distincte.",
+  "evidence_impact": "material"
+}

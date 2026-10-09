@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.1.home-log-swap-isolation.hint-4",
+  "lab_id": "lpic1.102.1.home-log-swap-isolation",
+  "level": 4,
+  "content_fr": "Sur /dev/vdb, crée trois partitions (environ 480 Mio, 256 Mio et le reste). Formate les deux premières en ext4, initialise la troisième avec mkswap, copie les données, monte /home et /var/log/lpic, active swapon et enregistre les UUID dans fstab.",
+  "evidence_impact": "solution-revealed"
+}

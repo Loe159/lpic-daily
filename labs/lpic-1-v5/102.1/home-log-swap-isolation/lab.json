@@ -1,0 +1,128 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.1.home-log-swap-isolation",
+  "title_fr": "Isoler les données et le swap d'un serveur saturé",
+  "brief_fr": "L'application de ce serveur a saturé sa partition système : ses journaux et les répertoires utilisateurs y cohabitent encore, et aucune zone swap n'est disponible. Un disque neuf de 1 Gio (/dev/vdb) a été ajouté pour y remédier. Rétablis une organisation durable où les données de /home et les journaux /var/log/lpic sont isolés sur ce disque, avec au moins 128 Mio de swap actif. Les comptes, les rapports existants et le disque système doivent rester intacts. La configuration doit survivre au prochain démarrage.",
+  "success_criteria_fr": [
+    "Les données utilisateurs et les journaux applicatifs résident sur deux vrais systèmes de fichiers ext4 distincts du disque système.",
+    "Le contenu existant des deux emplacements est toujours accessible après la migration.",
+    "Une zone swap d'au moins 128 Mio est active et les trois ressources sont configurées pour les prochains démarrages."
+  ],
+  "debrief_fr": "L'isolement de /home et de journaux fortement variables évite qu'une croissance imprévue remplisse la racine. Une partition swap fournit un espace de repli à la mémoire virtuelle, mais ne remplace pas la RAM. Les identifiants UUID dans fstab rendent les montages plus stables que les noms /dev/vdX. Les contrôles vérifient les véritables points de montage, l'activation swap et la conservation des données.",
+  "objective_ids": [
+    "102.1"
+  ],
+  "concept_ids": [
+    "lpic1.102.1.separer-var-home-et-boot-selon-usage",
+    "lpic1.102.1.swap-et-dimensionnement-conceptuel",
+    "lpic1.102.1.partitions-et-points-de-montage"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-implemented"
+  ],
+  "estimated_minutes": 20,
+  "practice_context": "home-log-swap-isolation",
+  "environment": {
+    "backend": "libvirt",
+    "image_ref": "fedora-44-x86_64-v2",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "full-machine",
+    "writable_guest_paths": [],
+    "machine": {
+      "firmware": "uefi",
+      "extra_disks": [
+        {
+          "id": "capacity",
+          "size_mb": 1024
+        }
+      ]
+    }
+  },
+  "resources": {
+    "memory_mb": 1024,
+    "cpu_percent": 100,
+    "pids": 128,
+    "timeout_seconds": 2400
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test \"$(findmnt -n --mountpoint /home -o FSTYPE)\" = ext4 && test \"$(readlink -f \"$(findmnt -n --mountpoint /home -o SOURCE)\")\" = \"$(readlink -f /dev/vdb1)\""
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.1.separer-var-home-et-boot-selon-usage",
+        "lpic1.102.1.partitions-et-points-de-montage"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test \"$(findmnt -n --mountpoint /var/log/lpic -o FSTYPE)\" = ext4 && test \"$(readlink -f \"$(findmnt -n --mountpoint /var/log/lpic -o SOURCE)\")\" = \"$(readlink -f /dev/vdb2)\""
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.1.separer-var-home-et-boot-selon-usage",
+        "lpic1.102.1.partitions-et-points-de-montage"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "grep -Fxq 'account=retain-54' /home/lpic-training/account.txt && grep -Fxq 'batch=retain-19' /var/log/lpic/records.log"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.1.separer-var-home-et-boot-selon-usage"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test \"$(blkid -s TYPE -o value /dev/vdb3)\" = swap && swapon --noheadings --raw --output NAME | grep -Fxq /dev/vdb3 && test \"$(blockdev --getsize64 /dev/vdb3)\" -ge 134217728"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.1.swap-et-dimensionnement-conceptuel"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -e; for pair in '/dev/vdb1 /home ext4' '/dev/vdb2 /var/log/lpic ext4' '/dev/vdb3 none swap'; do set -- $pair; u=$(blkid -s UUID -o value \"$1\"); test -n \"$u\"; awk -v src=\"UUID=$u\" -v where=\"$2\" -v fs=\"$3\" '$1==src && $2==where && $3==fs {found=1} END{exit !found}' /etc/fstab; done"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.1.separer-var-home-et-boot-selon-usage",
+        "lpic1.102.1.swap-et-dimensionnement-conceptuel",
+        "lpic1.102.1.partitions-et-points-de-montage"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.102.1.home-log-swap-isolation.hint-1",
+    "lpic1.102.1.home-log-swap-isolation.hint-2",
+    "lpic1.102.1.home-log-swap-isolation.hint-3",
+    "lpic1.102.1.home-log-swap-isolation.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}
