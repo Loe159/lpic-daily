@@ -79,6 +79,12 @@ Deux incidents réels supplémentaires sont `implemented`, **sans acceptation ru
 
 **Couverture LPIC-101 d'après la matrice** : **80/162 acceptés, 56/162 uniquement implémentés, 26/162 sans scénario**. Le check du premier lab exige un nouveau boot-id ; sa référence ne peut devenir verte qu'après un reboot réel de la VM. Le second lab exige `rpm-build` et `gnupg2` dans la recette Fedora déjà déclarée. Le setup, le test rouge, la référence, le reset et l'isolation doivent être exercés dans KVM avant d'annoncer l'acceptation. CI non exécutée dans ce lot.
 
+### Lot complémentaire — 9 octobre 2026 (Zypper openSUSE)
+
+`102.5.offline-zypper-repository-recovery` est **implemented**, sans validation runtime. Une VM openSUSE Leap 16.0 dispose d'un dépôt RPM hors ligne local volontairement mal référencé ; l'apprenant doit réparer la source Zypper et installer le collecteur avec sa dépendance réelle, sans réseau. La recette openSUSE ajoute `rpm-build` et `createrepo_c` pour la préparation des paquets d'exercice. La recette VM doit être reconstruite avant l'essai.
+
+**Couverture LPIC-101 : 80/162 acceptés, 57/162 uniquement implémentés, 25/162 non couverts.** L'objectif 102.5 atteint **7/7 concepts implémentés**, mais il n'est pas accepté. Les tests à effectuer sont : build de l'image, setup → checks rouges → solution Zypper → checks verts → reset rouge, contrôle de l'isolation et revue pédagogique. Ni CI ni test KVM n'ont été exécutés pour ce lot.
+
 ## 1. Pourquoi cette migration
 
 Le curriculum contient actuellement 309 concepts actifs:

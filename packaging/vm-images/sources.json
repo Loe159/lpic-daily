@@ -206,7 +206,9 @@
         "screen",
         "tmux",
         "hostname",
-        "sudo"
+        "sudo",
+        "rpm-build",
+        "createrepo_c"
       ],
       "recipe": "opensuse-cloud-v2"
     }
