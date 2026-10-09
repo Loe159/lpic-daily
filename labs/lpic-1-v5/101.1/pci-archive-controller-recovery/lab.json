@@ -10,11 +10,13 @@
   ],
   "debrief_fr": "Sur une VM, un contrôleur virtio apparaît comme périphérique PCI. Les informations de bus et le rattachement au pilote sont observables dans /sys/bus/pci ; /proc/partitions reflète les disques reconnus et /dev expose leurs nœuds. Une fonction PCI désassociée de son pilote peut faire disparaître le volume, même si ses blocs sont intacts. Un nouveau rattachement au pilote et un montage du système de fichiers rétablissent l'accès sans recréer le disque.",
   "objective_ids": [
-    "101.1"
+    "101.1",
+    "102.6"
   ],
   "concept_ids": [
     "lpic1.101.1.role-de-proc-sys-et-dev",
-    "lpic1.101.1.ressources-et-identification-du-materiel"
+    "lpic1.101.1.ressources-et-identification-du-materiel",
+    "lpic1.102.6.guest-drivers"
   ],
   "labels": [
     "lpic-required",
@@ -72,7 +74,8 @@
       ],
       "expected_exit": 0,
       "concept_ids": [
-        "lpic1.101.1.ressources-et-identification-du-materiel"
+        "lpic1.101.1.ressources-et-identification-du-materiel",
+        "lpic1.102.6.guest-drivers"
       ]
     },
     {

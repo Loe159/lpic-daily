@@ -711,11 +711,13 @@
     {
       "scenario_id": "lpic1.101.1.pci-archive-controller-recovery",
       "objective_ids": [
-        "101.1"
+        "101.1",
+        "102.6"
       ],
       "concept_ids": [
         "lpic1.101.1.role-de-proc-sys-et-dev",
-        "lpic1.101.1.ressources-et-identification-du-materiel"
+        "lpic1.101.1.ressources-et-identification-du-materiel",
+        "lpic1.102.6.guest-drivers"
       ],
       "backend": "libvirt",
       "status": "implemented",

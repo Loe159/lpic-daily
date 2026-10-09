@@ -113,6 +113,12 @@ Deux nouveaux scénarios `implemented`, sans validation runtime :
 
 **Couverture LPIC-101 : 80 acceptés, 63 uniquement implémentés, 19 sans scénario.** Ce lab n'est pas une preuve de pilotes de périphériques, de conteneurs ou de cloud-init : il couvre uniquement les ressources virtuelles de stockage et de réseau. Les tests VM, les états rouge/vert/reset, la sécurité du réseau et la CI restent à effectuer.
 
+### Complément de mapping — 9 octobre 2026 (pilote invité virtio)
+
+La vérification réelle du pilote `virtio-pci` dans `101.1.pci-archive-controller-recovery` démontre aussi `102.6.guest-drivers` : elle exige que le contrôleur PCI de stockage soit effectivement relié au pilote de l'OS invité, en plus de récupérer le volume. L'objectif 102.6 est ajouté au lab et à la matrice, mais **aucune acceptation KVM n'est revendiquée**.
+
+**Couverture LPIC-101 : 80 acceptés, 64 uniquement implémentés, 18 sans scénario.** Ce mapping n'est ni une preuve de périphériques USB ni une preuve de l'activation matérielle par le firmware.
+
 ## 1. Pourquoi cette migration
 
 Le curriculum contient actuellement 309 concepts actifs:
