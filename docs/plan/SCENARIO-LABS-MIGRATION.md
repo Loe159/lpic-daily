@@ -29,6 +29,17 @@ Les instructions des agents sont harmonisées dans `AGENTS.md`, `labs/AGENTS.md`
 
 Prochaines zones de migration : complément 104.1–104.3 (avec KVM pour les systèmes réels), 102.1–102.6 (APT/Dpkg, RPM/DNF, boot, libs et virtualisation), puis 101.1–101.3 (découverte matériel, démarrage et services). Ne pas déclarer tout le 101 migré tant que la preuve 162/162 n'est pas établie.
 
+### Lot supplémentaire — 9 octobre 2026 (migration du topic 104 et APT)
+
+Cinq nouveaux incidents `implemented` (à exécuter sur les VM réelles avant acceptation) :
+- `104.3.busy-removable-volume` : diagnostiquer et libérer un volume ext4 occupé par un processus, puis le démonter proprement ;
+- `104.3.mount-unit-incident` : réparer la source d'une unité systemd `.mount` et retrouver un manifeste existant ;
+- `104.1.xfs-archive-label-recovery` : identifier une erreur d'étiquette et récupérer un volume XFS sans reformater ; couvre également les outils de maintenance hors ligne de `104.2` ;
+- `104.1.btrfs-pool-report-recovery` : restaurer un sous-volume sur un vrai pool Btrfs à deux disques et réactiver la compression ;
+- `102.4.offline-apt-repository-recovery` : restaurer une source APT `file:` et installer un vrai paquet dans une VM Debian, sans connexion Internet.
+
+Couverture matricielle LPIC-101 après ce lot : **80 acceptés, 35 uniquement implémentés, 47 sans scénario**, total **162**. Les objectifs `104.2` et `104.3` sont entièrement **implémentés (7/7)** mais ne sont **pas acceptés** ; `104.1` a 7/8 concepts implémentés. Ce compteur ne valide ni le comportement du runner ni la qualité pédagogique. Il reste à exécuter chaque setup, les checks négatifs, la solution de référence, le reset et l'essai en conditions réelles. En particulier, KVM/Podman et la CI n'ont pas été exécutés pour ces ajouts.
+
 ## 1. Pourquoi cette migration
 
 Le curriculum contient actuellement 309 concepts actifs:
