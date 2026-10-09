@@ -434,6 +434,21 @@
       "backend": "podman",
       "status": "implemented",
       "evidence_strength": "state"
+    },
+    {
+      "scenario_id": "lpic1.104.3.archive-mount-recovery",
+      "objective_ids": [
+        "104.3"
+      ],
+      "concept_ids": [
+        "lpic1.104.3.montage-manuel",
+        "lpic1.104.3.fstab-persistant",
+        "lpic1.104.3.uuid-labels",
+        "lpic1.104.3.options-de-montage"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
     }
   ]
 }
