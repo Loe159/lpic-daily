@@ -744,6 +744,30 @@
       "backend": "libvirt",
       "status": "implemented",
       "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.102.2.grub-alternate-entry-recovery",
+      "objective_ids": [
+        "102.2"
+      ],
+      "concept_ids": [
+        "lpic1.102.2.entrees-alternatives-et-recuperation"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.102.6.nocloud-provisioning-recovery",
+      "objective_ids": [
+        "102.6"
+      ],
+      "concept_ids": [
+        "lpic1.102.6.principes-cloud-init-iaas"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
     }
   ]
 }

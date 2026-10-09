@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.6.nocloud-provisioning-recovery.hint-1",
+  "lab_id": "lpic1.102.6.nocloud-provisioning-recovery",
+  "level": 1,
+  "content_fr": "Inspecte les données NoCloud et les journaux de cloud-init pour comprendre pourquoi l'agent ne reçoit aucun fichier.",
+  "evidence_impact": "none"
+}

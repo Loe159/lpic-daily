@@ -1,0 +1,80 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.6.nocloud-provisioning-recovery",
+  "title_fr": "nocloud provisioning recovery",
+  "brief_fr": "Sur une VM Debian clonée, l'agent de supervision n'a pas reçu sa configuration initiale. Le provisionnement doit utiliser des métadonnées NoCloud locales sans Internet. Répare le user-data puis réexécute le provisionnement pour retrouver la configuration attendue, sans remplacer l'exécution cloud-init par une simple copie manuelle.",
+  "success_criteria_fr": [
+    "Le provisionnement cloud-init reconnaît l'identité de l'instance NoCloud.",
+    "La configuration de l'agent est générée avec le bon contenu et des permissions adaptées.",
+    "L'exécution du module cloud-init chargé d'écrire les fichiers est effective."
+  ],
+  "debrief_fr": "cloud-init combine meta-data et user-data ; la source NoCloud peut fonctionner entièrement hors réseau. Le module write_files traite une clé YAML spécifique pendant l'étape config. Après correction, cloud-init clean efface l'historique d'exécution afin que l'instance soit reprovisionnée.",
+  "objective_ids": [
+    "102.6"
+  ],
+  "concept_ids": [
+    "lpic1.102.6.principes-cloud-init-iaas"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-implemented"
+  ],
+  "estimated_minutes": 16,
+  "practice_context": "102.6.nocloud-provisioning-recovery",
+  "environment": {
+    "backend": "libvirt",
+    "image_ref": "debian-13-x86_64-v2",
+    "distribution": "debian",
+    "network": "none",
+    "capability_profile": "full-machine",
+    "writable_guest_paths": [],
+    "machine": {
+      "firmware": "uefi"
+    }
+  },
+  "resources": {
+    "memory_mb": 1024,
+    "cpu_percent": 100,
+    "pids": 128,
+    "timeout_seconds": 2100
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -e; test \"$(cloud-init query instance_id 2>/dev/null)\" = lpic-recovery-2026; test -f /var/lib/cloud/instance/sem/config_write_files"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.6.principes-cloud-init-iaas"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -e; test \"$(cat /etc/lpic-cloud/agent.conf)\" = agent=ready; test \"$(stat -c '%a:%U:%G' /etc/lpic-cloud/agent.conf)\" = 640:root:root; grep -q '^write_files:' /var/lib/cloud/seed/nocloud/user-data"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.6.principes-cloud-init-iaas"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.102.6.nocloud-provisioning-recovery.hint-1",
+    "lpic1.102.6.nocloud-provisioning-recovery.hint-2",
+    "lpic1.102.6.nocloud-provisioning-recovery.hint-3",
+    "lpic1.102.6.nocloud-provisioning-recovery.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

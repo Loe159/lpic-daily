@@ -99,6 +99,14 @@ Deux incidents KVM supplémentaires **implemented**, non acceptés :
 
 **Couverture LPIC-101 : 80 acceptés, 60 uniquement implémentés, 22 sans scénario.** Les deux nouveaux scénarios nécessitent la reconstruction de l'image Fedora et l'exécution setup rouge → référence verte → reset rouge ; aucune CI ni KVM n'est déclarée exécutée.
 
+### Lot complémentaire — 9 octobre 2026 (GRUB BLS et cloud-init)
+
+Deux nouveaux scénarios `implemented`, sans validation runtime :
+- `102.2.grub-alternate-entry-recovery` : entrée BLS réellement sélectionnée via GRUB 2, avec un nouveau boot-id et l'option de diagnostic observée dans /proc/cmdline après `:reboot`. N'implique pas la console interactive GRUB.
+- `102.6.nocloud-provisioning-recovery` : user-data NoCloud mal formé dans une VM Debian ; réparation, rejeu réel des phases cloud-init et vérification du module write_files. La recette Debian ajoute `cloud-init` : reconstruire l'image.
+
+**Couverture LPIC-101 : 80 acceptés, 62 uniquement implémentés, 20 sans scénario.** La CI, les essais de reboot/VM, les checks négatifs, la solution de référence et les resets restent à exécuter avant toute acceptation. Le lab GRUB doit être relancé via le terminal parent pour la vérification du boot.
+
 ## 1. Pourquoi cette migration
 
 Le curriculum contient actuellement 309 concepts actifs:

@@ -142,7 +142,8 @@
         "screen",
         "tmux",
         "hostname",
-        "sudo"
+        "sudo",
+        "cloud-init"
       ],
       "recipe": "debian-cloud-v2"
     },

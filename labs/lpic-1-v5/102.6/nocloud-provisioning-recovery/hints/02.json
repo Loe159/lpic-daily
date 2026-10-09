@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.6.nocloud-provisioning-recovery.hint-2",
+  "lab_id": "lpic1.102.6.nocloud-provisioning-recovery",
+  "level": 2,
+  "content_fr": "Le problème vient de la syntaxe du user-data plutôt que d'un service externe.",
+  "evidence_impact": "material"
+}
