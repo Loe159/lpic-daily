@@ -68,7 +68,9 @@
         "sudo",
         "gcc",
         "glibc-devel",
-        "lvm2"
+        "lvm2",
+        "rpm-build",
+        "createrepo_c"
       ],
       "recipe": "fedora-cloud-v2"
     },
