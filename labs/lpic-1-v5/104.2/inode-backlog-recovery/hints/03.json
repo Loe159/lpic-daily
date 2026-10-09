@@ -4,5 +4,5 @@
   "lab_id": "lpic1.104.2.inode-backlog-recovery",
   "level": 3,
   "content_fr": "Le grand nombre de petits fichiers dans stale est le problème. Supprime les fichiers de ce répertoire sans effacer ses voisins.",
-  "evidence_impact": "none"
+  "evidence_impact": "material"
 }

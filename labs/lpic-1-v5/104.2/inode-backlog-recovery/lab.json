@@ -19,7 +19,7 @@
   "labels": [
     "lpic-required",
     "modern-practice",
-    "scenario-accepted"
+    "scenario-implemented"
   ],
   "estimated_minutes": 9,
   "practice_context": "inode-backlog-recovery",

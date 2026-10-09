@@ -4,5 +4,5 @@
   "lab_id": "lpic1.102.3.preload-library-recovery",
   "level": 2,
   "content_fr": "Inspecte la variable LD_PRELOAD dans le lanceur et la cible du lien symbolique sous vendor.",
-  "evidence_impact": "none"
+  "evidence_impact": "material"
 }
