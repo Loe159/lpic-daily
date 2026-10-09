@@ -1,0 +1,107 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.2.offline-ext-audit-recovery",
+  "title_fr": "Récupérer un volume ext4 après arrêt brutal",
+  "brief_fr": "Après une coupure, l'image disque /workspace/disks/audit.ext4 est signalée en erreur par la procédure de restauration. Elle contient encore une preuve d'audit indispensable. La remise en service exige un système de fichiers sain, identifié par le label audit-ready et configuré avec une réserve de blocs de 1 %. Rétablis ce volume sans le reformater ni perdre son contenu.",
+  "success_criteria_fr": [
+    "L'image ext4 ne présente plus d'erreur de cohérence lors d'une vérification hors ligne.",
+    "Le volume porte le label audit-ready et réserve 1 % de ses blocs.",
+    "La preuve d'audit préexistante est intacte ; aucune nouvelle image ne l'a remplacée."
+  ],
+  "debrief_fr": "e2fsck contrôle et corrige un système ext hors ligne ; son code retour 1 signifie souvent que des erreurs ont été corrigées. tune2fs lit ou modifie les paramètres de superbloc, notamment label et pourcentage de blocs réservés. Une remise à zéro par mkfs détruirait les données et n'est pas une réparation.",
+  "objective_ids": [
+    "104.2"
+  ],
+  "concept_ids": [
+    "lpic1.104.2.verification-ext",
+    "lpic1.104.2.reparation",
+    "lpic1.104.2.tuning-ext"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-implemented"
+  ],
+  "estimated_minutes": 14,
+  "practice_context": "offline-ext-audit-recovery",
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "baseline",
+    "writable_guest_paths": [
+      "/workspace"
+    ]
+  },
+  "resources": {
+    "memory_mb": 512,
+    "cpu_percent": 100,
+    "pids": 96,
+    "timeout_seconds": 1500
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "img=/workspace/disks/audit.ext4; test -f \"$img\" && e2fsck -fn \"$img\" >/dev/null 2>&1"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.2.verification-ext",
+        "lpic1.104.2.reparation"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "img=/workspace/disks/audit.ext4; tune2fs -l \"$img\" 2>/dev/null | grep -Eq '^Filesystem volume name:[[:space:]]+audit-ready$' && tune2fs -l \"$img\" 2>/dev/null | grep -Eq '^Filesystem state:[[:space:]]+clean$'"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.2.reparation",
+        "lpic1.104.2.tuning-ext"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "img=/workspace/disks/audit.ext4; values=$(tune2fs -l \"$img\" 2>/dev/null); blocks=$(printf '%s\\n' \"$values\" | awk '/^Block count:/ {print $3}'); reserve=$(printf '%s\\n' \"$values\" | awk '/^Reserved block count:/ {print $4}'); test -n \"$blocks\" && test -n \"$reserve\" && test \"$blocks\" -gt 0 && test $((reserve * 1000 / blocks)) -ge 9 && test $((reserve * 1000 / blocks)) -le 11"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.2.tuning-ext"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "debugfs -R 'cat /evidence.txt' /workspace/disks/audit.ext4 2>/dev/null | grep -qx 'ticket=inc-2817-do-not-delete'"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.2.reparation"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.104.2.offline-ext-audit-recovery.hint-1",
+    "lpic1.104.2.offline-ext-audit-recovery.hint-2",
+    "lpic1.104.2.offline-ext-audit-recovery.hint-3",
+    "lpic1.104.2.offline-ext-audit-recovery.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

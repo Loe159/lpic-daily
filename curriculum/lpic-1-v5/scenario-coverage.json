@@ -420,6 +420,20 @@
       "backend": "podman",
       "status": "implemented",
       "evidence_strength": "artifact"
+    },
+    {
+      "scenario_id": "lpic1.104.2.offline-ext-audit-recovery",
+      "objective_ids": [
+        "104.2"
+      ],
+      "concept_ids": [
+        "lpic1.104.2.verification-ext",
+        "lpic1.104.2.reparation",
+        "lpic1.104.2.tuning-ext"
+      ],
+      "backend": "podman",
+      "status": "implemented",
+      "evidence_strength": "state"
     }
   ]
 }
