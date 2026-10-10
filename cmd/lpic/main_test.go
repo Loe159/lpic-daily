@@ -971,6 +971,16 @@ func (fake *consoleScriptedLabRunner) OpenConsole(
 	return nil
 }
 
+type acpiScriptedLabRunner struct {
+	scriptedLabRunner
+	pressCount int
+}
+
+func (fake *acpiScriptedLabRunner) PressPowerButton(context.Context, runner.Instance) error {
+	fake.pressCount++
+	return nil
+}
+
 type rebootScriptedLabRunner struct {
 	scriptedLabRunner
 	rebootCalls int
@@ -1223,4 +1233,20 @@ func TestLabShellCommandReaderHandlesBackspaceAndLongInput(t *testing.T) {
 	if len(called) != 1 || called[0] != ":check" {
 		t.Fatalf("intercepted commands = %q", called)
 	}
+}
+
+func TestInteractiveVMLabDispatchesACPIButtonCommand(t *testing.T) {
+	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil { t.Fatalf("LoadAll: %v", err) }
+	authored, err := findLab(labs, "lpic1.102.2.grub-kernel-parameter")
+	if err != nil { t.Fatalf("findLab: %v", err) }
+	fake := &acpiScriptedLabRunner{}
+	var stdout, stderr bytes.Buffer
+	if err := runInteractiveLabWithBackend(context.Background(), authored, fake, false,
+		strings.NewReader(":acpi-power\n:quit\n"), &stdout, &stderr); err != nil {
+		t.Fatalf("runInteractiveLabWithBackend: %v (stderr %q)", err, stderr.String())
+	}
+	if fake.pressCount != 1 { t.Fatalf("pressCount = %d", fake.pressCount) }
+	if !strings.Contains(stdout.String(), "ACPI envoyé") { t.Fatalf("confirmation absent: %q", stdout.String()) }
 }

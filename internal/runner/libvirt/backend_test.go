@@ -25,6 +25,7 @@ type fakeControlPlane struct {
 	networkFilters    map[string]string
 	starts            int
 	reboots           int
+	acpiButtons       int
 	destroys          int
 	undefines         int
 	networkStarts     int
@@ -86,6 +87,11 @@ func (fake *fakeControlPlane) RebootDomain(name string) error {
 		return errors.New("domain not active")
 	}
 	fake.reboots++
+	return nil
+}
+func (fake *fakeControlPlane) PressACPIButtonDomain(name string) error {
+	if !fake.active[name] { return errors.New("domain not active") }
+	fake.acpiButtons++
 	return nil
 }
 func (fake *fakeControlPlane) OpenConsole(_ context.Context, name string, input io.Reader, output io.Writer) error {
@@ -1126,4 +1132,20 @@ func TestPrepareUSBExtraDiskUsesPrivateEmulatedController(t *testing.T) {
 			t.Errorf("VM unexpectedly exposes host resource %q", forbidden)
 		}
 	}
+}
+
+func TestPressPowerButtonRequiresOwnedActiveVM(t *testing.T) {
+	backend, control, _, definition := backendFixture(t)
+	instance, err := backend.Prepare(context.Background(), definition)
+	if err != nil { t.Fatal(err) }
+	if err := backend.PressPowerButton(context.Background(), instance); err == nil {
+		t.Fatal("inactive guest accepted ACPI button")
+	}
+	if err := backend.Start(context.Background(), instance); err != nil { t.Fatal(err) }
+	if err := backend.PressPowerButton(context.Background(), instance); err != nil { t.Fatal(err) }
+	if control.acpiButtons != 1 { t.Fatalf("ACPI count = %d", control.acpiButtons) }
+	if err := backend.PressPowerButton(context.Background(), runner.Instance{ID: "foreign-domain"}); err == nil {
+		t.Fatal("foreign domain accepted ACPI button")
+	}
+	if control.acpiButtons != 1 { t.Fatal("foreign ACPI event reached backend") }
 }

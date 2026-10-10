@@ -22,7 +22,8 @@ var domainSlugUnsafe = regexp.MustCompile(`[^a-z0-9.-]+`)
 
 var (
 	_ runner.ConsoleRunner = (*Backend)(nil)
-	_ runner.RebootRunner  = (*Backend)(nil)
+	_ runner.RebootRunner = (*Backend)(nil)
+	_ runner.ACPIButtonRunner = (*Backend)(nil)
 	_ runner.StorageProbe  = (*Backend)(nil)
 )
 
@@ -568,6 +569,19 @@ func (backend *Backend) Start(ctx context.Context, instance runner.Instance) err
 		return err
 	}
 	return nil
+}
+
+// PressPowerButton is limited to a running owned libvirt instance. A lab can
+// observe the kernel ACPI event without requesting a guest-agent shutdown.
+func (backend *Backend) PressPowerButton(ctx context.Context, instance runner.Instance) error {
+	if err := ctx.Err(); err != nil { return err }
+	if _, err := backend.instance(instance); err != nil { return err }
+	state, err := backend.control.DomainState(instance.ID)
+	if err != nil { return err }
+	if !state.Active { return fmt.Errorf("VM instance %s is not active", instance.ID) }
+	control, ok := backend.control.(ACPIControlPlane)
+	if !ok { return fmt.Errorf("%w: no managed ACPI event support", runner.ErrNotSupported) }
+	return control.PressACPIButtonDomain(instance.ID)
 }
 
 func (backend *Backend) Reboot(ctx context.Context, instance runner.Instance) error {

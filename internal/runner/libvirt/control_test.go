@@ -20,6 +20,8 @@ type fakeRawLibvirt struct {
 	defineFlags            golibvirt.DomainDefineFlags
 	createFlags            uint32
 	rebootFlags            golibvirt.DomainRebootFlagValues
+	shutdownFlags          golibvirt.DomainShutdownFlagValues
+	acpiButtonEvents       int
 	destroyFlags           golibvirt.DomainDestroyFlagsValues
 	undefineFlags          golibvirt.DomainUndefineFlagsValues
 	state                  int32
@@ -106,6 +108,12 @@ func (fake *fakeRawLibvirt) DomainReboot(
 	flags golibvirt.DomainRebootFlagValues,
 ) error {
 	fake.rebootFlags = flags
+	return fake.err
+}
+
+func (fake *fakeRawLibvirt) DomainShutdownFlags(_ golibvirt.Domain, flags golibvirt.DomainShutdownFlagValues) error {
+	fake.shutdownFlags = flags
+	fake.acpiButtonEvents++
 	return fake.err
 }
 
@@ -356,6 +364,12 @@ func TestRPCControlPlaneLifecycleUsesManagedDomainOnly(t *testing.T) {
 	}
 	if err := control.RebootDomain(name); err != nil {
 		t.Fatalf("RebootDomain() error = %v", err)
+	}
+	if err := control.PressACPIButtonDomain(name); err != nil {
+		t.Fatalf("PressACPIButtonDomain: %v", err)
+	}
+	if raw.shutdownFlags != golibvirt.DomainShutdownAcpiPowerBtn || raw.acpiButtonEvents != 1 {
+		t.Fatalf("ACPI event = flags %v, count %d", raw.shutdownFlags, raw.acpiButtonEvents)
 	}
 	if raw.rebootFlags != golibvirt.DomainRebootDefault {
 		t.Fatalf("reboot flags = %v, want default", raw.rebootFlags)
@@ -692,5 +706,19 @@ func TestValidateSystemCapabilitiesRequiresX8664KVM(t *testing.T) {
 	valid := "<capabilities><guest><arch name=\"x86_64\"><domain type=\"qemu\"/><domain type=\"kvm\"/></arch></guest></capabilities>"
 	if err := validateSystemCapabilities(valid); err != nil {
 		t.Fatalf("x86_64 KVM capabilities rejected: %v", err)
+	}
+}
+
+func TestACPIButtonRejectsUnmanagedDomainAndRPCFailure(t *testing.T) {
+	raw := &fakeRawLibvirt{domain: golibvirt.Domain{Name:"lpic-daily-vm-abc123"}, definedXML:managedTestDomainXML}
+	control, err := newScopedRPCControlPlaneForTest(t, raw)
+	if err != nil { t.Fatal(err) }
+	if err := control.PressACPIButtonDomain("default"); err == nil {
+		t.Fatal("accepted unmanaged domain")
+	}
+	if raw.acpiButtonEvents != 0 { t.Fatal("sent event to unmanaged domain") }
+	raw.err = errors.New("ACPI delivery failed")
+	if err := control.PressACPIButtonDomain("lpic-daily-vm-abc123"); err == nil {
+		t.Fatal("suppressed RPC failure")
 	}
 }

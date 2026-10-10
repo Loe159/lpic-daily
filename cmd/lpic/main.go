@@ -1562,7 +1562,7 @@ func runInteractiveLabWithBackend(
 		fmt.Fprintln(stdout, "Commandes LPIC Daily : :shell  :check  :hint  :reset  :quit")
 	} else {
 		fmt.Fprintln(stdout, "Mode commandes VM. Chaque ligne est exécutée dans la VM via QEMU Guest Agent.")
-		fmt.Fprintln(stdout, "Commandes LPIC Daily : :console  :reboot  :check  :hint  :reset  :quit")
+		fmt.Fprintln(stdout, "Commandes LPIC Daily : :console  :reboot  :acpi-power  :check  :hint  :reset  :quit")
 	}
 	fmt.Fprintln(stdout)
 
@@ -1640,6 +1640,21 @@ func runInteractiveLabWithBackend(
 				return fmt.Errorf("VM serial console: %w", err)
 			}
 			fmt.Fprintln(stdout, "\n[retour LPIC Daily]")
+			continue
+		case ":acpi-power":
+			if persistentShell {
+				fmt.Fprintln(stdout, "Les événements ACPI sont réservés aux labs VM.")
+				continue
+			}
+			button, ok := backend.(runner.ACPIButtonRunner)
+			if !ok {
+				return fmt.Errorf("%w: backend has no ACPI button capability", runner.ErrNotSupported)
+			}
+			buttonCtx, cancelButton := context.WithTimeout(sessionCtx, operationTimeout)
+			err := button.PressPowerButton(buttonCtx, session.Instance)
+			cancelButton()
+			if err != nil { return fmt.Errorf("send VM ACPI power button: %w", err) }
+			fmt.Fprintln(stdout, "Bouton d'alimentation ACPI envoyé à la VM. Contrôle l'événement dans le système invité.")
 			continue
 		case ":reboot":
 			if persistentShell {

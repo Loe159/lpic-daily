@@ -256,6 +256,13 @@ type RebootRunner interface {
 	Reboot(context.Context, Instance) error
 }
 
+// ACPIButtonRunner is an optional, full-machine-only capability. It sends a
+// physical power-button event to an owned disposable VM, not a guest-agent
+// shutdown or a signal to the host.
+type ACPIButtonRunner interface {
+	PressPowerButton(context.Context, Instance) error
+}
+
 type Runner interface {
 	Prepare(context.Context, Definition) (Instance, error)
 	Start(context.Context, Instance) error
