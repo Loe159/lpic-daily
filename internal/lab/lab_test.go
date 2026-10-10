@@ -797,7 +797,7 @@ func TestBuiltinACPIAuditRequiresRealVMEvent(t *testing.T) {
 	}
 	if !strings.Contains(authored.SetupScript, "HandlePowerKey=ignore") ||
 		!strings.Contains(authored.SetupScript, "action=/usr/bin/true") ||
-		!strings.Contains(authored.ReferenceSolution, ":acpi-power") {
+		authored.ReferenceSolutionRef != "reference-solution.sh" {
 		t.Fatal("ACPI audit scenario lacks safe power policy, broken rule, or manual event trigger")
 	}
 }
