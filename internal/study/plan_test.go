@@ -1273,3 +1273,61 @@ func TestImplementedScenarioIsHiddenFromScheduler(t *testing.T) {
 		}
 	}
 }
+
+func TestExportUnsetConceptPrefersAcceptedEnvironmentBoundaryLab(t *testing.T) {
+	curriculumBundle, contentBundle, labs := loadInputs(t)
+	now := time.Date(2026, 10, 8, 20, 0, 0, 0, time.UTC)
+	conceptID := "lpic1.103.1.export-unset-et-processus-enfants"
+	evidence := memoryEvidence{
+		conceptID: {
+			{
+				EventID:      "lesson",
+				OccurredAt:   now.Add(-48 * time.Hour),
+				ConceptID:    conceptID,
+				ObjectiveIDs: []string{"103.1"},
+				SourceItemID: "test-lesson",
+				ActivityKind: learning.ActivityLesson,
+				EvidenceKind: learning.EvidenceExposure,
+				Result:       learning.ResultPass,
+				Distribution: "generic",
+				AttemptIndex: 1,
+			},
+			{
+				EventID:      "recognition",
+				OccurredAt:   now.Add(-47 * time.Hour),
+				ConceptID:    conceptID,
+				ObjectiveIDs: []string{"103.1"},
+				SourceItemID: "test-question",
+				ActivityKind: learning.ActivityQuestion,
+				EvidenceKind: learning.EvidenceRecognition,
+				Result:       learning.ResultPass,
+				Distribution: "generic",
+				AttemptIndex: 1,
+			},
+		},
+	}
+
+	policy := learning.DefaultSessionPolicy()
+	policy.MaxNewConcepts = 0
+	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
+		Now:        now,
+		Curriculum: curriculumBundle,
+		Content:    contentBundle,
+		Labs:       labs,
+		Evidence:   evidence,
+		Policy:     policy,
+	})
+	if err != nil {
+		t.Fatalf("BuildPlan() error = %v", err)
+	}
+	for _, item := range plan.Items {
+		if item.ConceptID != conceptID {
+			continue
+		}
+		if !item.PreferLab || item.RecommendedLabID != "lpic1.103.1.environment-boundary-repair" {
+			t.Fatalf("export/unset review = %#v, want accepted state-based environment lab", item)
+		}
+		return
+	}
+	t.Fatalf("plan = %#v, want due review for %s", plan.Items, conceptID)
+}

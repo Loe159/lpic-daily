@@ -8,14 +8,17 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
+	"time"
 
 	lpicdaily "github.com/Loe159/lpic-daily"
 	"github.com/Loe159/lpic-daily/internal/curriculum"
 	"github.com/Loe159/lpic-daily/internal/lab"
 	"github.com/Loe159/lpic-daily/internal/learning"
 	"github.com/Loe159/lpic-daily/internal/runner"
+	"github.com/Loe159/lpic-daily/internal/study"
 )
 
 const (
@@ -1058,5 +1061,166 @@ func TestUpdateHelpDoesNotRunUpdater(t *testing.T) {
 	}
 	if !strings.Contains(stdout.String(), "Usage: lpic update") {
 		t.Fatalf("update help output = %q", stdout.String())
+	}
+}
+
+func TestDashboardLabParentRejectsCheckAndWaitsForRecordedSuccess(t *testing.T) {
+	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
+
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("LoadAll() error = %v", err)
+	}
+	authored, err := findLab(
+		labs,
+		"lpic1.103.1.set-env-et-portee-des-variables.standalone-diagnostic",
+	)
+	if err != nil {
+		t.Fatalf("findLab() error = %v", err)
+	}
+
+	store, err := openProgressStore(context.Background())
+	if err != nil {
+		t.Fatalf("openProgressStore() error = %v", err)
+	}
+	if err := study.RecordLab(context.Background(), store, authored, 0, time.Now()); err != nil {
+		_ = store.Close()
+		t.Fatalf("RecordLab() error = %v", err)
+	}
+	if err := store.Close(); err != nil {
+		t.Fatalf("close progress store: %v", err)
+	}
+
+	var stdout bytes.Buffer
+	if err := waitForDashboardLabCompletion(
+		context.Background(),
+		authored,
+		0,
+		strings.NewReader(":check\n\n"),
+		&stdout,
+	); err != nil {
+		t.Fatalf("waitForDashboardLabCompletion() error = %v", err)
+	}
+
+	output := stdout.String()
+	if !strings.Contains(output, ":check doit être saisi dans le terminal enfant") {
+		t.Fatalf("parent did not reject :check: %q", output)
+	}
+	if !strings.Contains(output, "Progression du lab détectée.") {
+		t.Fatalf("recorded success was not detected: %q", output)
+	}
+}
+
+func TestSuccessfulLabAttemptCountRequiresEveryMappedConcept(t *testing.T) {
+	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
+
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("LoadAll() error = %v", err)
+	}
+	authored, err := findLab(labs, shellEnvironmentRepairID)
+	if err != nil {
+		t.Fatalf("findLab() error = %v", err)
+	}
+
+	store, err := openProgressStore(context.Background())
+	if err != nil {
+		t.Fatalf("openProgressStore() error = %v", err)
+	}
+	at := time.Now()
+	event := learning.EvidenceEvent{
+		EventID:         "partial-lab-success",
+		OccurredAt:      at,
+		ConceptID:       authored.Definition.ConceptIDs[0],
+		ObjectiveIDs:    append([]string(nil), authored.Definition.ObjectiveIDs...),
+		SourceItemID:    authored.Definition.ID,
+		ActivityKind:    learning.ActivityLab,
+		EvidenceKind:    learning.EvidenceIndependentPractice,
+		Result:          learning.ResultPass,
+		Distribution:    authored.Definition.Environment.Distribution,
+		PracticeContext: authored.Definition.PracticeContext,
+		AttemptIndex:    1,
+	}
+	if err := store.AppendEvidence(context.Background(), event); err != nil {
+		_ = store.Close()
+		t.Fatalf("AppendEvidence() error = %v", err)
+	}
+	if err := store.Close(); err != nil {
+		t.Fatalf("close progress store: %v", err)
+	}
+
+	count, err := successfulLabAttemptCount(context.Background(), authored)
+	if err != nil {
+		t.Fatalf("successfulLabAttemptCount() error = %v", err)
+	}
+	if count != 0 {
+		t.Fatalf("successfulLabAttemptCount() = %d, want 0 for a partial concept pass", count)
+	}
+}
+
+func TestLabShellCommandReaderInterceptsHostControls(t *testing.T) {
+	var commands []string
+	reader := &labShellCommandReader{
+		input:     strings.NewReader("env\r:check\r:hint\r:help\r:quit\r"),
+		lineStart: true,
+		onCommand: func(command string) (bool, error) {
+			commands = append(commands, command)
+			return command == ":quit", nil
+		},
+	}
+	data, err := io.ReadAll(reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := string(data); got != "env\rexit\r" {
+		t.Fatalf("sandbox received %q, want normal command and controlled exit", got)
+	}
+	if want := []string{":check", ":hint", ":help", ":quit"}; !slices.Equal(commands, want) {
+		t.Fatalf("host commands = %q, want %q", commands, want)
+	}
+}
+
+func TestLabShellCommandReaderPreservesShellInputAndRejectsForgedCommands(t *testing.T) {
+	var commands []string
+	input := "echo hello\r:check-not-real\r:check\r"
+	reader := &labShellCommandReader{
+		input:     strings.NewReader(input),
+		lineStart: true,
+		onCommand: func(command string) (bool, error) {
+			commands = append(commands, command)
+			return false, nil
+		},
+	}
+	data, err := io.ReadAll(reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got, want := string(data), "echo hello\r:check-not-real\r"; got != want {
+		t.Fatalf("sandbox input = %q, want %q", got, want)
+	}
+	if want := []string{":check"}; !slices.Equal(commands, want) {
+		t.Fatalf("intercepted = %q, want %q", commands, want)
+	}
+}
+
+func TestLabShellCommandReaderHandlesBackspaceAndLongInput(t *testing.T) {
+	var called []string
+	reader := &labShellCommandReader{
+		input:     strings.NewReader(":checkx\b\r" + ":" + strings.Repeat("x", 80) + "\r"),
+		lineStart: true,
+		onCommand: func(command string) (bool, error) {
+			called = append(called, command)
+			return false, nil
+		},
+	}
+	data, err := io.ReadAll(reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got, want := string(data), ":"+strings.Repeat("x", 80)+"\r"; got != want {
+		t.Fatalf("forwarded input = %q, want %q", got, want)
+	}
+	if len(called) != 1 || called[0] != ":check" {
+		t.Fatalf("intercepted commands = %q", called)
 	}
 }

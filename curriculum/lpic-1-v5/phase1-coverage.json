@@ -229,6 +229,7 @@
       "objective_id": "103.1",
       "surfaces": {
         "labs": [
+          "lpic1.103.1.child-environment-handoff",
           "lpic1.103.1.environment-boundary-repair",
           "lpic1.103.1.set-env-et-portee-des-variables.standalone-diagnostic",
           "lpic1.103.1.set-env-et-portee-des-variables.standalone-transfer"
@@ -244,6 +245,7 @@
       "lab_contexts": [
         "103-1-c08-standalone-diagnostic",
         "103-1-c08-standalone-transfer",
+        "child-environment-handoff",
         "environment-boundary-repair"
       ],
       "focused_introduction_count": 1
@@ -253,6 +255,7 @@
       "objective_id": "103.1",
       "surfaces": {
         "labs": [
+          "lpic1.103.1.child-environment-handoff",
           "lpic1.103.1.environment-boundary-repair",
           "lpic1.103.1.export-unset-et-processus-enfants.standalone-diagnostic",
           "lpic1.103.1.export-unset-et-processus-enfants.standalone-transfer"
@@ -268,6 +271,7 @@
       "lab_contexts": [
         "103-1-c09-standalone-diagnostic",
         "103-1-c09-standalone-transfer",
+        "child-environment-handoff",
         "environment-boundary-repair"
       ],
       "focused_introduction_count": 1
