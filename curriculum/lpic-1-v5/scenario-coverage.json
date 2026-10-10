@@ -879,6 +879,19 @@
       "backend": "libvirt",
       "status": "implemented",
       "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.101.1.usb-backup-authorization-recovery",
+      "objective_ids": [
+        "101.1"
+      ],
+      "concept_ids": [
+        "lpic1.101.1.bus-pci-et-usb",
+        "lpic1.101.1.manipulation-des-peripheriques-usb"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
     }
   ]
 }

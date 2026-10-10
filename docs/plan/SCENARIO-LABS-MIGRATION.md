@@ -156,13 +156,20 @@ Le runner libvirt accepte désormais des disques jetables sur bus `sata` ou `vir
 
 **Couverture LPIC-101 : 80 acceptés, 73 uniquement implémentés, 9 non couverts.** La CI, le démarrage Q35 avec contrôleur SATA, les checks setup rouge / solution verte / reset rouge, les invariants de disques et la sûreté libvirt doivent encore être vérifiés sur KVM. La matrice n'est pas une preuve d'acceptation.
 
+### Lot du 10 octobre 2026 — périphérique USB virtuel autorisable
+
+Le runner KVM sait créer un support de stockage **USB virtuel** à partir d'une image qcow2 sous le répertoire d'état privé, relié à un contrôleur xHCI émulé sur PCI. Il n'y a ni pass-through matériel ni accès à un USB de l'hôte. Les anciens disques VirtIO/SATA conservent leur comportement. `usbutils` est ajouté à la recette Fedora ; l'image doit être reconstruite.
+
+`101.1.usb-backup-authorization-recovery` est **implemented**, non accepté. L'incident consiste à rétablir un périphérique USB désautorisé dans sysfs ; sa présence USB, son attachement PCI et l'accès aux données ext4 sont vérifiés par des observations du noyau. Les deux concepts **`101.1.bus-pci-et-usb`** et **`101.1.manipulation-des-peripheriques-usb`** sont donc couverts **à l'implémentation seulement**. Ce lab ne prouve pas la gestion d'un dispositif USB physique.
+
+**Couverture LPIC-101 : 80 acceptés, 75 uniquement implémentés, 7 sans scénario.** Ne pas promouvoir avant un test complet KVM de la découverte USB, du support de l'attribut authorized, de l'état négatif après setup, du retour du disque et de l'index après la référence, du reset rouge et de l'absence de matériel hôte exposé. CI non exécutée.
+
 ### Remaining migration blockers — 9 octobre 2026
 
-Les **9 concepts du LPIC-101 sans scénario** ne doivent pas être considérés comme implémentés par simple rapprochement de mots-clés. Préparer les moyens d'évaluation suivants avant d'écrire des tests de conformité :
+Les **7 concepts du LPIC-101 sans scénario** ne doivent pas être considérés comme implémentés par simple rapprochement de mots-clés. Préparer les moyens d'évaluation suivants avant d'écrire des tests de conformité :
 
 | Concepts encore sans scénario | Critère de preuve manquant |
 | --- | --- |
-| 101.1 — bus PCI/USB et manipulation USB | Dispositif USB réellement énuméré / déconnecté / réattaché ; `lsusb`, `udevadm` et sysfs doivent suivre le même matériel ; prévoir un périphérique USB virtuel contrôlé par la VM et un cycle hotplug reproductible. |
 | 101.1 — activation/désactivation de périphériques intégrés | Tester un changement de contrôleur dans un firmware ou hyperviseur équivalent et le rattachement au noyau, pas simplement la création d'un lien sous /dev. |
 | 101.2 — SysVinit vs systemd et Upstart historique | Environnements isolés adaptés aux anciens init (ou preuve décisionnelle explicitement justifiée) ; ne pas faire passer un service systemd seul pour une exécution Upstart. |
 | 101.3 — mode mono-utilisateur/récupération | Démarrer réellement en rescue/emergency tout en préservant un canal fiable de contrôle et de reset de la VM ; valider la cible active et le retour à un mode normal. |
