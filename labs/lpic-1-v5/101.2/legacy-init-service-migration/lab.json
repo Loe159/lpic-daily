@@ -1,0 +1,92 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.2.legacy-init-service-migration",
+  "title_fr": "Réparer un service après migration de l'initialisation",
+  "brief_fr": "Après migration d'un serveur vers systemd, le service lpic-legacy-indexer ne démarre plus. Le répertoire contient encore un ancien script SysV et une configuration Upstart ; ces deux fichiers sont des archives à conserver, pas les services actifs de Fedora. Diagnostique pourquoi l'unité systemd échoue, rétablis l'exécution du collecteur et vérifie qu'il continue de produire ses pulsations. Ne lance pas Upstart et ne supprime pas les archives.",
+  "success_criteria_fr": [
+    "Le service systemd lpic-legacy-indexer.service démarre et reste activé pour le prochain boot.",
+    "Le véritable collecteur déclaré dans les fichiers historiques tourne et actualise son fichier de pulsation.",
+    "Les fichiers SysV et Upstart sont conservés à l'identique et ne sont pas utilisés comme exécutables dans la nouvelle unité."
+  ],
+  "debrief_fr": "SysVinit pilote des scripts dans /etc/init.d avec les actions start/stop ; Upstart utilisait des descriptions d'événements dans /etc/init/*.conf ; systemd démarre des unités .service déclarant notamment ExecStart. Une configuration Upstart ne peut pas être exécutée comme un binaire. Sur Fedora, le PID 1 reste systemd : le lab utilise de vrais démarrages de service et traite Upstart uniquement comme un artefact historique, pas comme un ancien init exécuté.",
+  "objective_ids": [
+    "101.2"
+  ],
+  "concept_ids": [
+    "lpic1.101.2.sysvinit-systemd-et-connaissance-historique-d-upstart"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-implemented"
+  ],
+  "estimated_minutes": 15,
+  "practice_context": "101.2.legacy-init-service-migration",
+  "environment": {
+    "backend": "libvirt",
+    "image_ref": "fedora-44-x86_64-v2",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "full-machine",
+    "writable_guest_paths": [],
+    "machine": {
+      "firmware": "uefi"
+    }
+  },
+  "resources": {
+    "memory_mb": 1024,
+    "cpu_percent": 100,
+    "pids": 128,
+    "timeout_seconds": 1600
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -e; systemctl is-active --quiet lpic-legacy-indexer.service; systemctl is-enabled --quiet lpic-legacy-indexer.service; test \"$(systemctl show lpic-legacy-indexer.service -p MainPID --value)\" -gt 1; test \"$(systemctl show lpic-legacy-indexer.service -p FragmentPath --value)\" = /etc/systemd/system/lpic-legacy-indexer.service"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.101.2.sysvinit-systemd-et-connaissance-historique-d-upstart"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -e; test -s /run/lpic-legacy-indexer/heartbeat; before=$(cat /run/lpic-legacy-indexer/heartbeat); sleep 2; after=$(cat /run/lpic-legacy-indexer/heartbeat); test \"$before\" != \"$after\"; grep -Fxq 'ExecStart=/usr/local/libexec/lpic-legacy-indexer' /etc/systemd/system/lpic-legacy-indexer.service; test \"$(awk '$1==\"exec\" {print $2}' /etc/init/lpic-legacy-indexer.conf)\" = /usr/local/libexec/lpic-legacy-indexer"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.101.2.sysvinit-systemd-et-connaissance-historique-d-upstart"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -e; cd /; sha256sum -c /var/lib/lpic-init-migration/archive-sha256; test -f /etc/init.d/lpic-legacy-indexer; grep -q '^### BEGIN INIT INFO' /etc/init.d/lpic-legacy-indexer; grep -q '^start on runlevel' /etc/init/lpic-legacy-indexer.conf; test \"$(ps -p 1 -o comm= | xargs)\" = systemd"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.101.2.sysvinit-systemd-et-connaissance-historique-d-upstart"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.101.2.legacy-init-service-migration.hint-1",
+    "lpic1.101.2.legacy-init-service-migration.hint-2",
+    "lpic1.101.2.legacy-init-service-migration.hint-3",
+    "lpic1.101.2.legacy-init-service-migration.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

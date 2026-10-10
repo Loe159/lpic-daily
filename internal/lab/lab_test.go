@@ -801,3 +801,25 @@ func TestBuiltinACPIAuditRequiresRealVMEvent(t *testing.T) {
 		t.Fatal("ACPI audit scenario lacks safe power policy, broken rule, or manual event trigger")
 	}
 }
+
+func TestBuiltinLegacyInitServiceMigrationPreservesArchive(t *testing.T) {
+	authored := loadBuiltinLab(t, "lpic1.101.2.legacy-init-service-migration")
+	definition, err := authored.RunnerDefinition()
+	if err != nil { t.Fatal(err) }
+	if definition.Machine == nil || authored.Definition.Environment.Backend != "libvirt" {
+		t.Fatalf("systemd integration requires actual isolated VM: %#v", authored.Definition.Environment)
+	}
+	if len(authored.Definition.Checks) != 3 || len(authored.Hints) != 4 {
+		t.Fatalf("incomplete init migration lab: %d checks %d hints", len(authored.Definition.Checks), len(authored.Hints))
+	}
+	for _, check := range authored.Definition.Checks {
+		if !slices.Contains(check.ConceptIDs, "lpic1.101.2.sysvinit-systemd-et-connaissance-historique-d-upstart") {
+			t.Fatalf("unmapped legacy init check: %#v", check)
+		}
+	}
+	for _, marker := range []string{"ExecStart=/etc/init/lpic-legacy-indexer.conf", "sha256sum", "start on runlevel", "### BEGIN INIT INFO", "heartbeat"} {
+		if !strings.Contains(authored.SetupScript, marker) {
+			t.Errorf("expected real compatibility evidence %q", marker)
+		}
+	}
+}

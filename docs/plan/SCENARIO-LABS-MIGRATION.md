@@ -180,14 +180,19 @@ Le runner VM expose `:acpi-power` comme une action explicite, réservée aux dom
 
 **Couverture LPIC-101 : 80 acceptés, 77 seulement implémentés, 5 sans scénario.** La validation requiert KVM réel : preuve d'événement ACPI, handler acpid actif, log initialement vide, référence puis action de l'hôte puis checks verts, reset rouge. Ne pas assimiler une exécution de la référence seule à une réussite automatique. Aucun test de bout en bout exécuté.
 
+### Lot du 10 octobre 2026 — migration réelle d'un service d'initialisation
+
+`101.2.legacy-init-service-migration` est **implemented**, non accepté. Le setup installe une unité systemd cassée sur Fedora, un collecteur **exécutable** avec pulsation mesurable, et des artefacts historiques **SysVinit** (`/etc/init.d/`) et **Upstart** (`/etc/init/*.conf`) conservés par hachage. Le lab demande de réparer le vrai `ExecStart` à partir des indices des anciens formats, réinitialiser l'état d'échec systemd, et observer le service actif et un heartbeat évolutif. Upstart n'est **pas exécuté** et aucune preuve d'exécution de son ordonnanceur n'est revendiquée ; son rôle est celui d'une source de configuration historique.
+
+**Couverture LPIC-101 : 80 acceptés, 78 uniquement implémentés, 4 sans scénario.** La promotion en `accepted` exige la VM KVM, une exécution rouge du setup, la récupération du vrai processus, la préservation des fichiers historiques et une nouvelle exécution rouge après reset. Ne pas confondre reconnaissance d'une configuration ancienne et tests d'un PID 1 Upstart.
+
 ### Remaining migration blockers — 9 octobre 2026
 
-Les **5 concepts du LPIC-101 sans scénario** ne doivent pas être considérés comme implémentés par simple rapprochement de mots-clés. Préparer les moyens d'évaluation suivants avant d'écrire des tests de conformité :
+Les **4 concepts du LPIC-101 sans scénario** ne doivent pas être considérés comme implémentés par simple rapprochement de mots-clés. Préparer les moyens d'évaluation suivants avant d'écrire des tests de conformité :
 
 | Concepts encore sans scénario | Critère de preuve manquant |
 | --- | --- |
 | 101.1 — activation/désactivation de périphériques intégrés | Tester un changement de contrôleur dans un firmware ou hyperviseur équivalent et le rattachement au noyau, pas simplement la création d'un lien sous /dev. |
-| 101.2 — SysVinit vs systemd et Upstart historique | Environnements isolés adaptés aux anciens init (ou preuve décisionnelle explicitement justifiée) ; ne pas faire passer un service systemd seul pour une exécution Upstart. |
 | 102.2 — GRUB Legacy vs GRUB 2 | Mettre à disposition un environnement legacy pertinent ou des images de supports de démarrage réellement différenciées ; l'utilisation de deux entrées GRUB 2 n'est pas une preuve de GRUB Legacy. |
 | 102.2 / 101.2 — interaction au menu/console GRUB et commandes du chargeur | Capture de console série au démarrage, saisie dans le menu/éditeur GRUB et validation d'une modification **temporaire** dans `/proc/cmdline` sans modification de la configuration persistante. |
 
