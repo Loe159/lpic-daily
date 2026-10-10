@@ -725,3 +725,35 @@ func TestBuiltinStorageBusArchiveRecoveryPropagatesTransport(t *testing.T) {
 		t.Fatalf("incomplete storage scenario: %d hints, %d checks", len(authored.Hints), len(authored.Definition.Checks))
 	}
 }
+
+func TestBuiltinUSBAuthorizationRecoveryUsesVirtualUSBTransport(t *testing.T) {
+	authored := loadBuiltinLab(t, "lpic1.101.1.usb-backup-authorization-recovery")
+	definition, err := authored.RunnerDefinition()
+	if err != nil {
+		t.Fatalf("RunnerDefinition() error = %v", err)
+	}
+	if definition.Machine == nil || len(definition.Machine.ExtraDisks) != 1 {
+		t.Fatalf("expected one isolated USB disk, got %#v", definition.Machine)
+	}
+	device := definition.Machine.ExtraDisks[0]
+	if device.Bus != runner.VirtualDiskBusUSB || device.ID != "usb-backup" {
+		t.Fatalf("virtual disk = %#v, want USB backup", device)
+	}
+	if len(authored.Definition.Checks) != 3 || len(authored.Hints) != 4 {
+		t.Fatalf("incomplete USB scenario: %d checks, %d hints", len(authored.Definition.Checks), len(authored.Hints))
+	}
+	for _, id := range []string{"lpic1.101.1.bus-pci-et-usb", "lpic1.101.1.manipulation-des-peripheriques-usb"} {
+		if !slices.Contains(authored.Definition.ConceptIDs, id) {
+			t.Fatalf("concept %s missing from USB scenario", id)
+		}
+		found := false
+		for _, check := range authored.Definition.Checks {
+			if slices.Contains(check.ConceptIDs, id) {
+				found = true
+			}
+		}
+		if !found {
+			t.Fatalf("concept %s has no state-based check", id)
+		}
+	}
+}
