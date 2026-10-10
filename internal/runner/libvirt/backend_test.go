@@ -1102,3 +1102,28 @@ func TestVMInstanceNameIsSafe(t *testing.T) {
 		t.Fatalf("unsafe generated name = %q", name)
 	}
 }
+
+func TestPrepareUSBExtraDiskUsesPrivateEmulatedController(t *testing.T) {
+	backend, control, _, definition := backendFixture(t)
+	definition.Machine.ExtraDisks = []runner.VirtualDisk{{
+		ID: "usb-backup", SizeMB: 256, Bus: runner.VirtualDiskBusUSB,
+	}}
+	instance, err := backend.Prepare(context.Background(), definition)
+	if err != nil {
+		t.Fatalf("Prepare(USB scratch disk): %v", err)
+	}
+	payload := control.defined[instance.ID]
+	for _, want := range []string{
+		`<controller type="usb" index="0" model="qemu-xhci"></controller>`,
+		`<target dev="sda" bus="usb"></target>`,
+	} {
+		if !strings.Contains(payload, want) {
+			t.Errorf("USB controller/disk not propagated to domain XML: missing %q", want)
+		}
+	}
+	for _, forbidden := range []string{"<hostdev", "<redirdev", "<filesystem"} {
+		if strings.Contains(payload, forbidden) {
+			t.Errorf("VM unexpectedly exposes host resource %q", forbidden)
+		}
+	}
+}
