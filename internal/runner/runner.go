@@ -29,9 +29,17 @@ const (
 	FirmwareUEFI FirmwareMode = "uefi"
 )
 
+type VirtualDiskBus string
+
+const (
+	VirtualDiskBusVirtio VirtualDiskBus = "virtio"
+	VirtualDiskBusSATA   VirtualDiskBus = "sata"
+)
+
 type VirtualDisk struct {
 	ID     string
 	SizeMB int
+	Bus    VirtualDiskBus // Empty means virtio for existing labs.
 }
 
 type MachineDefinition struct {
@@ -57,6 +65,9 @@ func (machine MachineDefinition) Validate() error {
 		seen[disk.ID] = struct{}{}
 		if disk.SizeMB < 64 || disk.SizeMB > 8192 {
 			return errors.New("extra disk size must be between 64 and 8192 MiB")
+		}
+		if disk.Bus != "" && disk.Bus != VirtualDiskBusVirtio && disk.Bus != VirtualDiskBusSATA {
+			return errors.New("extra disk bus must be virtio or sata")
 		}
 	}
 	return nil

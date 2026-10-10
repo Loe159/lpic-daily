@@ -147,6 +147,12 @@
                     "type": "integer",
                     "minimum": 64,
                     "maximum": 8192
+                  },
+                  "bus": {
+                    "enum": [
+                      "virtio",
+                      "sata"
+                    ]
                   }
                 }
               }

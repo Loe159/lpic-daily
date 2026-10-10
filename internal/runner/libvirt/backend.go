@@ -273,7 +273,7 @@ func (backend *Backend) prepareNamedOnNetwork(
 		if !exists {
 			return fmt.Errorf("overlay manager omitted scratch disk %s", requested.ID)
 		}
-		extraDisks = append(extraDisks, DiskPath{ID: requested.ID, Path: path})
+		extraDisks = append(extraDisks, DiskPath{ID: requested.ID, Path: path, Bus: requested.Bus})
 	}
 
 	xml, err := BuildDomainXML(DomainSpec{

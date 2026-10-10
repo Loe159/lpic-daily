@@ -170,6 +170,7 @@ func (lab Lab) RunnerDefinition() (runner.Definition, error) {
 			definition.Machine.ExtraDisks = append(definition.Machine.ExtraDisks, runner.VirtualDisk{
 				ID:     disk.ID,
 				SizeMB: disk.SizeMB,
+				Bus:    runner.VirtualDiskBus(disk.Bus),
 			})
 		}
 	}

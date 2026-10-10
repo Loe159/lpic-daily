@@ -246,3 +246,35 @@ func TestImageDescriptorRejectsPathEscapesAndUnsupportedFirmware(t *testing.T) {
 		t.Fatal("escaped image path unexpectedly accepted")
 	}
 }
+
+func TestBuildDomainXMLSupportsMixedVirtioAndSATAExtraDisks(t *testing.T) {
+	stateRoot := filepath.Join(t.TempDir(), "state")
+	spec := DomainSpec{
+		Name: "lpic-daily-mixed-disks", LabID: "lpic1.101.1.storage",
+		OwnerScope: testManagedOwnerScope, MemoryMB: 1024, CPUPercent: 100,
+		Firmware: runner.FirmwareUEFI, RootDiskPath: filepath.Join(stateRoot, "root.qcow2"),
+		ExtraDisks: []DiskPath{
+			{ID: "legacy", Path: filepath.Join(stateRoot, "sata.qcow2"), Bus: runner.VirtualDiskBusSATA},
+			{ID: "fast", Path: filepath.Join(stateRoot, "virtio.qcow2")},
+		},
+	}
+	payload, err := BuildDomainXML(spec, stateRoot)
+	if err != nil { t.Fatalf("BuildDomainXML(mixed disks): %v", err) }
+	for _, expected := range []string{
+		`<target dev="vda" bus="virtio"></target>`,
+		`<target dev="sda" bus="sata"></target>`,
+		`<target dev="vdb" bus="virtio"></target>`,
+	} {
+		if !strings.Contains(payload, expected) { t.Fatalf("missing %s in %s", expected, payload) }
+	}
+	var parsed domainXML
+	if err := xml.Unmarshal([]byte(payload), &parsed); err != nil { t.Fatal(err) }
+	if len(parsed.Devices.Disks) != 3 { t.Fatalf("disk count=%d", len(parsed.Devices.Disks)) }
+	for _, badBus := range []runner.VirtualDiskBus{"usb", "nvme", "scsi"} {
+		invalid := spec
+		invalid.ExtraDisks = []DiskPath{{ID: "bad", Path: filepath.Join(stateRoot, "bad.qcow2"), Bus: badBus}}
+		if _, err := BuildDomainXML(invalid, stateRoot); err == nil {
+			t.Errorf("bus %q unexpectedly accepted", badBus)
+		}
+	}
+}
