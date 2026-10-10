@@ -164,15 +164,22 @@ Le runner KVM sait créer un support de stockage **USB virtuel** à partir d'une
 
 **Couverture LPIC-101 : 80 acceptés, 75 uniquement implémentés, 7 sans scénario.** Ne pas promouvoir avant un test complet KVM de la découverte USB, du support de l'attribut authorized, de l'état négatif après setup, du retour du disque et de l'index après la référence, du reset rouge et de l'absence de matériel hôte exposé. CI non exécutée.
 
+### Lot du 10 octobre 2026 — récupération de la cible rescue
+
+`101.3.rescue-target-service-recovery` est **implemented**, non accepté. Une VM Fedora entre réellement dans `rescue.target` et `crond.service` est arrêté ; l'apprenant doit restaurer `multi-user.target` et la planification active sans redémarrer. La cible persistante est préservée. Le setup protège préalablement `qemu-guest-agent.service` par `IgnoreOnIsolate=yes` pour éviter de perdre l'accès au runner pendant l'isolation. Les checks vérifient les états systemd réels et la disponibilité du canal d'administration.
+
+Le test d'acceptation KVM doit encore confirmer : `rescue.target` réellement actif après setup, `crond` arrêté, QGA toujours joignable, états verts après référence, et retour au même incident après reset. Ne pas annoncer un résultat positif avant le test sur VM éphémère ; `systemctl isolate` ne doit jamais être lancé sur l'hôte. Ce scénario ne démontre pas un démarrage directement en rescue via GRUB.
+
+**Couverture LPIC-101 : 80 acceptés, 76 implémentés non acceptés, 6 sans scénario.** Aucun test KVM ou CI exécuté pour ce lot.
+
 ### Remaining migration blockers — 9 octobre 2026
 
-Les **7 concepts du LPIC-101 sans scénario** ne doivent pas être considérés comme implémentés par simple rapprochement de mots-clés. Préparer les moyens d'évaluation suivants avant d'écrire des tests de conformité :
+Les **6 concepts du LPIC-101 sans scénario** ne doivent pas être considérés comme implémentés par simple rapprochement de mots-clés. Préparer les moyens d'évaluation suivants avant d'écrire des tests de conformité :
 
 | Concepts encore sans scénario | Critère de preuve manquant |
 | --- | --- |
 | 101.1 — activation/désactivation de périphériques intégrés | Tester un changement de contrôleur dans un firmware ou hyperviseur équivalent et le rattachement au noyau, pas simplement la création d'un lien sous /dev. |
 | 101.2 — SysVinit vs systemd et Upstart historique | Environnements isolés adaptés aux anciens init (ou preuve décisionnelle explicitement justifiée) ; ne pas faire passer un service systemd seul pour une exécution Upstart. |
-| 101.3 — mode mono-utilisateur/récupération | Démarrer réellement en rescue/emergency tout en préservant un canal fiable de contrôle et de reset de la VM ; valider la cible active et le retour à un mode normal. |
 | 101.3 — événements ACPI | Générer un **vrai** événement bouton/alimentation côté hyperviseur et observer le traitement par l'OS invité ; un simple fichier de log ACPI simulé ne compte pas. |
 | 102.2 — GRUB Legacy vs GRUB 2 | Mettre à disposition un environnement legacy pertinent ou des images de supports de démarrage réellement différenciées ; l'utilisation de deux entrées GRUB 2 n'est pas une preuve de GRUB Legacy. |
 | 102.2 / 101.2 — interaction au menu/console GRUB et commandes du chargeur | Capture de console série au démarrage, saisie dans le menu/éditeur GRUB et validation d'une modification **temporaire** dans `/proc/cmdline` sans modification de la configuration persistante. |

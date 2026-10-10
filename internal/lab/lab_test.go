@@ -757,3 +757,25 @@ func TestBuiltinUSBAuthorizationRecoveryUsesVirtualUSBTransport(t *testing.T) {
 		}
 	}
 }
+
+func TestBuiltinRescueTargetRecoveryRequiresRealSystemdTargets(t *testing.T) {
+	authored := loadBuiltinLab(t, "lpic1.101.3.rescue-target-service-recovery")
+	definition, err := authored.RunnerDefinition()
+	if err != nil { t.Fatalf("RunnerDefinition: %v", err) }
+	if definition.Machine == nil || authored.Definition.Environment.Backend != "libvirt" {
+		t.Fatalf("rescue needs isolated full VM, got %#v", authored.Definition.Environment)
+	}
+	if len(authored.Hints) != 4 || len(authored.Definition.Checks) != 3 {
+		t.Fatalf("rescue scenario has %d hints / %d checks", len(authored.Hints), len(authored.Definition.Checks))
+	}
+	if !strings.Contains(authored.SetupScript, "IgnoreOnIsolate=yes") ||
+		!strings.Contains(authored.SetupScript, "isolate rescue.target") ||
+		!strings.Contains(authored.SetupScript, "is-active --quiet qemu-guest-agent.service") {
+		t.Fatal("rescue setup lacks real target isolation or remote-control guard")
+	}
+	for _, check := range authored.Definition.Checks {
+		if !slices.Contains(check.ConceptIDs, "lpic1.101.3.mode-mono-utilisateur-recuperation") {
+			t.Fatalf("unmapped rescue check: %#v", check)
+		}
+	}
+}

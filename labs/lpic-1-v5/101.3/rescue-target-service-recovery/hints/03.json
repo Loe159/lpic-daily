@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.3.rescue-target-service-recovery.hint-3",
+  "lab_id": "lpic1.101.3.rescue-target-service-recovery",
+  "level": 3,
+  "content_fr": "Il faut rétablir la cible en fonctionnement, pas réinstaller le planificateur ni simplement changer la cible par défaut. Le canal d'administration doit rester actif.",
+  "evidence_impact": "material"
+}

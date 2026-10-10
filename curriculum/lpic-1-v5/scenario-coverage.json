@@ -892,6 +892,18 @@
       "backend": "libvirt",
       "status": "implemented",
       "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.101.3.rescue-target-service-recovery",
+      "objective_ids": [
+        "101.3"
+      ],
+      "concept_ids": [
+        "lpic1.101.3.mode-mono-utilisateur-recuperation"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
     }
   ]
 }
