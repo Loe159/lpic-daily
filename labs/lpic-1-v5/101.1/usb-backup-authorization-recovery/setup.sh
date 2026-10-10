@@ -26,4 +26,9 @@ printf 'LABEL=LPICUSB78 /srv/lpic-usb-backup ext4 defaults,nofail 0 2\n' >> /etc
 printf '0\n' > "$usbdev/authorized"
 udevadm settle
 test "$(cat "$usbdev/authorized")" = 0
+for attempt in $(seq 1 50); do
+  test ! -b /dev/sda && break
+  sleep 0.2
+done
+test ! -b /dev/sda
 ! mountpoint -q /srv/lpic-usb-backup
