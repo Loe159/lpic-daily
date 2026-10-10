@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.3.acpi-power-event-audit-recovery.hint-3",
+  "lab_id": "lpic1.101.3.acpi-power-event-audit-recovery",
+  "level": 3,
+  "content_fr": "La règle d'audit existe mais son action ne fait rien. Une commande logger peut produire une entrée identifiable sans modifier le réglage HandlePowerKey.",
+  "evidence_impact": "material"
+}

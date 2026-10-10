@@ -1,0 +1,92 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.3.acpi-power-event-audit-recovery",
+  "title_fr": "Rétablir la traçabilité du bouton d'alimentation ACPI",
+  "brief_fr": "Une VM d'exploitation est configurée pour rester allumée lorsque son bouton d'alimentation virtuel est pressé. Pourtant, aucun événement n'apparaît dans le journal d'audit : la règle acpid a été cassée. Répare cette règle, puis déclenche un vrai appui depuis le terminal LPIC Daily avec :acpi-power. Vérifie que le journal reçoit l'événement et que la VM n'a pas redémarré.",
+  "success_criteria_fr": [
+    "acpid surveille réellement les événements ACPI de bouton d'alimentation et applique une action de journalisation.",
+    "Un appui ACPI injecté depuis l'hyperviseur est visible dans le journal de la VM après le début du lab.",
+    "Le système n'a ni redémarré ni changé de politique de gestion du bouton d'alimentation."
+  ],
+  "debrief_fr": "ACPI fournit à l'OS invité des notifications matérielles comme l'appui sur le bouton d'alimentation. Libvirt peut injecter un vrai événement ACPI dans une VM isolée via une requête explicite, sans passer par QEMU Guest Agent. acpid peut relayer cet événement vers une action ; systemd-logind possède, indépendamment, la politique qui déciderait d'éteindre ou non le système. Le correctif répare l'audit, pas la gestion de l'alimentation.",
+  "objective_ids": [
+    "101.3"
+  ],
+  "concept_ids": [
+    "lpic1.101.3.notion-d-evenements-acpi"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-implemented"
+  ],
+  "estimated_minutes": 15,
+  "practice_context": "101.3.acpi-power-event-audit-recovery",
+  "environment": {
+    "backend": "libvirt",
+    "image_ref": "fedora-44-x86_64-v2",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "full-machine",
+    "writable_guest_paths": [],
+    "machine": {
+      "firmware": "uefi"
+    }
+  },
+  "resources": {
+    "memory_mb": 1024,
+    "cpu_percent": 100,
+    "pids": 128,
+    "timeout_seconds": 1800
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -e; systemctl is-active --quiet acpid.service; test -f /etc/acpi/events/lpic-power-audit; grep -Eq '^event=button/power' /etc/acpi/events/lpic-power-audit; grep -Fxq 'action=/usr/bin/logger -t lpic-acpi-power lpic-guest-power-button' /etc/acpi/events/lpic-power-audit"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.101.3.notion-d-evenements-acpi"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -e; journalctl -b --since \"@$(cat /var/lib/lpic-acpi-audit/start-epoch)\" --no-pager -t lpic-acpi-power -o cat | grep -Fxq lpic-guest-power-button; test \"$(cat /proc/sys/kernel/random/boot_id)\" = \"$(cat /var/lib/lpic-acpi-audit/boot-id)\""
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.101.3.notion-d-evenements-acpi"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -e; grep -Eq '^[[:space:]]*HandlePowerKey=ignore[[:space:]]*$' /etc/systemd/logind.conf.d/95-lpic-acpi-lab.conf; systemctl is-active --quiet qemu-guest-agent.service; test \"$(cat /proc/sys/kernel/random/boot_id)\" = \"$(cat /var/lib/lpic-acpi-audit/boot-id)\""
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.101.3.notion-d-evenements-acpi"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.101.3.acpi-power-event-audit-recovery.hint-1",
+    "lpic1.101.3.acpi-power-event-audit-recovery.hint-2",
+    "lpic1.101.3.acpi-power-event-audit-recovery.hint-3",
+    "lpic1.101.3.acpi-power-event-audit-recovery.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

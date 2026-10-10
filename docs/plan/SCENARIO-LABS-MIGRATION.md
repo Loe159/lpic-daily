@@ -172,15 +172,22 @@ Le test d'acceptation KVM doit encore confirmer : `rescue.target` réellement ac
 
 **Couverture LPIC-101 : 80 acceptés, 76 implémentés non acceptés, 6 sans scénario.** Aucun test KVM ou CI exécuté pour ce lot.
 
+### Lot du 10 octobre 2026 — événement ACPI réel via libvirt
+
+Le runner VM expose `:acpi-power` comme une action explicite, réservée aux domaines possédés et actifs. L'action utilise `DomainShutdownFlags` avec le flag `DomainShutdownAcpiPowerBtn`, qui émet un **vrai bouton ACPI émulé** et évite de substituer une demande de shutdown QEMU Guest Agent. Il ne s'agit pas d'un événement simulé dans un fichier.
+
+`101.3.acpi-power-event-audit-recovery` est **implemented**, non accepté : le guest doit réparer la règle acpid qui ne journalise plus les événements ACPI. Le setup force `HandlePowerKey=ignore` avant toute injection pour empêcher l'arrêt accidentel de la VM. L'apprenant déclenche ensuite `:acpi-power` depuis le terminal LPIC Daily et doit retrouver l'enregistrement du bouton dans `journalctl` sans changement de `boot_id`. L'image Fedora requiert désormais le paquet `acpid` ; reconstruction explicite nécessaire.
+
+**Couverture LPIC-101 : 80 acceptés, 77 seulement implémentés, 5 sans scénario.** La validation requiert KVM réel : preuve d'événement ACPI, handler acpid actif, log initialement vide, référence puis action de l'hôte puis checks verts, reset rouge. Ne pas assimiler une exécution de la référence seule à une réussite automatique. Aucun test de bout en bout exécuté.
+
 ### Remaining migration blockers — 9 octobre 2026
 
-Les **6 concepts du LPIC-101 sans scénario** ne doivent pas être considérés comme implémentés par simple rapprochement de mots-clés. Préparer les moyens d'évaluation suivants avant d'écrire des tests de conformité :
+Les **5 concepts du LPIC-101 sans scénario** ne doivent pas être considérés comme implémentés par simple rapprochement de mots-clés. Préparer les moyens d'évaluation suivants avant d'écrire des tests de conformité :
 
 | Concepts encore sans scénario | Critère de preuve manquant |
 | --- | --- |
 | 101.1 — activation/désactivation de périphériques intégrés | Tester un changement de contrôleur dans un firmware ou hyperviseur équivalent et le rattachement au noyau, pas simplement la création d'un lien sous /dev. |
 | 101.2 — SysVinit vs systemd et Upstart historique | Environnements isolés adaptés aux anciens init (ou preuve décisionnelle explicitement justifiée) ; ne pas faire passer un service systemd seul pour une exécution Upstart. |
-| 101.3 — événements ACPI | Générer un **vrai** événement bouton/alimentation côté hyperviseur et observer le traitement par l'OS invité ; un simple fichier de log ACPI simulé ne compte pas. |
 | 102.2 — GRUB Legacy vs GRUB 2 | Mettre à disposition un environnement legacy pertinent ou des images de supports de démarrage réellement différenciées ; l'utilisation de deux entrées GRUB 2 n'est pas une preuve de GRUB Legacy. |
 | 102.2 / 101.2 — interaction au menu/console GRUB et commandes du chargeur | Capture de console série au démarrage, saisie dans le menu/éditeur GRUB et validation d'une modification **temporaire** dans `/proc/cmdline` sans modification de la configuration persistante. |
 

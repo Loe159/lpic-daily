@@ -779,3 +779,25 @@ func TestBuiltinRescueTargetRecoveryRequiresRealSystemdTargets(t *testing.T) {
 		}
 	}
 }
+
+func TestBuiltinACPIAuditRequiresRealVMEvent(t *testing.T) {
+	authored := loadBuiltinLab(t, "lpic1.101.3.acpi-power-event-audit-recovery")
+	definition, err := authored.RunnerDefinition()
+	if err != nil { t.Fatal(err) }
+	if definition.Machine == nil || authored.Definition.Environment.Backend != "libvirt" {
+		t.Fatalf("ACPI lab requires disposable VM: %#v", authored.Definition.Environment)
+	}
+	if len(authored.Definition.Checks) != 3 || len(authored.Hints) != 4 {
+		t.Fatalf("incomplete ACPI lab: %d checks %d hints", len(authored.Definition.Checks), len(authored.Hints))
+	}
+	for _, check := range authored.Definition.Checks {
+		if !slices.Contains(check.ConceptIDs, "lpic1.101.3.notion-d-evenements-acpi") {
+			t.Fatalf("ACPI concept missing on state check: %#v", check)
+		}
+	}
+	if !strings.Contains(authored.SetupScript, "HandlePowerKey=ignore") ||
+		!strings.Contains(authored.SetupScript, "action=/usr/bin/true") ||
+		!strings.Contains(authored.ReferenceSolution, ":acpi-power") {
+		t.Fatal("ACPI audit scenario lacks safe power policy, broken rule, or manual event trigger")
+	}
+}

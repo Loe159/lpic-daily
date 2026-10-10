@@ -73,6 +73,7 @@
         "createrepo_c",
         "pciutils",
         "usbutils",
+        "acpid",
         "kmod",
         "kernel-modules-extra",
         "NetworkManager",
