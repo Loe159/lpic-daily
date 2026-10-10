@@ -928,6 +928,20 @@
       "backend": "libvirt",
       "status": "implemented",
       "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.102.2.grub-serial-one-time-diagnostics",
+      "objective_ids": [
+        "101.2",
+        "102.2"
+      ],
+      "concept_ids": [
+        "lpic1.101.2.commandes-du-chargeur-de-demarrage",
+        "lpic1.102.2.interaction-au-menu-console-grub"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
     }
   ]
 }

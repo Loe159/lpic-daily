@@ -186,15 +186,22 @@ Le runner VM expose `:acpi-power` comme une action explicite, réservée aux dom
 
 **Couverture LPIC-101 : 80 acceptés, 78 uniquement implémentés, 4 sans scénario.** La promotion en `accepted` exige la VM KVM, une exécution rouge du setup, la récupération du vrai processus, la préservation des fichiers historiques et une nouvelle exécution rouge après reset. Ne pas confondre reconnaissance d'une configuration ancienne et tests d'un PID 1 Upstart.
 
+### Lot du 10 octobre 2026 — GRUB 2 interactif, commandes et édition temporaire
+
+Le runner libvirt propose `:boot-menu`, qui envoie un redémarrage non bloquant à une VM possédée. À l'inverse de `:reboot`, la commande ne patiente pas jusqu'au retour de QEMU Guest Agent, ce qui laisserait passer le menu GRUB. Avec `:console`, le candidat accède à la console série de la VM. Le lab allonge le délai du menu à 90 secondes, sans accès au chargeur d'amorçage de l'hôte.
+
+`102.2.grub-serial-one-time-diagnostics` est **implemented**, non accepté. L'utilisateur doit exécuter `set` et `save_env` à l'invite GRUB, puis éditer temporairement la ligne `linux` et démarrer avec Ctrl-X. Après redémarrage, le guest vérifie un nouveau `boot_id`, le marqueur sur le véritable `/proc/cmdline`, l'environnement GRUB, ainsi que l'intégrité exacte de la configuration et des entrées BLS par SHA-256. Aucun token injecté de façon persistante n'est considéré comme la solution. La procédure de référence est **manuelle** : le script associé explique les frappes, renvoie le code 64 et ne prétend pas corriger le guest depuis son shell.
+
+**Couverture LPIC-101 : 80 acceptés, 80 uniquement implémentés, 2 sans scénario.** KVM nécessaire pour vérifier menu réel en série, `save_env` sur le support Fedora, et le cycle setup rouge / succès par action humaine dans GRUB / reset rouge. Les checks et tests unitaires ne démontrent pas à eux seuls l'interaction. Si le support GRUB interdit `save_env`, adapter la preuve après investigation et non valider artificiellement.
+
 ### Remaining migration blockers — 9 octobre 2026
 
-Les **4 concepts du LPIC-101 sans scénario** ne doivent pas être considérés comme implémentés par simple rapprochement de mots-clés. Préparer les moyens d'évaluation suivants avant d'écrire des tests de conformité :
+Les **2 concepts du LPIC-101 sans scénario** ne doivent pas être considérés comme implémentés par simple rapprochement de mots-clés. Préparer les moyens d'évaluation suivants avant d'écrire des tests de conformité :
 
 | Concepts encore sans scénario | Critère de preuve manquant |
 | --- | --- |
 | 101.1 — activation/désactivation de périphériques intégrés | Tester un changement de contrôleur dans un firmware ou hyperviseur équivalent et le rattachement au noyau, pas simplement la création d'un lien sous /dev. |
 | 102.2 — GRUB Legacy vs GRUB 2 | Mettre à disposition un environnement legacy pertinent ou des images de supports de démarrage réellement différenciées ; l'utilisation de deux entrées GRUB 2 n'est pas une preuve de GRUB Legacy. |
-| 102.2 / 101.2 — interaction au menu/console GRUB et commandes du chargeur | Capture de console série au démarrage, saisie dans le menu/éditeur GRUB et validation d'une modification **temporaire** dans `/proc/cmdline` sans modification de la configuration persistante. |
 
 Ces prérequis impliquent probablement des évolutions ciblées du runner VM et de son harnais d'acceptation. Les 72 concepts uniquement `implemented` constituent en parallèle une dette distincte : ils ne pourront être promus à `accepted` qu'après setup → échec attendu, solution de référence → succès, reset → nouvel échec, review pédagogique et contrôle de l'isolation. Les retours d'échec de KVM / Podman doivent être corrigés **avant** la fusion.
 

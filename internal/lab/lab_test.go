@@ -823,3 +823,29 @@ func TestBuiltinLegacyInitServiceMigrationPreservesArchive(t *testing.T) {
 		}
 	}
 }
+
+func TestBuiltinGRUBConsoleRequiresTemporaryBootAndUnmodifiedConfig(t *testing.T) {
+	authored := loadBuiltinLab(t, "lpic1.102.2.grub-serial-one-time-diagnostics")
+	definition, err := authored.RunnerDefinition()
+	if err != nil { t.Fatal(err) }
+	if definition.Machine == nil || authored.Definition.Environment.Backend != "libvirt" {
+		t.Fatalf("GRUB console lab needs a disposable full VM: %#v", authored.Definition.Environment)
+	}
+	if len(authored.Definition.Checks) != 3 || len(authored.Hints) != 4 {
+		t.Fatalf("incomplete GRUB console lab: %d checks %d hints", len(authored.Definition.Checks), len(authored.Hints))
+	}
+	for _, cid := range []string{"lpic1.101.2.commandes-du-chargeur-de-demarrage", "lpic1.102.2.interaction-au-menu-console-grub"} {
+		if !slices.Contains(authored.Definition.ConceptIDs, cid) { t.Fatalf("missing concept %s", cid) }
+		mapped := false
+		for _, check := range authored.Definition.Checks {
+			if slices.Contains(check.ConceptIDs, cid) { mapped = true }
+		}
+		if !mapped { t.Fatalf("no state check for %s", cid) }
+	}
+	if !strings.Contains(authored.SetupScript, "GRUB_TIMEOUT=90") ||
+		!strings.Contains(authored.SetupScript, "preserved-boot-config.sha256") ||
+		!strings.Contains(authored.SetupScript, "grub2-mkconfig") ||
+		authored.ReferenceSolutionRef != "reference-solution.sh" {
+		t.Fatal("GRUB lab missing serial-menu window, immutable config evidence, or manual procedure")
+	}
+}
