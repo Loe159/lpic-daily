@@ -16,6 +16,14 @@ EOF
 systemctl restart systemd-logind.service
 systemctl is-active --quiet qemu-guest-agent.service
 
+# Isolate this disposable VM's ACPI event rules. A distribution-supplied
+# power-button handler must not shut down the lab independently of logind.
+install -d -m 0700 /var/lib/lpic-acpi-audit/previous-events
+for rule in /etc/acpi/events/*; do
+  test -f "$rule" || continue
+  mv "$rule" /var/lib/lpic-acpi-audit/previous-events/
+done
+
 # Broken audit handler: ACPI event is caught, but never journaled.
 cat > /etc/acpi/events/lpic-power-audit <<'EOF'
 event=button/power.*
