@@ -655,6 +655,7 @@ func TestRealKVMPhase2ReferenceLabs(t *testing.T) {
 		t.Fatalf("LoadAll() error = %v", err)
 	}
 	wanted := map[string]string{
+		"lpic1.101.1.onboard-sata-controller-reenable": "labs/lpic-1-v5/101.1/onboard-sata-controller-reenable/reference-solution.sh",
 		"lpic1.102.2.grub-legacy-migration-recovery": "labs/lpic-1-v5/102.2/grub-legacy-migration-recovery/reference-solution.sh",
 		"lpic1.101.2.legacy-init-service-migration": "labs/lpic-1-v5/101.2/legacy-init-service-migration/reference-solution.sh",
 		"lpic1.101.1.storage-bus-archive-recovery": "labs/lpic-1-v5/101.1/storage-bus-archive-recovery/reference-solution.sh",

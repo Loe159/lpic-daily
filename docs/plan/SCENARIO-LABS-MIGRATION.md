@@ -200,13 +200,21 @@ Le runner libvirt propose `:boot-menu`, qui envoie un redémarrage non bloquant 
 
 **Couverture LPIC-101 : 80 acceptés, 81 implémentés non acceptés, 1 sans scénario.** La procédure automatique setup rouge → référence → reboot → vert → reset rouge est ajoutée au harnais KVM, mais les tests KVM ne sont pas exécutés.
 
+### Lot du 10 octobre 2026 — réassociation d'un contrôleur SATA intégré Q35
+
+`101.1.onboard-sata-controller-reenable` est **implemented**, non accepté. La VM possède un disque d'archives SATA isolé du disque système VirtIO. Un vrai contrôleur PCI AHCI de chipset Q35 est identifié par son BDF, puis le setup le détache de son pilote par `/sys/bus/pci/drivers/ahci/unbind`, entraînant la disparition du disque. La mission rétablit le pilote avec `bind`, observe le périphérique PCI, puis remonte le manifeste original en lecture seule. Aucun périphérique PCI de l'hôte n'est touché.
+
+**Limite pédagogique majeure :** un `unbind` Linux n'est pas une désactivation BIOS/UEFI. Le lab démontre les effets sur le noyau du contrôle d'un périphérique intégré et sa réactivation, mais un contrôle de firmware dédié demeure nécessaire avant d'accepter complètement ce concept. Ne pas assimiler `162/162` scénarios existants à `162/162` compétences démontrées.
+
+**Couverture LPIC-101 : 80 acceptés, 82 uniquement implémentés, 0 sans scénario.** Le runner, l'image Fedora, la disparition/retour du disque SATA et la conservation des données doivent être éprouvés par KVM ; aucune réussite de CI revendiquée.
+
 ### Remaining migration blockers — 9 octobre 2026
 
-Le **dernier concept du LPIC-101 sans scénario** ne doivent pas être considérés comme implémentés par simple rapprochement de mots-clés. Préparer les moyens d'évaluation suivants avant d'écrire des tests de conformité :
+Il ne reste **aucun concept LPIC-101 sans scénario**, mais l'acceptation KVM et le contrôle firmware restent incomplets ne doivent pas être considérés comme implémentés par simple rapprochement de mots-clés. Préparer les moyens d'évaluation suivants avant d'écrire des tests de conformité :
 
 | Concepts encore sans scénario | Critère de preuve manquant |
 | --- | --- |
-| 101.1 — activation/désactivation de périphériques intégrés | Tester un changement de contrôleur dans un firmware ou hyperviseur équivalent et le rattachement au noyau, pas simplement la création d'un lien sous /dev. |
+| 101.1 — activation/désactivation dans le firmware | Scénario Linux PCI bind/unbind implémenté, mais pas une manipulation réelle de BIOS/UEFI ; compléter une validation firmware avant acceptation. |
 
 Ces prérequis impliquent probablement des évolutions ciblées du runner VM et de son harnais d'acceptation. Les 72 concepts uniquement `implemented` constituent en parallèle une dette distincte : ils ne pourront être promus à `accepted` qu'après setup → échec attendu, solution de référence → succès, reset → nouvel échec, review pédagogique et contrôle de l'isolation. Les retours d'échec de KVM / Podman doivent être corrigés **avant** la fusion.
 

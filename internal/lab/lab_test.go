@@ -871,3 +871,26 @@ func TestBuiltinGRUBLegacyMigrationRetainsHistoricArchive(t *testing.T) {
 		}
 	}
 }
+
+func TestBuiltinOnboardSATAControllerReenableUsesRealPCI(t *testing.T) {
+	authored := loadBuiltinLab(t, "lpic1.101.1.onboard-sata-controller-reenable")
+	definition, err := authored.RunnerDefinition()
+	if err != nil { t.Fatal(err) }
+	if definition.Machine == nil || len(definition.Machine.ExtraDisks) != 1 {
+		t.Fatalf("expected isolated SATA controller and guest-only disk: %#v", definition.Machine)
+	}
+	if definition.Machine.ExtraDisks[0].Bus != runner.VirtualDiskBusSATA {
+		t.Fatalf("missing true SATA bus: %#v", definition.Machine.ExtraDisks)
+	}
+	if len(authored.Definition.Checks) != 3 || len(authored.Hints) != 4 {
+		t.Fatalf("incomplete PCI controller recovery: %d checks %d hints", len(authored.Definition.Checks), len(authored.Hints))
+	}
+	for _, check := range authored.Definition.Checks {
+		if !slices.Contains(check.ConceptIDs, "lpic1.101.1.activation-desactivation-peripheriques-integres") {
+			t.Fatalf("unmapped PCI controller check: %#v", check)
+		}
+	}
+	for _, marker := range []string{"/sys/bus/pci/drivers/ahci/unbind", "readlink -f", "udevadm settle", "mkfs.ext4"} {
+		if !strings.Contains(authored.SetupScript, marker) { t.Errorf("missing physical PCI state evidence %q", marker) }
+	}
+}

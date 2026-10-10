@@ -954,6 +954,18 @@
       "backend": "libvirt",
       "status": "implemented",
       "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.101.1.onboard-sata-controller-reenable",
+      "objective_ids": [
+        "101.1"
+      ],
+      "concept_ids": [
+        "lpic1.101.1.activation-desactivation-peripheriques-integres"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
     }
   ]
 }
