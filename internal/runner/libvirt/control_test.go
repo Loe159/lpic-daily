@@ -22,6 +22,7 @@ type fakeRawLibvirt struct {
 	rebootFlags            golibvirt.DomainRebootFlagValues
 	shutdownFlags          golibvirt.DomainShutdownFlagValues
 	acpiButtonEvents       int
+	acpiErr                error
 	destroyFlags           golibvirt.DomainDestroyFlagsValues
 	undefineFlags          golibvirt.DomainUndefineFlagsValues
 	state                  int32
@@ -114,7 +115,7 @@ func (fake *fakeRawLibvirt) DomainReboot(
 func (fake *fakeRawLibvirt) DomainShutdownFlags(_ golibvirt.Domain, flags golibvirt.DomainShutdownFlagValues) error {
 	fake.shutdownFlags = flags
 	fake.acpiButtonEvents++
-	return fake.err
+	return fake.acpiErr
 }
 
 func (fake *fakeRawLibvirt) DomainOpenConsoleBidirectional(
@@ -717,8 +718,12 @@ func TestACPIButtonRejectsUnmanagedDomainAndRPCFailure(t *testing.T) {
 		t.Fatal("accepted unmanaged domain")
 	}
 	if raw.acpiButtonEvents != 0 { t.Fatal("sent event to unmanaged domain") }
-	raw.err = errors.New("ACPI delivery failed")
-	if err := control.PressACPIButtonDomain("lpic-daily-vm-abc123"); err == nil {
-		t.Fatal("suppressed RPC failure")
+	raw.acpiErr = errors.New("ACPI delivery failed")
+	if err := control.PressACPIButtonDomain("lpic-daily-vm-abc123"); err == nil ||
+		!strings.Contains(err.Error(), "ACPI delivery failed") {
+		t.Fatalf("suppressed RPC failure: %v", err)
+	}
+	if raw.acpiButtonEvents != 1 {
+		t.Fatalf("ACPI RPC attempts = %d, want 1", raw.acpiButtonEvents)
 	}
 }
