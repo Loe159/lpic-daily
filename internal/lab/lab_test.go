@@ -704,3 +704,24 @@ func TestGeneratedStandaloneLabsStayConcreteAndConcise(t *testing.T) {
 		t.Fatalf("generated standalone labs = %d, want 618", generated)
 	}
 }
+
+func TestBuiltinStorageBusArchiveRecoveryPropagatesTransport(t *testing.T) {
+	authored := loadBuiltinLab(t, "lpic1.101.1.storage-bus-archive-recovery")
+	definition, err := authored.RunnerDefinition()
+	if err != nil {
+		t.Fatalf("RunnerDefinition() error = %v", err)
+	}
+	if definition.Machine == nil || len(definition.Machine.ExtraDisks) != 2 {
+		t.Fatalf("expected two isolated extra disks, got %#v", definition.Machine)
+	}
+	archive, queue := definition.Machine.ExtraDisks[0], definition.Machine.ExtraDisks[1]
+	if archive.ID != "archive" || archive.Bus != runner.VirtualDiskBusSATA {
+		t.Fatalf("archive disk = %#v, want SATA", archive)
+	}
+	if queue.ID != "queue" || queue.Bus != runner.VirtualDiskBusVirtio {
+		t.Fatalf("queue disk = %#v, want VirtIO", queue)
+	}
+	if len(authored.Hints) != 4 || len(authored.Definition.Checks) != 3 {
+		t.Fatalf("incomplete storage scenario: %d hints, %d checks", len(authored.Hints), len(authored.Definition.Checks))
+	}
+}
