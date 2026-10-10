@@ -1562,7 +1562,7 @@ func runInteractiveLabWithBackend(
 		fmt.Fprintln(stdout, "Commandes LPIC Daily : :shell  :check  :hint  :reset  :quit")
 	} else {
 		fmt.Fprintln(stdout, "Mode commandes VM. Chaque ligne est exécutée dans la VM via QEMU Guest Agent.")
-		fmt.Fprintln(stdout, "Commandes LPIC Daily : :console  :reboot  :acpi-power  :check  :hint  :reset  :quit")
+		fmt.Fprintln(stdout, "Commandes LPIC Daily : :console  :reboot  :boot-menu  :acpi-power  :check  :hint  :reset  :quit")
 	}
 	fmt.Fprintln(stdout)
 
@@ -1655,6 +1655,21 @@ func runInteractiveLabWithBackend(
 			cancelButton()
 			if err != nil { return fmt.Errorf("send VM ACPI power button: %w", err) }
 			fmt.Fprintln(stdout, "Bouton d'alimentation ACPI envoyé à la VM. Contrôle l'événement dans le système invité.")
+			continue
+		case ":boot-menu":
+			if persistentShell {
+				fmt.Fprintln(stdout, "L'accès au menu de démarrage est réservé aux labs VM.")
+				continue
+			}
+			boot, ok := backend.(runner.BootMenuRunner)
+			if !ok {
+				return fmt.Errorf("%w: backend has no boot-menu capability", runner.ErrNotSupported)
+			}
+			bootCtx, cancelBoot := context.WithTimeout(sessionCtx, operationTimeout)
+			err := boot.RebootToBootMenu(bootCtx, session.Instance)
+			cancelBoot()
+			if err != nil { return fmt.Errorf("reboot VM for GRUB menu: %w", err) }
+			fmt.Fprintln(stdout, "Redémarrage demandé sans attendre le système invité. Saisis immédiatement :console pour accéder à GRUB.")
 			continue
 		case ":reboot":
 			if persistentShell {

@@ -24,6 +24,7 @@ var (
 	_ runner.ConsoleRunner = (*Backend)(nil)
 	_ runner.RebootRunner = (*Backend)(nil)
 	_ runner.ACPIButtonRunner = (*Backend)(nil)
+	_ runner.BootMenuRunner = (*Backend)(nil)
 	_ runner.StorageProbe  = (*Backend)(nil)
 )
 
@@ -582,6 +583,25 @@ func (backend *Backend) PressPowerButton(ctx context.Context, instance runner.In
 	control, ok := backend.control.(ACPIControlPlane)
 	if !ok { return fmt.Errorf("%w: no managed ACPI event support", runner.ErrNotSupported) }
 	return control.PressACPIButtonDomain(instance.ID)
+}
+
+// RebootToBootMenu is nonblocking because waiting for the guest agent would
+// consume the GRUB menu window before the learner could open the serial console.
+func (backend *Backend) RebootToBootMenu(ctx context.Context, instance runner.Instance) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	if _, err := backend.instance(instance); err != nil {
+		return err
+	}
+	state, err := backend.control.DomainState(instance.ID)
+	if err != nil {
+		return err
+	}
+	if !state.Active {
+		return fmt.Errorf("VM instance %s is not active", instance.ID)
+	}
+	return backend.control.RebootDomain(instance.ID)
 }
 
 func (backend *Backend) Reboot(ctx context.Context, instance runner.Instance) error {

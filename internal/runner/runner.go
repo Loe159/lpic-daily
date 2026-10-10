@@ -263,6 +263,12 @@ type ACPIButtonRunner interface {
 	PressPowerButton(context.Context, Instance) error
 }
 
+// BootMenuRunner requests a managed VM reboot without waiting for guest-agent
+// reconnection. The learner needs the serial console while the guest is offline.
+type BootMenuRunner interface {
+	RebootToBootMenu(context.Context, Instance) error
+}
+
 type Runner interface {
 	Prepare(context.Context, Definition) (Instance, error)
 	Start(context.Context, Instance) error
