@@ -1,0 +1,92 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.2.grub-legacy-migration-recovery",
+  "title_fr": "Migrer une entrée GRUB Legacy vers GRUB 2",
+  "brief_fr": "Une ancienne machine BIOS utilisait un menu.lst contenant un démarrage de secours. La VM Fedora actuelle utilise GRUB 2 et des entrées BLS : ce dépannage n'y existe pas. Reconstitue une entrée GRUB 2 en conservant le noyau, l'initramfs et les options fonctionnelles de l'entrée actuelle, ajoute l'option demandée lpic.legacy_import=1, sélectionne la nouvelle entrée puis vérifie son démarrage réel avec :reboot. Ne touche ni à l'entrée normale ni à l'archive historique.",
+  "success_criteria_fr": [
+    "L'entrée BLS ajoutée conserve le noyau, l'initramfs et les paramètres de l'entrée normale avec le seul indicateur supplémentaire.",
+    "Le vrai prochain démarrage emploie cette entrée et expose lpic.legacy_import=1 dans /proc/cmdline.",
+    "Le menu.lst historique et l'entrée BLS normale sont préservés exactement."
+  ],
+  "debrief_fr": "GRUB Legacy utilisait menu.lst ou grub.conf, avec title, root (hd0,0), kernel et initrd. GRUB 2 utilise grub.cfg et, sur Fedora, des entrées BLS avec title, linux, initrd et options. root (hd0,0) sélectionne un disque pour le chargeur, et ne remplace pas root= du noyau. Ce lab migre une ancienne configuration et prouve un vrai boot GRUB 2. Il n'exécute pas GRUB Legacy.",
+  "objective_ids": [
+    "102.2"
+  ],
+  "concept_ids": [
+    "lpic1.102.2.grub-legacy-versus-grub-2"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-implemented"
+  ],
+  "estimated_minutes": 18,
+  "practice_context": "102.2.grub-legacy-migration-recovery",
+  "environment": {
+    "backend": "libvirt",
+    "image_ref": "fedora-44-x86_64-v2",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "full-machine",
+    "writable_guest_paths": [],
+    "machine": {
+      "firmware": "uefi"
+    }
+  },
+  "resources": {
+    "memory_mb": 1024,
+    "cpu_percent": 100,
+    "pids": 128,
+    "timeout_seconds": 2100
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -e; state=/var/lib/lpic-grub-legacy; source=\"$(cat \"$state/source-entry\")\"; id=\"$(cat \"$state/import-id\")\"; target=\"/boot/loader/entries/$id.conf\"; test -s \"$target\"; test \"$(sed -n 's/^linux //p' \"$target\")\" = \"$(sed -n 's/^linux //p' \"$source\")\"; test \"$(sed -n 's/^initrd //p' \"$target\")\" = \"$(sed -n 's/^initrd //p' \"$source\")\"; test \"$(sed -n 's/^options //p' \"$target\")\" = \"$(sed -n 's/^options //p' \"$source\") lpic.legacy_import=1\"; ! grep -q '^kernel ' \"$target\"; grub2-editenv list | grep -Fxq \"saved_entry=$id\""
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.2.grub-legacy-versus-grub-2"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -e; state=/var/lib/lpic-grub-legacy; test \"$(cat /proc/sys/kernel/random/boot_id)\" != \"$(cat \"$state/initial-boot-id\")\"; test \"$(uname -r)\" = \"$(cat \"$state/kernel-release\")\"; tr ' ' '\\n' </proc/cmdline | grep -Fxq lpic.legacy_import=1"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.2.grub-legacy-versus-grub-2"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -e; sha256sum -c /var/lib/lpic-grub-legacy/preserved.sha256; grep -Eq '^root \\(hd0,0\\)$' /var/lib/lpic-grub-legacy/menu.lst; grep -q '^kernel /vmlinuz-' /var/lib/lpic-grub-legacy/menu.lst; test -s /boot/grub2/grub.cfg"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.2.grub-legacy-versus-grub-2"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.102.2.grub-legacy-migration-recovery.hint-1",
+    "lpic1.102.2.grub-legacy-migration-recovery.hint-2",
+    "lpic1.102.2.grub-legacy-migration-recovery.hint-3",
+    "lpic1.102.2.grub-legacy-migration-recovery.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.3.acpi-power-event-audit-recovery.hint-1",
+  "lab_id": "lpic1.101.3.acpi-power-event-audit-recovery",
+  "level": 1,
+  "content_fr": "La VM reste allumée après l'appui virtuel : c'est la politique voulue. Regarde plutôt qui reçoit les événements ACPI et comment ils doivent être journalisés.",
+  "evidence_impact": "none"
+}

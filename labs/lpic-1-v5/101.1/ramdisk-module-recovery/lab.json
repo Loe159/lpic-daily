@@ -1,0 +1,92 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.1.ramdisk-module-recovery",
+  "title_fr": "Rétablir un cache en mémoire après la disparition du pilote",
+  "brief_fr": "Un collecteur d'événements utilise un petit volume RAM pour son cache de travail. Depuis une maintenance du noyau, ce volume a disparu et le collecteur échoue. Les données sources sont toujours sauvegardées sur disque. Restaure le périphérique et un cache fonctionnel, sans modifier les disques permanents ni le réseau.",
+  "success_criteria_fr": [
+    "Le pilote de disque RAM est réellement chargé et présente un périphérique bloc exploitable.",
+    "Le cache sur mémoire est monté et contient une copie fidèle des données sources.",
+    "Le collecteur redémarre normalement et ses données durables ne sont pas modifiées."
+  ],
+  "debrief_fr": "`modinfo` inspecte les informations d'un module, `lsmod` montre les modules chargés et `modprobe` charge un pilote avec ses paramètres. Le pilote brd fournit des périphériques bloc RAM dans /dev ; le noyau expose ses paramètres sous /sys/module/brd. Le cache est éphémère : les données importantes restent dans une source persistante.",
+  "objective_ids": [
+    "101.1"
+  ],
+  "concept_ids": [
+    "lpic1.101.1.modules-du-noyau-lies-au-materiel"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-implemented"
+  ],
+  "estimated_minutes": 16,
+  "practice_context": "101.1.ramdisk-module-recovery",
+  "environment": {
+    "backend": "libvirt",
+    "image_ref": "fedora-44-x86_64-v2",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "full-machine",
+    "writable_guest_paths": [],
+    "machine": {
+      "firmware": "uefi"
+    }
+  },
+  "resources": {
+    "memory_mb": 1024,
+    "cpu_percent": 100,
+    "pids": 128,
+    "timeout_seconds": 1800
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test -d /sys/module/brd && grep -qw '^brd' /proc/modules && test -b /dev/ram0 && test \"$(cat /sys/module/brd/parameters/rd_size)\" -ge 16384"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.101.1.modules-du-noyau-lies-au-materiel"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "mountpoint -q /run/lpic-ramcache && test \"$(findmnt -no SOURCE /run/lpic-ramcache)\" = /dev/ram0 && test \"$(findmnt -no FSTYPE /run/lpic-ramcache)\" = ext4 && cmp -s /var/lib/lpic-ramcache/source.txt /run/lpic-ramcache/source.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.101.1.modules-du-noyau-lies-au-materiel"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "systemctl is-active --quiet lpic-ramcache-reader.service && grep -Fxq 'archive-batch=preserve-81' /var/lib/lpic-ramcache/source.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.101.1.modules-du-noyau-lies-au-materiel"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.101.1.ramdisk-module-recovery.hint-1",
+    "lpic1.101.1.ramdisk-module-recovery.hint-2",
+    "lpic1.101.1.ramdisk-module-recovery.hint-3",
+    "lpic1.101.1.ramdisk-module-recovery.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

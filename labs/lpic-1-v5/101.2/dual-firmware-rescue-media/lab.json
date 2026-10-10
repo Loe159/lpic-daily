@@ -1,0 +1,102 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.2.dual-firmware-rescue-media",
+  "title_fr": "Rétablir le support de démarrage UEFI sans toucher au disque BIOS",
+  "brief_fr": "L'équipe conserve deux supports de dépannage : un ancien disque partitionné pour des machines BIOS et un nouveau support destiné aux machines UEFI. Sur cette VM UEFI, les fichiers EFI du nouveau support sont intacts, mais son emplacement n'est plus reconnu comme partition système EFI. Rétablis la découverte du support UEFI en conservant le contenu des deux disques, sans modifier le disque système.",
+  "success_criteria_fr": [
+    "Le disque historique conserve sa table MBR, son chargeur BIOS GRUB 2 et ses données.",
+    "Le support récent conserve une table GPT et sa partition FAT32 est à nouveau reconnue comme partition système EFI.",
+    "Le chargeur UEFI et son contenu d'origine sont conservés et accessibles depuis le volume."
+  ],
+  "debrief_fr": "BIOS charge traditionnellement le code de GRUB 2 contenu dans le MBR d'un disque à partitions msdos ; UEFI lit un exécutable EFI sur une partition système EFI (ESP), généralement FAT32 sur GPT. La différence se vérifie dans la table de partitions, l'identifiant de type GPT et l'arborescence EFI, pas par la simple extension .efi. Un code de boot valide ou une ESP reconnue ne garantissent pas à eux seuls qu'un firmware externe choisira ce support.",
+  "objective_ids": [
+    "101.2"
+  ],
+  "concept_ids": [
+    "lpic1.101.2.bios-versus-uefi"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-implemented"
+  ],
+  "estimated_minutes": 17,
+  "practice_context": "101.2.dual-firmware-rescue-media",
+  "environment": {
+    "backend": "libvirt",
+    "image_ref": "fedora-44-x86_64-v2",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "full-machine",
+    "writable_guest_paths": [],
+    "machine": {
+      "firmware": "uefi",
+      "extra_disks": [
+        {
+          "id": "bios-disk",
+          "size_mb": 256
+        },
+        {
+          "id": "uefi-disk",
+          "size_mb": 256
+        }
+      ]
+    }
+  },
+  "resources": {
+    "memory_mb": 1024,
+    "cpu_percent": 100,
+    "pids": 128,
+    "timeout_seconds": 2100
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -e; test -d /sys/firmware/efi; test \"$(lsblk -no PTTYPE /dev/vdb | head -1)\" = dos; test \"$(lsblk -no PTTYPE /dev/vdc | head -1)\" = gpt; test \"$(sfdisk -d /dev/vdb | sed -n '/^\\/dev\\/vdb1[[:space:]]/p')\" = \"$(cat /var/lib/lpic-dual-firmware/legacy-partition)\"; test -s /mnt/lpic-bios-rescue/boot/grub2/i386-pc/core.img; dd if=/dev/vdb bs=440 count=1 status=none | strings | grep -Fq GRUB"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.101.2.bios-versus-uefi"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -e; test \"$(blkid -s PART_ENTRY_TYPE -o value /dev/vdc1 | tr '[:upper:]' '[:lower:]')\" = c12a7328-f81f-11d2-ba4b-00a0c93ec93b; test \"$(blkid -s TYPE -o value /dev/vdc1)\" = vfat; mountpoint -q /mnt/lpic-efi-rescue"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.101.2.bios-versus-uefi"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -e; sha256sum /mnt/lpic-efi-rescue/EFI/BOOT/BOOTX64.EFI | awk '{print $1}' | cmp - /var/lib/lpic-dual-firmware/efi-sha256; grep -Fxq 'legacy-inventory=retain-35' /mnt/lpic-bios-rescue/manifest.txt; grep -Fxq 'efi-inventory=retain-35' /mnt/lpic-efi-rescue/manifest.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.101.2.bios-versus-uefi"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.101.2.dual-firmware-rescue-media.hint-1",
+    "lpic1.101.2.dual-firmware-rescue-media.hint-2",
+    "lpic1.101.2.dual-firmware-rescue-media.hint-3",
+    "lpic1.101.2.dual-firmware-rescue-media.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

@@ -1,0 +1,110 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.7.fhs-search-recovery",
+  "title_fr": "Ranger et retrouver les ressources d’un service",
+  "brief_fr": "Les fichiers du service Acme ont été déposés dans /workspace/incoming au lieu de suivre le FHS. Range la configuration sous /etc/acme, les logs sous /var/log/acme, les données servies sous /srv/acme et l’outil optionnel sous /opt/acme/bin. Dans /workspace/catalog, construis ensuite une base locate privée et utilise-la pour retrouver acme-guide.txt. Termine par command-report.txt indiquant où le shell résout acmectl et ce que whereis trouve pour bash.",
+  "success_criteria_fr": [
+    "La configuration, le log, les données et l’outil Acme sont dans les répertoires FHS demandés.",
+    "Une base plocate privée existe et locate retrouve acme-guide.txt dans catalog.",
+    "find-result.txt retrouve le même guide par recherche temps réel.",
+    "command-report.txt confirme la résolution de /opt/acme/bin/acmectl et contient le résultat réel de whereis bash."
+  ],
+  "debrief_fr": "Le FHS sépare configuration (/etc), données variables et logs (/var), données servies (/srv) et logiciels optionnels (/opt). find parcourt l’état courant du système, alors que locate interroge une base créée par updatedb. whereis recherche binaire/source/man selon ses bases, tandis que type et which reflètent la résolution de commande du shell et du PATH.",
+  "objective_ids": [
+    "104.7"
+  ],
+  "concept_ids": [
+    "lpic1.104.7.role-des-principaux-repertoires-fhs",
+    "lpic1.104.7.recherche-temps-reel-vs-base-locate",
+    "lpic1.104.7.mise-a-jour-base-locate",
+    "lpic1.104.7.localiser-binaire-source-man",
+    "lpic1.104.7.resolution-de-commande-shell"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-accepted"
+  ],
+  "estimated_minutes": 10,
+  "practice_context": "fhs-search-recovery",
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "baseline",
+    "writable_guest_paths": [
+      "/workspace",
+      "/etc/acme",
+      "/var/log/acme",
+      "/srv/acme",
+      "/opt/acme"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "cpu_percent": 100,
+    "pids": 96,
+    "timeout_seconds": 1200
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test -f /etc/acme/acme.conf && test -f /var/log/acme/service.log && test -f /srv/acme/index.html && test -x /opt/acme/bin/acmectl"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.7.role-des-principaux-repertoires-fhs"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test -s /workspace/acme.db && locate -d /workspace/acme.db -b 'acme-guide.txt' | grep -qx '/workspace/catalog/usr/share/doc/acme-guide.txt'"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.7.recherche-temps-reel-vs-base-locate",
+        "lpic1.104.7.mise-a-jour-base-locate"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/workspace/find-result.txt",
+      "pattern": "^/workspace/catalog/usr/share/doc/acme-guide\\.txt\\n?$",
+      "concept_ids": [
+        "lpic1.104.7.recherche-temps-reel-vs-base-locate"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "grep -qx 'type=/opt/acme/bin/acmectl' /workspace/command-report.txt && grep -qx 'which=/opt/acme/bin/acmectl' /workspace/command-report.txt && grep -q '^whereis=bash:' /workspace/command-report.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.7.localiser-binaire-source-man",
+        "lpic1.104.7.resolution-de-commande-shell"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.104.7.fhs-search-recovery.hint-1",
+    "lpic1.104.7.fhs-search-recovery.hint-2",
+    "lpic1.104.7.fhs-search-recovery.hint-3",
+    "lpic1.104.7.fhs-search-recovery.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

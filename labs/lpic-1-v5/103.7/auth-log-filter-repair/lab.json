@@ -1,0 +1,101 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.7.auth-log-filter-repair",
+  "title_fr": "Extraire les authentifications anormales",
+  "brief_fr": "Un export d’authentification contient des lignes utiles, du bruit et des fichiers voisins qui ne sont pas des logs actifs. Produis suspicious.txt avec uniquement les échecs ssh/sudo des utilisateurs userNN, normalise FAIL en DENIED dans normalized.txt, puis écris active-logs.txt avec les seuls fichiers *.log actifs du dossier input.",
+  "success_criteria_fr": [
+    "suspicious.txt contient exactement les trois échecs ssh/sudo correspondant à user suivi de deux chiffres.",
+    "normalized.txt contient les mêmes lignes avec FAIL remplacé par DENIED.",
+    "active-logs.txt contient auth.log et system.log mais pas auth.log.bak."
+  ],
+  "debrief_fr": "grep utilise des expressions régulières, avec des différences de syntaxe entre BRE et ERE. Les classes, ancres, quantificateurs, groupes et alternatives permettent de sélectionner précisément des lignes. sed transforme ensuite le texte. Un glob du shell sélectionne des noms de fichiers avant l’exécution d’une commande : ce n’est pas une regex.",
+  "objective_ids": [
+    "103.7"
+  ],
+  "concept_ids": [
+    "lpic1.103.7.regex-basiques-etendues",
+    "lpic1.103.7.classes-de-caracteres",
+    "lpic1.103.7.quantificateurs-et-ancres",
+    "lpic1.103.7.groupes-alternatives",
+    "lpic1.103.7.recherche-de-lignes",
+    "lpic1.103.7.substitution-transformation-avec-sed",
+    "lpic1.103.7.difference-glob-vs-regex"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-accepted"
+  ],
+  "estimated_minutes": 9,
+  "practice_context": "auth-log-filter-repair",
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "baseline",
+    "writable_guest_paths": [
+      "/workspace"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "cpu_percent": 100,
+    "pids": 96,
+    "timeout_seconds": 1200
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "printf '2026-10-07 ssh user01 FAIL\\n2026-10-07 sudo user22 FAIL\\n2026-10-07 ssh user99 FAIL\\n' | cmp -s - /workspace/output/suspicious.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.7.regex-basiques-etendues",
+        "lpic1.103.7.classes-de-caracteres",
+        "lpic1.103.7.quantificateurs-et-ancres",
+        "lpic1.103.7.groupes-alternatives",
+        "lpic1.103.7.recherche-de-lignes"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "printf '2026-10-07 ssh user01 DENIED\\n2026-10-07 sudo user22 DENIED\\n2026-10-07 ssh user99 DENIED\\n' | cmp -s - /workspace/output/normalized.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.7.substitution-transformation-avec-sed"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "printf 'auth.log\\nsystem.log\\n' | cmp -s - /workspace/output/active-logs.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.7.difference-glob-vs-regex"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.103.7.auth-log-filter-repair.hint-1",
+    "lpic1.103.7.auth-log-filter-repair.hint-2",
+    "lpic1.103.7.auth-log-filter-repair.hint-3",
+    "lpic1.103.7.auth-log-filter-repair.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

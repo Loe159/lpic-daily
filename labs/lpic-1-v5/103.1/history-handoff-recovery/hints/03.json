@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.history-handoff-recovery.hint-3",
+  "lab_id": "lpic1.103.1.history-handoff-recovery",
+  "level": 3,
+  "content_fr": "Corrige HISTSIZE/HISTFILESIZE dans le shell de maintenance, nettoie l’entrée sensible, crée history-proof depuis /run/lpic puis ajoute une entrée correspondante à l’historique avant de l’écrire sur disque.",
+  "evidence_impact": "material"
+}

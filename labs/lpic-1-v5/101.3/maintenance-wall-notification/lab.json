@@ -1,0 +1,79 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.3.maintenance-wall-notification",
+  "title_fr": "Informer deux opérateurs avant une maintenance",
+  "brief_fr": "Le stockage de la VM doit être mis en maintenance. Deux opérateurs sont encore connectés à leurs terminaux et doivent recevoir le même avertissement avant l'intervention : « Maintenance du stockage a 18h : terminer les operations en cours. » Envoie l'avis aux deux sessions actives, sans fermer leurs terminaux ni arrêter leurs services.",
+  "success_criteria_fr": [
+    "Les deux terminaux actifs ont réellement reçu l'avertissement de maintenance.",
+    "Les deux sessions restent actives et le message a été délivré sans modification de leurs fichiers personnels."
+  ],
+  "debrief_fr": "La commande wall diffuse un avis à tous les terminaux enregistrés dans la base des sessions utmp. Contrairement à un simple affichage dans son propre shell, l'envoi doit atteindre les autres pseudo-terminaux : ceux-ci peuvent recevoir le même texte, puis poursuivre leur activité. Le lab observe deux PTY distincts, pas une simple déclaration de succès.",
+  "objective_ids": [
+    "101.3"
+  ],
+  "concept_ids": [
+    "lpic1.101.3.notification-aux-utilisateurs"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-implemented"
+  ],
+  "estimated_minutes": 10,
+  "practice_context": "101.3.maintenance-wall-notification",
+  "environment": {
+    "backend": "libvirt",
+    "image_ref": "fedora-44-x86_64-v2",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "full-machine",
+    "writable_guest_paths": [],
+    "machine": {
+      "firmware": "uefi"
+    }
+  },
+  "resources": {
+    "memory_mb": 1024,
+    "cpu_percent": 100,
+    "pids": 128,
+    "timeout_seconds": 1200
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -e; grep -Fq 'Maintenance du stockage a 18h : terminer les operations en cours.' /var/lib/lpic-wall/received-a.log; grep -Fq 'Maintenance du stockage a 18h : terminer les operations en cours.' /var/lib/lpic-wall/received-b.log"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.101.3.notification-aux-utilisateurs"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -e; systemctl is-active --quiet lpic-wall-observer@a.service; systemctl is-active --quiet lpic-wall-observer@b.service; test \"$(cat /run/lpic-wall/tty-a)\" != \"$(cat /run/lpic-wall/tty-b)\"; test -c \"$(cat /run/lpic-wall/tty-a)\"; test -c \"$(cat /run/lpic-wall/tty-b)\""
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.101.3.notification-aux-utilisateurs"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.101.3.maintenance-wall-notification.hint-1",
+    "lpic1.101.3.maintenance-wall-notification.hint-2",
+    "lpic1.101.3.maintenance-wall-notification.hint-3",
+    "lpic1.101.3.maintenance-wall-notification.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

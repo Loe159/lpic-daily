@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.2.compressed-manifest-recovery.hint-2",
+  "lab_id": "lpic1.103.2.compressed-manifest-recovery",
+  "level": 2,
+  "content_fr": "Les trois formats peuvent être lus directement en sortie standard. Compare le contenu réel du troisième fragment avec le manifeste avant de conclure à une corruption.",
+  "evidence_impact": "material"
+}

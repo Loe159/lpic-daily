@@ -13,6 +13,13 @@ For each task, an agent should load only:
 ## Plans
 Large changes should create/update a plan in `docs/plan/` containing goal, invariants, affected modules, risks, validation, and completion state. Plans are execution artifacts; ADRs record durable decisions.
 
+## LPIC scenario authoring and review
+- Canonical migration rules: `docs/plan/SCENARIO-LABS-MIGRATION.md`; agent workflow: `.agents/skills/author-lab/SKILL.md`; scope policy: `labs/AGENTS.md`.
+- Review a lab as a learner would: Is there a concrete symptom? Can the student investigate without being told which command to run? Does the final state demonstrate the target competency? Do all hints unlock progressively?
+- Review the grader adversarially: a marker file or copied statement must not bypass Linux behavior; legitimate alternate solutions must pass; and every claimed concept must have a relevant check.
+- Distinguish `implemented` (authored) from `accepted` (initial failure, reference success, reset, actual backend and manual review). A PR must state explicitly whether acceptance was verified.
+- For a large migration, use small coherent objective groups and update the coverage matrix in the same commit. Keep legacy evidence backwards-compatible.
+
 ## Agent adapters
 `CLAUDE.md`, `GEMINI.md`, Copilot instructions and future vendor-specific instruction files should point to canonical project rules instead of copying them. This limits drift.
 

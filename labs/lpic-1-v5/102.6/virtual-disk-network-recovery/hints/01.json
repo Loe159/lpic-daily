@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.6.virtual-disk-network-recovery.hint-1",
+  "lab_id": "lpic1.102.6.virtual-disk-network-recovery",
+  "level": 1,
+  "content_fr": "Inspecte l'état du collecteur, la présence du disque virtuel secondaire et la connexion de l'interface réseau de la VM.",
+  "evidence_impact": "none"
+}

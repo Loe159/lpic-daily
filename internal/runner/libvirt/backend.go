@@ -22,7 +22,9 @@ var domainSlugUnsafe = regexp.MustCompile(`[^a-z0-9.-]+`)
 
 var (
 	_ runner.ConsoleRunner = (*Backend)(nil)
-	_ runner.RebootRunner  = (*Backend)(nil)
+	_ runner.RebootRunner = (*Backend)(nil)
+	_ runner.ACPIButtonRunner = (*Backend)(nil)
+	_ runner.BootMenuRunner = (*Backend)(nil)
 	_ runner.StorageProbe  = (*Backend)(nil)
 )
 
@@ -273,7 +275,7 @@ func (backend *Backend) prepareNamedOnNetwork(
 		if !exists {
 			return fmt.Errorf("overlay manager omitted scratch disk %s", requested.ID)
 		}
-		extraDisks = append(extraDisks, DiskPath{ID: requested.ID, Path: path})
+		extraDisks = append(extraDisks, DiskPath{ID: requested.ID, Path: path, Bus: requested.Bus})
 	}
 
 	xml, err := BuildDomainXML(DomainSpec{
@@ -568,6 +570,38 @@ func (backend *Backend) Start(ctx context.Context, instance runner.Instance) err
 		return err
 	}
 	return nil
+}
+
+// PressPowerButton is limited to a running owned libvirt instance. A lab can
+// observe the kernel ACPI event without requesting a guest-agent shutdown.
+func (backend *Backend) PressPowerButton(ctx context.Context, instance runner.Instance) error {
+	if err := ctx.Err(); err != nil { return err }
+	if _, err := backend.instance(instance); err != nil { return err }
+	state, err := backend.control.DomainState(instance.ID)
+	if err != nil { return err }
+	if !state.Active { return fmt.Errorf("VM instance %s is not active", instance.ID) }
+	control, ok := backend.control.(ACPIControlPlane)
+	if !ok { return fmt.Errorf("%w: no managed ACPI event support", runner.ErrNotSupported) }
+	return control.PressACPIButtonDomain(instance.ID)
+}
+
+// RebootToBootMenu is nonblocking because waiting for the guest agent would
+// consume the GRUB menu window before the learner could open the serial console.
+func (backend *Backend) RebootToBootMenu(ctx context.Context, instance runner.Instance) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	if _, err := backend.instance(instance); err != nil {
+		return err
+	}
+	state, err := backend.control.DomainState(instance.ID)
+	if err != nil {
+		return err
+	}
+	if !state.Active {
+		return fmt.Errorf("VM instance %s is not active", instance.ID)
+	}
+	return backend.control.RebootDomain(instance.ID)
 }
 
 func (backend *Backend) Reboot(ctx context.Context, instance runner.Instance) error {

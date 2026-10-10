@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.1.uefi-rescue-media-recovery.hint-3",
+  "lab_id": "lpic1.102.1.uefi-rescue-media-recovery",
+  "level": 3,
+  "content_fr": "Le type GPT doit être EFI System Partition. Corrige le type de partition sans réinitialiser le système de fichiers, puis monte le support.",
+  "evidence_impact": "material"
+}

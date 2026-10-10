@@ -1,0 +1,69 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.4.bulk-argument-dispatch",
+  "title_fr": "Distribuer une liste de fichiers vers un outil",
+  "brief_fr": "targets.txt contient une liste de fichiers produite en amont. Fais consommer cette liste depuis stdin pour appeler describe-file avec les chemins comme arguments, trie le résultat et écris /workspace/output/processed.log.",
+  "success_criteria_fr": [
+    "processed.log contient alpha.txt:6, beta.txt:11 et gamma.txt:4, triés par nom."
+  ],
+  "debrief_fr": "xargs transforme des éléments lus sur stdin en arguments d’une commande. Il s’insère naturellement dans un pipeline : la commande précédente produit la liste, xargs invoque l’outil cible, puis une autre étape peut trier ou filtrer sa sortie.",
+  "objective_ids": [
+    "103.4"
+  ],
+  "concept_ids": [
+    "lpic1.103.4.transformer-stdin-en-arguments-via-xargs",
+    "lpic1.103.4.pipelines",
+    "lpic1.103.4.stdin-stdout-stderr-et-descripteurs"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-accepted"
+  ],
+  "estimated_minutes": 6,
+  "practice_context": "bulk-argument-dispatch",
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "baseline",
+    "writable_guest_paths": [
+      "/workspace"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "cpu_percent": 100,
+    "pids": 96,
+    "timeout_seconds": 1200
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "printf 'alpha.txt:6\\nbeta.txt:11\\ngamma.txt:4\\n' | cmp -s - /workspace/output/processed.log"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.4.transformer-stdin-en-arguments-via-xargs",
+        "lpic1.103.4.pipelines",
+        "lpic1.103.4.stdin-stdout-stderr-et-descripteurs"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.103.4.bulk-argument-dispatch.hint-1",
+    "lpic1.103.4.bulk-argument-dispatch.hint-2",
+    "lpic1.103.4.bulk-argument-dispatch.hint-3",
+    "lpic1.103.4.bulk-argument-dispatch.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

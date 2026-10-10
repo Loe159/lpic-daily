@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.2.initramfs-rescue-boot-recovery.hint-4",
+  "lab_id": "lpic1.101.2.initramfs-rescue-boot-recovery",
+  "level": 4,
+  "content_fr": "Génère /boot/initramfs-lpic-rescue-$(uname -r).img avec dracut --hostonly --include /etc/lpic-initramfs/payload /etc/lpic-initramfs/payload, sélectionne l'entrée identifiée sous /var/lib/lpic-initramfs-rescue/entry-id avec grub2-set-default, puis :reboot.",
+  "evidence_impact": "solution-revealed"
+}

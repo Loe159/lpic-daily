@@ -1,0 +1,99 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.5.rpm-file-ownership-audit",
+  "title_fr": "Rétablir un inventaire RPM après incident",
+  "brief_fr": "Le rapport d’inventaire des paquets est vide après une maintenance. Sans installer ni supprimer de paquets et sans réseau, rétablis sous /workspace/audit/owners.tsv les propriétaires RPM de /usr/bin/bash, /usr/bin/rpm et /usr/bin/sed (une ligne chemin, tabulation, nom du paquet). Restaure aussi bash-files.txt avec la liste complète des chemins déclarés par le paquet bash. Utilise la base RPM réellement installée.",
+  "success_criteria_fr": [
+    "Les trois binaires sont reliés à leurs paquets réellement installés.",
+    "La liste des fichiers du paquet bash correspond exactement à la base RPM.",
+    "L’inventaire comporte uniquement les trois entrées attendues."
+  ],
+  "debrief_fr": "rpm -q interroge les paquets installés, rpm -qf attribue un fichier à son paquet et rpm -ql liste les chemins d’un paquet. La base RPM locale permet un inventaire fiable sans réseau ; une simple supposition du nom du paquet ne suffit pas.",
+  "objective_ids": [
+    "102.5"
+  ],
+  "concept_ids": [
+    "lpic1.102.5.format-base-rpm",
+    "lpic1.102.5.installation-et-requetes-rpm",
+    "lpic1.102.5.identifier-fichier-paquet"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-implemented"
+  ],
+  "estimated_minutes": 10,
+  "practice_context": "rpm-file-ownership-audit",
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "baseline",
+    "writable_guest_paths": [
+      "/workspace"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "cpu_percent": 100,
+    "pids": 96,
+    "timeout_seconds": 1200
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -e; test -s /workspace/audit/owners.tsv; for file in /usr/bin/bash /usr/bin/rpm /usr/bin/sed; do owner=$(rpm -qf --qf '%{NAME}\\n' \"$file\"); grep -Fxq \"$file\t$owner\" /workspace/audit/owners.tsv; done; test \"$(wc -l </workspace/audit/owners.tsv)\" -eq 3"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.5.format-base-rpm",
+        "lpic1.102.5.installation-et-requetes-rpm",
+        "lpic1.102.5.identifier-fichier-paquet"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -e; test -s /workspace/audit/bash-files.txt; rpm -ql bash | LC_ALL=C sort > /tmp/lpic-rpm-list-reference; LC_ALL=C sort /workspace/audit/bash-files.txt | cmp -s - /tmp/lpic-rpm-list-reference"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.5.format-base-rpm",
+        "lpic1.102.5.installation-et-requetes-rpm",
+        "lpic1.102.5.identifier-fichier-paquet"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -e; rpm -q bash >/dev/null && test \"$(head -n 1 /workspace/audit/owners.tsv | cut -f 1)\" = /usr/bin/bash"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.5.format-base-rpm",
+        "lpic1.102.5.installation-et-requetes-rpm",
+        "lpic1.102.5.identifier-fichier-paquet"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.102.5.rpm-file-ownership-audit.hint-1",
+    "lpic1.102.5.rpm-file-ownership-audit.hint-2",
+    "lpic1.102.5.rpm-file-ownership-audit.hint-3",
+    "lpic1.102.5.rpm-file-ownership-audit.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

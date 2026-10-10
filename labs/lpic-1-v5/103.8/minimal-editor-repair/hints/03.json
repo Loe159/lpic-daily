@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.8.minimal-editor-repair.hint-3",
+  "lab_id": "lpic1.103.8.minimal-editor-repair",
+  "level": 3,
+  "content_fr": "Corrige les quatre changements dans app.conf, quitte avec une commande de sauvegarde, définis EDITOR=vi dans /root/.bashrc puis teste command -v pour vi, vim, nano et emacs.",
+  "evidence_impact": "material"
+}

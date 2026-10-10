@@ -1,0 +1,92 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.6.guest-container-isolation-recovery",
+  "title_fr": "Isoler un collecteur sans recréer de VM",
+  "brief_fr": "Sur une VM Fedora, le collecteur d'archives a été lancé comme un simple processus conteneurisé, mais il utilise actuellement les espaces de processus et de réseau de la VM. Il doit rester fonctionnel tout en étant isolé du réseau et des processus de l'invité. Corrige son exécution sans créer une nouvelle VM ni supprimer la file d'attente persistante.",
+  "success_criteria_fr": [
+    "Le collecteur tourne dans un vrai conteneur applicatif, avec ses propres espaces de processus et réseau.",
+    "Le conteneur partage le noyau de la VM tout en restant séparé de son PID 1 et de son réseau.",
+    "La file d'attente durable de la VM reste intacte."
+  ],
+  "debrief_fr": "Une VM dispose d'un noyau et d'un système d'initialisation invités propres. Un conteneur applicatif Podman isole des processus par espaces de noms Linux mais partage le noyau du système qui l'exécute. L'isolation réelle se constate par les inodes des espaces de noms /proc/.../ns et par uname ; les déclarations de configuration ne suffisent pas.",
+  "objective_ids": [
+    "102.6"
+  ],
+  "concept_ids": [
+    "lpic1.102.6.vm-versus-conteneur-applicatif-systeme"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-implemented"
+  ],
+  "estimated_minutes": 18,
+  "practice_context": "102.6.guest-container-isolation-recovery",
+  "environment": {
+    "backend": "libvirt",
+    "image_ref": "fedora-44-x86_64-v2",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "full-machine",
+    "writable_guest_paths": [],
+    "machine": {
+      "firmware": "uefi"
+    }
+  },
+  "resources": {
+    "memory_mb": 1536,
+    "cpu_percent": 100,
+    "pids": 256,
+    "timeout_seconds": 2100
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -e; test \"$(cat /proc/1/comm)\" = systemd; test -d /sys/firmware/efi; test \"$(podman inspect --format '{{.State.Running}}' lpic-worker)\" = true; test \"$(podman exec lpic-worker /probe --kernel)\" = \"$(uname -r)\""
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.6.vm-versus-conteneur-applicatif-systeme"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -e; pid=$(podman inspect --format '{{.State.Pid}}' lpic-worker); test \"$pid\" -gt 1; test \"$(readlink /proc/$pid/ns/pid)\" != \"$(readlink /proc/1/ns/pid)\"; test \"$(readlink /proc/$pid/ns/net)\" != \"$(readlink /proc/1/ns/net)\"; test \"$(podman inspect --format '{{.HostConfig.NetworkMode}}' lpic-worker)\" = none"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.6.vm-versus-conteneur-applicatif-systeme"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -e; test \"$(podman exec lpic-worker /probe --pid)\" = 2 || test \"$(podman exec lpic-worker /probe --pid)\" -gt 1; grep -Fxq 'archive-queue=preserve-54' /var/lib/lpic-container/queue.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.6.vm-versus-conteneur-applicatif-systeme"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.102.6.guest-container-isolation-recovery.hint-1",
+    "lpic1.102.6.guest-container-isolation-recovery.hint-2",
+    "lpic1.102.6.guest-container-isolation-recovery.hint-3",
+    "lpic1.102.6.guest-container-isolation-recovery.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

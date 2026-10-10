@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.2.dual-firmware-rescue-media.hint-4",
+  "lab_id": "lpic1.101.2.dual-firmware-rescue-media",
+  "level": 4,
+  "content_fr": "Inspecte /dev/vdc avec parted et blkid, puis rétablis le drapeau esp sur sa première partition avec parted --script /dev/vdc set 1 esp on. Préserve /dev/vdb.",
+  "evidence_impact": "solution-revealed"
+}

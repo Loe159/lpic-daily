@@ -38,6 +38,16 @@ If sources conflict, resolve the conflict in canonical documentation before impl
 - Core learning, hints, grading and lab execution remain deterministic and offline-capable.
 - A change is incomplete until relevant tests/validators pass and docs/coverage are updated.
 
+## Pedagogical contract for LPIC-1 practical labs
+- A lab is an **incident to diagnose and resolve**, not an exercise listing commands to type. The learner-facing brief has four elements: plausible context, observable symptom, operational goal, and preservation/safety constraints. Keep it short, direct, and in French.
+- Do not reveal commands, step order, exact artifacts to edit when discovering them is part of the competency, or the expected checker implementation. Never invent busywork reports, attestations or reflection questions as a substitute for Linux administration.
+- Author an intentionally broken system state, meaningful investigation, a reference repair, and independent final-state/behavior checks. A plausible alternative repair must pass when it meets the goal.
+- Each concept may be counted as scenario-covered only when at least one **specific check actually demonstrates it**; do not tag concepts merely because they relate to the story.
+- Use `curriculum/lpic-1-v5/scenario-coverage.json` as the migration matrix and `docs/plan/SCENARIO-LABS-MIGRATION.md` as the migration plan. `implemented` means authored but not yet proven; `accepted` requires setup-fails, reference-solution-passes, reset and applicable backend acceptance.
+- Never mark a Podman simulation as proving real boot, kernel, device, mount or systemd behaviors: use an appropriate libvirt/KVM backend for genuine system integration. A local mock is not interchangeable with the real environment.
+- Keep older fallback labs available only as a temporary compatibility measure for uncovered concepts. Do not mass-promote fallback content into "scenario" status, and do not reintroduce generated micro-labs.
+- Follow the detailed workflow in `.agents/skills/author-lab/SKILL.md` and `labs/AGENTS.md`.
+
 ## Application-code rules
 - Preserve the module boundaries in `docs/ARCHITECTURE.md`.
 - Isolate side effects behind interfaces.

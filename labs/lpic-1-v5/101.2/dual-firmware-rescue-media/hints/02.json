@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.2.dual-firmware-rescue-media.hint-2",
+  "lab_id": "lpic1.101.2.dual-firmware-rescue-media",
+  "level": 2,
+  "content_fr": "Le support UEFI conserve sa partition FAT32 et son exécutable EFI : le problème concerne les métadonnées GPT de cette partition.",
+  "evidence_impact": "material"
+}

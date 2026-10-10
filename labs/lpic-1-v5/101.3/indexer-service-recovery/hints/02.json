@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.3.indexer-service-recovery.hint-2",
+  "lab_id": "lpic1.101.3.indexer-service-recovery",
+  "level": 2,
+  "content_fr": "Inspecte l'unité défectueuse ainsi que les journaux liés à son dernier démarrage.",
+  "evidence_impact": "material"
+}

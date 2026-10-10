@@ -1,0 +1,94 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.external-command-recovery",
+  "title_fr": "Exécuter un outil volontairement hors PATH",
+  "brief_fr": "Un outil de diagnostic approuvé est installé mais la politique PATH ne doit pas être modifiée et son nom seul ne le résout pas. Retrouve le bon binaire report-status, exécute-le depuis son emplacement réel avec le rapport configuré dont le chemin contient un espace, puis écris /run/lpic/external-command-summary avec le chemin du binaire sur la première ligne et ready sur la seconde.",
+  "success_criteria_fr": [
+    "report-status reste absent de la résolution normale par PATH.",
+    "Le binaire approuvé est exécuté avec le chemin de rapport complet et produit son état ready.",
+    "external-command-summary identifie le chemin réellement utilisé et confirme la réussite."
+  ],
+  "debrief_fr": "Une commande peut être exécutée par chemin absolu ou relatif même si son répertoire n’est pas dans PATH. command -v, type, which ou la recherche dans l’arborescence aident à distinguer résolution et emplacement réel. Le quoting reste nécessaire lorsqu’un argument contient un espace.",
+  "objective_ids": [
+    "103.1"
+  ],
+  "concept_ids": [
+    "lpic1.103.1.execution-de-commandes-hors-path",
+    "lpic1.103.1.path-et-resolution-de-commande",
+    "lpic1.103.1.documentation-et-identification-d-une-commande",
+    "lpic1.103.1.quoting-escaping"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-accepted"
+  ],
+  "estimated_minutes": 8,
+  "practice_context": "external-command-recovery",
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "baseline",
+    "writable_guest_paths": [
+      "/root",
+      "/run/lpic",
+      "/var/lib/lpic/reports"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "pids": 96,
+    "timeout_seconds": 1200,
+    "cpu_percent": 100
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "--noprofile",
+        "--rcfile",
+        "/root/.bashrc",
+        "-ic",
+        "! command -v report-status >/dev/null 2>&1"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.1.execution-de-commandes-hors-path",
+        "lpic1.103.1.path-et-resolution-de-commande"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/run/lpic/report-ok",
+      "pattern": "^ready\\n?$",
+      "concept_ids": [
+        "lpic1.103.1.execution-de-commandes-hors-path",
+        "lpic1.103.1.quoting-escaping"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/run/lpic/external-command-summary",
+      "pattern": "^/opt/lpic/approved/bin/report-status\\nready\\n?$",
+      "concept_ids": [
+        "lpic1.103.1.execution-de-commandes-hors-path",
+        "lpic1.103.1.documentation-et-identification-d-une-commande"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.103.1.external-command-recovery.hint-1",
+    "lpic1.103.1.external-command-recovery.hint-2",
+    "lpic1.103.1.external-command-recovery.hint-3",
+    "lpic1.103.1.external-command-recovery.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

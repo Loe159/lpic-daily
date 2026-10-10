@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.history-handoff-recovery.hint-1",
+  "lab_id": "lpic1.103.1.history-handoff-recovery",
+  "level": 1,
+  "content_fr": "Vérifie séparément la taille de l’historique en mémoire, sa taille sur disque et ce qu’un nouveau shell relit réellement.",
+  "evidence_impact": "none"
+}

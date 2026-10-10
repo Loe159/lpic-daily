@@ -36,6 +36,7 @@ RUN dnf -y install \
         nmap-ncat \
         openssh-clients \
         parted \
+        plocate \
         procps-ng \
         rpm \
         rsyslog \
@@ -55,6 +56,8 @@ RUN dnf -y install \
     && test -x /usr/bin/nano \
     && test -x /usr/bin/vi \
     && test -x /usr/bin/vim \
+    && test -x /usr/bin/locate \
+    && test -x /usr/bin/updatedb \
     && test -r /usr/share/terminfo/x/xterm-kitty \
     && groupadd --gid 2000 project \
     && useradd --create-home --uid 1101 --groups project alice \

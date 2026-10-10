@@ -1,0 +1,94 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.2.initramfs-rescue-boot-recovery",
+  "title_fr": "Réparer le démarrage de secours via initramfs",
+  "brief_fr": "Une VM Fedora possède une entrée de démarrage de secours préparée pour diagnostiquer un incident de stockage, mais son image d'initialisation est manquante. Le démarrage normal reste disponible. Répare l'entrée de secours et vérifie son démarrage effectif via le terminal parent, sans remplacer l'image d'initialisation ni le noyau actuellement utilisés par l'entrée normale.",
+  "success_criteria_fr": [
+    "L'entrée de secours référence une image initramfs valide contenant le profil nécessaire au diagnostic.",
+    "La VM redémarre effectivement sur cette entrée avec le même noyau et conserve l'accès aux services systemd.",
+    "L'entrée normale reste intacte."
+  ],
+  "debrief_fr": "Le firmware UEFI charge le chargeur, GRUB 2 sélectionne le noyau et son initramfs, puis l'initramfs charge les composants nécessaires avant de monter la racine et d'exécuter systemd. dracut reconstruit un initramfs adapté, lsinitrd en inspecte le contenu ; l'option noyau de l'entrée et le changement de boot-id prouvent que la chaîne a été utilisée après un vrai redémarrage.",
+  "objective_ids": [
+    "101.2"
+  ],
+  "concept_ids": [
+    "lpic1.101.2.role-de-initramfs",
+    "lpic1.101.2.sequence-firmware-bootloader-kernel-initramfs-init-systemd"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-implemented"
+  ],
+  "estimated_minutes": 23,
+  "practice_context": "101.2.initramfs-rescue-boot-recovery",
+  "environment": {
+    "backend": "libvirt",
+    "image_ref": "fedora-44-x86_64-v2",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "full-machine",
+    "writable_guest_paths": [],
+    "machine": {
+      "firmware": "uefi"
+    }
+  },
+  "resources": {
+    "memory_mb": 1024,
+    "cpu_percent": 100,
+    "pids": 128,
+    "timeout_seconds": 2700
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -e; k=$(cat /var/lib/lpic-initramfs-rescue/kernel-release); id=$(cat /var/lib/lpic-initramfs-rescue/entry-id); image=\"/boot/initramfs-lpic-rescue-$k.img\"; test -s \"$image\"; grep -Fxq \"initrd /initramfs-lpic-rescue-$k.img\" \"/boot/loader/entries/$id.conf\"; lsinitrd -f /etc/lpic-initramfs/payload \"$image\" | grep -Fxq 'rescue-profile=storage-audit'"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.101.2.role-de-initramfs"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -e; id=$(cat /var/lib/lpic-initramfs-rescue/entry-id); test -d /sys/firmware/efi; grub2-editenv list | grep -Fxq \"saved_entry=$id\"; test \"$(cat /proc/sys/kernel/random/boot_id)\" != \"$(cat /var/lib/lpic-initramfs-rescue/initial-boot-id)\"; test \"$(uname -r)\" = \"$(cat /var/lib/lpic-initramfs-rescue/kernel-release)\"; tr ' ' '\\n' </proc/cmdline | grep -Fxq lpic.initramfs_rescue=1; test \"$(cat /proc/1/comm)\" = systemd; systemctl is-active --quiet qemu-guest-agent.service"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.101.2.sequence-firmware-bootloader-kernel-initramfs-init-systemd",
+        "lpic1.101.2.role-de-initramfs"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -e; orig=$(cat /var/lib/lpic-initramfs-rescue/original-entry); test \"$(sha256sum \"$orig\" | awk '{print $1}')\" = \"$(cat /var/lib/lpic-initramfs-rescue/original-sha256)\""
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.101.2.sequence-firmware-bootloader-kernel-initramfs-init-systemd"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.101.2.initramfs-rescue-boot-recovery.hint-1",
+    "lpic1.101.2.initramfs-rescue-boot-recovery.hint-2",
+    "lpic1.101.2.initramfs-rescue-boot-recovery.hint-3",
+    "lpic1.101.2.initramfs-rescue-boot-recovery.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

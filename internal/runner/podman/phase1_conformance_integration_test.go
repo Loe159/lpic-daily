@@ -19,12 +19,26 @@ import (
 
 var phase1ReferenceSolutions = map[string]string{
 	"lpic1.103.1.child-environment-handoff": "labs/lpic-1-v5/103.1/child-environment-handoff/reference-solution.sh",
-	"lpic1.103.1.shell-environment-repair":  "labs/lpic-1-v5/103.1/shell-environment-repair/reference-solution.sh",
-	"lpic1.103.1.transfer-shell-handoff":    "labs/lpic-1-v5/103.1/transfer-shell-handoff/reference-solution.sh",
-	"lpic1.103.5.stuck-worker":              "labs/lpic-1-v5/103.5/stuck-worker/reference-solution.sh",
-	"lpic1.103.5.transfer-operator-session": "labs/lpic-1-v5/103.5/transfer-operator-session/reference-solution.sh",
-	"lpic1.104.5.shared-dropbox":            "labs/lpic-1-v5/104.5/shared-dropbox/reference-solution.sh",
-	"lpic1.104.5.transfer-team-share-audit": "labs/lpic-1-v5/104.5/transfer-team-share-audit/reference-solution.sh",
+	"lpic1.103.1.shell-environment-repair":     "labs/lpic-1-v5/103.1/shell-environment-repair/reference-solution.sh",
+	"lpic1.103.1.transfer-shell-handoff":       "labs/lpic-1-v5/103.1/transfer-shell-handoff/reference-solution.sh",
+	"lpic1.103.1.environment-boundary-repair":  "labs/lpic-1-v5/103.1/environment-boundary-repair/reference-solution.sh",
+	"lpic1.103.1.external-command-recovery":    "labs/lpic-1-v5/103.1/external-command-recovery/reference-solution.sh",
+	"lpic1.103.1.history-handoff-recovery":     "labs/lpic-1-v5/103.1/history-handoff-recovery/reference-solution.sh",
+	"lpic1.103.2.incident-report-rebuild":      "labs/lpic-1-v5/103.2/incident-report-rebuild/reference-solution.sh",
+	"lpic1.103.2.compressed-manifest-recovery": "labs/lpic-1-v5/103.2/compressed-manifest-recovery/reference-solution.sh",
+	"lpic1.103.3.release-tree-recovery":        "labs/lpic-1-v5/103.3/release-tree-recovery/reference-solution.sh",
+	"lpic1.103.3.backup-bundle-recovery":       "labs/lpic-1-v5/103.3/backup-bundle-recovery/reference-solution.sh",
+	"lpic1.103.4.batch-stream-repair":          "labs/lpic-1-v5/103.4/batch-stream-repair/reference-solution.sh",
+	"lpic1.103.4.bulk-argument-dispatch":       "labs/lpic-1-v5/103.4/bulk-argument-dispatch/reference-solution.sh",
+	"lpic1.103.7.auth-log-filter-repair":       "labs/lpic-1-v5/103.7/auth-log-filter-repair/reference-solution.sh",
+	"lpic1.103.8.minimal-editor-repair":        "labs/lpic-1-v5/103.8/minimal-editor-repair/reference-solution.sh",
+	"lpic1.103.6.priority-incident":            "labs/lpic-1-v5/103.6/priority-incident/reference-solution.sh",
+	"lpic1.103.5.stuck-worker":                 "labs/lpic-1-v5/103.5/stuck-worker/reference-solution.sh",
+	"lpic1.103.5.transfer-operator-session":    "labs/lpic-1-v5/103.5/transfer-operator-session/reference-solution.sh",
+	"lpic1.104.7.fhs-search-recovery":          "labs/lpic-1-v5/104.7/fhs-search-recovery/reference-solution.sh",
+	"lpic1.104.6.release-link-repair":          "labs/lpic-1-v5/104.6/release-link-repair/reference-solution.sh",
+	"lpic1.104.5.shared-dropbox":               "labs/lpic-1-v5/104.5/shared-dropbox/reference-solution.sh",
+	"lpic1.104.5.transfer-team-share-audit":    "labs/lpic-1-v5/104.5/transfer-team-share-audit/reference-solution.sh",
 }
 
 func TestPhase1BuiltInLabsConformOnRootlessPodman(t *testing.T) {
@@ -32,7 +46,7 @@ func TestPhase1BuiltInLabsConformOnRootlessPodman(t *testing.T) {
 		t.Skip("set LPIC_DAILY_RUN_PODMAN_INTEGRATION=1 to run real rootless Podman conformance tests")
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	backend, err := podmanrunner.Open(ctx, "")
@@ -53,6 +67,8 @@ func TestPhase1BuiltInLabsConformOnRootlessPodman(t *testing.T) {
 		seen[authored.Definition.ID] = true
 		authored := authored
 		t.Run(authored.Definition.ID, func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(ctx, 2*time.Minute)
+			defer cancel()
 			solution, err := fs.ReadFile(lpicdaily.BuiltinFS, solutionPath)
 			if err != nil {
 				t.Fatalf("read reference solution: %v", err)

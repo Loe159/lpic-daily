@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.3.archive-mount-recovery.hint-2",
+  "lab_id": "lpic1.104.3.archive-mount-recovery",
+  "level": 2,
+  "content_fr": "Examine la configuration persistante du point /srv/archive et l'identité du volume de données.",
+  "evidence_impact": "material"
+}

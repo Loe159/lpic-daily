@@ -1,0 +1,94 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.5.offline-dnf-agent-recovery",
+  "title_fr": "Rétablir l'installation d'un agent RPM depuis un dépôt isolé",
+  "brief_fr": "Le serveur Fedora de supervision ne peut plus installer son agent de collecte : DNF signale une erreur d'accès au dépôt de maintenance, alors que les archives nécessaires sont présentes sur ce serveur isolé d'Internet. L'agent dépend d'un composant d'exécution également fourni par ce dépôt. Rétablis l'installation de l'agent et le fonctionnement de sa commande, sans désactiver ses dépendances, copier les binaires manuellement ni accéder au réseau.",
+  "success_criteria_fr": [
+    "Le dépôt RPM de maintenance local est accessible et référencé correctement par DNF.",
+    "L'agent et son composant dépendant sont installés dans la base RPM avec leurs dépendances satisfaites.",
+    "La commande de l'agent fonctionne en utilisant le composant livré par son paquet."
+  ],
+  "debrief_fr": "RPM est la base locale des paquets installés. DNF lit les métadonnées de dépôts et résout les dépendances avant d'installer les archives RPM. Une URL de dépôt file:// peut permettre une intervention sans réseau. Copier manuellement un programme ou forcer l'installation sans sa dépendance ne restaure pas un état de paquet cohérent.",
+  "objective_ids": [
+    "102.5"
+  ],
+  "concept_ids": [
+    "lpic1.102.5.resolution-des-dependances-via-gestionnaire-haut-niveau",
+    "lpic1.102.5.repositories-yum-dnf"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-implemented"
+  ],
+  "estimated_minutes": 14,
+  "practice_context": "offline-dnf-agent-recovery",
+  "environment": {
+    "backend": "libvirt",
+    "image_ref": "fedora-44-x86_64-v2",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "full-machine",
+    "writable_guest_paths": [],
+    "machine": {
+      "firmware": "uefi"
+    }
+  },
+  "resources": {
+    "memory_mb": 1024,
+    "cpu_percent": 100,
+    "pids": 128,
+    "timeout_seconds": 1900
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "dnf --disablerepo='*' --enablerepo='lpic-offline' repolist -v 2>/dev/null | grep -Fq 'file:///srv/lpic-rpm-repo' && test -f /srv/lpic-rpm-repo/repodata/repomd.xml"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.5.repositories-yum-dnf"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "rpm -q --quiet lpic-dnf-agent && rpm -q --quiet lpic-dnf-runtime && rpm -q --requires lpic-dnf-agent | grep -Fq 'lpic-dnf-runtime' && test \"$(rpm -q --qf '%{NAME}\\n' lpic-dnf-runtime)\" = lpic-dnf-runtime"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.5.resolution-des-dependances-via-gestionnaire-haut-niveau"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test \"$(/usr/local/bin/lpic-dnf-agent)\" = 'dnf-agent=ready' && rpm -qf /usr/local/bin/lpic-dnf-agent | grep -Fq lpic-dnf-agent"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.5.resolution-des-dependances-via-gestionnaire-haut-niveau",
+        "lpic1.102.5.repositories-yum-dnf"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.102.5.offline-dnf-agent-recovery.hint-1",
+    "lpic1.102.5.offline-dnf-agent-recovery.hint-2",
+    "lpic1.102.5.offline-dnf-agent-recovery.hint-3",
+    "lpic1.102.5.offline-dnf-agent-recovery.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

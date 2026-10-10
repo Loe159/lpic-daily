@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.2.grub-alternate-entry-recovery.hint-4",
+  "lab_id": "lpic1.102.2.grub-alternate-entry-recovery",
+  "level": 4,
+  "content_fr": "Utilise grub2-set-default avec l'identifiant contenu dans /var/lib/lpic-grub-recovery/entry-id, puis :reboot depuis le terminal parent et examine /proc/cmdline.",
+  "evidence_impact": "solution-revealed"
+}

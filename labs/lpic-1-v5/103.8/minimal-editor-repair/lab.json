@@ -1,0 +1,108 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.8.minimal-editor-repair",
+  "title_fr": "Corriger une configuration dans un environnement minimal",
+  "brief_fr": "Le poste de secours utilise vi comme éditeur par défaut. Ouvre /workspace/app.conf, retrouve la section [server], corrige port à 8443, remplace mode=debug par mode=production, supprime la ligne obsolete=true, duplique la ligne audit=enabled juste sous elle en audit=required, puis sauvegarde. L’inventaire des éditeurs disponibles doit aussi être écrit dans /workspace/editor-inventory.",
+  "success_criteria_fr": [
+    "EDITOR vaut vi dans un nouveau shell.",
+    "app.conf contient la configuration corrigée, sans obsolete=true.",
+    "La section server contient audit=enabled puis audit=required.",
+    "editor-inventory indique que vi/vim et nano sont disponibles et qu’emacs ne l’est pas dans l’image."
+  ],
+  "debrief_fr": "vi alterne notamment entre mode normal, insertion et commande. La navigation, la recherche, les opérations de suppression/copie/collage et les commandes de sauvegarde permettent d’éditer efficacement un fichier même sans interface graphique. EDITOR choisit l’éditeur par défaut ; vim et nano sont présents ici, tandis qu’emacs ne l’est pas.",
+  "objective_ids": [
+    "103.8"
+  ],
+  "concept_ids": [
+    "lpic1.103.8.modes-normal-insertion-commande",
+    "lpic1.103.8.navigation",
+    "lpic1.103.8.insertion-remplacement",
+    "lpic1.103.8.suppression-copie-collage",
+    "lpic1.103.8.recherche",
+    "lpic1.103.8.sauvegarde-quitter",
+    "lpic1.103.8.editeur-par-defaut",
+    "lpic1.103.8.connaissance-nano-emacs-vim"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-accepted"
+  ],
+  "estimated_minutes": 10,
+  "practice_context": "minimal-editor-repair",
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "baseline",
+    "writable_guest_paths": [
+      "/root",
+      "/workspace"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "cpu_percent": 100,
+    "pids": 96,
+    "timeout_seconds": 1200
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "--noprofile",
+        "--rcfile",
+        "/root/.bashrc",
+        "-ic",
+        "test \"$EDITOR\" = vi"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.8.editeur-par-defaut"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "printf '[client]\\ntimeout=30\\n\\n[server]\\nport=8443\\nmode=production\\naudit=enabled\\naudit=required\\n' | cmp -s - /workspace/app.conf"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.8.modes-normal-insertion-commande",
+        "lpic1.103.8.navigation",
+        "lpic1.103.8.insertion-remplacement",
+        "lpic1.103.8.suppression-copie-collage",
+        "lpic1.103.8.recherche",
+        "lpic1.103.8.sauvegarde-quitter"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "grep -qx 'vi=present' /workspace/editor-inventory && grep -qx 'vim=present' /workspace/editor-inventory && grep -qx 'nano=present' /workspace/editor-inventory && grep -qx 'emacs=absent' /workspace/editor-inventory"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.8.connaissance-nano-emacs-vim"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.103.8.minimal-editor-repair.hint-1",
+    "lpic1.103.8.minimal-editor-repair.hint-2",
+    "lpic1.103.8.minimal-editor-repair.hint-3",
+    "lpic1.103.8.minimal-editor-repair.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

@@ -25,7 +25,8 @@
   ],
   "labels": [
     "lpic-required",
-    "modern-practice"
+    "modern-practice",
+    "scenario-accepted"
   ],
   "estimated_minutes": 18,
   "practice_context": "process-incident",

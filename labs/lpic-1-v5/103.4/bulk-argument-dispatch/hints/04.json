@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.4.bulk-argument-dispatch.hint-4",
+  "lab_id": "lpic1.103.4.bulk-argument-dispatch",
+  "level": 4,
+  "content_fr": "Envoie targets.txt dans xargs /workspace/bin/describe-file, passe sa sortie dans sort puis redirige vers /workspace/output/processed.log.",
+  "evidence_impact": "solution-revealed"
+}

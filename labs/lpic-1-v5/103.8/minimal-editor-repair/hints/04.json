@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.8.minimal-editor-repair.hint-4",
+  "lab_id": "lpic1.103.8.minimal-editor-repair",
+  "level": 4,
+  "content_fr": "Dans vi, cherche port/mode/obsolete/audit, remplace port et mode, supprime obsolete, duplique audit puis transforme la copie en audit=required et sauvegarde. Mets export EDITOR=vi dans .bashrc et produis l’inventaire avec command -v.",
+  "evidence_impact": "solution-revealed"
+}

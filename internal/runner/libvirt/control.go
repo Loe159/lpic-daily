@@ -34,6 +34,11 @@ type ControlPlane interface {
 	Close() error
 }
 
+// ACPIControlPlane is optional: only private managed domains may receive events.
+type ACPIControlPlane interface {
+	PressACPIButtonDomain(string) error
+}
+
 type NetworkControlPlane interface {
 	DefineNetwork(string, string) error
 	StartNetwork(string) error
@@ -68,6 +73,7 @@ type rawLibvirt interface {
 	DomainLookupByName(string) (golibvirt.Domain, error)
 	DomainCreateWithFlags(golibvirt.Domain, uint32) (golibvirt.Domain, error)
 	DomainReboot(golibvirt.Domain, golibvirt.DomainRebootFlagValues) error
+	DomainShutdownFlags(golibvirt.Domain, golibvirt.DomainShutdownFlagValues) error
 	DomainOpenConsoleBidirectional(golibvirt.Domain, golibvirt.OptString, io.Reader, io.Writer, uint32) error
 	QEMUDomainAgentCommand(golibvirt.Domain, string, int32, uint32) (golibvirt.OptString, error)
 	DomainGetState(golibvirt.Domain, uint32) (int32, int32, error)
@@ -222,6 +228,18 @@ func (control *RPCControlPlane) RebootDomain(name string) error {
 	}
 	if err := control.raw.DomainReboot(domain, golibvirt.DomainRebootDefault); err != nil {
 		return fmt.Errorf("reboot domain %s: %w", name, err)
+	}
+	return nil
+}
+
+// PressACPIButtonDomain dispatches only the ACPI power-button interrupt.
+// The explicit flag prevents libvirt from silently preferring a guest-agent
+// shutdown, which would not exercise ACPI.
+func (control *RPCControlPlane) PressACPIButtonDomain(name string) error {
+	domain, err := control.lookupManagedDomain(name)
+	if err != nil { return err }
+	if err := control.raw.DomainShutdownFlags(domain, golibvirt.DomainShutdownAcpiPowerBtn); err != nil {
+		return fmt.Errorf("ACPI power button for domain %s: %w", name, err)
 	}
 	return nil
 }

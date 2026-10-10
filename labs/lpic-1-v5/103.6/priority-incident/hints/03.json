@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.6.priority-incident.hint-3",
+  "lab_id": "lpic1.103.6.priority-incident",
+  "level": 3,
+  "content_fr": "Applique renice 10 au PID de reindex-worker et lance batch-worker avec nice -n 15. Utilise ps -o ni= pour produire le rapport.",
+  "evidence_impact": "material"
+}

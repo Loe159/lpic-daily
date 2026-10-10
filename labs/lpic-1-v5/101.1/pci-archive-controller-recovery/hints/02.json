@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.1.pci-archive-controller-recovery.hint-2",
+  "lab_id": "lpic1.101.1.pci-archive-controller-recovery",
+  "level": 2,
+  "content_fr": "Le système de fichiers existe encore. Cherche pourquoi le disque de données n'apparaît plus parmi les périphériques noyau et quel contrôleur PCI le présente.",
+  "evidence_impact": "material"
+}

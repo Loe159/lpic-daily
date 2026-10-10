@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.2.compressed-manifest-recovery.hint-4",
+  "lab_id": "lpic1.103.2.compressed-manifest-recovery",
+  "level": 4,
+  "content_fr": "Régénère manifest.sha256 sur les trois archives, concatène zcat day1, bzcat day2 et xzcat day3 vers audit.txt, puis écris MD5, SHA256 et SHA512 suivis de l’empreinte correspondante dans checksums.txt.",
+  "evidence_impact": "solution-revealed"
+}

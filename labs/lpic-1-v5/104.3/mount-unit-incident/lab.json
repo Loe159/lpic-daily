@@ -1,0 +1,98 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.3.mount-unit-incident",
+  "title_fr": "Rétablir le montage automatique des rapports",
+  "brief_fr": "Au démarrage, le service d'archivage ne voit plus les rapports sous /srv/lpic/reports. Le volume de données existe et contient encore son manifeste, mais l'unité de montage systemd ne l'active pas. Rétablis le montage géré par systemd et son activation pour les prochains démarrages. Ne reformate pas le volume et conserve le manifeste.",
+  "success_criteria_fr": [
+    "L'unité de montage des rapports est active et le volume ext4 attendu est effectivement monté.",
+    "L'unité reste activée pour les futurs démarrages.",
+    "Le manifeste présent sur le volume d'origine est de nouveau accessible."
+  ],
+  "debrief_fr": "Un fichier *.mount systemd est nommé selon le point de montage (avec systemd-escape si nécessaire). What identifie le système de fichiers et Where son point d'accès. systemctl daemon-reload recharge la définition ; systemctl start et enable agissent respectivement sur l'état présent et au démarrage.",
+  "objective_ids": [
+    "104.3"
+  ],
+  "concept_ids": [
+    "lpic1.104.3.unites-mount-systemd"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-implemented"
+  ],
+  "estimated_minutes": 12,
+  "practice_context": "mount-unit-incident",
+  "environment": {
+    "backend": "libvirt",
+    "image_ref": "fedora-44-x86_64-v2",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "full-machine",
+    "writable_guest_paths": [],
+    "machine": {
+      "firmware": "uefi",
+      "extra_disks": [
+        {
+          "id": "data",
+          "size_mb": 256
+        }
+      ]
+    }
+  },
+  "resources": {
+    "memory_mb": 1024,
+    "cpu_percent": 100,
+    "pids": 128,
+    "timeout_seconds": 1500
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "systemctl is-active --quiet srv-lpic-reports.mount && test \"$(findmnt -n --mountpoint /srv/lpic/reports -o FSTYPE)\" = ext4"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.3.unites-mount-systemd"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "systemctl is-enabled --quiet srv-lpic-reports.mount && test \"$(systemctl show srv-lpic-reports.mount -p Where --value)\" = /srv/lpic/reports"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.3.unites-mount-systemd"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test \"$(cat /srv/lpic/reports/manifest.txt 2>/dev/null)\" = 'report-batch=2026-10-09' && test \"$(blkid -s LABEL -o value /dev/vdb)\" = lpicreport"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.3.unites-mount-systemd"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.104.3.mount-unit-incident.hint-1",
+    "lpic1.104.3.mount-unit-incident.hint-2",
+    "lpic1.104.3.mount-unit-incident.hint-3",
+    "lpic1.104.3.mount-unit-incident.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

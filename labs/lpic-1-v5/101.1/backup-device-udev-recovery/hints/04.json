@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.1.backup-device-udev-recovery.hint-4",
+  "lab_id": "lpic1.101.1.backup-device-udev-recovery",
+  "level": 4,
+  "content_fr": "Crée sous /etc/udev/rules.d une règle SUBSYSTEM==\"block\", ENV{ID_FS_LABEL}==\"LPICBACKUP\", SYMLINK+=\"lpic-backup\" ; recharge les règles et déclenche les événements de block, puis vérifie le lien et la commande de sauvegarde.",
+  "evidence_impact": "solution-revealed"
+}

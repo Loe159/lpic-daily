@@ -971,6 +971,26 @@ func (fake *consoleScriptedLabRunner) OpenConsole(
 	return nil
 }
 
+type acpiScriptedLabRunner struct {
+	scriptedLabRunner
+	pressCount int
+}
+
+func (fake *acpiScriptedLabRunner) PressPowerButton(context.Context, runner.Instance) error {
+	fake.pressCount++
+	return nil
+}
+
+type bootMenuScriptedLabRunner struct {
+	scriptedLabRunner
+	bootMenuCalls int
+}
+
+func (fake *bootMenuScriptedLabRunner) RebootToBootMenu(context.Context, runner.Instance) error {
+	fake.bootMenuCalls++
+	return nil
+}
+
 type rebootScriptedLabRunner struct {
 	scriptedLabRunner
 	rebootCalls int
@@ -1222,5 +1242,60 @@ func TestLabShellCommandReaderHandlesBackspaceAndLongInput(t *testing.T) {
 	}
 	if len(called) != 1 || called[0] != ":check" {
 		t.Fatalf("intercepted commands = %q", called)
+	}
+}
+
+func TestInteractiveVMLabDispatchesACPIButtonCommand(t *testing.T) {
+	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil { t.Fatalf("LoadAll: %v", err) }
+	authored, err := findLab(labs, "lpic1.101.3.acpi-power-event-audit-recovery")
+	if err != nil { t.Fatalf("findLab: %v", err) }
+	fake := &acpiScriptedLabRunner{}
+	var stdout, stderr bytes.Buffer
+	if err := runInteractiveLabWithBackend(context.Background(), authored, fake, false,
+		strings.NewReader(":acpi-power\n:quit\n"), &stdout, &stderr); err != nil {
+		t.Fatalf("runInteractiveLabWithBackend: %v (stderr %q)", err, stderr.String())
+	}
+	if fake.pressCount != 1 { t.Fatalf("pressCount = %d", fake.pressCount) }
+	if !strings.Contains(stdout.String(), "ACPI envoyé") { t.Fatalf("confirmation absent: %q", stdout.String()) }
+}
+
+func TestInteractiveVMLabDispatchesBootMenuWithoutBlocking(t *testing.T) {
+	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil { t.Fatal(err) }
+	authored, err := findLab(labs, "lpic1.102.2.grub-serial-one-time-diagnostics")
+	if err != nil { t.Fatal(err) }
+	fake := &bootMenuScriptedLabRunner{}
+	var out, errs bytes.Buffer
+	if err := runInteractiveLabWithBackend(context.Background(), authored, fake, false,
+		strings.NewReader(":boot-menu\n:quit\n"), &out, &errs); err != nil {
+		t.Fatalf("boot-menu CLI: %v (%q)", err, errs.String())
+	}
+	if fake.bootMenuCalls != 1 { t.Fatalf("boot-menu dispatch count %d", fake.bootMenuCalls) }
+	if !strings.Contains(out.String(), ":console") {
+		t.Fatalf("boot-menu guidance absent: %q", out.String())
+	}
+}
+
+func TestInteractiveVMLabGuardsPrivilegedACPIAndBootMenuActions(t *testing.T) {
+	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil { t.Fatal(err) }
+	authored, err := findLab(labs, "lpic1.102.2.grub-kernel-parameter")
+	if err != nil { t.Fatal(err) }
+	fake := &bootMenuScriptedLabRunner{}
+	var out, errs bytes.Buffer
+	if err := runInteractiveLabWithBackend(context.Background(), authored, fake, false,
+		strings.NewReader(":boot-menu\n:acpi-power\n:quit\n"), &out, &errs); err != nil {
+		t.Fatalf("unsafe command guard: %v (stderr=%q)", err, errs.String())
+	}
+	if fake.bootMenuCalls != 0 {
+		t.Fatal("non-GRUB lab initiated a boot-menu reboot")
+	}
+	if !strings.Contains(out.String(), "aucun redémarrage envoyé") ||
+		!strings.Contains(out.String(), "aucun événement envoyé") {
+		t.Fatalf("no visible guard explanation: %q", out.String())
 	}
 }

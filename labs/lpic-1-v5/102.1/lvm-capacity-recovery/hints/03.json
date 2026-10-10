@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.1.lvm-capacity-recovery.hint-3",
+  "lab_id": "lpic1.102.1.lvm-capacity-recovery",
+  "level": 3,
+  "content_fr": "Prépare la partition du nouveau disque pour LVM, constitue un groupe puis un volume logique, avant de créer et monter ext4.",
+  "evidence_impact": "material"
+}

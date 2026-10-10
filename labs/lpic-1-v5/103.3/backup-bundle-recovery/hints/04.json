@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.3.backup-bundle-recovery.hint-4",
+  "lab_id": "lpic1.103.3.backup-bundle-recovery",
+  "level": 4,
+  "content_fr": "Archive config/a.conf et b.conf avec tar puis cpio, copie disk-slice.bin avec dd, détecte chaque payload avec file, copie-le sous .gz/.bz2/.xz et concatène sa sortie décompressée dans recovered.txt.",
+  "evidence_impact": "solution-revealed"
+}

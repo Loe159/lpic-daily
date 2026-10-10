@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.4.bulk-argument-dispatch.hint-3",
+  "lab_id": "lpic1.103.4.bulk-argument-dispatch",
+  "level": 3,
+  "content_fr": "xargs est précisément l’outil qui transforme les lignes reçues sur stdin en arguments de la commande suivante.",
+  "evidence_impact": "material"
+}

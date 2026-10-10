@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.2.offline-ext-audit-recovery.hint-4",
+  "lab_id": "lpic1.104.2.offline-ext-audit-recovery",
+  "level": 4,
+  "content_fr": "Lance e2fsck -fy sur audit.ext4 (code 1 possible après réparation), puis tune2fs -L audit-ready -m 1 sur la même image. Vérifie ensuite l’état et la preuve avec debugfs.",
+  "evidence_impact": "solution-revealed"
+}

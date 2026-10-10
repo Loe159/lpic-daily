@@ -1,0 +1,113 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.6.release-link-repair",
+  "title_fr": "Réparer les liens d’une release",
+  "brief_fr": "Depuis le déploiement de la version 2, le service lit une configuration introuvable et le mécanisme de sauvegarde de la release ne protège plus correctement ses fichiers. Diagnostique les références sous /workspace et restaure une configuration courante utilisable. L’archivage doit partager les données de la release active tandis que le snapshot doit rester indépendant. Préserve les fichiers de référence et documente dans limitations.txt les restrictions des liens physiques que tu constates.",
+  "success_criteria_fr": [
+    "archive-v2.conf et app-v2.conf partagent le même inode et le même contenu.",
+    "snapshot-v2.conf a le même contenu mais un inode différent.",
+    "current.conf est un symlink valide vers releases/app-v2.conf.",
+    "Le hard link de répertoire et le hard link inter-filesystem sont absents et limitations.txt confirme leurs deux refus."
+  ],
+  "debrief_fr": "Un hard link ajoute un nom vers le même inode et survit au renommage d’un autre nom. Une copie obtient un inode indépendant. Un symlink stocke un chemin et peut devenir cassé si sa cible change. Les hard links ne traversent pas les filesystems et ne sont normalement pas autorisés vers des répertoires, ce qui borne leurs usages administratifs.",
+  "objective_ids": [
+    "104.6"
+  ],
+  "concept_ids": [
+    "lpic1.104.6.inode-et-hard-link",
+    "lpic1.104.6.symlink-et-cible",
+    "lpic1.104.6.limites-filesystem-directory-des-hard-links",
+    "lpic1.104.6.liens-casses",
+    "lpic1.104.6.difference-copie-lien",
+    "lpic1.104.6.usages-administratifs"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-accepted"
+  ],
+  "estimated_minutes": 9,
+  "practice_context": "release-link-repair",
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "baseline",
+    "writable_guest_paths": [
+      "/workspace",
+      "/run/lpic"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "cpu_percent": 100,
+    "pids": 96,
+    "timeout_seconds": 1200
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test \"$(stat -c %i /workspace/releases/app-v2.conf)\" = \"$(stat -c %i /workspace/releases/archive-v2.conf)\" && cmp -s /workspace/releases/app-v2.conf /workspace/releases/archive-v2.conf"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.6.inode-et-hard-link",
+        "lpic1.104.6.usages-administratifs"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test \"$(stat -c %i /workspace/releases/app-v2.conf)\" != \"$(stat -c %i /workspace/releases/snapshot-v2.conf)\" && cmp -s /workspace/releases/app-v2.conf /workspace/releases/snapshot-v2.conf"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.6.difference-copie-lien"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test -L /workspace/current.conf && test \"$(readlink /workspace/current.conf)\" = releases/app-v2.conf && test -f /workspace/current.conf"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.6.symlink-et-cible",
+        "lpic1.104.6.liens-casses",
+        "lpic1.104.6.usages-administratifs"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test ! -e /workspace/dir-hardlink && test ! -e /run/lpic/cross-fs-link && grep -qx 'directory-hardlink=rejected' /workspace/limitations.txt && grep -qx 'cross-filesystem-hardlink=rejected' /workspace/limitations.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.6.limites-filesystem-directory-des-hard-links"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.104.6.release-link-repair.hint-1",
+    "lpic1.104.6.release-link-repair.hint-2",
+    "lpic1.104.6.release-link-repair.hint-3",
+    "lpic1.104.6.release-link-repair.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

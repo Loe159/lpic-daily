@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.1.lvm-capacity-recovery.hint-1",
+  "lab_id": "lpic1.102.1.lvm-capacity-recovery",
+  "level": 1,
+  "content_fr": "Inspecte l'espace de stockage supplémentaire et vérifie si le point de montage applicatif est réellement lié à un système de fichiers.",
+  "evidence_impact": "none"
+}

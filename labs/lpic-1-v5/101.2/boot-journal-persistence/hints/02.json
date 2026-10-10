@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.2.boot-journal-persistence.hint-2",
+  "lab_id": "lpic1.101.2.boot-journal-persistence",
+  "level": 2,
+  "content_fr": "Compare les journaux conservés sous /run et /var/log, ainsi que le réglage effectif de journald.",
+  "evidence_impact": "material"
+}

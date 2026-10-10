@@ -1,0 +1,120 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.3.release-tree-recovery",
+  "title_fr": "Remettre en état une arborescence de release",
+  "brief_fr": "Une arborescence d’application doit être préparée pour livraison. Recopie l’application sous /workspace/release en conservant les dates des fichiers, centralise ses fichiers .conf dans config, retire uniquement les .tmp vieux de plus de 7 jours, déplace les logs de plus de 20 octets dans large-logs et crée READY quand l’arborescence est propre.",
+  "success_criteria_fr": [
+    "L’application est recopiée récursivement sous release/app avec deploy.sh intact.",
+    "Les deux fichiers .conf sont déplacés dans release/config et l’ancien dossier conf est vide ou absent.",
+    "old.tmp est supprimé mais new.tmp est conservé.",
+    "current.log est déplacé dans large-logs tandis que small.log reste dans app/logs.",
+    "READY existe à la racine de la release."
+  ],
+  "debrief_fr": "cp -R traite une arborescence, le globbing sélectionne des noms, et find peut filtrer selon nom, âge ou taille puis appliquer une action avec -delete ou -exec. mkdir, mv, rm/rmdir et touch servent ensuite à construire l’état final. Les checks regardent uniquement cette arborescence finale.",
+  "objective_ids": [
+    "103.3"
+  ],
+  "concept_ids": [
+    "lpic1.103.3.creation-copie-deplacement-suppression",
+    "lpic1.103.3.recursivite-et-globbing",
+    "lpic1.103.3.recherche-par-metadonnees",
+    "lpic1.103.3.actions-find"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-accepted"
+  ],
+  "estimated_minutes": 12,
+  "practice_context": "release-tree-recovery",
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "baseline",
+    "writable_guest_paths": [
+      "/workspace"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "cpu_percent": 100,
+    "pids": 96,
+    "timeout_seconds": 1200
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test -x /workspace/release/app/bin/deploy.sh && grep -qx 'deploy-v2' /workspace/release/app/bin/deploy.sh"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.3.creation-copie-deplacement-suppression",
+        "lpic1.103.3.recursivite-et-globbing"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test -f /workspace/release/config/app.conf && test -f /workspace/release/config/db.conf && ! find /workspace/release/app/conf -type f -print -quit 2>/dev/null | grep -q ."
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.3.creation-copie-deplacement-suppression",
+        "lpic1.103.3.recursivite-et-globbing"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test ! -e /workspace/release/app/cache/old.tmp && test -f /workspace/release/app/cache/new.tmp"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.3.recherche-par-metadonnees",
+        "lpic1.103.3.actions-find"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test -f /workspace/release/large-logs/current.log && test -f /workspace/release/app/logs/small.log && test ! -e /workspace/release/app/logs/current.log"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.3.recherche-par-metadonnees",
+        "lpic1.103.3.actions-find",
+        "lpic1.103.3.creation-copie-deplacement-suppression"
+      ]
+    },
+    {
+      "type": "file-exists",
+      "path": "/workspace/release/READY",
+      "concept_ids": [
+        "lpic1.103.3.creation-copie-deplacement-suppression"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.103.3.release-tree-recovery.hint-1",
+    "lpic1.103.3.release-tree-recovery.hint-2",
+    "lpic1.103.3.release-tree-recovery.hint-3",
+    "lpic1.103.3.release-tree-recovery.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

@@ -91,6 +91,7 @@ func (image ImageDescriptor) SupportsFirmware(mode runner.FirmwareMode) bool {
 type DiskPath struct {
 	ID   string
 	Path string
+	Bus  runner.VirtualDiskBus
 }
 
 type DomainSpec struct {
@@ -142,6 +143,9 @@ func (spec DomainSpec) Validate(stateRoot string) error {
 		seen[disk.ID] = struct{}{}
 		if err := pathWithinRoot(stateRoot, disk.Path); err != nil {
 			return fmt.Errorf("disk %s: %w", disk.ID, err)
+		}
+		if disk.Bus != "" && disk.Bus != runner.VirtualDiskBusVirtio && disk.Bus != runner.VirtualDiskBusSATA && disk.Bus != runner.VirtualDiskBusUSB {
+			return fmt.Errorf("disk %s: unsupported bus %q", disk.ID, disk.Bus)
 		}
 	}
 	if spec.NetworkName != "" && !managedNamePattern.MatchString(spec.NetworkName) {
@@ -309,11 +313,18 @@ type featuresXML struct {
 }
 
 type devicesXML struct {
-	Disks      []diskXML      `xml:"disk"`
+	Disks      []diskXML       `xml:"disk"`
+	Controllers []controllerXML `xml:"controller,omitempty"`
 	Interfaces []interfaceXML `xml:"interface,omitempty"`
 	Channels   []channelXML   `xml:"channel,omitempty"`
 	Serial     serialXML      `xml:"serial"`
 	Console    consoleXML     `xml:"console"`
+}
+
+type controllerXML struct {
+	Type  string `xml:"type,attr"`
+	Index int    `xml:"index,attr"`
+	Model string `xml:"model,attr"`
 }
 
 type diskXML struct {
@@ -428,13 +439,30 @@ func BuildDomainXML(spec DomainSpec, stateRoot string) (string, error) {
 		Source: diskSourceXML{File: filepath.Clean(spec.RootDiskPath)},
 		Target: diskTargetXML{Dev: "vda", Bus: "virtio"},
 	})
-	for index, disk := range spec.ExtraDisks {
+	virtioIndex, sdIndex := 1, 0 // vda is reserved for the OS; SATA/USB share sdX names.
+	for _, disk := range spec.ExtraDisks {
+		bus := disk.Bus
+		if bus == "" {
+			bus = runner.VirtualDiskBusVirtio
+		}
+		var device string
+		switch bus {
+		case runner.VirtualDiskBusVirtio:
+			device = "vd" + string(rune('a'+virtioIndex))
+			virtioIndex++
+		case runner.VirtualDiskBusSATA, runner.VirtualDiskBusUSB:
+			device = "sd" + string(rune('a'+sdIndex))
+			sdIndex++
+			if bus == runner.VirtualDiskBusUSB && len(doc.Devices.Controllers) == 0 {
+				doc.Devices.Controllers = append(doc.Devices.Controllers, controllerXML{Type: "usb", Index: 0, Model: "qemu-xhci"})
+			}
+		}
 		doc.Devices.Disks = append(doc.Devices.Disks, diskXML{
 			Type:   "file",
 			Device: "disk",
 			Driver: diskDriverXML{Name: "qemu", Type: "qcow2"},
 			Source: diskSourceXML{File: filepath.Clean(disk.Path)},
-			Target: diskTargetXML{Dev: "vd" + string(rune('b'+index)), Bus: "virtio"},
+			Target: diskTargetXML{Dev: device, Bus: string(bus)},
 		})
 	}
 	if spec.NetworkName != "" {

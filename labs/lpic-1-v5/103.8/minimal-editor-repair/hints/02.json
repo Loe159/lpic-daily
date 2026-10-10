@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.8.minimal-editor-repair.hint-2",
+  "lab_id": "lpic1.103.8.minimal-editor-repair",
+  "level": 2,
+  "content_fr": "En mode normal, / cherche, dd supprime une ligne, yy/p copient et collent. i/a/o permettent ensuite d’insérer ou remplacer du texte.",
+  "evidence_impact": "material"
+}

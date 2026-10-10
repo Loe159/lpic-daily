@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.6.priority-incident.hint-4",
+  "lab_id": "lpic1.103.6.priority-incident",
+  "level": 4,
+  "content_fr": "Lis reindex-worker.pid, exécute renice 10 -p PID, lance nice -n 15 bash -c 'exec -a batch-worker sleep infinity' &, puis écris les trois lignes nom + NI observée avec ps dans priority-report.",
+  "evidence_impact": "solution-revealed"
+}

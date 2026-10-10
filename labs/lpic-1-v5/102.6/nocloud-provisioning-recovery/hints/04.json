@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.6.nocloud-provisioning-recovery.hint-4",
+  "lab_id": "lpic1.102.6.nocloud-provisioning-recovery",
+  "level": 4,
+  "content_fr": "Remplace write_file par write_files dans /var/lib/cloud/seed/nocloud/user-data ; rejoue cloud-init clean --logs, cloud-init init --local, cloud-init init, puis cloud-init modules --mode=config et --mode=final.",
+  "evidence_impact": "solution-revealed"
+}

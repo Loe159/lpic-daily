@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.3.maintenance-wall-notification.hint-3",
+  "lab_id": "lpic1.101.3.maintenance-wall-notification",
+  "level": 3,
+  "content_fr": "La commande wall peut diffuser un même texte vers toutes les sessions déclarées ; le lab enregistre directement les sorties de deux pseudo-terminaux.",
+  "evidence_impact": "material"
+}

@@ -25,6 +25,7 @@ type fakeControlPlane struct {
 	networkFilters    map[string]string
 	starts            int
 	reboots           int
+	acpiButtons       int
 	destroys          int
 	undefines         int
 	networkStarts     int
@@ -86,6 +87,11 @@ func (fake *fakeControlPlane) RebootDomain(name string) error {
 		return errors.New("domain not active")
 	}
 	fake.reboots++
+	return nil
+}
+func (fake *fakeControlPlane) PressACPIButtonDomain(name string) error {
+	if !fake.active[name] { return errors.New("domain not active") }
+	fake.acpiButtons++
 	return nil
 }
 func (fake *fakeControlPlane) OpenConsole(_ context.Context, name string, input io.Reader, output io.Writer) error {
@@ -1101,4 +1107,64 @@ func TestVMInstanceNameIsSafe(t *testing.T) {
 	if strings.ContainsAny(name, "/ !") {
 		t.Fatalf("unsafe generated name = %q", name)
 	}
+}
+
+func TestPrepareUSBExtraDiskUsesPrivateEmulatedController(t *testing.T) {
+	backend, control, _, definition := backendFixture(t)
+	definition.Machine.ExtraDisks = []runner.VirtualDisk{{
+		ID: "usb-backup", SizeMB: 256, Bus: runner.VirtualDiskBusUSB,
+	}}
+	instance, err := backend.Prepare(context.Background(), definition)
+	if err != nil {
+		t.Fatalf("Prepare(USB scratch disk): %v", err)
+	}
+	payload := control.defined[instance.ID]
+	for _, want := range []string{
+		`<controller type="usb" index="0" model="qemu-xhci"></controller>`,
+		`<target dev="sda" bus="usb"></target>`,
+	} {
+		if !strings.Contains(payload, want) {
+			t.Errorf("USB controller/disk not propagated to domain XML: missing %q", want)
+		}
+	}
+	for _, forbidden := range []string{"<hostdev", "<redirdev", "<filesystem"} {
+		if strings.Contains(payload, forbidden) {
+			t.Errorf("VM unexpectedly exposes host resource %q", forbidden)
+		}
+	}
+}
+
+func TestPressPowerButtonRequiresOwnedActiveVM(t *testing.T) {
+	backend, control, _, definition := backendFixture(t)
+	instance, err := backend.Prepare(context.Background(), definition)
+	if err != nil { t.Fatal(err) }
+	if err := backend.PressPowerButton(context.Background(), instance); err == nil {
+		t.Fatal("inactive guest accepted ACPI button")
+	}
+	if err := backend.Start(context.Background(), instance); err != nil { t.Fatal(err) }
+	if err := backend.PressPowerButton(context.Background(), instance); err != nil { t.Fatal(err) }
+	if control.acpiButtons != 1 { t.Fatalf("ACPI count = %d", control.acpiButtons) }
+	if err := backend.PressPowerButton(context.Background(), runner.Instance{ID: "foreign-domain"}); err == nil {
+		t.Fatal("foreign domain accepted ACPI button")
+	}
+	if control.acpiButtons != 1 { t.Fatal("foreign ACPI event reached backend") }
+}
+
+func TestRebootToBootMenuDoesNotWaitForGuestAgent(t *testing.T) {
+	backend, control, _, definition := backendFixture(t)
+	ctx := context.Background()
+	instance, err := backend.Prepare(ctx, definition)
+	if err != nil { t.Fatal(err) }
+	if err := backend.RebootToBootMenu(ctx, instance); err == nil {
+		t.Fatal("inactive VM accepted boot-menu reboot")
+	}
+	if err := backend.Start(ctx, instance); err != nil { t.Fatal(err) }
+	if err := backend.RebootToBootMenu(ctx, instance); err != nil { t.Fatal(err) }
+	if control.reboots != 1 {
+		t.Fatalf("reboots = %d, want 1 (without guest-agent polling)", control.reboots)
+	}
+	if err := backend.RebootToBootMenu(ctx, runner.Instance{ID:"foreign-vm"}); err == nil {
+		t.Fatal("foreign VM accepted boot-menu reboot")
+	}
+	if control.reboots != 1 { t.Fatal("foreign VM reboot was dispatched") }
 }

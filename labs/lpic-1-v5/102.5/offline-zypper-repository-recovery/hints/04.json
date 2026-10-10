@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.5.offline-zypper-repository-recovery.hint-4",
+  "lab_id": "lpic1.102.5.offline-zypper-repository-recovery",
+  "level": 4,
+  "content_fr": "Répare baseurl dans /etc/zypp/repos.d/lpic-maint.repo en file:///srv/lpic-zypp-repo, exécute zypper refresh lpic-maint puis zypper install --from lpic-maint lpic-archive-agent. Contrôle les deux entrées RPM et la commande installée.",
+  "evidence_impact": "solution-revealed"
+}

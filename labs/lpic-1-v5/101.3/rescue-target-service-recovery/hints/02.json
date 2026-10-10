@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.3.rescue-target-service-recovery.hint-2",
+  "lab_id": "lpic1.101.3.rescue-target-service-recovery",
+  "level": 2,
+  "content_fr": "Le mode rescue de systemd conserve une base de services réduite. La cible multi-utilisateur démarre les services activés, dont crond.",
+  "evidence_impact": "material"
+}

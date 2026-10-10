@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.1.onboard-sata-controller-reenable.hint-3",
+  "lab_id": "lpic1.101.1.onboard-sata-controller-reenable",
+  "level": 3,
+  "content_fr": "Le contrôleur a été désassocié du pilote ahci. Dans /sys/bus/pci/drivers/ahci, l'interface bind permet de rattacher un périphérique PCI à ce pilote.",
+  "evidence_impact": "material"
+}

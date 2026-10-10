@@ -13,6 +13,7 @@ description: Create or revise original LPIC curriculum content
 5. Mark legacy exam knowledge separately from recommended modern practice.
 6. Split over-broad concepts until each stable concept is a coherent, independently teachable and testable unit covering the official objective.
 7. For every concept, add all three required surfaces: exactly one focused `introduce` lesson, at least one non-`initial-assessment` deterministic daily question, and at least one machine-checked practical lab/rep.
-8. Write all explanatory prose originally; do not adapt LPI Learning Materials.
-9. Run `python3 scripts/validate_curriculum.py`, `python3 scripts/audit_phase3_coverage.py --check`, and the relevant Go/coverage tests after edits. Before declaring an Exam-101 tranche complete, `python3 scripts/audit_phase3_coverage.py --require-complete` must pass.
+8. For practical coverage, prefer coherent incident-driven scenarios rather than generated one-concept micro-labs; use `.agents/skills/author-lab/SKILL.md`, explicit check-to-concept evidence and the scenario migration matrix. A lab only counts as accepted after real backend validation; do not claim KVM coverage from a Podman mock.
+9. Write all explanatory prose originally; do not adapt LPI Learning Materials.
+10. Run `python3 scripts/validate_curriculum.py`, `python3 scripts/audit_phase3_coverage.py --check`, and the relevant Go/coverage tests after edits. Before declaring an Exam-101 tranche complete, `python3 scripts/audit_phase3_coverage.py --require-complete` must pass.
 

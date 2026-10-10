@@ -1,0 +1,93 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.4.relay-package-dependency-repair",
+  "title_fr": "Débloquer une installation Debian inachevée",
+  "brief_fr": "Le relais d'alertes d'un serveur Debian est en panne depuis une installation interrompue. Son paquet est présent, mais l'agent ne peut pas démarrer et le gestionnaire de paquets signale une anomalie. Les paquets de maintenance sont déjà disponibles dans /opt/lpic-debs ; le serveur est isolé d'Internet. Rétablis une installation cohérente et le fonctionnement du relais sans copier manuellement son programme ni supprimer d'autres logiciels.",
+  "success_criteria_fr": [
+    "Le relais et son composant d'exécution sont correctement installés et configurés dans dpkg.",
+    "Le programme du relais fonctionne avec son composant d'exécution.",
+    "La base dpkg identifie les fichiers livrés par chaque paquet."
+  ],
+  "debrief_fr": "Une dépendance manquante peut laisser un paquet Debian au stade unpacked plutôt que configured. dpkg-query -s et -L révèlent les états et le contenu des paquets. Réparer la dépendance puis achever la configuration restaure le programme sans dégrader l'inventaire du système.",
+  "objective_ids": [
+    "102.4"
+  ],
+  "concept_ids": [
+    "lpic1.102.4.dependances",
+    "lpic1.102.4.inspection-d-un-paquet-et-de-ses-fichiers"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-implemented"
+  ],
+  "estimated_minutes": 13,
+  "practice_context": "relay-package-dependency-repair",
+  "environment": {
+    "backend": "libvirt",
+    "image_ref": "debian-13-x86_64-v2",
+    "distribution": "debian",
+    "network": "none",
+    "capability_profile": "full-machine",
+    "writable_guest_paths": [],
+    "machine": {
+      "firmware": "uefi"
+    }
+  },
+  "resources": {
+    "memory_mb": 1024,
+    "cpu_percent": 100,
+    "pids": 128,
+    "timeout_seconds": 1500
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test \"$(dpkg-query -W -f='${Status}' lpic-relay-agent)\" = 'install ok installed' && test \"$(dpkg-query -W -f='${Status}' lpic-relay-runtime)\" = 'install ok installed'"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.4.dependances"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test \"$(/usr/local/bin/lpic-relay-agent)\" = 'relay=ready' && dpkg-query -W -f='${Depends}' lpic-relay-agent | grep -Fq lpic-relay-runtime"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.4.dependances"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "dpkg-query -L lpic-relay-agent | grep -Fxq /usr/local/bin/lpic-relay-agent && dpkg-query -L lpic-relay-runtime | grep -Fxq /usr/local/lib/lpic-relay-runtime && dpkg-query -S /usr/local/bin/lpic-relay-agent | grep -Fq 'lpic-relay-agent:'"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.4.inspection-d-un-paquet-et-de-ses-fichiers"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.102.4.relay-package-dependency-repair.hint-1",
+    "lpic1.102.4.relay-package-dependency-repair.hint-2",
+    "lpic1.102.4.relay-package-dependency-repair.hint-3",
+    "lpic1.102.4.relay-package-dependency-repair.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.2.grub-legacy-migration-recovery.hint-4",
+  "lab_id": "lpic1.102.2.grub-legacy-migration-recovery",
+  "level": 4,
+  "content_fr": "Modifie title et ajoute lpic.legacy_import=1 à options dans la copie. Utilise grub2-set-default avec l'identifiant import-id, puis :reboot et :check dans LPIC Daily.",
+  "evidence_impact": "solution-revealed"
+}

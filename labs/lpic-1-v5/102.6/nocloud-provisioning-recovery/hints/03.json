@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.6.nocloud-provisioning-recovery.hint-3",
+  "lab_id": "lpic1.102.6.nocloud-provisioning-recovery",
+  "level": 3,
+  "content_fr": "Le module write_files attend une clé YAML déterminée. Une fois réparée, l'état cloud-init doit être effacé pour rejouer la configuration.",
+  "evidence_impact": "material"
+}

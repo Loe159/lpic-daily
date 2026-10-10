@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.3.default-target-recovery.hint-3",
+  "lab_id": "lpic1.101.3.default-target-recovery",
+  "level": 3,
+  "content_fr": "La cible rescue.target ne doit pas être permanente sur ce serveur. Une cible multi-utilisateur correspond au mode attendu.",
+  "evidence_impact": "material"
+}

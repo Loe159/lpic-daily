@@ -51,6 +51,7 @@
       "objective_id": "103.1",
       "surfaces": {
         "labs": [
+          "lpic1.103.1.environment-boundary-repair",
           "lpic1.103.1.shell-environment-repair",
           "lpic1.103.1.transfer-shell-handoff",
           "lpic1.103.1.variables-shell-environnement.standalone-diagnostic",
@@ -69,6 +70,7 @@
       "lab_contexts": [
         "103-1-c02-standalone-diagnostic",
         "103-1-c02-standalone-transfer",
+        "environment-boundary-repair",
         "shell-env-repair",
         "shell-handoff"
       ],
@@ -79,6 +81,7 @@
       "objective_id": "103.1",
       "surfaces": {
         "labs": [
+          "lpic1.103.1.external-command-recovery",
           "lpic1.103.1.path-et-resolution-de-commande.standalone-diagnostic",
           "lpic1.103.1.path-et-resolution-de-commande.standalone-transfer",
           "lpic1.103.1.shell-environment-repair",
@@ -97,6 +100,7 @@
       "lab_contexts": [
         "103-1-c03-standalone-diagnostic",
         "103-1-c03-standalone-transfer",
+        "external-command-recovery",
         "shell-env-repair",
         "shell-handoff"
       ],
@@ -107,6 +111,7 @@
       "objective_id": "103.1",
       "surfaces": {
         "labs": [
+          "lpic1.103.1.external-command-recovery",
           "lpic1.103.1.quoting-escaping.standalone-diagnostic",
           "lpic1.103.1.quoting-escaping.standalone-transfer",
           "lpic1.103.1.shell-environment-repair",
@@ -125,6 +130,7 @@
       "lab_contexts": [
         "103-1-c04-standalone-diagnostic",
         "103-1-c04-standalone-transfer",
+        "external-command-recovery",
         "shell-env-repair",
         "shell-handoff"
       ],
@@ -137,6 +143,7 @@
         "labs": [
           "lpic1.103.1.historique.standalone-diagnostic",
           "lpic1.103.1.historique.standalone-transfer",
+          "lpic1.103.1.history-handoff-recovery",
           "lpic1.103.1.shell-environment-repair",
           "lpic1.103.1.transfer-shell-handoff"
         ],
@@ -153,6 +160,7 @@
       "lab_contexts": [
         "103-1-c05-standalone-diagnostic",
         "103-1-c05-standalone-transfer",
+        "history-handoff-recovery",
         "shell-env-repair",
         "shell-handoff"
       ],
@@ -165,6 +173,7 @@
         "labs": [
           "lpic1.103.1.documentation-et-identification-d-une-commande.standalone-diagnostic",
           "lpic1.103.1.documentation-et-identification-d-une-commande.standalone-transfer",
+          "lpic1.103.1.external-command-recovery",
           "lpic1.103.1.shell-environment-repair",
           "lpic1.103.1.transfer-shell-handoff"
         ],
@@ -181,6 +190,7 @@
       "lab_contexts": [
         "103-1-c06-standalone-diagnostic",
         "103-1-c06-standalone-transfer",
+        "external-command-recovery",
         "shell-env-repair",
         "shell-handoff"
       ],
@@ -220,6 +230,7 @@
       "surfaces": {
         "labs": [
           "lpic1.103.1.child-environment-handoff",
+          "lpic1.103.1.environment-boundary-repair",
           "lpic1.103.1.set-env-et-portee-des-variables.standalone-diagnostic",
           "lpic1.103.1.set-env-et-portee-des-variables.standalone-transfer"
         ],
@@ -234,7 +245,8 @@
       "lab_contexts": [
         "103-1-c08-standalone-diagnostic",
         "103-1-c08-standalone-transfer",
-        "child-environment-handoff"
+        "child-environment-handoff",
+        "environment-boundary-repair"
       ],
       "focused_introduction_count": 1
     },
@@ -244,6 +256,7 @@
       "surfaces": {
         "labs": [
           "lpic1.103.1.child-environment-handoff",
+          "lpic1.103.1.environment-boundary-repair",
           "lpic1.103.1.export-unset-et-processus-enfants.standalone-diagnostic",
           "lpic1.103.1.export-unset-et-processus-enfants.standalone-transfer"
         ],
@@ -258,7 +271,8 @@
       "lab_contexts": [
         "103-1-c09-standalone-diagnostic",
         "103-1-c09-standalone-transfer",
-        "child-environment-handoff"
+        "child-environment-handoff",
+        "environment-boundary-repair"
       ],
       "focused_introduction_count": 1
     },
@@ -268,7 +282,8 @@
       "surfaces": {
         "labs": [
           "lpic1.103.1.execution-de-commandes-hors-path.standalone-diagnostic",
-          "lpic1.103.1.execution-de-commandes-hors-path.standalone-transfer"
+          "lpic1.103.1.execution-de-commandes-hors-path.standalone-transfer",
+          "lpic1.103.1.external-command-recovery"
         ],
         "lessons": [
           "lpic1.103.1.execution-de-commandes-hors-path.lesson.autonomous"
@@ -280,7 +295,8 @@
       },
       "lab_contexts": [
         "103-1-c10-standalone-diagnostic",
-        "103-1-c10-standalone-transfer"
+        "103-1-c10-standalone-transfer",
+        "external-command-recovery"
       ],
       "focused_introduction_count": 1
     },
@@ -290,7 +306,8 @@
       "surfaces": {
         "labs": [
           "lpic1.103.1.edition-et-persistance-de-l-historique.standalone-diagnostic",
-          "lpic1.103.1.edition-et-persistance-de-l-historique.standalone-transfer"
+          "lpic1.103.1.edition-et-persistance-de-l-historique.standalone-transfer",
+          "lpic1.103.1.history-handoff-recovery"
         ],
         "lessons": [
           "lpic1.103.1.edition-et-persistance-de-l-historique.lesson.autonomous"
@@ -302,7 +319,8 @@
       },
       "lab_contexts": [
         "103-1-c11-standalone-diagnostic",
-        "103-1-c11-standalone-transfer"
+        "103-1-c11-standalone-transfer",
+        "history-handoff-recovery"
       ],
       "focused_introduction_count": 1
     },
@@ -312,7 +330,9 @@
       "surfaces": {
         "labs": [
           "lpic1.103.1.echo-et-expansion-shell.standalone-diagnostic",
-          "lpic1.103.1.echo-et-expansion-shell.standalone-transfer"
+          "lpic1.103.1.echo-et-expansion-shell.standalone-transfer",
+          "lpic1.103.1.environment-boundary-repair",
+          "lpic1.103.1.history-handoff-recovery"
         ],
         "lessons": [
           "lpic1.103.1.echo-et-expansion-shell.lesson.autonomous"
@@ -324,7 +344,9 @@
       },
       "lab_contexts": [
         "103-1-c12-standalone-diagnostic",
-        "103-1-c12-standalone-transfer"
+        "103-1-c12-standalone-transfer",
+        "environment-boundary-repair",
+        "history-handoff-recovery"
       ],
       "focused_introduction_count": 1
     },

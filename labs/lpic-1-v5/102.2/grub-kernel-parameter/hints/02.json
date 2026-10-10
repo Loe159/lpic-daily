@@ -3,6 +3,6 @@
   "id": "lpic1.102.2.grub-kernel-parameter.hint-2",
   "lab_id": "lpic1.102.2.grub-kernel-parameter",
   "level": 2,
-  "content_fr": "Sur Fedora, examine /etc/default/grub puis la configuration active sous /boot/grub2. Après modification du fichier source, il faut régénérer grub.cfg.",
+  "content_fr": "Recherche où Fedora conserve les options du chargeur GRUB et vérifie si le noyau utilise les mêmes options. Ne retire pas les paramètres de console existants.",
   "evidence_impact": "material"
 }

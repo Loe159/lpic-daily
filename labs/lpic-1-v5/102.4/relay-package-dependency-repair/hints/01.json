@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.4.relay-package-dependency-repair.hint-1",
+  "lab_id": "lpic1.102.4.relay-package-dependency-repair",
+  "level": 1,
+  "content_fr": "Consulte l'état de l'agent dans la base des paquets Debian et observe l'erreur de démarrage.",
+  "evidence_impact": "none"
+}

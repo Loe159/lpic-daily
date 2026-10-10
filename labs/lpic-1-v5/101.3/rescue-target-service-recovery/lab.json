@@ -1,0 +1,92 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.3.rescue-target-service-recovery",
+  "title_fr": "Sortir un serveur du mode secours sans perdre l'administration",
+  "brief_fr": "À la suite d'une intervention interrompue, la VM est restée en mode secours et les tâches planifiées du serveur ne tournent plus. L'agent d'administration distant répond encore et la cible habituelle n'a pas été supprimée. Rétablis le fonctionnement multi-utilisateur, puis vérifie que le planificateur est opérationnel et que le canal d'administration reste disponible. Ne redémarre pas la VM.",
+  "success_criteria_fr": [
+    "Le système quitte réellement le mode rescue et active la cible multi-utilisateur.",
+    "Le service des tâches planifiées crond retrouve un fonctionnement actif et reste activé pour les démarrages suivants.",
+    "La cible de démarrage habituelle et l'accès d'administration via QEMU Guest Agent sont préservés."
+  ],
+  "debrief_fr": "rescue.target est le mode de récupération mono-utilisateur de systemd : il maintient les éléments essentiels mais arrête les services non requis. multi-user.target redémarre le fonctionnement multi-utilisateur normal, dont les services activés. systemctl isolate change la cible active sans modifier la cible par défaut. Pour permettre la récupération à distance dans cette VM jetable, QEMU Guest Agent est protégé par IgnoreOnIsolate=yes.",
+  "objective_ids": [
+    "101.3"
+  ],
+  "concept_ids": [
+    "lpic1.101.3.mode-mono-utilisateur-recuperation"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-implemented"
+  ],
+  "estimated_minutes": 13,
+  "practice_context": "101.3.rescue-target-service-recovery",
+  "environment": {
+    "backend": "libvirt",
+    "image_ref": "fedora-44-x86_64-v2",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "full-machine",
+    "writable_guest_paths": [],
+    "machine": {
+      "firmware": "uefi"
+    }
+  },
+  "resources": {
+    "memory_mb": 1536,
+    "cpu_percent": 100,
+    "pids": 256,
+    "timeout_seconds": 2100
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test \"$(systemctl get-default)\" = multi-user.target && systemctl is-active --quiet multi-user.target && ! systemctl is-active --quiet rescue.target && test -d /run/systemd/system"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.101.3.mode-mono-utilisateur-recuperation"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "systemctl is-active --quiet crond.service && systemctl is-enabled --quiet crond.service && test \"$(systemctl show crond.service -p ActiveState --value)\" = active"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.101.3.mode-mono-utilisateur-recuperation"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "systemctl is-active --quiet qemu-guest-agent.service && test \"$(systemctl show qemu-guest-agent.service -p IgnoreOnIsolate --value)\" = yes"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.101.3.mode-mono-utilisateur-recuperation"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.101.3.rescue-target-service-recovery.hint-1",
+    "lpic1.101.3.rescue-target-service-recovery.hint-2",
+    "lpic1.101.3.rescue-target-service-recovery.hint-3",
+    "lpic1.101.3.rescue-target-service-recovery.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

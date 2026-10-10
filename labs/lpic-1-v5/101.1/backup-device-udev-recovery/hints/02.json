@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.1.backup-device-udev-recovery.hint-2",
+  "lab_id": "lpic1.101.1.backup-device-udev-recovery",
+  "level": 2,
+  "content_fr": "Les liens durables dans /dev sont normalement produits à partir des événements et propriétés udev. Consulte les informations du disque.",
+  "evidence_impact": "material"
+}

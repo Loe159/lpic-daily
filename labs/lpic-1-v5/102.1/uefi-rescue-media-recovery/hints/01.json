@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.1.uefi-rescue-media-recovery.hint-1",
+  "lab_id": "lpic1.102.1.uefi-rescue-media-recovery",
+  "level": 1,
+  "content_fr": "Examine le type de table de partitions, la nature du système de fichiers et le type GPT de la partition du disque de secours.",
+  "evidence_impact": "none"
+}

@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.1.xfs-archive-label-recovery.hint-4",
+  "lab_id": "lpic1.104.1.xfs-archive-label-recovery",
+  "level": 4,
+  "content_fr": "Sur le volume démonté, inspecte avec xfs_repair -n, ajuste l'étiquette avec xfs_admin -L archive2026 /dev/vdb, puis monte /srv/xfsarchive.",
+  "evidence_impact": "solution-revealed"
+}

@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.1.backup-device-udev-recovery.hint-1",
+  "lab_id": "lpic1.101.1.backup-device-udev-recovery",
+  "level": 1,
+  "content_fr": "Identifie le disque à l'aide de ses métadonnées plutôt qu'en supposant un nom /dev/vdX permanent.",
+  "evidence_impact": "none"
+}

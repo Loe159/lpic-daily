@@ -29,9 +29,18 @@ const (
 	FirmwareUEFI FirmwareMode = "uefi"
 )
 
+type VirtualDiskBus string
+
+const (
+	VirtualDiskBusVirtio VirtualDiskBus = "virtio"
+	VirtualDiskBusSATA   VirtualDiskBus = "sata"
+	VirtualDiskBusUSB    VirtualDiskBus = "usb"
+)
+
 type VirtualDisk struct {
 	ID     string
 	SizeMB int
+	Bus    VirtualDiskBus // Empty means virtio for existing labs.
 }
 
 type MachineDefinition struct {
@@ -57,6 +66,9 @@ func (machine MachineDefinition) Validate() error {
 		seen[disk.ID] = struct{}{}
 		if disk.SizeMB < 64 || disk.SizeMB > 8192 {
 			return errors.New("extra disk size must be between 64 and 8192 MiB")
+		}
+		if disk.Bus != "" && disk.Bus != VirtualDiskBusVirtio && disk.Bus != VirtualDiskBusSATA && disk.Bus != VirtualDiskBusUSB {
+			return errors.New("extra disk bus must be virtio, sata or usb")
 		}
 	}
 	return nil
@@ -242,6 +254,19 @@ type ConsoleRunner interface {
 // It requests a guest-visible reboot without recreating the disposable disks.
 type RebootRunner interface {
 	Reboot(context.Context, Instance) error
+}
+
+// ACPIButtonRunner is an optional, full-machine-only capability. It sends a
+// physical power-button event to an owned disposable VM, not a guest-agent
+// shutdown or a signal to the host.
+type ACPIButtonRunner interface {
+	PressPowerButton(context.Context, Instance) error
+}
+
+// BootMenuRunner requests a managed VM reboot without waiting for guest-agent
+// reconnection. The learner needs the serial console while the guest is offline.
+type BootMenuRunner interface {
+	RebootToBootMenu(context.Context, Instance) error
 }
 
 type Runner interface {

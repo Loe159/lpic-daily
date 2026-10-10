@@ -1,0 +1,131 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.environment-boundary-repair",
+  "title_fr": "Réparer la frontière entre shell et environnement",
+  "brief_fr": "Une relève d’astreinte lance des outils enfants avec un environnement pollué. Dans le shell interactif de root, SERVICE_MODE doit être exportée avec la valeur production, LOCAL_NOTE doit rester une variable du shell non transmise aux processus enfants et LEGACY_TOKEN ne doit plus exister. Produis ensuite /run/lpic/env-summary avec les valeurs développées SERVICE_MODE et LOCAL_NOTE, séparées par |.",
+  "success_criteria_fr": [
+    "SERVICE_MODE vaut production et est visible dans l’environnement d’un processus enfant.",
+    "LOCAL_NOTE vaut operator-note dans le shell mais n’apparaît pas dans env.",
+    "LEGACY_TOKEN est absente du shell et de l’environnement transmis.",
+    "env-summary contient production|operator-note à partir des valeurs réellement chargées."
+  ],
+  "debrief_fr": "set expose les variables du shell tandis que env montre l’environnement transmis à un processus. export ajoute une variable à cet environnement et unset la retire du shell. L’expansion de variables produit ensuite le résumé attendu sans confondre valeur locale et valeur exportée.",
+  "objective_ids": [
+    "103.1"
+  ],
+  "concept_ids": [
+    "lpic1.103.1.set-env-et-portee-des-variables",
+    "lpic1.103.1.export-unset-et-processus-enfants",
+    "lpic1.103.1.echo-et-expansion-shell",
+    "lpic1.103.1.variables-shell-environnement"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-accepted"
+  ],
+  "estimated_minutes": 10,
+  "practice_context": "environment-boundary-repair",
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "baseline",
+    "writable_guest_paths": [
+      "/root",
+      "/run/lpic"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "pids": 96,
+    "timeout_seconds": 1200,
+    "cpu_percent": 100
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "--noprofile",
+        "--rcfile",
+        "/root/.bashrc",
+        "-ic",
+        "set | grep -qx 'LOCAL_NOTE=operator-note'"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.1.set-env-et-portee-des-variables",
+        "lpic1.103.1.variables-shell-environnement"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "--noprofile",
+        "--rcfile",
+        "/root/.bashrc",
+        "-ic",
+        "! env | grep -q '^LOCAL_NOTE='"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.1.set-env-et-portee-des-variables"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "--noprofile",
+        "--rcfile",
+        "/root/.bashrc",
+        "-ic",
+        "env | grep -qx 'SERVICE_MODE=production'"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.1.set-env-et-portee-des-variables",
+        "lpic1.103.1.export-unset-et-processus-enfants"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "--noprofile",
+        "--rcfile",
+        "/root/.bashrc",
+        "-ic",
+        "! set | grep -q '^LEGACY_TOKEN=' && ! env | grep -q '^LEGACY_TOKEN='"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.1.export-unset-et-processus-enfants"
+      ]
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/run/lpic/env-summary",
+      "pattern": "^production\\|operator-note\\n?$",
+      "concept_ids": [
+        "lpic1.103.1.echo-et-expansion-shell",
+        "lpic1.103.1.variables-shell-environnement"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.103.1.environment-boundary-repair.hint-1",
+    "lpic1.103.1.environment-boundary-repair.hint-2",
+    "lpic1.103.1.environment-boundary-repair.hint-3",
+    "lpic1.103.1.environment-boundary-repair.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

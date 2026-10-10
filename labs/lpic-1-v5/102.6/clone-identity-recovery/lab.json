@@ -1,0 +1,95 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.6.clone-identity-recovery",
+  "title_fr": "Corriger les identités d’une VM clonée",
+  "brief_fr": "Après le clonage d’une image Linux, deux instances de test disposent encore de la même identité machine et des mêmes clés SSH hôte. Dans /workspace/vms, restaure des identités distinctes pour node-b, sans modifier celles de node-a ni les configurations applicatives copiées. Le dossier simule les racines des deux VM : ne modifie pas l’identité de ton conteneur.",
+  "success_criteria_fr": [
+    "Les deux machine-id sont valides et différents.",
+    "Chaque VM conserve une paire de clés SSH hôte cohérente, sans clé privée partagée.",
+    "Les fichiers applicatifs copiés restent identiques."
+  ],
+  "debrief_fr": "Cloner une image copie aussi les identifiants propres à l’instance. machine-id et clés hôte SSH doivent être régénérés pour éviter les collisions d’identité. Les clés publiques doivent correspondre à leur clé privée ; la configuration applicative peut rester identique.",
+  "objective_ids": [
+    "102.6"
+  ],
+  "concept_ids": [
+    "lpic1.102.6.images-clones-et-templates",
+    "lpic1.102.6.identites-devant-etre-regenerees-lors-d-un-clonage"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-implemented"
+  ],
+  "estimated_minutes": 10,
+  "practice_context": "clone-identity-recovery",
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "baseline",
+    "writable_guest_paths": [
+      "/workspace"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "cpu_percent": 100,
+    "pids": 96,
+    "timeout_seconds": 1200
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "a=/workspace/vms/node-a/etc/machine-id; b=/workspace/vms/node-b/etc/machine-id; grep -Eq '^[0-9a-f]{32}$' \"$a\" && grep -Eq '^[0-9a-f]{32}$' \"$b\" && ! cmp -s \"$a\" \"$b\""
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.6.images-clones-et-templates",
+        "lpic1.102.6.identites-devant-etre-regenerees-lors-d-un-clonage"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "a=/workspace/vms/node-a/etc/ssh/ssh_host_ed25519_key; b=/workspace/vms/node-b/etc/ssh/ssh_host_ed25519_key; test -s \"$a\" && test -s \"$b\" && ! cmp -s \"$a\" \"$b\" && ssh-keygen -y -f \"$a\" | awk '{print $1,$2}' | diff - <(awk '{print $1,$2}' \"$a.pub\") && ssh-keygen -y -f \"$b\" | awk '{print $1,$2}' | diff - <(awk '{print $1,$2}' \"$b.pub\")"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.6.images-clones-et-templates",
+        "lpic1.102.6.identites-devant-etre-regenerees-lors-d-un-clonage"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "grep -qx 'region=eu-west' /workspace/vms/node-a/opt/app/config.ini && cmp -s /workspace/vms/node-a/opt/app/config.ini /workspace/vms/node-b/opt/app/config.ini"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.102.6.images-clones-et-templates",
+        "lpic1.102.6.identites-devant-etre-regenerees-lors-d-un-clonage"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.102.6.clone-identity-recovery.hint-1",
+    "lpic1.102.6.clone-identity-recovery.hint-2",
+    "lpic1.102.6.clone-identity-recovery.hint-3",
+    "lpic1.102.6.clone-identity-recovery.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

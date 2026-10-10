@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.4.relay-package-dependency-repair.hint-2",
+  "lab_id": "lpic1.102.4.relay-package-dependency-repair",
+  "level": 2,
+  "content_fr": "Compare la dépendance déclarée du paquet avec les archives .deb disponibles sur le serveur.",
+  "evidence_impact": "material"
+}

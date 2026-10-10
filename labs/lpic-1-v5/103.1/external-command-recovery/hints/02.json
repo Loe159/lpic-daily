@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.external-command-recovery.hint-2",
+  "lab_id": "lpic1.103.1.external-command-recovery",
+  "level": 2,
+  "content_fr": "Inspecte PATH puis cherche report-status sous /opt/lpic sans ajouter son répertoire au PATH.",
+  "evidence_impact": "material"
+}

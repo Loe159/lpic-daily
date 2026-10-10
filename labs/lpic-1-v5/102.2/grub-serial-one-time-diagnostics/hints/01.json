@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.2.grub-serial-one-time-diagnostics.hint-1",
+  "lab_id": "lpic1.102.2.grub-serial-one-time-diagnostics",
+  "level": 1,
+  "content_fr": "Les paramètres ajoutés avec grubby sont persistants : ce n'est pas le besoin. Observe le menu série de GRUB avec :boot-menu puis :console, et protège les fichiers existants.",
+  "evidence_impact": "none"
+}

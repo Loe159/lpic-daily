@@ -1,10 +1,222 @@
 # Plan — migration vers des labs scénarisés et state-based
 
-Status: **Planned**
+Status: **In progress**
 
 Ce document définit la migration du curriculum pratique LPIC-Daily depuis les micro-labs générés par concept vers des scénarios réalistes de diagnostic, réparation et administration Linux.
 
+### Avancement du pilote
+
+Le premier lot implémente la matrice de couverture, son audit CI et le filtrage du scheduler, puis migre 103.1 vers cinq scénarios acceptés couvrant ses 12 concepts. Les scénarios de référence déjà complets font ensuite passer 103.5 (7/7 concepts) et 104.5 (8/8 concepts) dans le même mécanisme. La migration du reste du topic 103 avance avec 103.2 (7/7 concepts) couvert par deux scénarios — reconstruction d’un rapport d’incident et réparation d’un manifeste d’archives compressées — puis 103.3 (8/8 concepts) couvert par une remise en état d’arborescence de release et un bundle de sauvegarde hors ligne. 103.4 (7/7 concepts) ajoute un incident de flux stdout/stderr et une distribution d’arguments depuis stdin. 103.6 (5/5 concepts) est couvert par un incident de priorité de processus fondé sur l’état réel des valeurs nice. 103.7 (7/7) traite un filtrage de logs avec regex/sed, et 103.8 (8/8) une réparation de configuration avec vi. Le topic 103 est ainsi scenario-complete : 61/61 concepts couverts. Les fallbacks restent techniquement chargeables pour compatibilité historique mais ne sont plus proposés lorsqu'un scénario accepté couvre le concept.
+
 Le scénario de référence est "lpic1.103.1.shell-environment-repair": un environnement est volontairement placé dans un état incorrect, l'apprenant doit investiguer librement, corriger le système, puis LPIC-Daily valide le comportement réel obtenu dans un environnement neuf.
+
+## Point d'avancement — 9 octobre 2026 (branche `scenario-migration-1031`)
+
+Couverture LPIC-101 (162 concepts actifs, chiffres issus de la matrice) :
+- **80** concepts disposent d'un scénario `accepted` (topic 103 complet et 104.5 à 104.7).
+- **24** concepts supplémentaires figurent dans des scénarios `implemented`, **non encore acceptés** (notamment 101.3, 102.3/102.5/102.6, 104.1 à 104.3).
+- **58** concepts n'ont pas encore de scénario `accepted` ou `implemented`.
+
+Nouveaux scénarios de ce lot :
+- `104.2.offline-ext-audit-recovery` : contrôle, réparation et réglage réels d'une image ext4 hors ligne (Podman, 3 concepts) ;
+- `104.3.archive-mount-recovery` : restauration d'un vrai montage et de la persistance fstab/UUID (KVM, 4 concepts) ;
+- `101.3.default-target-recovery` : correction de la cible systemd par défaut (KVM, 1 concept) ;
+- `101.3.indexer-service-recovery` : remise en marche d'un vrai service systemd en échec (KVM, 1 concept) ;
+- `104.2.inode-backlog-recovery` : remplacement de la pseudo-saturation Podman par un volume ext4 KVM dont les inodes sont effectivement épuisés (2 concepts).
+- `101.3.indexer-service-recovery` : correction d'un service systemd défaillant (KVM, 1 concept).
+
+Les instructions des agents sont harmonisées dans `AGENTS.md`, `labs/AGENTS.md`, `curriculum/AGENTS.md`, `.agents/skills/author-lab/SKILL.md` et `docs/CONTRIBUTING_WITH_AGENTS.md`. **Incident réel, symptomatique, mission de récupération et preuve d'état** sont désormais le modèle exigé. Les scénarios ne peuvent pas être considérés `accepted` avant exécution du setup, test négatif, solution de référence, reset, review pédagogique et contrôle du backend. Ce lot est un travail d'**implémentation**, sans revendication de tests Podman/KVM ou de CI verte.
+
+Prochaines zones de migration : complément 104.1–104.3 (avec KVM pour les systèmes réels), 102.1–102.6 (APT/Dpkg, RPM/DNF, boot, libs et virtualisation), puis 101.1–101.3 (découverte matériel, démarrage et services). Ne pas déclarer tout le 101 migré tant que la preuve 162/162 n'est pas établie.
+
+### Lot supplémentaire — 9 octobre 2026 (migration du topic 104 et APT)
+
+Cinq nouveaux incidents `implemented` (à exécuter sur les VM réelles avant acceptation) :
+- `104.3.busy-removable-volume` : diagnostiquer et libérer un volume ext4 occupé par un processus, puis le démonter proprement ;
+- `104.3.mount-unit-incident` : réparer la source d'une unité systemd `.mount` et retrouver un manifeste existant ;
+- `104.1.xfs-archive-label-recovery` : identifier une erreur d'étiquette et récupérer un volume XFS sans reformater ; couvre également les outils de maintenance hors ligne de `104.2` ;
+- `104.1.btrfs-pool-report-recovery` : restaurer un sous-volume sur un vrai pool Btrfs à deux disques et réactiver la compression ;
+- `102.4.offline-apt-repository-recovery` : restaurer une source APT `file:` et installer un vrai paquet dans une VM Debian, sans connexion Internet.
+
+Couverture matricielle LPIC-101 après ce lot : **80 acceptés, 35 uniquement implémentés, 47 sans scénario**, total **162**. Les objectifs `104.2` et `104.3` sont entièrement **implémentés (7/7)** mais ne sont **pas acceptés** ; `104.1` a 7/8 concepts implémentés. Ce compteur ne valide ni le comportement du runner ni la qualité pédagogique. Il reste à exécuter chaque setup, les checks négatifs, la solution de référence, le reset et l'essai en conditions réelles. En particulier, KVM/Podman et la CI n'ont pas été exécutés pour ces ajouts.
+
+### Lot suivant — 9 octobre 2026 (formats, paquets Debian et chargeur dynamique)
+
+Quatre incidents supplémentaires sont `implemented` :
+- `104.1.removable-media-formats` : deux disques de remplacement réels, récupération des montages VFAT/FAT32 et exFAT ; la recette Fedora ajoute `exfatprogs`.
+- `102.4.relay-package-dependency-repair` : paquet Debian laissé `unpacked` par une dépendance absente, archive de dépendance locale à installer et agent à configurer, avec inventaire `dpkg` vérifié.
+- `102.4.collector-config-recovery` : paquet Debian installé mais configuration corrompue ; phase de reconfiguration exploitable sans toucher aux données ; la recette Debian ajoute `debconf`.
+- `102.3.shared-library-cache-recovery` : programme ELF lié à une bibliothèque fournisseur déplaçée, réparation de la recherche système et du cache `ldconfig` ; la recette Fedora ajoute les outils de compilation nécessaires au setup (`gcc`, `glibc-devel`).
+
+État de couverture LPIC-101 après le lot, selon `scenario-coverage.json` : **80/162 acceptés**, **41/162 supplémentaires implémentés sans validation runtime**, **41/162 non encore couverts**. Les objectifs **104.1 (8/8)**, **102.3 (5/5)** et **102.4 (7/7)** sont maintenant entièrement implémentés mais **pas acceptés**. Contrôle statique du mapping concepts/checks et des métadonnées des quatre nouveaux labs : aucune incohérence. **Ni CI ni tests réels Podman/KVM n'ont été exécutés pour ces scénarios**. Les recettes d'image modifiées devront être reconstruites et revérifiées avant l'acceptation.
+
+### Complément du lot — 9 octobre 2026 (extension LVM)
+
+`102.1.lvm-capacity-recovery` est désormais `implemented` : un disque additionnel doit être intégré comme partition/PV, VG et LV pour rétablir le point de montage ext4 de l'application. La recette VM Fedora inclut `lvm2`. La validation doit porter sur les véritables volumes bloc et le montage, et non sur un fichier de preuve.
+
+**Couverture matricielle actuelle LPIC-101 : 80/162 concepts acceptés, 43/162 uniquement implémentés, 39/162 sans scénario.** Ce compteur résulte de la matrice et des fichiers de concepts ; il ne représente pas un taux de réussite aux tests. Les cinq scénarios de ce lot ont passé une revue statique de leurs correspondances concept/check/backend/labels, sans anomalie constatée. Les quatre niveaux d'indices, setups, références et validations réelles nécessitent toujours l'exécution de la suite de tests. **CI et essais de VM non exécutés à cette étape.**
+
+Note sur les images : la recette Fedora doit maintenant être reconstruite avec `exfatprogs`, `gcc`, `glibc-devel` et `lvm2`, et la recette Debian avec `debconf`, avant les tests de lab correspondants.
+
+### Lot suivant — 9 octobre 2026 (partitionnement, démarrage, udev et DNF)
+
+Nouveaux scénarios `implemented` :
+- `102.1.home-log-swap-isolation` : répartir les données de `/home` et les journaux applicatifs sur de vrais volumes ext4 distincts, activer du swap dimensionné et conserver les données ; contrôles de montages, fstab et swap actifs ;
+- `102.1.uefi-rescue-media-recovery` : réparer la signature GPT d'une partition EFI existante sans la reformater, monter le support et vérifier la préservation d'un véritable exécutable EFI ;
+- `101.1.backup-device-udev-recovery` : identifier un périphérique de stockage par ses propriétés udev et restaurer un lien stable dans `/dev` ; vérification de la base udev et du service client ;
+- `102.5.offline-dnf-agent-recovery` : réparer une source DNF `file://` hors ligne et installer des RPM réels avec résolution de dépendance ; la recette VM Fedora ajoute `rpm-build` et `createrepo_c`.
+
+Scénario existant désormais référencé dans la matrice :
+- `102.2.grub-kernel-parameter` : le marqueur artificiel `lpic_daily_boot` a été remplacé par des paramètres réels `loglevel=7` et `systemd.show_status=yes` ; les checks portent sur la configuration BLS Fedora et les paramètres observés **après redémarrage**, avec un rattachement explicite au concept 101.2 des paramètres noyau au boot. Le scénario requiert la commande de redémarrage du lab en fin de réparation.
+
+**Couverture LPIC-101 de la matrice au 9 octobre 2026** : **80/162 concepts acceptés**, **54/162 uniquement implémentés sans acceptation**, **28/162 concepts sans scénario**. **102.1 est implémenté à 6/6** ; le topic 102.2 ne couvre encore que 2/6, 101.1 2/8 et 102.5 5/7. Une vérification statique des cinq définitions (correspondance entre objectifs, concepts et checks ; cohérence des backends et statuts ; présence de quatre références d'indices) ne signale aucune incohérence. **Aucune validation KVM ou CI n'a été effectuée**. Les recettes VM modifiées nécessitent leur reconstruction avant l'exécution des nouveaux scénarios, et toutes les preuves marquées `implemented` restent à éprouver (état initial rouge, référence verte, reset et review pédagogique).
+
+### Lot suivant — 9 octobre 2026 (journaux de boot et intégrité RPM)
+
+Deux incidents réels supplémentaires sont `implemented`, **sans acceptation runtime** :
+- `101.2.boot-journal-persistence` : le serveur perd ses journaux entre deux redémarrages ; correction de `systemd-journald`, transfert des événements encore volatils et preuve après `:reboot` que le journal du démarrage précédent est lisible ;
+- `102.5.rpm-integrity-recovery` : un paquet réellement installé est altéré et une des deux archives de restauration est corrompue. Vérification RPM (`rpm -V`, `rpm -K`) et signature détachée GPG (`gpgv`) puis restauration par RPM. La signature détachée est une fixture pédagogique, **pas** une signature RPM native incorporée : vérifier ce périmètre lors de la revue.
+
+**Couverture LPIC-101 d'après la matrice** : **80/162 acceptés, 56/162 uniquement implémentés, 26/162 sans scénario**. Le check du premier lab exige un nouveau boot-id ; sa référence ne peut devenir verte qu'après un reboot réel de la VM. Le second lab exige `rpm-build` et `gnupg2` dans la recette Fedora déjà déclarée. Le setup, le test rouge, la référence, le reset et l'isolation doivent être exercés dans KVM avant d'annoncer l'acceptation. CI non exécutée dans ce lot.
+
+### Lot complémentaire — 9 octobre 2026 (Zypper openSUSE)
+
+`102.5.offline-zypper-repository-recovery` est **implemented**, sans validation runtime. Une VM openSUSE Leap 16.0 dispose d'un dépôt RPM hors ligne local volontairement mal référencé ; l'apprenant doit réparer la source Zypper et installer le collecteur avec sa dépendance réelle, sans réseau. La recette openSUSE ajoute `rpm-build` et `createrepo_c` pour la préparation des paquets d'exercice. La recette VM doit être reconstruite avant l'essai.
+
+**Couverture LPIC-101 : 80/162 acceptés, 57/162 uniquement implémentés, 25/162 non couverts.** L'objectif 102.5 atteint **7/7 concepts implémentés**, mais il n'est pas accepté. Les tests à effectuer sont : build de l'image, setup → checks rouges → solution Zypper → checks verts → reset rouge, contrôle de l'isolation et revue pédagogique. Ni CI ni test KVM n'ont été exécutés pour ce lot.
+
+### Lot complémentaire — 9 octobre 2026 (contrôleur PCI de stockage)
+
+`101.1.pci-archive-controller-recovery` est **implemented**, non testé en KVM. Le setup prépare un vrai disque virtio secondaire avec données conservées, désassocie **uniquement** sa fonction PCI du pilote dans la VM éphémère, puis déclenche un échec observable d'un service systemd. La récupération doit restaurer la visibilité dans `/proc`, `/sys`, `/dev`, le rattachement PCI et l'accès au volume intact. La recette Fedora ajoute `pciutils` pour `lspci` ; reconstruction nécessaire.
+
+**Couverture LPIC-101 : 80 acceptés, 58 uniquement implémentés, 24 sans scénario.** Nouveau concept explicitement démontré : le rôle de /proc, /sys et /dev ; l'identification de ressources matérielles est renforcée. Cet incident PCI ne prouve pas à lui seul l'objectif complet « bus PCI et USB » ni celui de l'activation des périphériques intégrés au firmware : ils restent **non couverts**, de même que la manipulation USB, les modules spécifiques et les familles de stockage. Validation restante : setup rouge, solution verte, reset rouge, absence d'impact sur le disque système et tests libvirt/CI. Rien de cela n'est revendiqué comme exécuté.
+
+### Lot complémentaire — 9 octobre 2026 (module noyau et maintenance)
+
+Deux incidents KVM supplémentaires **implemented**, non acceptés :
+- `101.1.ramdisk-module-recovery` : rétablir un vrai module `brd`, reconstruire un système de fichiers RAM éphémère et récupérer un cache depuis une source durable ; la recette Fedora ajoute `kmod` et `kernel-modules-extra`. Ne revendique pas la connaissance de toute l'interface USB.
+- `101.3.graceful-maintenance-transition` : arrêter proprement un vrai worker systemd via une cible applicative, prouver le traitement de SIGTERM et préserver QEMU Guest Agent. Ne revendique ni `shutdown` réel ni modes SysV.
+
+**Couverture LPIC-101 : 80 acceptés, 60 uniquement implémentés, 22 sans scénario.** Les deux nouveaux scénarios nécessitent la reconstruction de l'image Fedora et l'exécution setup rouge → référence verte → reset rouge ; aucune CI ni KVM n'est déclarée exécutée.
+
+### Lot complémentaire — 9 octobre 2026 (GRUB BLS et cloud-init)
+
+Deux nouveaux scénarios `implemented`, sans validation runtime :
+- `102.2.grub-alternate-entry-recovery` : entrée BLS réellement sélectionnée via GRUB 2, avec un nouveau boot-id et l'option de diagnostic observée dans /proc/cmdline après `:reboot`. N'implique pas la console interactive GRUB.
+- `102.6.nocloud-provisioning-recovery` : user-data NoCloud mal formé dans une VM Debian ; réparation, rejeu réel des phases cloud-init et vérification du module write_files. La recette Debian ajoute `cloud-init` : reconstruire l'image.
+
+**Couverture LPIC-101 : 80 acceptés, 62 uniquement implémentés, 20 sans scénario.** La CI, les essais de reboot/VM, les checks négatifs, la solution de référence et les resets restent à exécuter avant toute acceptation. Le lab GRUB doit être relancé via le terminal parent pour la vérification du boot.
+
+### Lot complémentaire — 9 octobre 2026 (récupération des ressources virtuelles)
+
+`102.6.virtual-disk-network-recovery` est **implemented** : un disque ext4 secondaire avec son journal intact et une interface NetworkManager déconnectée doivent être remis en service sur un véritable réseau libvirt **isolé**, sans Internet. La recette Fedora ajoute explicitement `NetworkManager`, et doit être reconstruite avant l'essai.
+
+**Couverture LPIC-101 : 80 acceptés, 63 uniquement implémentés, 19 sans scénario.** Ce lab n'est pas une preuve de pilotes de périphériques, de conteneurs ou de cloud-init : il couvre uniquement les ressources virtuelles de stockage et de réseau. Les tests VM, les états rouge/vert/reset, la sécurité du réseau et la CI restent à effectuer.
+
+### Complément de mapping — 9 octobre 2026 (pilote invité virtio)
+
+La vérification réelle du pilote `virtio-pci` dans `101.1.pci-archive-controller-recovery` démontre aussi `102.6.guest-drivers` : elle exige que le contrôleur PCI de stockage soit effectivement relié au pilote de l'OS invité, en plus de récupérer le volume. L'objectif 102.6 est ajouté au lab et à la matrice, mais **aucune acceptation KVM n'est revendiquée**.
+
+**Couverture LPIC-101 : 80 acceptés, 64 uniquement implémentés, 18 sans scénario.** Ce mapping n'est ni une preuve de périphériques USB ni une preuve de l'activation matérielle par le firmware.
+
+### Lot complémentaire — 9 octobre 2026 (reboot, initramfs et MBR)
+
+Trois incidents KVM sont **implemented**, sans acceptation runtime :
+- `101.3.graceful-reboot-data-preservation` : un worker est configuré pour recevoir SIGKILL ; l'apprenant doit préparer un arrêt propre, redémarrer **réellement** avec `:reboot`, puis prouver le changement de boot-id et le point de reprise conservé.
+- `101.2.initramfs-rescue-boot-recovery` : réparation d'une entrée BLS de secours avec une image initramfs générée par dracut, vérifiée par lsinitrd, puis un vrai démarrage via GRUB 2 vers systemd. L'entrée normale est préservée.
+- `102.2.bios-mbr-rescue-bootcode` : réinstallation du code GRUB 2 BIOS sur un **disque secondaire** MBR, sans altération de la table de partitions ni du manifeste ext4. Le check est structurel uniquement ; un véritable boot BIOS reste nécessaire avant toute acceptation.
+
+La recette Fedora ajoute explicitement `dracut`, `grub2-tools`, `grub2-pc-modules` et `grub2-pc`. Elle doit être reconstruite avant test. **Couverture LPIC-101 : 80 acceptés, 68 uniquement implémentés, 14 sans scénario.** Aucun test KVM ni CI n'est exécuté dans ce lot. Toutes les références doivent encore être éprouvées, ainsi que les resets, la sécurité du disque système et le reboot réel.
+
+### Lot complémentaire — 9 octobre 2026 (notification multi-session)
+
+`101.3.maintenance-wall-notification` est **implemented** : un récepteur isolé construit deux pseudo-terminaux réels enregistrés dans utmp ; l'apprenant doit diffuser un même avis aux deux sessions avec `wall` ou une méthode réellement équivalente. Le check lit les caractères réellement reçus par chaque PTY, pas une attestation écrite par l'apprenant ; les deux récepteurs doivent rester actifs. La recette Fedora comporte déjà `gcc` et `glibc-devel`.
+
+**Couverture LPIC-101 : 80 acceptés, 69 uniquement implémentés, 13 sans scénario.** Il faut impérativement tester dans la VM si Fedora `wall` trouve les sessions utmp synthétiques et transmet les caractères aux deux PTY. En cas d'échec, ce scénario doit être corrigé plutôt que marqué accepted. La CI, les tests red/green/reset et la vérification de l'isolation restent à effectuer.
+
+### Lot complémentaire — 9 octobre 2026 (isolation des conteneurs et compatibilité runlevel)
+
+Deux nouveaux scénarios `implemented`, sans essais KVM :
+- `102.6.guest-container-isolation-recovery` : un processus conteneurisé Podman partage initialement les espaces PID et réseau de sa VM ; l'apprenant rétablit l'isolation et les checks comparent les espaces de noms effectifs, le noyau partagé et le système d'initialisation réel. L'image OCI minimale est compilée dans la VM depuis un binaire statique ; la recette Fedora ajoute `podman` et `glibc-static`.
+- `101.3.runlevel-compatibility-recovery` : une cible `graphical.target` activée à tort doit être remplacée par `multi-user.target` en fonctionnement et au prochain boot. La compatibilité `runlevel` vérifie la correspondance SysV niveau 3 sans altérer `/etc/inittab`. Ce scénario prouve le couple de cibles et l'interface SysV, **pas** le fonctionnement historique d'Upstart.
+
+**Couverture LPIC-101 : 80/162 acceptés, 71/162 uniquement implémentés, 11/162 sans scénario.** Les images doivent être reconstruites et chaque scénario doit subir setup rouge, solution de référence verte, reset, validation QGA et revue pédagogique. Les commandes Podman dans cette expérience s'exécutent **uniquement dans la VM jetable**, jamais sur l'hôte. Ni CI ni tests VM ne sont revendiqués à ce stade.
+
+### Lot complémentaire — 9 octobre 2026 (supports BIOS et UEFI)
+
+`101.2.dual-firmware-rescue-media` est **implemented** : la VM UEFI présente deux disques de secours réels, un disque MBR doté d'un vrai chargeur GRUB BIOS et un disque GPT contenant un volume FAT32 et un exécutable EFI conservé. Un mauvais type GPT rend l'ESP méconnaissable ; le diagnostic consiste à réparer **uniquement le type de partition UEFI**, tout en préservant le manifeste MBR et le contenu des deux volumes. Le lab vérifie les véritables signatures de partition, le GUID EFI, le montage et l'intégrité des données. **Ce n'est pas un essai d'amorçage firmware d'un support externe**, donc il reste à valider.
+
+**Couverture LPIC-101 : 80 acceptés, 72 uniquement implémentés, 10 sans scénario.** Les validations réelles sur KVM, l'absence de modification du disque système et les tests setup rouge / référence verte / reset rouge restent nécessaires. Aucune CI ni essai VM revendiqué.
+
+### Lot du 10 octobre 2026 — stockage SATA/VirtIO réellement différencié
+
+Le runner libvirt accepte désormais des disques jetables sur bus `sata` ou `virtio`, avec des chemins et identifiants de contrôleur distincts ; les anciens scénarios conservent le bus VirtIO par défaut. La validation refuse explicitement un bus non supporté (notamment `nvme`, `scsi` ou `usb`).
+
+`101.1.storage-bus-archive-recovery` est **implemented**, non accepté : le volume d'archives SATA est intact, mais son point de montage pointe vers un second volume VirtIO. La mission consiste à restaurer la source du montage persistant sans reformater, à distinguer les bus effectifs via sysfs et à préserver les deux manifestes. Le scénario ajoute une preuve pour **`101.1.differences-entre-grandes-familles-de-stockage`**, et non pour USB, NVMe ou l'activation firmware.
+
+**Couverture LPIC-101 : 80 acceptés, 73 uniquement implémentés, 9 non couverts.** La CI, le démarrage Q35 avec contrôleur SATA, les checks setup rouge / solution verte / reset rouge, les invariants de disques et la sûreté libvirt doivent encore être vérifiés sur KVM. La matrice n'est pas une preuve d'acceptation.
+
+### Lot du 10 octobre 2026 — périphérique USB virtuel autorisable
+
+Le runner KVM sait créer un support de stockage **USB virtuel** à partir d'une image qcow2 sous le répertoire d'état privé, relié à un contrôleur xHCI émulé sur PCI. Il n'y a ni pass-through matériel ni accès à un USB de l'hôte. Les anciens disques VirtIO/SATA conservent leur comportement. `usbutils` est ajouté à la recette Fedora ; l'image doit être reconstruite.
+
+`101.1.usb-backup-authorization-recovery` est **implemented**, non accepté. L'incident consiste à rétablir un périphérique USB désautorisé dans sysfs ; sa présence USB, son attachement PCI et l'accès aux données ext4 sont vérifiés par des observations du noyau. Les deux concepts **`101.1.bus-pci-et-usb`** et **`101.1.manipulation-des-peripheriques-usb`** sont donc couverts **à l'implémentation seulement**. Ce lab ne prouve pas la gestion d'un dispositif USB physique.
+
+**Couverture LPIC-101 : 80 acceptés, 75 uniquement implémentés, 7 sans scénario.** Ne pas promouvoir avant un test complet KVM de la découverte USB, du support de l'attribut authorized, de l'état négatif après setup, du retour du disque et de l'index après la référence, du reset rouge et de l'absence de matériel hôte exposé. CI non exécutée.
+
+### Lot du 10 octobre 2026 — récupération de la cible rescue
+
+`101.3.rescue-target-service-recovery` est **implemented**, non accepté. Une VM Fedora entre réellement dans `rescue.target` et `crond.service` est arrêté ; l'apprenant doit restaurer `multi-user.target` et la planification active sans redémarrer. La cible persistante est préservée. Le setup protège préalablement `qemu-guest-agent.service` par `IgnoreOnIsolate=yes` pour éviter de perdre l'accès au runner pendant l'isolation. Les checks vérifient les états systemd réels et la disponibilité du canal d'administration.
+
+Le test d'acceptation KVM doit encore confirmer : `rescue.target` réellement actif après setup, `crond` arrêté, QGA toujours joignable, états verts après référence, et retour au même incident après reset. Ne pas annoncer un résultat positif avant le test sur VM éphémère ; `systemctl isolate` ne doit jamais être lancé sur l'hôte. Ce scénario ne démontre pas un démarrage directement en rescue via GRUB.
+
+**Couverture LPIC-101 : 80 acceptés, 76 implémentés non acceptés, 6 sans scénario.** Aucun test KVM ou CI exécuté pour ce lot.
+
+### Lot du 10 octobre 2026 — événement ACPI réel via libvirt
+
+Le runner VM expose `:acpi-power` comme une action explicite, réservée aux domaines possédés et actifs. L'action utilise `DomainShutdownFlags` avec le flag `DomainShutdownAcpiPowerBtn`, qui émet un **vrai bouton ACPI émulé** et évite de substituer une demande de shutdown QEMU Guest Agent. Il ne s'agit pas d'un événement simulé dans un fichier.
+
+`101.3.acpi-power-event-audit-recovery` est **implemented**, non accepté : le guest doit réparer la règle acpid qui ne journalise plus les événements ACPI. Le setup force `HandlePowerKey=ignore` avant toute injection pour empêcher l'arrêt accidentel de la VM. L'apprenant déclenche ensuite `:acpi-power` depuis le terminal LPIC Daily et doit retrouver l'enregistrement du bouton dans `journalctl` sans changement de `boot_id`. L'image Fedora requiert désormais le paquet `acpid` ; reconstruction explicite nécessaire.
+
+**Couverture LPIC-101 : 80 acceptés, 77 seulement implémentés, 5 sans scénario.** La validation requiert KVM réel : preuve d'événement ACPI, handler acpid actif, log initialement vide, référence puis action de l'hôte puis checks verts, reset rouge. Ne pas assimiler une exécution de la référence seule à une réussite automatique. Aucun test de bout en bout exécuté.
+
+### Lot du 10 octobre 2026 — migration réelle d'un service d'initialisation
+
+`101.2.legacy-init-service-migration` est **implemented**, non accepté. Le setup installe une unité systemd cassée sur Fedora, un collecteur **exécutable** avec pulsation mesurable, et des artefacts historiques **SysVinit** (`/etc/init.d/`) et **Upstart** (`/etc/init/*.conf`) conservés par hachage. Le lab demande de réparer le vrai `ExecStart` à partir des indices des anciens formats, réinitialiser l'état d'échec systemd, et observer le service actif et un heartbeat évolutif. Upstart n'est **pas exécuté** et aucune preuve d'exécution de son ordonnanceur n'est revendiquée ; son rôle est celui d'une source de configuration historique.
+
+**Couverture LPIC-101 : 80 acceptés, 78 uniquement implémentés, 4 sans scénario.** La promotion en `accepted` exige la VM KVM, une exécution rouge du setup, la récupération du vrai processus, la préservation des fichiers historiques et une nouvelle exécution rouge après reset. Ne pas confondre reconnaissance d'une configuration ancienne et tests d'un PID 1 Upstart.
+
+### Lot du 10 octobre 2026 — GRUB 2 interactif, commandes et édition temporaire
+
+Le runner libvirt propose `:boot-menu`, qui envoie un redémarrage non bloquant à une VM possédée. À l'inverse de `:reboot`, la commande ne patiente pas jusqu'au retour de QEMU Guest Agent, ce qui laisserait passer le menu GRUB. Avec `:console`, le candidat accède à la console série de la VM. Le lab allonge le délai du menu à 90 secondes, sans accès au chargeur d'amorçage de l'hôte.
+
+`102.2.grub-serial-one-time-diagnostics` est **implemented**, non accepté. L'utilisateur doit exécuter `set` et `save_env` à l'invite GRUB, puis éditer temporairement la ligne `linux` et démarrer avec Ctrl-X. Après redémarrage, le guest vérifie un nouveau `boot_id`, le marqueur sur le véritable `/proc/cmdline`, l'environnement GRUB, ainsi que l'intégrité exacte de la configuration et des entrées BLS par SHA-256. Aucun token injecté de façon persistante n'est considéré comme la solution. La procédure de référence est **manuelle** : le script associé explique les frappes, renvoie le code 64 et ne prétend pas corriger le guest depuis son shell.
+
+**Couverture LPIC-101 : 80 acceptés, 80 uniquement implémentés, 2 sans scénario.** KVM nécessaire pour vérifier menu réel en série, `save_env` sur le support Fedora, et le cycle setup rouge / succès par action humaine dans GRUB / reset rouge. Les checks et tests unitaires ne démontrent pas à eux seuls l'interaction. Si le support GRUB interdit `save_env`, adapter la preuve après investigation et non valider artificiellement.
+
+### Lot du 10 octobre 2026 — conversion de GRUB Legacy en entrée GRUB 2
+
+`102.2.grub-legacy-migration-recovery` est **implemented**, non accepté. Le lab fournit un vrai `menu.lst` d'archive (GRUB Legacy), demande de transposer une entrée historique dans une entrée GRUB 2/BLS et vérifie un vrai démarrage avec `grub2-set-default`, nouveau `boot_id` et l'option `lpic.legacy_import=1` observée dans `/proc/cmdline`. Le fichier legacy et l'entrée BLS originale sont préservés par SHA-256. La preuve concerne **la migration**, pas l'exécution d'un ancien chargeur sur Fedora.
+
+**Couverture LPIC-101 : 80 acceptés, 81 implémentés non acceptés, 1 sans scénario.** La procédure automatique setup rouge → référence → reboot → vert → reset rouge est ajoutée au harnais KVM, mais les tests KVM ne sont pas exécutés.
+
+### Lot du 10 octobre 2026 — réassociation d'un contrôleur SATA intégré Q35
+
+`101.1.onboard-sata-controller-reenable` est **implemented**, non accepté. La VM possède un disque d'archives SATA isolé du disque système VirtIO. Un vrai contrôleur PCI AHCI de chipset Q35 est identifié par son BDF, puis le setup le détache de son pilote par `/sys/bus/pci/drivers/ahci/unbind`, entraînant la disparition du disque. La mission rétablit le pilote avec `bind`, observe le périphérique PCI, puis remonte le manifeste original en lecture seule. Aucun périphérique PCI de l'hôte n'est touché.
+
+**Limite pédagogique majeure :** un `unbind` Linux n'est pas une désactivation BIOS/UEFI. Le lab démontre les effets sur le noyau du contrôle d'un périphérique intégré et sa réactivation, mais un contrôle de firmware dédié demeure nécessaire avant d'accepter complètement ce concept. Ne pas assimiler `162/162` scénarios existants à `162/162` compétences démontrées.
+
+**Couverture LPIC-101 : 80 acceptés, 82 uniquement implémentés, 0 sans scénario.** Le runner, l'image Fedora, la disparition/retour du disque SATA et la conservation des données doivent être éprouvés par KVM ; aucune réussite de CI revendiquée.
+
+### Remaining migration blockers — 9 octobre 2026
+
+Il ne reste **aucun concept LPIC-101 sans scénario**, mais l'acceptation KVM et le contrôle firmware restent incomplets ne doivent pas être considérés comme implémentés par simple rapprochement de mots-clés. Préparer les moyens d'évaluation suivants avant d'écrire des tests de conformité :
+
+| Concepts encore sans scénario | Critère de preuve manquant |
+| --- | --- |
+| 101.1 — activation/désactivation dans le firmware | Scénario Linux PCI bind/unbind implémenté, mais pas une manipulation réelle de BIOS/UEFI ; compléter une validation firmware avant acceptation. |
+
+Ces prérequis impliquent probablement des évolutions ciblées du runner VM et de son harnais d'acceptation. Les 72 concepts uniquement `implemented` constituent en parallèle une dette distincte : ils ne pourront être promus à `accepted` qu'après setup → échec attendu, solution de référence → succès, reset → nouvel échec, review pédagogique et contrôle de l'isolation. Les retours d'échec de KVM / Podman doivent être corrigés **avant** la fusion.
 
 ## 1. Pourquoi cette migration
 
@@ -45,6 +257,10 @@ Ordre de grandeur visé:
 - certains scénarios peuvent couvrir plusieurs objectifs lorsque la situation réelle le justifie.
 
 Ces nombres sont des budgets, pas des quotas. Un scénario ne doit jamais absorber artificiellement des concepts uniquement pour réduire le nombre total de labs.
+
+## Règle éditoriale obligatoire — consignes orientées incident
+
+Toute consigne de lab doit décrire un contexte opérationnel, un symptôme observable, une mission exprimée en état ou comportement attendu et les contraintes de sécurité ou de conservation. Elle ne doit pas fournir une procédure, une liste ordonnée de manipulations, les commandes à utiliser ou les chemins précis à découvrir. Les critères de validation restent testables, mais n'imposent pas le chemin de résolution. Les indices progressifs portent les détails techniques nécessaires, et la solution de référence reste séparée. Cette règle s'applique à la migration et aux futures contributions ; toute consigne de type checklist de commandes doit être réécrite avant acceptation.
 
 ## 3. Principe pédagogique
 

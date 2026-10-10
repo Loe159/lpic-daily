@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.2.offline-ext-audit-recovery.hint-2",
+  "lab_id": "lpic1.104.2.offline-ext-audit-recovery",
+  "level": 2,
+  "content_fr": "Cherche les outils de maintenance ext4 qui permettent de vérifier le système et de lire ses paramètres actuels.",
+  "evidence_impact": "material"
+}

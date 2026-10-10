@@ -1,0 +1,114 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.6.priority-incident",
+  "title_fr": "Rééquilibrer des processus concurrents",
+  "brief_fr": "Une maintenance lance trois charges avec des priorités différentes. Laisse service-worker à sa priorité normale, baisse reindex-worker à nice 10 sans le redémarrer, puis lance batch-worker avec nice 15. Termine en enregistrant dans /run/lpic/priority-report les trois noms et leur valeur nice actuelle.",
+  "success_criteria_fr": [
+    "service-worker reste actif avec nice 0.",
+    "reindex-worker reste le même processus mais passe à nice 10.",
+    "batch-worker est lancé avec nice 15.",
+    "priority-report reflète les trois valeurs réellement observées."
+  ],
+  "debrief_fr": "La nice value influence l’ordonnancement utilisateur : 0 est la valeur normale, une valeur positive réduit la priorité CPU. nice -n choisit la valeur au lancement, renice modifie un processus existant, et ps/top permettent de l’observer. Le checker inspecte les PID et leurs valeurs NI réelles.",
+  "objective_ids": [
+    "103.6"
+  ],
+  "concept_ids": [
+    "lpic1.103.6.nice-value-et-ordonnancement-utilisateur",
+    "lpic1.103.6.priorite-par-defaut",
+    "lpic1.103.6.demarrer-avec-une-priorite",
+    "lpic1.103.6.modifier-priorite-existante",
+    "lpic1.103.6.observer-priorite"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-accepted"
+  ],
+  "estimated_minutes": 8,
+  "practice_context": "priority-incident",
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "process-lab",
+    "writable_guest_paths": [
+      "/run/lpic"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "cpu_percent": 100,
+    "pids": 96,
+    "timeout_seconds": 1200
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "pid=$(cat /run/lpic/service-worker.pid); kill -0 \"$pid\" && test \"$(ps -o ni= -p \"$pid\" | tr -d ' ')\" = 0"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.6.priorite-par-defaut",
+        "lpic1.103.6.observer-priorite",
+        "lpic1.103.6.nice-value-et-ordonnancement-utilisateur"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "pid=$(cat /run/lpic/reindex-worker.pid); kill -0 \"$pid\" && test \"$(ps -o ni= -p \"$pid\" | tr -d ' ')\" = 10"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.6.modifier-priorite-existante",
+        "lpic1.103.6.observer-priorite",
+        "lpic1.103.6.nice-value-et-ordonnancement-utilisateur"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "pid=$(pgrep -f '^batch-worker' | head -n1); test -n \"$pid\" && test \"$(ps -o ni= -p \"$pid\" | tr -d ' ')\" = 15"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.6.demarrer-avec-une-priorite",
+        "lpic1.103.6.observer-priorite",
+        "lpic1.103.6.nice-value-et-ordonnancement-utilisateur"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "grep -qx 'service-worker 0' /run/lpic/priority-report && grep -qx 'reindex-worker 10' /run/lpic/priority-report && grep -qx 'batch-worker 15' /run/lpic/priority-report"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.6.observer-priorite"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.103.6.priority-incident.hint-1",
+    "lpic1.103.6.priority-incident.hint-2",
+    "lpic1.103.6.priority-incident.hint-3",
+    "lpic1.103.6.priority-incident.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

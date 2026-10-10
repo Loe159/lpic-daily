@@ -1,0 +1,971 @@
+{
+  "schema_version": "1.0.0",
+  "migrated_objective_ids": [
+    "103.1",
+    "103.2",
+    "103.3",
+    "103.4",
+    "103.5",
+    "103.6",
+    "103.7",
+    "103.8",
+    "104.5",
+    "104.6",
+    "104.7"
+  ],
+  "scenarios": [
+    {
+      "scenario_id": "lpic1.103.1.shell-environment-repair",
+      "objective_ids": [
+        "103.1"
+      ],
+      "concept_ids": [
+        "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes",
+        "lpic1.103.1.variables-shell-environnement",
+        "lpic1.103.1.path-et-resolution-de-commande",
+        "lpic1.103.1.quoting-escaping",
+        "lpic1.103.1.historique",
+        "lpic1.103.1.documentation-et-identification-d-une-commande",
+        "lpic1.103.1.informations-systeme-de-base"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "behavior",
+      "transfer_group": "103.1-shell-environment"
+    },
+    {
+      "scenario_id": "lpic1.103.1.transfer-shell-handoff",
+      "objective_ids": [
+        "103.1"
+      ],
+      "concept_ids": [
+        "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes",
+        "lpic1.103.1.variables-shell-environnement",
+        "lpic1.103.1.path-et-resolution-de-commande",
+        "lpic1.103.1.quoting-escaping",
+        "lpic1.103.1.historique",
+        "lpic1.103.1.documentation-et-identification-d-une-commande",
+        "lpic1.103.1.informations-systeme-de-base"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "behavior",
+      "transfer_group": "103.1-shell-environment"
+    },
+    {
+      "scenario_id": "lpic1.103.1.environment-boundary-repair",
+      "objective_ids": [
+        "103.1"
+      ],
+      "concept_ids": [
+        "lpic1.103.1.set-env-et-portee-des-variables",
+        "lpic1.103.1.export-unset-et-processus-enfants",
+        "lpic1.103.1.echo-et-expansion-shell",
+        "lpic1.103.1.variables-shell-environnement"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.103.1.external-command-recovery",
+      "objective_ids": [
+        "103.1"
+      ],
+      "concept_ids": [
+        "lpic1.103.1.execution-de-commandes-hors-path",
+        "lpic1.103.1.path-et-resolution-de-commande",
+        "lpic1.103.1.documentation-et-identification-d-une-commande",
+        "lpic1.103.1.quoting-escaping"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.103.1.history-handoff-recovery",
+      "objective_ids": [
+        "103.1"
+      ],
+      "concept_ids": [
+        "lpic1.103.1.edition-et-persistance-de-l-historique",
+        "lpic1.103.1.historique",
+        "lpic1.103.1.echo-et-expansion-shell"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "state"
+    },
+    {
+      "scenario_id": "lpic1.103.5.stuck-worker",
+      "objective_ids": [
+        "103.5"
+      ],
+      "concept_ids": [
+        "lpic1.103.5.processus-avant-arriere-plan",
+        "lpic1.103.5.jobs-du-shell",
+        "lpic1.103.5.signaux",
+        "lpic1.103.5.inspection-arbres-ressources",
+        "lpic1.103.5.processus-survivant-a-la-session",
+        "lpic1.103.5.selection-par-nom-pid",
+        "lpic1.103.5.multiplexeurs-de-terminal"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "behavior",
+      "transfer_group": "103.5-process-control"
+    },
+    {
+      "scenario_id": "lpic1.103.5.transfer-operator-session",
+      "objective_ids": [
+        "103.5"
+      ],
+      "concept_ids": [
+        "lpic1.103.5.processus-avant-arriere-plan",
+        "lpic1.103.5.jobs-du-shell",
+        "lpic1.103.5.signaux",
+        "lpic1.103.5.inspection-arbres-ressources",
+        "lpic1.103.5.processus-survivant-a-la-session",
+        "lpic1.103.5.selection-par-nom-pid",
+        "lpic1.103.5.multiplexeurs-de-terminal"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "behavior",
+      "transfer_group": "103.5-process-control"
+    },
+    {
+      "scenario_id": "lpic1.104.5.shared-dropbox",
+      "objective_ids": [
+        "104.5"
+      ],
+      "concept_ids": [
+        "lpic1.104.5.permissions-rwx-fichier-dossier",
+        "lpic1.104.5.notation-symbolique-octale",
+        "lpic1.104.5.proprietaire-groupe",
+        "lpic1.104.5.umask",
+        "lpic1.104.5.suid",
+        "lpic1.104.5.sgid",
+        "lpic1.104.5.sticky-bit",
+        "lpic1.104.5.effets-speciaux-sur-repertoires"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "behavior",
+      "transfer_group": "104.5-shared-permissions"
+    },
+    {
+      "scenario_id": "lpic1.104.5.transfer-team-share-audit",
+      "objective_ids": [
+        "104.5"
+      ],
+      "concept_ids": [
+        "lpic1.104.5.permissions-rwx-fichier-dossier",
+        "lpic1.104.5.notation-symbolique-octale",
+        "lpic1.104.5.proprietaire-groupe",
+        "lpic1.104.5.umask",
+        "lpic1.104.5.suid",
+        "lpic1.104.5.sgid",
+        "lpic1.104.5.sticky-bit",
+        "lpic1.104.5.effets-speciaux-sur-repertoires"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "behavior",
+      "transfer_group": "104.5-shared-permissions"
+    },
+    {
+      "scenario_id": "lpic1.103.2.incident-report-rebuild",
+      "objective_ids": [
+        "103.2"
+      ],
+      "concept_ids": [
+        "lpic1.103.2.flux-texte-ligne-octet",
+        "lpic1.103.2.selection-de-colonnes-lignes",
+        "lpic1.103.2.tri-dedoublonnage",
+        "lpic1.103.2.assemblage-et-decoupage",
+        "lpic1.103.2.transformations-simples"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "artifact"
+    },
+    {
+      "scenario_id": "lpic1.103.2.compressed-manifest-recovery",
+      "objective_ids": [
+        "103.2"
+      ],
+      "concept_ids": [
+        "lpic1.103.2.lecture-compression-en-flux",
+        "lpic1.103.2.checksums",
+        "lpic1.103.2.flux-texte-ligne-octet"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "artifact"
+    },
+    {
+      "scenario_id": "lpic1.103.3.release-tree-recovery",
+      "objective_ids": [
+        "103.3"
+      ],
+      "concept_ids": [
+        "lpic1.103.3.creation-copie-deplacement-suppression",
+        "lpic1.103.3.recursivite-et-globbing",
+        "lpic1.103.3.recherche-par-metadonnees",
+        "lpic1.103.3.actions-find"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "state"
+    },
+    {
+      "scenario_id": "lpic1.103.3.backup-bundle-recovery",
+      "objective_ids": [
+        "103.3"
+      ],
+      "concept_ids": [
+        "lpic1.103.3.archives-tar-cpio",
+        "lpic1.103.3.copie-bas-niveau-dd",
+        "lpic1.103.3.compression-gzip-bzip2-xz",
+        "lpic1.103.3.detection-de-type"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "artifact"
+    },
+    {
+      "scenario_id": "lpic1.103.4.batch-stream-repair",
+      "objective_ids": [
+        "103.4"
+      ],
+      "concept_ids": [
+        "lpic1.103.4.stdin-stdout-stderr-et-descripteurs",
+        "lpic1.103.4.redirections-ecrasement-append",
+        "lpic1.103.4.redirection-stderr",
+        "lpic1.103.4.pipelines",
+        "lpic1.103.4.dupliquer-sortie-avec-tee",
+        "lpic1.103.4.ordre-des-redirections"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "artifact"
+    },
+    {
+      "scenario_id": "lpic1.103.4.bulk-argument-dispatch",
+      "objective_ids": [
+        "103.4"
+      ],
+      "concept_ids": [
+        "lpic1.103.4.transformer-stdin-en-arguments-via-xargs",
+        "lpic1.103.4.pipelines",
+        "lpic1.103.4.stdin-stdout-stderr-et-descripteurs"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "artifact"
+    },
+    {
+      "scenario_id": "lpic1.103.6.priority-incident",
+      "objective_ids": [
+        "103.6"
+      ],
+      "concept_ids": [
+        "lpic1.103.6.nice-value-et-ordonnancement-utilisateur",
+        "lpic1.103.6.priorite-par-defaut",
+        "lpic1.103.6.demarrer-avec-une-priorite",
+        "lpic1.103.6.modifier-priorite-existante",
+        "lpic1.103.6.observer-priorite"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "state"
+    },
+    {
+      "scenario_id": "lpic1.103.7.auth-log-filter-repair",
+      "objective_ids": [
+        "103.7"
+      ],
+      "concept_ids": [
+        "lpic1.103.7.regex-basiques-etendues",
+        "lpic1.103.7.classes-de-caracteres",
+        "lpic1.103.7.quantificateurs-et-ancres",
+        "lpic1.103.7.groupes-alternatives",
+        "lpic1.103.7.recherche-de-lignes",
+        "lpic1.103.7.substitution-transformation-avec-sed",
+        "lpic1.103.7.difference-glob-vs-regex"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "artifact"
+    },
+    {
+      "scenario_id": "lpic1.103.8.minimal-editor-repair",
+      "objective_ids": [
+        "103.8"
+      ],
+      "concept_ids": [
+        "lpic1.103.8.modes-normal-insertion-commande",
+        "lpic1.103.8.navigation",
+        "lpic1.103.8.insertion-remplacement",
+        "lpic1.103.8.suppression-copie-collage",
+        "lpic1.103.8.recherche",
+        "lpic1.103.8.sauvegarde-quitter",
+        "lpic1.103.8.editeur-par-defaut",
+        "lpic1.103.8.connaissance-nano-emacs-vim"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "state"
+    },
+    {
+      "scenario_id": "lpic1.104.6.release-link-repair",
+      "objective_ids": [
+        "104.6"
+      ],
+      "concept_ids": [
+        "lpic1.104.6.inode-et-hard-link",
+        "lpic1.104.6.symlink-et-cible",
+        "lpic1.104.6.limites-filesystem-directory-des-hard-links",
+        "lpic1.104.6.liens-casses",
+        "lpic1.104.6.difference-copie-lien",
+        "lpic1.104.6.usages-administratifs"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.104.7.fhs-search-recovery",
+      "objective_ids": [
+        "104.7"
+      ],
+      "concept_ids": [
+        "lpic1.104.7.role-des-principaux-repertoires-fhs",
+        "lpic1.104.7.recherche-temps-reel-vs-base-locate",
+        "lpic1.104.7.mise-a-jour-base-locate",
+        "lpic1.104.7.localiser-binaire-source-man",
+        "lpic1.104.7.resolution-de-commande-shell"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.104.1.partition-filesystems",
+      "objective_ids": [
+        "104.1"
+      ],
+      "concept_ids": [
+        "lpic1.104.1.mbr-versus-gpt",
+        "lpic1.104.1.creation-modification-de-partitions",
+        "lpic1.104.1.ext2-ext3-ext4",
+        "lpic1.104.1.swap",
+        "lpic1.104.1.creation-de-filesystem"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "state"
+    },
+    {
+      "scenario_id": "lpic1.104.2.inode-backlog-recovery",
+      "objective_ids": [
+        "104.2"
+      ],
+      "concept_ids": [
+        "lpic1.104.2.occupation-blocs-inodes",
+        "lpic1.104.2.symptomes-de-corruption-espace-epuise"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.102.6.clone-identity-recovery",
+      "objective_ids": [
+        "102.6"
+      ],
+      "concept_ids": [
+        "lpic1.102.6.images-clones-et-templates",
+        "lpic1.102.6.identites-devant-etre-regenerees-lors-d-un-clonage"
+      ],
+      "backend": "podman",
+      "status": "implemented",
+      "evidence_strength": "state"
+    },
+    {
+      "scenario_id": "lpic1.102.3.preload-library-recovery",
+      "objective_ids": [
+        "102.3"
+      ],
+      "concept_ids": [
+        "lpic1.102.3.resolution-des-dependances-dynamiques",
+        "lpic1.102.3.override-via-variables-d-environnement",
+        "lpic1.102.3.diagnostic-d-une-bibliotheque-manquante"
+      ],
+      "backend": "podman",
+      "status": "implemented",
+      "evidence_strength": "state"
+    },
+    {
+      "scenario_id": "lpic1.102.5.rpm-file-ownership-audit",
+      "objective_ids": [
+        "102.5"
+      ],
+      "concept_ids": [
+        "lpic1.102.5.format-base-rpm",
+        "lpic1.102.5.installation-et-requetes-rpm",
+        "lpic1.102.5.identifier-fichier-paquet"
+      ],
+      "backend": "podman",
+      "status": "implemented",
+      "evidence_strength": "artifact"
+    },
+    {
+      "scenario_id": "lpic1.104.2.offline-ext-audit-recovery",
+      "objective_ids": [
+        "104.2"
+      ],
+      "concept_ids": [
+        "lpic1.104.2.verification-ext",
+        "lpic1.104.2.reparation",
+        "lpic1.104.2.tuning-ext"
+      ],
+      "backend": "podman",
+      "status": "implemented",
+      "evidence_strength": "state"
+    },
+    {
+      "scenario_id": "lpic1.104.3.archive-mount-recovery",
+      "objective_ids": [
+        "104.3"
+      ],
+      "concept_ids": [
+        "lpic1.104.3.montage-manuel",
+        "lpic1.104.3.fstab-persistant",
+        "lpic1.104.3.uuid-labels",
+        "lpic1.104.3.options-de-montage"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.101.3.default-target-recovery",
+      "objective_ids": [
+        "101.3"
+      ],
+      "concept_ids": [
+        "lpic1.101.3.target-par-defaut"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "state"
+    },
+    {
+      "scenario_id": "lpic1.101.3.indexer-service-recovery",
+      "objective_ids": [
+        "101.3"
+      ],
+      "concept_ids": [
+        "lpic1.101.3.services-et-dependances-de-demarrage"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.104.3.busy-removable-volume",
+      "objective_ids": [
+        "104.3"
+      ],
+      "concept_ids": [
+        "lpic1.104.3.demontage-et-fichiers-occupes",
+        "lpic1.104.3.peripheriques-amovibles"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.104.3.mount-unit-incident",
+      "objective_ids": [
+        "104.3"
+      ],
+      "concept_ids": [
+        "lpic1.104.3.unites-mount-systemd"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.104.1.xfs-archive-label-recovery",
+      "objective_ids": [
+        "104.1",
+        "104.2"
+      ],
+      "concept_ids": [
+        "lpic1.104.1.xfs",
+        "lpic1.104.2.outils-xfs",
+        "lpic1.104.2.difference-outils-online-offline-selon-fs"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.102.4.offline-apt-repository-recovery",
+      "objective_ids": [
+        "102.4"
+      ],
+      "concept_ids": [
+        "lpic1.102.4.roles-respectifs-dpkg-et-apt",
+        "lpic1.102.4.installation-mise-a-jour-suppression",
+        "lpic1.102.4.sources-et-metadonnees",
+        "lpic1.102.4.identifier-quel-paquet-fournit-possede-un-fichier"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.104.1.btrfs-pool-report-recovery",
+      "objective_ids": [
+        "104.1"
+      ],
+      "concept_ids": [
+        "lpic1.104.1.principes-btrfs-multi-device-compression-subvolumes"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "state"
+    },
+    {
+      "scenario_id": "lpic1.104.1.removable-media-formats",
+      "objective_ids": [
+        "104.1"
+      ],
+      "concept_ids": [
+        "lpic1.104.1.vfat-exfat"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.102.4.relay-package-dependency-repair",
+      "objective_ids": [
+        "102.4"
+      ],
+      "concept_ids": [
+        "lpic1.102.4.dependances",
+        "lpic1.102.4.inspection-d-un-paquet-et-de-ses-fichiers"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.102.4.collector-config-recovery",
+      "objective_ids": [
+        "102.4"
+      ],
+      "concept_ids": [
+        "lpic1.102.4.reconfiguration"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.102.3.shared-library-cache-recovery",
+      "objective_ids": [
+        "102.3"
+      ],
+      "concept_ids": [
+        "lpic1.102.3.chemins-de-recherche-du-chargeur-dynamique",
+        "lpic1.102.3.cache-ldconfig"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.102.1.lvm-capacity-recovery",
+      "objective_ids": [
+        "102.1"
+      ],
+      "concept_ids": [
+        "lpic1.102.1.principes-de-base-lvm",
+        "lpic1.102.1.partitions-et-points-de-montage"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.102.1.home-log-swap-isolation",
+      "objective_ids": [
+        "102.1"
+      ],
+      "concept_ids": [
+        "lpic1.102.1.separer-var-home-et-boot-selon-usage",
+        "lpic1.102.1.swap-et-dimensionnement-conceptuel",
+        "lpic1.102.1.partitions-et-points-de-montage"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.102.2.grub-kernel-parameter",
+      "objective_ids": [
+        "102.2",
+        "101.2"
+      ],
+      "concept_ids": [
+        "lpic1.102.2.emplacement-configuration-du-bootloader",
+        "lpic1.102.2.generation-de-configuration-grub-2",
+        "lpic1.101.2.parametres-noyau-au-boot"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.102.1.uefi-rescue-media-recovery",
+      "objective_ids": [
+        "102.1"
+      ],
+      "concept_ids": [
+        "lpic1.102.1.efi-system-partition",
+        "lpic1.102.1.contraintes-boot-et-architecture"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "state"
+    },
+    {
+      "scenario_id": "lpic1.101.1.backup-device-udev-recovery",
+      "objective_ids": [
+        "101.1"
+      ],
+      "concept_ids": [
+        "lpic1.101.1.ressources-et-identification-du-materiel",
+        "lpic1.101.1.sysfs-udev-et-d-bus-comme-couches-de-decouverte-gestion"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.102.5.offline-dnf-agent-recovery",
+      "objective_ids": [
+        "102.5"
+      ],
+      "concept_ids": [
+        "lpic1.102.5.resolution-des-dependances-via-gestionnaire-haut-niveau",
+        "lpic1.102.5.repositories-yum-dnf"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.101.2.boot-journal-persistence",
+      "objective_ids": [
+        "101.2"
+      ],
+      "concept_ids": [
+        "lpic1.101.2.diagnostic-des-evenements-de-boot"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.102.5.rpm-integrity-recovery",
+      "objective_ids": [
+        "102.5"
+      ],
+      "concept_ids": [
+        "lpic1.102.5.signature-integrite"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.102.5.offline-zypper-repository-recovery",
+      "objective_ids": [
+        "102.5"
+      ],
+      "concept_ids": [
+        "lpic1.102.5.workflow-zypper-opensuse"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.101.1.pci-archive-controller-recovery",
+      "objective_ids": [
+        "101.1",
+        "102.6"
+      ],
+      "concept_ids": [
+        "lpic1.101.1.role-de-proc-sys-et-dev",
+        "lpic1.101.1.ressources-et-identification-du-materiel",
+        "lpic1.102.6.guest-drivers"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.101.1.ramdisk-module-recovery",
+      "objective_ids": [
+        "101.1"
+      ],
+      "concept_ids": [
+        "lpic1.101.1.modules-du-noyau-lies-au-materiel"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.101.3.graceful-maintenance-transition",
+      "objective_ids": [
+        "101.3"
+      ],
+      "concept_ids": [
+        "lpic1.101.3.terminaison-propre-des-processus"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.102.2.grub-alternate-entry-recovery",
+      "objective_ids": [
+        "102.2"
+      ],
+      "concept_ids": [
+        "lpic1.102.2.entrees-alternatives-et-recuperation"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.102.6.nocloud-provisioning-recovery",
+      "objective_ids": [
+        "102.6"
+      ],
+      "concept_ids": [
+        "lpic1.102.6.principes-cloud-init-iaas"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.102.6.virtual-disk-network-recovery",
+      "objective_ids": [
+        "102.6"
+      ],
+      "concept_ids": [
+        "lpic1.102.6.ressources-virtuelles-block-network"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.101.3.graceful-reboot-data-preservation",
+      "objective_ids": [
+        "101.3"
+      ],
+      "concept_ids": [
+        "lpic1.101.3.arret-redemarrage-propre"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.101.2.initramfs-rescue-boot-recovery",
+      "objective_ids": [
+        "101.2"
+      ],
+      "concept_ids": [
+        "lpic1.101.2.role-de-initramfs",
+        "lpic1.101.2.sequence-firmware-bootloader-kernel-initramfs-init-systemd"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.102.2.bios-mbr-rescue-bootcode",
+      "objective_ids": [
+        "102.2"
+      ],
+      "concept_ids": [
+        "lpic1.102.2.mbr-et-relation-avec-schema-de-boot"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "state"
+    },
+    {
+      "scenario_id": "lpic1.101.3.maintenance-wall-notification",
+      "objective_ids": [
+        "101.3"
+      ],
+      "concept_ids": [
+        "lpic1.101.3.notification-aux-utilisateurs"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.102.6.guest-container-isolation-recovery",
+      "objective_ids": [
+        "102.6"
+      ],
+      "concept_ids": [
+        "lpic1.102.6.vm-versus-conteneur-applicatif-systeme"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.101.3.runlevel-compatibility-recovery",
+      "objective_ids": [
+        "101.3"
+      ],
+      "concept_ids": [
+        "lpic1.101.3.runlevels-sysv-et-targets-systemd"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.101.2.dual-firmware-rescue-media",
+      "objective_ids": [
+        "101.2"
+      ],
+      "concept_ids": [
+        "lpic1.101.2.bios-versus-uefi"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "state"
+    },
+    {
+      "scenario_id": "lpic1.101.1.storage-bus-archive-recovery",
+      "objective_ids": [
+        "101.1"
+      ],
+      "concept_ids": [
+        "lpic1.101.1.differences-entre-grandes-familles-de-stockage"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.101.1.usb-backup-authorization-recovery",
+      "objective_ids": [
+        "101.1"
+      ],
+      "concept_ids": [
+        "lpic1.101.1.bus-pci-et-usb",
+        "lpic1.101.1.manipulation-des-peripheriques-usb"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.101.3.rescue-target-service-recovery",
+      "objective_ids": [
+        "101.3"
+      ],
+      "concept_ids": [
+        "lpic1.101.3.mode-mono-utilisateur-recuperation"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.101.3.acpi-power-event-audit-recovery",
+      "objective_ids": [
+        "101.3"
+      ],
+      "concept_ids": [
+        "lpic1.101.3.notion-d-evenements-acpi"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.101.2.legacy-init-service-migration",
+      "objective_ids": [
+        "101.2"
+      ],
+      "concept_ids": [
+        "lpic1.101.2.sysvinit-systemd-et-connaissance-historique-d-upstart"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.102.2.grub-serial-one-time-diagnostics",
+      "objective_ids": [
+        "101.2",
+        "102.2"
+      ],
+      "concept_ids": [
+        "lpic1.101.2.commandes-du-chargeur-de-demarrage",
+        "lpic1.102.2.interaction-au-menu-console-grub"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.102.2.grub-legacy-migration-recovery",
+      "objective_ids": [
+        "102.2"
+      ],
+      "concept_ids": [
+        "lpic1.102.2.grub-legacy-versus-grub-2"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    },
+    {
+      "scenario_id": "lpic1.101.1.onboard-sata-controller-reenable",
+      "objective_ids": [
+        "101.1"
+      ],
+      "concept_ids": [
+        "lpic1.101.1.activation-desactivation-peripheriques-integres"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
+    }
+  ]
+}

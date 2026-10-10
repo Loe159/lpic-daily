@@ -579,64 +579,6 @@ func TestRecognitionOnlyConceptPrefersLabOnDueReview(t *testing.T) {
 	t.Fatalf("plan = %#v, want due review for %s", plan.Items, conceptID)
 }
 
-func TestExportUnsetConceptPrefersStateBasedChildEnvironmentLab(t *testing.T) {
-	curriculumBundle, contentBundle, labs := loadInputs(t)
-	now := time.Date(2026, 10, 8, 20, 0, 0, 0, time.UTC)
-	conceptID := "lpic1.103.1.export-unset-et-processus-enfants"
-	evidence := memoryEvidence{
-		conceptID: {
-			{
-				EventID:      "lesson",
-				OccurredAt:   now.Add(-48 * time.Hour),
-				ConceptID:    conceptID,
-				ObjectiveIDs: []string{"103.1"},
-				SourceItemID: "test-lesson",
-				ActivityKind: learning.ActivityLesson,
-				EvidenceKind: learning.EvidenceExposure,
-				Result:       learning.ResultPass,
-				Distribution: "generic",
-				AttemptIndex: 1,
-			},
-			{
-				EventID:      "recognition",
-				OccurredAt:   now.Add(-47 * time.Hour),
-				ConceptID:    conceptID,
-				ObjectiveIDs: []string{"103.1"},
-				SourceItemID: "test-question",
-				ActivityKind: learning.ActivityQuestion,
-				EvidenceKind: learning.EvidenceRecognition,
-				Result:       learning.ResultPass,
-				Distribution: "generic",
-				AttemptIndex: 1,
-			},
-		},
-	}
-
-	policy := learning.DefaultSessionPolicy()
-	policy.MaxNewConcepts = 0
-	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
-		Now:        now,
-		Curriculum: curriculumBundle,
-		Content:    contentBundle,
-		Labs:       labs,
-		Evidence:   evidence,
-		Policy:     policy,
-	})
-	if err != nil {
-		t.Fatalf("BuildPlan() error = %v", err)
-	}
-	for _, item := range plan.Items {
-		if item.ConceptID != conceptID {
-			continue
-		}
-		if !item.PreferLab || item.RecommendedLabID != "lpic1.103.1.child-environment-handoff" {
-			t.Fatalf("export/unset review = %#v, want state-based child environment lab", item)
-		}
-		return
-	}
-	t.Fatalf("plan = %#v, want due review for %s", plan.Items, conceptID)
-}
-
 func TestQuickPolicyLimitsReviews(t *testing.T) {
 	curriculumBundle, contentBundle, labs := loadInputs(t)
 	now := time.Date(2026, 9, 26, 20, 0, 0, 0, time.UTC)
@@ -769,8 +711,8 @@ func TestIndependentConceptRecommendsUnusedTransferLab(t *testing.T) {
 	if len(plan.Items) != 1 || plan.Items[0].ConceptID != conceptID {
 		t.Fatalf("items = %#v, want due independent review", plan.Items)
 	}
-	if got := plan.Items[0].RecommendedLabID; got != "lpic1.103.1.transfer-shell-handoff" {
-		t.Fatalf("recommended lab = %q, want unused transfer context", got)
+	if got := plan.Items[0].RecommendedLabID; got != "lpic1.103.1.external-command-recovery" {
+		t.Fatalf("recommended lab = %q, want first unused accepted transfer context", got)
 	}
 }
 
@@ -872,8 +814,8 @@ func TestIndependentConceptSkipsUnusedLabIDInAlreadyUsedPracticeContext(t *testi
 	if len(plan.Items) != 1 {
 		t.Fatalf("items = %#v, want one due review", plan.Items)
 	}
-	if got := plan.Items[0].RecommendedLabID; got != "lpic1.103.1.transfer-shell-handoff" {
-		t.Fatalf("recommended lab = %q, want materially different practice context", got)
+	if got := plan.Items[0].RecommendedLabID; got != "lpic1.103.1.external-command-recovery" {
+		t.Fatalf("recommended lab = %q, want materially different accepted practice context", got)
 	}
 }
 
@@ -937,12 +879,12 @@ func TestExam102StaysLockedUntilEveryExam101ConceptCompletesCourseQuizAndLab(t *
 	}
 }
 
-func TestGeneratedGuidedLabRotatesToSecondPracticeContext(t *testing.T) {
+func TestGeneratedGuidedLabYieldsToAcceptedScenario(t *testing.T) {
 	curriculumBundle, contentBundle, labs := loadInputs(t)
 	now := time.Date(2026, 10, 10, 12, 0, 0, 0, time.UTC)
 	conceptID := "lpic1.103.2.flux-texte-ligne-octet"
 	diagnosticID := conceptID + ".standalone-diagnostic"
-	transferID := conceptID + ".standalone-transfer"
+	acceptedID := "lpic1.103.2.compressed-manifest-recovery"
 	evidence := memoryEvidence{
 		conceptID: {
 			{
@@ -982,8 +924,8 @@ func TestGeneratedGuidedLabRotatesToSecondPracticeContext(t *testing.T) {
 	if len(plan.Items) != 1 {
 		t.Fatalf("items = %#v, want one due guided review", plan.Items)
 	}
-	if got := plan.Items[0].RecommendedLabID; got != transferID {
-		t.Fatalf("recommended lab = %q, want %q after diagnostic success", got, transferID)
+	if got := plan.Items[0].RecommendedLabID; got != acceptedID {
+		t.Fatalf("recommended lab = %q, want accepted scenario %q after diagnostic success", got, acceptedID)
 	}
 }
 
@@ -1248,4 +1190,144 @@ func TestRecallSuccessPrefersLabBeforeNextConcept(t *testing.T) {
 	if item.ConceptID != conceptID || item.Kind != learning.SessionPractice || !item.PreferLab || item.RecommendedLabID == "" {
 		t.Fatalf("item = %#v, want lab-preferred consolidation after recall", item)
 	}
+}
+
+func TestAcceptedScenarioSuppressesGeneratedFallbackAfterGuidedSuccess(t *testing.T) {
+	curriculumBundle, contentBundle, labs := loadInputs(t)
+	now := time.Date(2026, 10, 12, 12, 0, 0, 0, time.UTC)
+	conceptID := "lpic1.103.1.set-env-et-portee-des-variables"
+	evidence := memoryEvidence{
+		conceptID: {
+			{
+				EventID: "lesson", OccurredAt: now.Add(-6 * 24 * time.Hour),
+				ConceptID: conceptID, ObjectiveIDs: []string{"103.1"},
+				SourceItemID: conceptID + ".lesson.autonomous",
+				ActivityKind: learning.ActivityLesson, EvidenceKind: learning.EvidenceExposure,
+				Result: learning.ResultPass, Distribution: "generic", AttemptIndex: 1,
+			},
+			{
+				EventID: "quiz", OccurredAt: now.Add(-6 * 24 * time.Hour),
+				ConceptID: conceptID, ObjectiveIDs: []string{"103.1"},
+				SourceItemID: conceptID + ".q.autonomous-recall",
+				ActivityKind: learning.ActivityQuestion, EvidenceKind: learning.EvidenceRecall,
+				Result: learning.ResultPass, Distribution: "generic", AttemptIndex: 1,
+			},
+			{
+				EventID: "guided-scenario", OccurredAt: now.Add(-5 * 24 * time.Hour),
+				ConceptID: conceptID, ObjectiveIDs: []string{"103.1"},
+				SourceItemID: "lpic1.103.1.environment-boundary-repair",
+				ActivityKind: learning.ActivityLab, EvidenceKind: learning.EvidenceGuidedPractice,
+				Result: learning.ResultPass, Distribution: "fedora",
+				PracticeContext: "environment-boundary-repair", AttemptIndex: 1,
+			},
+		},
+	}
+	policy := learning.DefaultSessionPolicy()
+	policy.MaxNewConcepts = 0
+
+	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
+		Now: now, Curriculum: curriculumBundle, Content: contentBundle, Labs: labs,
+		Evidence: evidence, Policy: policy,
+	})
+	if err != nil {
+		t.Fatalf("BuildPlan() error = %v", err)
+	}
+	if len(plan.Items) != 1 || plan.Items[0].ConceptID != conceptID {
+		t.Fatalf("items = %#v, want one due review for %s", plan.Items, conceptID)
+	}
+	if got := plan.Items[0].RecommendedLabID; got != "lpic1.103.1.environment-boundary-repair" {
+		t.Fatalf("recommended lab = %q, want accepted scenario instead of generated fallback", got)
+	}
+}
+
+func TestImplementedScenarioIsHiddenFromScheduler(t *testing.T) {
+	curriculumBundle, contentBundle, labs := loadInputs(t)
+	var draft lab.Lab
+	for _, authored := range labs {
+		if authored.Definition.ID == "lpic1.103.1.shell-environment-repair" {
+			draft = authored
+			break
+		}
+	}
+	if draft.Definition.ID == "" {
+		t.Fatal("shell-environment-repair lab not found")
+	}
+	draft.Definition.ID = "lpic1.103.1.implemented-draft"
+	draft.Definition.Labels = []string{"lpic-required", "scenario-implemented"}
+	labs = append(labs, draft)
+
+	now := time.Date(2026, 10, 7, 18, 0, 0, 0, time.UTC)
+	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
+		Now: now, Curriculum: curriculumBundle, Content: contentBundle, Labs: labs,
+		Evidence: memoryEvidence{}, Policy: learning.DefaultSessionPolicy(),
+	})
+	if err != nil {
+		t.Fatalf("BuildPlan() error = %v", err)
+	}
+	if len(plan.Items) == 0 {
+		t.Fatal("plan is empty")
+	}
+	for _, labID := range plan.Items[0].LabIDs {
+		if labID == draft.Definition.ID {
+			t.Fatalf("implemented-only scenario leaked into scheduler: %#v", plan.Items[0].LabIDs)
+		}
+	}
+}
+
+func TestExportUnsetConceptPrefersAcceptedEnvironmentBoundaryLab(t *testing.T) {
+	curriculumBundle, contentBundle, labs := loadInputs(t)
+	now := time.Date(2026, 10, 8, 20, 0, 0, 0, time.UTC)
+	conceptID := "lpic1.103.1.export-unset-et-processus-enfants"
+	evidence := memoryEvidence{
+		conceptID: {
+			{
+				EventID:      "lesson",
+				OccurredAt:   now.Add(-48 * time.Hour),
+				ConceptID:    conceptID,
+				ObjectiveIDs: []string{"103.1"},
+				SourceItemID: "test-lesson",
+				ActivityKind: learning.ActivityLesson,
+				EvidenceKind: learning.EvidenceExposure,
+				Result:       learning.ResultPass,
+				Distribution: "generic",
+				AttemptIndex: 1,
+			},
+			{
+				EventID:      "recognition",
+				OccurredAt:   now.Add(-47 * time.Hour),
+				ConceptID:    conceptID,
+				ObjectiveIDs: []string{"103.1"},
+				SourceItemID: "test-question",
+				ActivityKind: learning.ActivityQuestion,
+				EvidenceKind: learning.EvidenceRecognition,
+				Result:       learning.ResultPass,
+				Distribution: "generic",
+				AttemptIndex: 1,
+			},
+		},
+	}
+
+	policy := learning.DefaultSessionPolicy()
+	policy.MaxNewConcepts = 0
+	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
+		Now:        now,
+		Curriculum: curriculumBundle,
+		Content:    contentBundle,
+		Labs:       labs,
+		Evidence:   evidence,
+		Policy:     policy,
+	})
+	if err != nil {
+		t.Fatalf("BuildPlan() error = %v", err)
+	}
+	for _, item := range plan.Items {
+		if item.ConceptID != conceptID {
+			continue
+		}
+		if !item.PreferLab || item.RecommendedLabID != "lpic1.103.1.environment-boundary-repair" {
+			t.Fatalf("export/unset review = %#v, want accepted state-based environment lab", item)
+		}
+		return
+	}
+	t.Fatalf("plan = %#v, want due review for %s", plan.Items, conceptID)
 }
