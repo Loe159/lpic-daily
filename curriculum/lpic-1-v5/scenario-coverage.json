@@ -867,6 +867,18 @@
       "backend": "libvirt",
       "status": "implemented",
       "evidence_strength": "state"
+    },
+    {
+      "scenario_id": "lpic1.101.1.storage-bus-archive-recovery",
+      "objective_ids": [
+        "101.1"
+      ],
+      "concept_ids": [
+        "lpic1.101.1.differences-entre-grandes-familles-de-stockage"
+      ],
+      "backend": "libvirt",
+      "status": "implemented",
+      "evidence_strength": "behavior"
     }
   ]
 }
