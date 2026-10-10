@@ -194,14 +194,19 @@ Le runner libvirt propose `:boot-menu`, qui envoie un redémarrage non bloquant 
 
 **Couverture LPIC-101 : 80 acceptés, 80 uniquement implémentés, 2 sans scénario.** KVM nécessaire pour vérifier menu réel en série, `save_env` sur le support Fedora, et le cycle setup rouge / succès par action humaine dans GRUB / reset rouge. Les checks et tests unitaires ne démontrent pas à eux seuls l'interaction. Si le support GRUB interdit `save_env`, adapter la preuve après investigation et non valider artificiellement.
 
+### Lot du 10 octobre 2026 — conversion de GRUB Legacy en entrée GRUB 2
+
+`102.2.grub-legacy-migration-recovery` est **implemented**, non accepté. Le lab fournit un vrai `menu.lst` d'archive (GRUB Legacy), demande de transposer une entrée historique dans une entrée GRUB 2/BLS et vérifie un vrai démarrage avec `grub2-set-default`, nouveau `boot_id` et l'option `lpic.legacy_import=1` observée dans `/proc/cmdline`. Le fichier legacy et l'entrée BLS originale sont préservés par SHA-256. La preuve concerne **la migration**, pas l'exécution d'un ancien chargeur sur Fedora.
+
+**Couverture LPIC-101 : 80 acceptés, 81 implémentés non acceptés, 1 sans scénario.** La procédure automatique setup rouge → référence → reboot → vert → reset rouge est ajoutée au harnais KVM, mais les tests KVM ne sont pas exécutés.
+
 ### Remaining migration blockers — 9 octobre 2026
 
-Les **2 concepts du LPIC-101 sans scénario** ne doivent pas être considérés comme implémentés par simple rapprochement de mots-clés. Préparer les moyens d'évaluation suivants avant d'écrire des tests de conformité :
+Le **dernier concept du LPIC-101 sans scénario** ne doivent pas être considérés comme implémentés par simple rapprochement de mots-clés. Préparer les moyens d'évaluation suivants avant d'écrire des tests de conformité :
 
 | Concepts encore sans scénario | Critère de preuve manquant |
 | --- | --- |
 | 101.1 — activation/désactivation de périphériques intégrés | Tester un changement de contrôleur dans un firmware ou hyperviseur équivalent et le rattachement au noyau, pas simplement la création d'un lien sous /dev. |
-| 102.2 — GRUB Legacy vs GRUB 2 | Mettre à disposition un environnement legacy pertinent ou des images de supports de démarrage réellement différenciées ; l'utilisation de deux entrées GRUB 2 n'est pas une preuve de GRUB Legacy. |
 
 Ces prérequis impliquent probablement des évolutions ciblées du runner VM et de son harnais d'acceptation. Les 72 concepts uniquement `implemented` constituent en parallèle une dette distincte : ils ne pourront être promus à `accepted` qu'après setup → échec attendu, solution de référence → succès, reset → nouvel échec, review pédagogique et contrôle de l'isolation. Les retours d'échec de KVM / Podman doivent être corrigés **avant** la fusion.
 

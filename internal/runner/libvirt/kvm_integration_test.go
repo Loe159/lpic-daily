@@ -655,6 +655,7 @@ func TestRealKVMPhase2ReferenceLabs(t *testing.T) {
 		t.Fatalf("LoadAll() error = %v", err)
 	}
 	wanted := map[string]string{
+		"lpic1.102.2.grub-legacy-migration-recovery": "labs/lpic-1-v5/102.2/grub-legacy-migration-recovery/reference-solution.sh",
 		"lpic1.101.2.legacy-init-service-migration": "labs/lpic-1-v5/101.2/legacy-init-service-migration/reference-solution.sh",
 		"lpic1.101.1.storage-bus-archive-recovery": "labs/lpic-1-v5/101.1/storage-bus-archive-recovery/reference-solution.sh",
 		"lpic1.101.1.usb-backup-authorization-recovery": "labs/lpic-1-v5/101.1/usb-backup-authorization-recovery/reference-solution.sh",
@@ -693,7 +694,7 @@ func TestRealKVMPhase2ReferenceLabs(t *testing.T) {
 
 			assertPhase2LabNotSolved(t, ctx, session)
 			runPhase2ReferenceSolution(t, ctx, backend, session.Instance, solution)
-			if authored.Definition.ID == "lpic1.102.2.grub-kernel-parameter" {
+			if (authored.Definition.ID == "lpic1.102.2.grub-kernel-parameter" || authored.Definition.ID == "lpic1.102.2.grub-legacy-migration-recovery") {
 				if err := backend.Reboot(ctx, session.Instance); err != nil {
 					t.Fatalf("Reboot() error = %v", err)
 				}
@@ -710,7 +711,7 @@ func TestRealKVMPhase2ReferenceLabs(t *testing.T) {
 			}
 			assertPhase2LabNotSolved(t, ctx, session)
 			runPhase2ReferenceSolution(t, ctx, backend, session.Instance, solution)
-			if authored.Definition.ID == "lpic1.102.2.grub-kernel-parameter" {
+			if (authored.Definition.ID == "lpic1.102.2.grub-kernel-parameter" || authored.Definition.ID == "lpic1.102.2.grub-legacy-migration-recovery") {
 				if err := backend.Reboot(ctx, session.Instance); err != nil {
 					t.Fatalf("Reboot() after reset error = %v", err)
 				}

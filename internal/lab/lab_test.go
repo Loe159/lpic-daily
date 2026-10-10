@@ -849,3 +849,25 @@ func TestBuiltinGRUBConsoleRequiresTemporaryBootAndUnmodifiedConfig(t *testing.T
 		t.Fatal("GRUB lab missing serial-menu window, immutable config evidence, or manual procedure")
 	}
 }
+
+func TestBuiltinGRUBLegacyMigrationRetainsHistoricArchive(t *testing.T) {
+	authored := loadBuiltinLab(t, "lpic1.102.2.grub-legacy-migration-recovery")
+	definition, err := authored.RunnerDefinition()
+	if err != nil { t.Fatal(err) }
+	if definition.Machine == nil || authored.Definition.Environment.Backend != "libvirt" {
+		t.Fatalf("legacy GRUB migration needs full VM: %#v", authored.Definition.Environment)
+	}
+	if len(authored.Definition.Checks) != 3 || len(authored.Hints) != 4 {
+		t.Fatalf("incomplete GRUB migration: %d checks %d hints", len(authored.Definition.Checks), len(authored.Hints))
+	}
+	for _, check := range authored.Definition.Checks {
+		if !slices.Contains(check.ConceptIDs, "lpic1.102.2.grub-legacy-versus-grub-2") {
+			t.Fatalf("unmapped legacy GRUB check: %#v", check)
+		}
+	}
+	for _, marker := range []string{"menu.lst", "root (hd0,0)", "kernel /vmlinuz-", "sha256sum", "grub2-set-default"} {
+		if !strings.Contains(authored.SetupScript, marker) {
+			t.Errorf("setup missing historic GRUB evidence %q", marker)
+		}
+	}
+}
