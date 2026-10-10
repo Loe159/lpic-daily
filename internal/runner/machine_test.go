@@ -32,6 +32,11 @@ func TestMachineDefinitionValidation(t *testing.T) {
 
 	badBus := valid
 	badBus.ExtraDisks = []runner.VirtualDisk{{ID: "archive", SizeMB: 256, Bus: "nvme"}}
+	usb := valid
+	usb.ExtraDisks = []runner.VirtualDisk{{ID: "rescue", SizeMB: 256, Bus: runner.VirtualDiskBusUSB}}
+	if err := usb.Validate(); err != nil {
+		t.Fatalf("USB scratch disk rejected: %v", err)
+	}
 	if err := badBus.Validate(); err == nil {
 		t.Fatal("unsupported NVMe bus unexpectedly accepted")
 	}

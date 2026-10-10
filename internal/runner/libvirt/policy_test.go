@@ -270,11 +270,41 @@ func TestBuildDomainXMLSupportsMixedVirtioAndSATAExtraDisks(t *testing.T) {
 	var parsed domainXML
 	if err := xml.Unmarshal([]byte(payload), &parsed); err != nil { t.Fatal(err) }
 	if len(parsed.Devices.Disks) != 3 { t.Fatalf("disk count=%d", len(parsed.Devices.Disks)) }
-	for _, badBus := range []runner.VirtualDiskBus{"usb", "nvme", "scsi"} {
+	for _, badBus := range []runner.VirtualDiskBus{"nvme", "scsi", "hostdev"} {
 		invalid := spec
 		invalid.ExtraDisks = []DiskPath{{ID: "bad", Path: filepath.Join(stateRoot, "bad.qcow2"), Bus: badBus}}
 		if _, err := BuildDomainXML(invalid, stateRoot); err == nil {
 			t.Errorf("bus %q unexpectedly accepted", badBus)
 		}
 	}
+}
+
+func TestBuildDomainXMLCreatesPrivateUSBControllerAndDisk(t *testing.T) {
+	root := filepath.Join(t.TempDir(), "state")
+	spec := DomainSpec{
+		Name: "lpic-daily-usb-incident", LabID: "lpic1.101.1.usb",
+		OwnerScope: testManagedOwnerScope, MemoryMB: 1024, CPUPercent: 100,
+		Firmware: runner.FirmwareUEFI, RootDiskPath: filepath.Join(root, "root.qcow2"),
+		ExtraDisks: []DiskPath{
+			{ID: "media", Path: filepath.Join(root, "media.qcow2"), Bus: runner.VirtualDiskBusUSB},
+			{ID: "sata", Path: filepath.Join(root, "sata.qcow2"), Bus: runner.VirtualDiskBusSATA},
+			{ID: "virtio", Path: filepath.Join(root, "virtio.qcow2")},
+		},
+	}
+	payload, err := BuildDomainXML(spec, root)
+	if err != nil { t.Fatal(err) }
+	for _, expected := range []string{
+		`<controller type="usb" index="0" model="qemu-xhci"></controller>`,
+		`<target dev="sda" bus="usb"></target>`,
+		`<target dev="sdb" bus="sata"></target>`,
+		`<target dev="vdb" bus="virtio"></target>`,
+	} {
+		if !strings.Contains(payload, expected) { t.Errorf("missing %q", expected) }
+	}
+	for _, forbidden := range []string{"<hostdev", "<redirdev", "qemu:commandline", "<filesystem"} {
+		if strings.Contains(payload, forbidden) { t.Errorf("unsafe XML element %q", forbidden) }
+	}
+	var parsed domainXML
+	if err := xml.Unmarshal([]byte(payload), &parsed); err != nil { t.Fatal(err) }
+	if len(parsed.Devices.Controllers) != 1 { t.Errorf("USB controllers=%d, want 1", len(parsed.Devices.Controllers)) }
 }

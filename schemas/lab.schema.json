@@ -151,7 +151,8 @@
                   "bus": {
                     "enum": [
                       "virtio",
-                      "sata"
+                      "sata",
+                      "usb"
                     ]
                   }
                 }

@@ -34,6 +34,7 @@ type VirtualDiskBus string
 const (
 	VirtualDiskBusVirtio VirtualDiskBus = "virtio"
 	VirtualDiskBusSATA   VirtualDiskBus = "sata"
+	VirtualDiskBusUSB    VirtualDiskBus = "usb"
 )
 
 type VirtualDisk struct {
@@ -66,8 +67,8 @@ func (machine MachineDefinition) Validate() error {
 		if disk.SizeMB < 64 || disk.SizeMB > 8192 {
 			return errors.New("extra disk size must be between 64 and 8192 MiB")
 		}
-		if disk.Bus != "" && disk.Bus != VirtualDiskBusVirtio && disk.Bus != VirtualDiskBusSATA {
-			return errors.New("extra disk bus must be virtio or sata")
+		if disk.Bus != "" && disk.Bus != VirtualDiskBusVirtio && disk.Bus != VirtualDiskBusSATA && disk.Bus != VirtualDiskBusUSB {
+			return errors.New("extra disk bus must be virtio, sata or usb")
 		}
 	}
 	return nil

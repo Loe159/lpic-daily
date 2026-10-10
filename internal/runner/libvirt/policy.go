@@ -144,7 +144,7 @@ func (spec DomainSpec) Validate(stateRoot string) error {
 		if err := pathWithinRoot(stateRoot, disk.Path); err != nil {
 			return fmt.Errorf("disk %s: %w", disk.ID, err)
 		}
-		if disk.Bus != "" && disk.Bus != runner.VirtualDiskBusVirtio && disk.Bus != runner.VirtualDiskBusSATA {
+		if disk.Bus != "" && disk.Bus != runner.VirtualDiskBusVirtio && disk.Bus != runner.VirtualDiskBusSATA && disk.Bus != runner.VirtualDiskBusUSB {
 			return fmt.Errorf("disk %s: unsupported bus %q", disk.ID, disk.Bus)
 		}
 	}
@@ -313,11 +313,18 @@ type featuresXML struct {
 }
 
 type devicesXML struct {
-	Disks      []diskXML      `xml:"disk"`
+	Disks      []diskXML       `xml:"disk"`
+	Controllers []controllerXML `xml:"controller,omitempty"`
 	Interfaces []interfaceXML `xml:"interface,omitempty"`
 	Channels   []channelXML   `xml:"channel,omitempty"`
 	Serial     serialXML      `xml:"serial"`
 	Console    consoleXML     `xml:"console"`
+}
+
+type controllerXML struct {
+	Type  string `xml:"type,attr"`
+	Index int    `xml:"index,attr"`
+	Model string `xml:"model,attr"`
 }
 
 type diskXML struct {
@@ -432,7 +439,7 @@ func BuildDomainXML(spec DomainSpec, stateRoot string) (string, error) {
 		Source: diskSourceXML{File: filepath.Clean(spec.RootDiskPath)},
 		Target: diskTargetXML{Dev: "vda", Bus: "virtio"},
 	})
-	virtioIndex, sataIndex := 1, 0 // vda is reserved for the OS; SATA starts at sda.
+	virtioIndex, sdIndex := 1, 0 // vda is reserved for the OS; SATA/USB share sdX names.
 	for _, disk := range spec.ExtraDisks {
 		bus := disk.Bus
 		if bus == "" {
@@ -443,9 +450,12 @@ func BuildDomainXML(spec DomainSpec, stateRoot string) (string, error) {
 		case runner.VirtualDiskBusVirtio:
 			device = "vd" + string(rune('a'+virtioIndex))
 			virtioIndex++
-		case runner.VirtualDiskBusSATA:
-			device = "sd" + string(rune('a'+sataIndex))
-			sataIndex++
+		case runner.VirtualDiskBusSATA, runner.VirtualDiskBusUSB:
+			device = "sd" + string(rune('a'+sdIndex))
+			sdIndex++
+			if bus == runner.VirtualDiskBusUSB && len(doc.Devices.Controllers) == 0 {
+				doc.Devices.Controllers = append(doc.Devices.Controllers, controllerXML{Type: "usb", Index: 0, Model: "qemu-xhci"})
+			}
 		}
 		doc.Devices.Disks = append(doc.Devices.Disks, diskXML{
 			Type:   "file",
