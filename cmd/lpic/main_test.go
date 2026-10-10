@@ -1249,7 +1249,7 @@ func TestInteractiveVMLabDispatchesACPIButtonCommand(t *testing.T) {
 	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
 	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
 	if err != nil { t.Fatalf("LoadAll: %v", err) }
-	authored, err := findLab(labs, "lpic1.102.2.grub-kernel-parameter")
+	authored, err := findLab(labs, "lpic1.101.3.acpi-power-event-audit-recovery")
 	if err != nil { t.Fatalf("findLab: %v", err) }
 	fake := &acpiScriptedLabRunner{}
 	var stdout, stderr bytes.Buffer
@@ -1265,7 +1265,7 @@ func TestInteractiveVMLabDispatchesBootMenuWithoutBlocking(t *testing.T) {
 	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
 	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
 	if err != nil { t.Fatal(err) }
-	authored, err := findLab(labs, "lpic1.102.2.grub-kernel-parameter")
+	authored, err := findLab(labs, "lpic1.102.2.grub-serial-one-time-diagnostics")
 	if err != nil { t.Fatal(err) }
 	fake := &bootMenuScriptedLabRunner{}
 	var out, errs bytes.Buffer
@@ -1276,5 +1276,26 @@ func TestInteractiveVMLabDispatchesBootMenuWithoutBlocking(t *testing.T) {
 	if fake.bootMenuCalls != 1 { t.Fatalf("boot-menu dispatch count %d", fake.bootMenuCalls) }
 	if !strings.Contains(out.String(), ":console") {
 		t.Fatalf("boot-menu guidance absent: %q", out.String())
+	}
+}
+
+func TestInteractiveVMLabGuardsPrivilegedACPIAndBootMenuActions(t *testing.T) {
+	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil { t.Fatal(err) }
+	authored, err := findLab(labs, "lpic1.102.2.grub-kernel-parameter")
+	if err != nil { t.Fatal(err) }
+	fake := &bootMenuScriptedLabRunner{}
+	var out, errs bytes.Buffer
+	if err := runInteractiveLabWithBackend(context.Background(), authored, fake, false,
+		strings.NewReader(":boot-menu\n:acpi-power\n:quit\n"), &out, &errs); err != nil {
+		t.Fatalf("unsafe command guard: %v (stderr=%q)", err, errs.String())
+	}
+	if fake.bootMenuCalls != 0 {
+		t.Fatal("non-GRUB lab initiated a boot-menu reboot")
+	}
+	if !strings.Contains(out.String(), "aucun redémarrage envoyé") ||
+		!strings.Contains(out.String(), "aucun événement envoyé") {
+		t.Fatalf("no visible guard explanation: %q", out.String())
 	}
 }

@@ -1642,6 +1642,10 @@ func runInteractiveLabWithBackend(
 			fmt.Fprintln(stdout, "\n[retour LPIC Daily]")
 			continue
 		case ":acpi-power":
+			if authored.Definition.ID != "lpic1.101.3.acpi-power-event-audit-recovery" {
+				fmt.Fprintln(stdout, "Commande réservée au lab ACPI : aucun événement envoyé à cette VM.")
+				continue
+			}
 			if persistentShell {
 				fmt.Fprintln(stdout, "Les événements ACPI sont réservés aux labs VM.")
 				continue
@@ -1657,6 +1661,10 @@ func runInteractiveLabWithBackend(
 			fmt.Fprintln(stdout, "Bouton d'alimentation ACPI envoyé à la VM. Contrôle l'événement dans le système invité.")
 			continue
 		case ":boot-menu":
+			if authored.Definition.ID != "lpic1.102.2.grub-serial-one-time-diagnostics" {
+				fmt.Fprintln(stdout, "Commande réservée au lab GRUB interactif : aucun redémarrage envoyé.")
+				continue
+			}
 			if persistentShell {
 				fmt.Fprintln(stdout, "L'accès au menu de démarrage est réservé aux labs VM.")
 				continue
