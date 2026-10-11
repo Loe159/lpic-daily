@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
+# Report the failing setup line from disposable guests without exposing secrets.
+trap 'rc=$?; printf "Lab setup failed at line %s (exit=%s)\n" "$LINENO" "$rc" >&2' ERR
 test -d /run/systemd/system
 systemctl is-active --quiet qemu-guest-agent.service
 command -v crond >/dev/null
