@@ -1657,7 +1657,9 @@ func runInteractiveLabWithBackend(
 			buttonCtx, cancelButton := context.WithTimeout(sessionCtx, operationTimeout)
 			err := button.PressPowerButton(buttonCtx, session.Instance)
 			cancelButton()
-			if err != nil { return fmt.Errorf("send VM ACPI power button: %w", err) }
+			if err != nil {
+				return fmt.Errorf("send VM ACPI power button: %w", err)
+			}
 			fmt.Fprintln(stdout, "Bouton d'alimentation ACPI envoyé à la VM. Contrôle l'événement dans le système invité.")
 			continue
 		case ":boot-menu":
@@ -1676,7 +1678,9 @@ func runInteractiveLabWithBackend(
 			bootCtx, cancelBoot := context.WithTimeout(sessionCtx, operationTimeout)
 			err := boot.RebootToBootMenu(bootCtx, session.Instance)
 			cancelBoot()
-			if err != nil { return fmt.Errorf("reboot VM for GRUB menu: %w", err) }
+			if err != nil {
+				return fmt.Errorf("reboot VM for GRUB menu: %w", err)
+			}
 			fmt.Fprintln(stdout, "Redémarrage demandé sans attendre le système invité. Saisis immédiatement :console pour accéder à GRUB.")
 			continue
 		case ":reboot":
