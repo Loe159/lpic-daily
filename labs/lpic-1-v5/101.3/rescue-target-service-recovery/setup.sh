@@ -4,7 +4,7 @@ set -euo pipefail
 trap 'rc=$?; printf "Lab setup failed at line %s (exit=%s)\n" "$LINENO" "$rc" >&2' ERR
 test -d /run/systemd/system
 systemctl is-active --quiet qemu-guest-agent.service
-command -v crond >/dev/null
+command -v crond >/dev/null || { echo "Missing guest command: crond (rebuild the Fedora LPIC VM image)" >&2; exit 1; }
 systemctl cat rescue.target >/dev/null
 systemctl cat multi-user.target >/dev/null
 
