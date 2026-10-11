@@ -12,4 +12,3 @@ if LC_ALL=C ln /workspace/releases/app-v2.conf /dev/shm/lpic-cross-fs-link 2> /w
 fi
 grep -Fq 'Invalid cross-device link' /workspace/.cross-fs-error
 rm -f /workspace/.cross-fs-error
-printf 'directory-hardlink=rejected\ncross-filesystem-hardlink=rejected\n' > /workspace/limitations.txt
