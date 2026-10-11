@@ -61,7 +61,7 @@
       "argv": [
         "/usr/bin/bash",
         "-lc",
-        "set -euo pipefail; ! efibootmgr | grep -q '^BootNext:'; test \"$(efibootmgr | grep -Ec '^Boot[[:xdigit:]]{4}\\*?[[:space:]]+LPIC-primary[[:space:]]*$')\" = 1; test \"$(efibootmgr | grep -Ec '^Boot[[:xdigit:]]{4}\\*?[[:space:]]+LPIC-rescue[[:space:]]*$')\" = 1; sha256sum --status -c /var/lib/lpic-daily/uefi-boot-order/loaders.sha256"
+        "set -euo pipefail; ! efibootmgr | grep -q '^BootNext:'; test \"$(efibootmgr | grep -Ec '^Boot[[:xdigit:]]{4}\\*?[[:space:]]+LPIC-primary([[:space:]]|$)')\" = 1; test \"$(efibootmgr | grep -Ec '^Boot[[:xdigit:]]{4}\\*?[[:space:]]+LPIC-rescue([[:space:]]|$)')\" = 1; sha256sum --status -c /var/lib/lpic-daily/uefi-boot-order/loaders.sha256"
       ],
       "expected_exit": 0,
       "concept_ids": [
