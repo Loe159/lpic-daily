@@ -100,6 +100,7 @@ EOF""",
     if recipe == "fedora-cloud-v2":
         expected_distribution = "fedora"
         commands = [
+            'for tool in lspci lsusb acpid crond efibootmgr; do command -v "$tool" >/dev/null || { echo "Fedora VM image missing required command: $tool" >&2; exit 1; }; done',
             "grubby --update-kernel=ALL --args='console=tty0 console=ttyS0,115200n8'",
             "sed -i '/^GRUB_TERMINAL_INPUT=/d; /^GRUB_TERMINAL_OUTPUT=/d; /^GRUB_SERIAL_COMMAND=/d; /^GRUB_TIMEOUT_STYLE=/d; /^GRUB_TIMEOUT=/d' /etc/default/grub",
             """printf '%s\n' 'GRUB_TERMINAL_INPUT="console serial"' 'GRUB_TERMINAL_OUTPUT="console serial"' 'GRUB_SERIAL_COMMAND="serial --unit=0 --speed=115200 --word=8 --parity=no --stop=1"' 'GRUB_TIMEOUT_STYLE="menu"' 'GRUB_TIMEOUT="5"' >> /etc/default/grub""",
