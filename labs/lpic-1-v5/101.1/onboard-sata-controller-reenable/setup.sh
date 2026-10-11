@@ -2,7 +2,12 @@
 set -euo pipefail
 # Report the failing setup line from disposable guests without exposing secrets.
 trap 'rc=$?; printf "Lab setup failed at line %s (exit=%s)\n" "$LINENO" "$rc" >&2' ERR
-for tool in lspci lsblk blkid mkfs.ext4 mount umount udevadm; do command -v "$tool" >/dev/null; done
+for tool in lspci lsblk blkid mkfs.ext4 mount umount udevadm; do
+  if ! command -v "$tool" >/dev/null 2>&1; then
+    printf "Missing guest command: %s (rebuild the Fedora LPIC VM image)\n" "$tool" >&2
+    exit 1
+  fi
+done
 test -b /dev/vda
 test -b /dev/sda
 install -d -m 0755 /var/lib/lpic-onboard-sata /srv/lpic-onboard-archive /mnt/lpic-onboard-stage
