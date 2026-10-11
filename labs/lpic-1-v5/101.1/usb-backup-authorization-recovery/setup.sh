@@ -2,7 +2,12 @@
 set -euo pipefail
 # Report the failing setup line from disposable guests without exposing secrets.
 trap 'rc=$?; printf "Lab setup failed at line %s (exit=%s)\n" "$LINENO" "$rc" >&2' ERR
-for tool in lsusb lspci udevadm lsblk blkid mkfs.ext4; do command -v "$tool" >/dev/null; done
+for tool in lsusb lspci udevadm lsblk blkid mkfs.ext4; do
+  if ! command -v "$tool" >/dev/null 2>&1; then
+    printf "Missing guest command: %s (rebuild the Fedora LPIC VM image)\n" "$tool" >&2
+    exit 1
+  fi
+done
 test -b /dev/sda
 test "$(lsblk -dn -o TRAN /dev/sda)" = usb
 
