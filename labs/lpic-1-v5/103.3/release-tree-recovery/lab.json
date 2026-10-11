@@ -107,6 +107,19 @@
       "concept_ids": [
         "lpic1.103.3.creation-copie-deplacement-suppression"
       ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -e; src=/workspace/source/app/bin/deploy.sh; dest=/workspace/release/app/bin/deploy.sh; test \"$(stat -c %Y \"$dest\")\" = \"$(stat -c %Y \"$src\")\"; test \"$(stat -c %a \"$dest\")\" = \"$(stat -c %a \"$src\")\"; cmp -s \"$src\" \"$dest\""
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.3.creation-copie-deplacement-suppression",
+        "lpic1.103.3.recherche-par-metadonnees"
+      ]
     }
   ],
   "hint_ids": [

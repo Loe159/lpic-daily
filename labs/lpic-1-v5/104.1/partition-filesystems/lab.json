@@ -82,6 +82,19 @@
         "lpic1.104.1.swap",
         "lpic1.104.1.creation-de-filesystem"
       ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -e; data=$(blockdev --getsize64 /dev/vdb1); swap=$(blockdev --getsize64 /dev/vdb2); test \"$data\" -ge 367001600; test \"$data\" -le 429916160; test \"$swap\" -ge 100663296; test \"$(lsblk -dn -o PKNAME /dev/vdb1)\" = vdb; test \"$(lsblk -dn -o PKNAME /dev/vdb2)\" = vdb"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.1.creation-modification-de-partitions",
+        "lpic1.104.1.swap"
+      ]
     }
   ],
   "hint_ids": [

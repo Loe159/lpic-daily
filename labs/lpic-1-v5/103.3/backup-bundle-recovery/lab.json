@@ -8,7 +8,8 @@
     "config.cpio contient les mêmes deux fichiers.",
     "disk-slice.copy est identique octet pour octet à disk-slice.bin.",
     "payload.gz, payload.bz2 et payload.xz ont les formats réellement attendus.",
-    "recovered.txt contient release-one, release-two et release-three dans cet ordre."
+    "recovered.txt contient release-one, release-two et release-three dans cet ordre.",
+    "Les contenus extraits des archives tar et cpio sont identiques aux fichiers sources, et non seulement les noms d'entrées."
   ],
   "debrief_fr": "tar et cpio créent des archives avec des formats différents. dd réalise une copie bas niveau sans interpréter le contenu. file permet d’identifier un format par signature plutôt que par extension. gzip/bzip2/xz et leurs outils de lecture ou décompression permettent ensuite de restaurer les payloads.",
   "objective_ids": [
@@ -53,7 +54,7 @@
       "argv": [
         "/usr/bin/bash",
         "-lc",
-        "tar -tf /workspace/output/config.tar | grep -qx 'config/a.conf' && tar -tf /workspace/output/config.tar | grep -qx 'config/b.conf'"
+        "tar -tf /workspace/output/config.tar | grep -qx 'config/a.conf' && tar -tf /workspace/output/config.tar | grep -qx 'config/b.conf' && tar -xOf /workspace/output/config.tar config/a.conf | cmp -s - /workspace/input/config/a.conf && tar -xOf /workspace/output/config.tar config/b.conf | cmp -s - /workspace/input/config/b.conf"
       ],
       "expected_exit": 0,
       "concept_ids": [
@@ -65,7 +66,7 @@
       "argv": [
         "/usr/bin/bash",
         "-lc",
-        "cpio -it < /workspace/output/config.cpio 2>/dev/null | grep -qx 'config/a.conf' && cpio -it < /workspace/output/config.cpio 2>/dev/null | grep -qx 'config/b.conf'"
+        "cpio -it < /workspace/output/config.cpio 2>/dev/null | grep -qx 'config/a.conf' && cpio -it < /workspace/output/config.cpio 2>/dev/null | grep -qx 'config/b.conf' && cpio -i --to-stdout config/a.conf < /workspace/output/config.cpio 2>/dev/null | cmp -s - /workspace/input/config/a.conf && cpio -i --to-stdout config/b.conf < /workspace/output/config.cpio 2>/dev/null | cmp -s - /workspace/input/config/b.conf"
       ],
       "expected_exit": 0,
       "concept_ids": [
