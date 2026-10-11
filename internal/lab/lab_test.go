@@ -761,7 +761,9 @@ func TestBuiltinUSBAuthorizationRecoveryUsesVirtualUSBTransport(t *testing.T) {
 func TestBuiltinRescueTargetRecoveryRequiresRealSystemdTargets(t *testing.T) {
 	authored := loadBuiltinLab(t, "lpic1.101.3.rescue-target-service-recovery")
 	definition, err := authored.RunnerDefinition()
-	if err != nil { t.Fatalf("RunnerDefinition: %v", err) }
+	if err != nil {
+		t.Fatalf("RunnerDefinition: %v", err)
+	}
 	if definition.Machine == nil || authored.Definition.Environment.Backend != "libvirt" {
 		t.Fatalf("rescue needs isolated full VM, got %#v", authored.Definition.Environment)
 	}
@@ -783,7 +785,9 @@ func TestBuiltinRescueTargetRecoveryRequiresRealSystemdTargets(t *testing.T) {
 func TestBuiltinACPIAuditRequiresRealVMEvent(t *testing.T) {
 	authored := loadBuiltinLab(t, "lpic1.101.3.acpi-power-event-audit-recovery")
 	definition, err := authored.RunnerDefinition()
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
 	if definition.Machine == nil || authored.Definition.Environment.Backend != "libvirt" {
 		t.Fatalf("ACPI lab requires disposable VM: %#v", authored.Definition.Environment)
 	}
@@ -805,7 +809,9 @@ func TestBuiltinACPIAuditRequiresRealVMEvent(t *testing.T) {
 func TestBuiltinLegacyInitServiceMigrationPreservesArchive(t *testing.T) {
 	authored := loadBuiltinLab(t, "lpic1.101.2.legacy-init-service-migration")
 	definition, err := authored.RunnerDefinition()
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
 	if definition.Machine == nil || authored.Definition.Environment.Backend != "libvirt" {
 		t.Fatalf("systemd integration requires actual isolated VM: %#v", authored.Definition.Environment)
 	}
@@ -827,7 +833,9 @@ func TestBuiltinLegacyInitServiceMigrationPreservesArchive(t *testing.T) {
 func TestBuiltinGRUBConsoleRequiresTemporaryBootAndUnmodifiedConfig(t *testing.T) {
 	authored := loadBuiltinLab(t, "lpic1.102.2.grub-serial-one-time-diagnostics")
 	definition, err := authored.RunnerDefinition()
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
 	if definition.Machine == nil || authored.Definition.Environment.Backend != "libvirt" {
 		t.Fatalf("GRUB console lab needs a disposable full VM: %#v", authored.Definition.Environment)
 	}
@@ -835,12 +843,18 @@ func TestBuiltinGRUBConsoleRequiresTemporaryBootAndUnmodifiedConfig(t *testing.T
 		t.Fatalf("incomplete GRUB console lab: %d checks %d hints", len(authored.Definition.Checks), len(authored.Hints))
 	}
 	for _, cid := range []string{"lpic1.101.2.commandes-du-chargeur-de-demarrage", "lpic1.102.2.interaction-au-menu-console-grub"} {
-		if !slices.Contains(authored.Definition.ConceptIDs, cid) { t.Fatalf("missing concept %s", cid) }
+		if !slices.Contains(authored.Definition.ConceptIDs, cid) {
+			t.Fatalf("missing concept %s", cid)
+		}
 		mapped := false
 		for _, check := range authored.Definition.Checks {
-			if slices.Contains(check.ConceptIDs, cid) { mapped = true }
+			if slices.Contains(check.ConceptIDs, cid) {
+				mapped = true
+			}
 		}
-		if !mapped { t.Fatalf("no state check for %s", cid) }
+		if !mapped {
+			t.Fatalf("no state check for %s", cid)
+		}
 	}
 	if !strings.Contains(authored.SetupScript, "GRUB_TIMEOUT=90") ||
 		!strings.Contains(authored.SetupScript, "preserved-boot-config.sha256") ||
@@ -853,7 +867,9 @@ func TestBuiltinGRUBConsoleRequiresTemporaryBootAndUnmodifiedConfig(t *testing.T
 func TestBuiltinGRUBLegacyMigrationRetainsHistoricArchive(t *testing.T) {
 	authored := loadBuiltinLab(t, "lpic1.102.2.grub-legacy-migration-recovery")
 	definition, err := authored.RunnerDefinition()
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
 	if definition.Machine == nil || authored.Definition.Environment.Backend != "libvirt" {
 		t.Fatalf("legacy GRUB migration needs full VM: %#v", authored.Definition.Environment)
 	}
@@ -875,7 +891,9 @@ func TestBuiltinGRUBLegacyMigrationRetainsHistoricArchive(t *testing.T) {
 func TestBuiltinOnboardSATAControllerReenableUsesRealPCI(t *testing.T) {
 	authored := loadBuiltinLab(t, "lpic1.101.1.onboard-sata-controller-reenable")
 	definition, err := authored.RunnerDefinition()
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
 	if definition.Machine == nil || len(definition.Machine.ExtraDisks) != 1 {
 		t.Fatalf("expected isolated SATA controller and guest-only disk: %#v", definition.Machine)
 	}
@@ -891,6 +909,8 @@ func TestBuiltinOnboardSATAControllerReenableUsesRealPCI(t *testing.T) {
 		}
 	}
 	for _, marker := range []string{"/sys/bus/pci/drivers/ahci/unbind", "readlink -f", "udevadm settle", "mkfs.ext4"} {
-		if !strings.Contains(authored.SetupScript, marker) { t.Errorf("missing physical PCI state evidence %q", marker) }
+		if !strings.Contains(authored.SetupScript, marker) {
+			t.Errorf("missing physical PCI state evidence %q", marker)
+		}
 	}
 }

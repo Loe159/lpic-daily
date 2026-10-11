@@ -259,17 +259,25 @@ func TestBuildDomainXMLSupportsMixedVirtioAndSATAExtraDisks(t *testing.T) {
 		},
 	}
 	payload, err := BuildDomainXML(spec, stateRoot)
-	if err != nil { t.Fatalf("BuildDomainXML(mixed disks): %v", err) }
+	if err != nil {
+		t.Fatalf("BuildDomainXML(mixed disks): %v", err)
+	}
 	for _, expected := range []string{
 		`<target dev="vda" bus="virtio"></target>`,
 		`<target dev="sda" bus="sata"></target>`,
 		`<target dev="vdb" bus="virtio"></target>`,
 	} {
-		if !strings.Contains(payload, expected) { t.Fatalf("missing %s in %s", expected, payload) }
+		if !strings.Contains(payload, expected) {
+			t.Fatalf("missing %s in %s", expected, payload)
+		}
 	}
 	var parsed domainXML
-	if err := xml.Unmarshal([]byte(payload), &parsed); err != nil { t.Fatal(err) }
-	if len(parsed.Devices.Disks) != 3 { t.Fatalf("disk count=%d", len(parsed.Devices.Disks)) }
+	if err := xml.Unmarshal([]byte(payload), &parsed); err != nil {
+		t.Fatal(err)
+	}
+	if len(parsed.Devices.Disks) != 3 {
+		t.Fatalf("disk count=%d", len(parsed.Devices.Disks))
+	}
 	for _, badBus := range []runner.VirtualDiskBus{"nvme", "scsi", "hostdev"} {
 		invalid := spec
 		invalid.ExtraDisks = []DiskPath{{ID: "bad", Path: filepath.Join(stateRoot, "bad.qcow2"), Bus: badBus}}
@@ -292,19 +300,29 @@ func TestBuildDomainXMLCreatesPrivateUSBControllerAndDisk(t *testing.T) {
 		},
 	}
 	payload, err := BuildDomainXML(spec, root)
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
 	for _, expected := range []string{
 		`<controller type="usb" index="0" model="qemu-xhci"></controller>`,
 		`<target dev="sda" bus="usb"></target>`,
 		`<target dev="sdb" bus="sata"></target>`,
 		`<target dev="vdb" bus="virtio"></target>`,
 	} {
-		if !strings.Contains(payload, expected) { t.Errorf("missing %q", expected) }
+		if !strings.Contains(payload, expected) {
+			t.Errorf("missing %q", expected)
+		}
 	}
 	for _, forbidden := range []string{"<hostdev", "<redirdev", "qemu:commandline", "<filesystem"} {
-		if strings.Contains(payload, forbidden) { t.Errorf("unsafe XML element %q", forbidden) }
+		if strings.Contains(payload, forbidden) {
+			t.Errorf("unsafe XML element %q", forbidden)
+		}
 	}
 	var parsed domainXML
-	if err := xml.Unmarshal([]byte(payload), &parsed); err != nil { t.Fatal(err) }
-	if len(parsed.Devices.Controllers) != 1 { t.Errorf("USB controllers=%d, want 1", len(parsed.Devices.Controllers)) }
+	if err := xml.Unmarshal([]byte(payload), &parsed); err != nil {
+		t.Fatal(err)
+	}
+	if len(parsed.Devices.Controllers) != 1 {
+		t.Errorf("USB controllers=%d, want 1", len(parsed.Devices.Controllers))
+	}
 }

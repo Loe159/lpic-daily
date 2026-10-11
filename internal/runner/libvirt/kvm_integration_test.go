@@ -655,16 +655,16 @@ func TestRealKVMPhase2ReferenceLabs(t *testing.T) {
 		t.Fatalf("LoadAll() error = %v", err)
 	}
 	wanted := map[string]string{
-		"lpic1.101.1.onboard-sata-controller-reenable": "labs/lpic-1-v5/101.1/onboard-sata-controller-reenable/reference-solution.sh",
-		"lpic1.101.2.uefi-boot-order-recovery": "labs/lpic-1-v5/101.2/uefi-boot-order-recovery/reference-solution.sh",
-		"lpic1.102.2.grub-legacy-migration-recovery": "labs/lpic-1-v5/102.2/grub-legacy-migration-recovery/reference-solution.sh",
-		"lpic1.101.2.legacy-init-service-migration": "labs/lpic-1-v5/101.2/legacy-init-service-migration/reference-solution.sh",
-		"lpic1.101.1.storage-bus-archive-recovery": "labs/lpic-1-v5/101.1/storage-bus-archive-recovery/reference-solution.sh",
+		"lpic1.101.1.onboard-sata-controller-reenable":  "labs/lpic-1-v5/101.1/onboard-sata-controller-reenable/reference-solution.sh",
+		"lpic1.101.2.uefi-boot-order-recovery":          "labs/lpic-1-v5/101.2/uefi-boot-order-recovery/reference-solution.sh",
+		"lpic1.102.2.grub-legacy-migration-recovery":    "labs/lpic-1-v5/102.2/grub-legacy-migration-recovery/reference-solution.sh",
+		"lpic1.101.2.legacy-init-service-migration":     "labs/lpic-1-v5/101.2/legacy-init-service-migration/reference-solution.sh",
+		"lpic1.101.1.storage-bus-archive-recovery":      "labs/lpic-1-v5/101.1/storage-bus-archive-recovery/reference-solution.sh",
 		"lpic1.101.1.usb-backup-authorization-recovery": "labs/lpic-1-v5/101.1/usb-backup-authorization-recovery/reference-solution.sh",
-		"lpic1.101.3.rescue-target-service-recovery": "labs/lpic-1-v5/101.3/rescue-target-service-recovery/reference-solution.sh",
-		"lpic1.101.3.acpi-power-event-audit-recovery": "labs/lpic-1-v5/101.3/acpi-power-event-audit-recovery/reference-solution.sh",
-		"lpic1.104.1.partition-filesystems": "labs/lpic-1-v5/104.1/partition-filesystems/reference-solution.sh",
-		"lpic1.102.2.grub-kernel-parameter": "labs/lpic-1-v5/102.2/grub-kernel-parameter/reference-solution.sh",
+		"lpic1.101.3.rescue-target-service-recovery":    "labs/lpic-1-v5/101.3/rescue-target-service-recovery/reference-solution.sh",
+		"lpic1.101.3.acpi-power-event-audit-recovery":   "labs/lpic-1-v5/101.3/acpi-power-event-audit-recovery/reference-solution.sh",
+		"lpic1.104.1.partition-filesystems":             "labs/lpic-1-v5/104.1/partition-filesystems/reference-solution.sh",
+		"lpic1.102.2.grub-kernel-parameter":             "labs/lpic-1-v5/102.2/grub-kernel-parameter/reference-solution.sh",
 	}
 	found := map[string]bool{}
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Minute)
@@ -696,7 +696,7 @@ func TestRealKVMPhase2ReferenceLabs(t *testing.T) {
 
 			assertPhase2LabNotSolved(t, ctx, session)
 			runPhase2ReferenceSolution(t, ctx, backend, session.Instance, solution)
-			if (authored.Definition.ID == "lpic1.102.2.grub-kernel-parameter" || authored.Definition.ID == "lpic1.102.2.grub-legacy-migration-recovery") {
+			if authored.Definition.ID == "lpic1.102.2.grub-kernel-parameter" || authored.Definition.ID == "lpic1.102.2.grub-legacy-migration-recovery" {
 				if err := backend.Reboot(ctx, session.Instance); err != nil {
 					t.Fatalf("Reboot() error = %v", err)
 				}
@@ -713,7 +713,7 @@ func TestRealKVMPhase2ReferenceLabs(t *testing.T) {
 			}
 			assertPhase2LabNotSolved(t, ctx, session)
 			runPhase2ReferenceSolution(t, ctx, backend, session.Instance, solution)
-			if (authored.Definition.ID == "lpic1.102.2.grub-kernel-parameter" || authored.Definition.ID == "lpic1.102.2.grub-legacy-migration-recovery") {
+			if authored.Definition.ID == "lpic1.102.2.grub-kernel-parameter" || authored.Definition.ID == "lpic1.102.2.grub-legacy-migration-recovery" {
 				if err := backend.Reboot(ctx, session.Instance); err != nil {
 					t.Fatalf("Reboot() after reset error = %v", err)
 				}
@@ -802,11 +802,15 @@ func waitForPhase2LabSolved(t *testing.T, ctx context.Context, session *lab.Sess
 					lastDetail = fmt.Sprintf("%s: %s (%v)", result.CheckID, result.Detail, result.Err)
 				}
 			}
-			if allPassed { return }
+			if allPassed {
+				return
+			}
 		} else if err != nil {
 			lastDetail = err.Error()
 		}
-		if ctx.Err() != nil { t.Fatalf("KVM lab deadline exceeded: %v", ctx.Err()) }
+		if ctx.Err() != nil {
+			t.Fatalf("KVM lab deadline exceeded: %v", ctx.Err())
+		}
 		time.Sleep(300 * time.Millisecond)
 	}
 	t.Fatalf("KVM lab checks remained red after reference solution and required host actions: %s", lastDetail)

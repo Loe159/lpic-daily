@@ -90,7 +90,9 @@ func (fake *fakeControlPlane) RebootDomain(name string) error {
 	return nil
 }
 func (fake *fakeControlPlane) PressACPIButtonDomain(name string) error {
-	if !fake.active[name] { return errors.New("domain not active") }
+	if !fake.active[name] {
+		return errors.New("domain not active")
+	}
 	fake.acpiButtons++
 	return nil
 }
@@ -1137,34 +1139,52 @@ func TestPrepareUSBExtraDiskUsesPrivateEmulatedController(t *testing.T) {
 func TestPressPowerButtonRequiresOwnedActiveVM(t *testing.T) {
 	backend, control, _, definition := backendFixture(t)
 	instance, err := backend.Prepare(context.Background(), definition)
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
 	if err := backend.PressPowerButton(context.Background(), instance); err == nil {
 		t.Fatal("inactive guest accepted ACPI button")
 	}
-	if err := backend.Start(context.Background(), instance); err != nil { t.Fatal(err) }
-	if err := backend.PressPowerButton(context.Background(), instance); err != nil { t.Fatal(err) }
-	if control.acpiButtons != 1 { t.Fatalf("ACPI count = %d", control.acpiButtons) }
+	if err := backend.Start(context.Background(), instance); err != nil {
+		t.Fatal(err)
+	}
+	if err := backend.PressPowerButton(context.Background(), instance); err != nil {
+		t.Fatal(err)
+	}
+	if control.acpiButtons != 1 {
+		t.Fatalf("ACPI count = %d", control.acpiButtons)
+	}
 	if err := backend.PressPowerButton(context.Background(), runner.Instance{ID: "foreign-domain"}); err == nil {
 		t.Fatal("foreign domain accepted ACPI button")
 	}
-	if control.acpiButtons != 1 { t.Fatal("foreign ACPI event reached backend") }
+	if control.acpiButtons != 1 {
+		t.Fatal("foreign ACPI event reached backend")
+	}
 }
 
 func TestRebootToBootMenuDoesNotWaitForGuestAgent(t *testing.T) {
 	backend, control, _, definition := backendFixture(t)
 	ctx := context.Background()
 	instance, err := backend.Prepare(ctx, definition)
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
 	if err := backend.RebootToBootMenu(ctx, instance); err == nil {
 		t.Fatal("inactive VM accepted boot-menu reboot")
 	}
-	if err := backend.Start(ctx, instance); err != nil { t.Fatal(err) }
-	if err := backend.RebootToBootMenu(ctx, instance); err != nil { t.Fatal(err) }
+	if err := backend.Start(ctx, instance); err != nil {
+		t.Fatal(err)
+	}
+	if err := backend.RebootToBootMenu(ctx, instance); err != nil {
+		t.Fatal(err)
+	}
 	if control.reboots != 1 {
 		t.Fatalf("reboots = %d, want 1 (without guest-agent polling)", control.reboots)
 	}
-	if err := backend.RebootToBootMenu(ctx, runner.Instance{ID:"foreign-vm"}); err == nil {
+	if err := backend.RebootToBootMenu(ctx, runner.Instance{ID: "foreign-vm"}); err == nil {
 		t.Fatal("foreign VM accepted boot-menu reboot")
 	}
-	if control.reboots != 1 { t.Fatal("foreign VM reboot was dispatched") }
+	if control.reboots != 1 {
+		t.Fatal("foreign VM reboot was dispatched")
+	}
 }

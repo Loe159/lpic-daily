@@ -1248,32 +1248,46 @@ func TestLabShellCommandReaderHandlesBackspaceAndLongInput(t *testing.T) {
 func TestInteractiveVMLabDispatchesACPIButtonCommand(t *testing.T) {
 	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
 	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
-	if err != nil { t.Fatalf("LoadAll: %v", err) }
+	if err != nil {
+		t.Fatalf("LoadAll: %v", err)
+	}
 	authored, err := findLab(labs, "lpic1.101.3.acpi-power-event-audit-recovery")
-	if err != nil { t.Fatalf("findLab: %v", err) }
+	if err != nil {
+		t.Fatalf("findLab: %v", err)
+	}
 	fake := &acpiScriptedLabRunner{}
 	var stdout, stderr bytes.Buffer
 	if err := runInteractiveLabWithBackend(context.Background(), authored, fake, false,
 		strings.NewReader(":acpi-power\n:quit\n"), &stdout, &stderr); err != nil {
 		t.Fatalf("runInteractiveLabWithBackend: %v (stderr %q)", err, stderr.String())
 	}
-	if fake.pressCount != 1 { t.Fatalf("pressCount = %d", fake.pressCount) }
-	if !strings.Contains(stdout.String(), "ACPI envoyé") { t.Fatalf("confirmation absent: %q", stdout.String()) }
+	if fake.pressCount != 1 {
+		t.Fatalf("pressCount = %d", fake.pressCount)
+	}
+	if !strings.Contains(stdout.String(), "ACPI envoyé") {
+		t.Fatalf("confirmation absent: %q", stdout.String())
+	}
 }
 
 func TestInteractiveVMLabDispatchesBootMenuWithoutBlocking(t *testing.T) {
 	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
 	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
 	authored, err := findLab(labs, "lpic1.102.2.grub-serial-one-time-diagnostics")
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
 	fake := &bootMenuScriptedLabRunner{}
 	var out, errs bytes.Buffer
 	if err := runInteractiveLabWithBackend(context.Background(), authored, fake, false,
 		strings.NewReader(":boot-menu\n:quit\n"), &out, &errs); err != nil {
 		t.Fatalf("boot-menu CLI: %v (%q)", err, errs.String())
 	}
-	if fake.bootMenuCalls != 1 { t.Fatalf("boot-menu dispatch count %d", fake.bootMenuCalls) }
+	if fake.bootMenuCalls != 1 {
+		t.Fatalf("boot-menu dispatch count %d", fake.bootMenuCalls)
+	}
 	if !strings.Contains(out.String(), ":console") {
 		t.Fatalf("boot-menu guidance absent: %q", out.String())
 	}
@@ -1282,9 +1296,13 @@ func TestInteractiveVMLabDispatchesBootMenuWithoutBlocking(t *testing.T) {
 func TestInteractiveVMLabGuardsPrivilegedACPIAndBootMenuActions(t *testing.T) {
 	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
 	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
 	authored, err := findLab(labs, "lpic1.102.2.grub-kernel-parameter")
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
 	fake := &bootMenuScriptedLabRunner{}
 	var out, errs bytes.Buffer
 	if err := runInteractiveLabWithBackend(context.Background(), authored, fake, false,

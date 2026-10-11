@@ -313,12 +313,12 @@ type featuresXML struct {
 }
 
 type devicesXML struct {
-	Disks      []diskXML       `xml:"disk"`
+	Disks       []diskXML       `xml:"disk"`
 	Controllers []controllerXML `xml:"controller,omitempty"`
-	Interfaces []interfaceXML `xml:"interface,omitempty"`
-	Channels   []channelXML   `xml:"channel,omitempty"`
-	Serial     serialXML      `xml:"serial"`
-	Console    consoleXML     `xml:"console"`
+	Interfaces  []interfaceXML  `xml:"interface,omitempty"`
+	Channels    []channelXML    `xml:"channel,omitempty"`
+	Serial      serialXML       `xml:"serial"`
+	Console     consoleXML      `xml:"console"`
 }
 
 type controllerXML struct {

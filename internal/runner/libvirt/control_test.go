@@ -711,13 +711,17 @@ func TestValidateSystemCapabilitiesRequiresX8664KVM(t *testing.T) {
 }
 
 func TestACPIButtonRejectsUnmanagedDomainAndRPCFailure(t *testing.T) {
-	raw := &fakeRawLibvirt{domain: golibvirt.Domain{Name:"lpic-daily-vm-abc123"}, definedXML:managedTestDomainXML}
+	raw := &fakeRawLibvirt{domain: golibvirt.Domain{Name: "lpic-daily-vm-abc123"}, definedXML: managedTestDomainXML}
 	control, err := newScopedRPCControlPlaneForTest(t, raw)
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
 	if err := control.PressACPIButtonDomain("default"); err == nil {
 		t.Fatal("accepted unmanaged domain")
 	}
-	if raw.acpiButtonEvents != 0 { t.Fatal("sent event to unmanaged domain") }
+	if raw.acpiButtonEvents != 0 {
+		t.Fatal("sent event to unmanaged domain")
+	}
 	raw.acpiErr = errors.New("ACPI delivery failed")
 	if err := control.PressACPIButtonDomain("lpic-daily-vm-abc123"); err == nil ||
 		!strings.Contains(err.Error(), "ACPI delivery failed") {

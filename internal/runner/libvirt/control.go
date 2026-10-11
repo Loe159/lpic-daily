@@ -237,7 +237,9 @@ func (control *RPCControlPlane) RebootDomain(name string) error {
 // shutdown, which would not exercise ACPI.
 func (control *RPCControlPlane) PressACPIButtonDomain(name string) error {
 	domain, err := control.lookupManagedDomain(name)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 	if err := control.raw.DomainShutdownFlags(domain, golibvirt.DomainShutdownAcpiPowerBtn); err != nil {
 		return fmt.Errorf("ACPI power button for domain %s: %w", name, err)
 	}
