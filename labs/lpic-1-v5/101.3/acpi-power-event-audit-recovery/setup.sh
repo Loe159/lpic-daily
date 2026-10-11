@@ -4,7 +4,7 @@ set -euo pipefail
 trap 'rc=$?; printf "Lab setup failed at line %s (exit=%s)\n" "$LINENO" "$rc" >&2' ERR
 test -d /run/systemd/system
 command -v logger >/dev/null
-command -v acpid >/dev/null
+command -v acpid >/dev/null || { echo "Missing guest command: acpid (rebuild the Fedora LPIC VM image)" >&2; exit 1; }
 systemctl is-active --quiet qemu-guest-agent.service
 install -d -m 0755 /var/lib/lpic-acpi-audit /etc/acpi/events /etc/systemd/logind.conf.d
 cat /proc/sys/kernel/random/boot_id > /var/lib/lpic-acpi-audit/boot-id
