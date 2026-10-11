@@ -94,7 +94,7 @@
       "argv": [
         "/usr/bin/bash",
         "-lc",
-        "test ! -e /workspace/dir-hardlink && test ! -e /run/lpic/cross-fs-link && grep -qx 'directory-hardlink=rejected' /workspace/limitations.txt && grep -qx 'cross-filesystem-hardlink=rejected' /workspace/limitations.txt"
+        "test \"$(stat -c %d /workspace)\" != \"$(stat -c %d /dev/shm)\" && test ! -e /workspace/dir-hardlink && test ! -e /dev/shm/lpic-cross-fs-link && grep -qx 'directory-hardlink=rejected' /workspace/limitations.txt && grep -qx 'cross-filesystem-hardlink=rejected' /workspace/limitations.txt"
       ],
       "expected_exit": 0,
       "concept_ids": [

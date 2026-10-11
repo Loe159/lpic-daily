@@ -6,7 +6,10 @@ ln -sfn releases/app-v2.conf /workspace/current.conf
 if ln /workspace/releases /workspace/dir-hardlink 2>/dev/null; then
   exit 1
 fi
-if ln /workspace/releases/app-v2.conf /run/lpic/cross-fs-link 2>/dev/null; then
+test "$(stat -c %d /workspace)" != "$(stat -c %d /dev/shm)"
+if LC_ALL=C ln /workspace/releases/app-v2.conf /dev/shm/lpic-cross-fs-link 2> /workspace/.cross-fs-error; then
   exit 1
 fi
+grep -Fq 'Invalid cross-device link' /workspace/.cross-fs-error
+rm -f /workspace/.cross-fs-error
 printf 'directory-hardlink=rejected\ncross-filesystem-hardlink=rejected\n' > /workspace/limitations.txt

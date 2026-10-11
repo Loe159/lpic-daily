@@ -4,11 +4,11 @@
   "title_fr": "Remettre en service l'indexeur après maintenance",
   "brief_fr": "Depuis la dernière maintenance, l'indexeur de journaux ne démarre plus sur la VM, alors qu'il doit rester opérationnel après chaque démarrage. Les journaux du serveur sont disponibles, mais l'unité système de cet indexeur est en échec. Diagnostique et rétablis son fonctionnement, sans masquer l'échec ni supprimer son activation automatique ou sa dépendance de démarrage.",
   "success_criteria_fr": [
-    "L'unité lpic-indexer.service fonctionne réellement et reste active.",
+    "L'indexeur traite les événements ERROR et publie un index qui se met à jour pendant l'exécution du service.",
     "Le service est toujours activé pour les prochains démarrages.",
     "L'ordre de démarrage défini pour le service est préservé."
   ],
-  "debrief_fr": "systemctl status et journalctl -u permettent de diagnostiquer un service systemd. Une unité peut être enabled mais failed : activation au démarrage et fonctionnement courant sont deux états distincts. Après correction de la configuration d'une unité, systemctl daemon-reload recharge ses fichiers.",
+  "debrief_fr": "systemctl status et journalctl -u permettent de diagnostiquer un service systemd. enabled n'implique pas active. Un service qui exécute seulement sleep ne prouve aucun traitement : la vérification injecte un nouvel événement et contrôle son indexation réelle. Après modification d'ExecStart, systemctl daemon-reload recharge l'unité.",
   "objective_ids": [
     "101.3"
   ],
@@ -74,6 +74,18 @@
         "/usr/bin/bash",
         "-lc",
         "systemctl show -p After --value lpic-indexer.service | tr ' ' '\\n' | grep -Fxq 'network.target' && systemctl show -p Wants --value lpic-indexer.service | tr ' ' '\\n' | grep -Fxq 'network.target'"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.101.3.services-et-dependances-de-demarrage"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -e; marker=\"ERROR lpic-live-check-$$-$(date +%s%N)\"; printf '%s\\n' \"$marker\" >> /var/lib/lpic-indexer/events.log; found=0; for i in $(seq 1 30); do if grep -Fxq \"$marker\" /var/lib/lpic-indexer/index.log 2>/dev/null; then found=1; break; fi; sleep 0.2; done; test \"$found\" = 1; grep -Fxq 'ERROR ssh user22 rejected' /var/lib/lpic-indexer/index.log; ! grep -Fq 'INFO collector started' /var/lib/lpic-indexer/index.log"
       ],
       "expected_exit": 0,
       "concept_ids": [
