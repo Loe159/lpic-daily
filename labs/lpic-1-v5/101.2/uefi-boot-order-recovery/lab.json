@@ -1,0 +1,80 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.2.uefi-boot-order-recovery",
+  "title_fr": "Rétablir l'ordre de démarrage UEFI du serveur",
+  "brief_fr": "Après une intervention, la VM démarre en priorité sur l'entrée de secours. Les fichiers EFI sont présents, mais la priorité enregistrée dans le firmware est incorrecte. Place LPIC-primary avant LPIC-rescue sans perdre les autres entrées ni laisser de démarrage ponctuel forcé. Interviens uniquement dans la VM jetable.",
+  "success_criteria_fr": [
+    "LPIC-primary est le premier choix UEFI, LPIC-rescue le deuxième.",
+    "L'ordre relatif des autres entrées reste inchangé.",
+    "Aucun BootNext n'est présent et les chargeurs EFI restent intacts."
+  ],
+  "debrief_fr": "UEFI enregistre ses entrées Boot#### et leur priorité BootOrder dans la NVRAM, accessible sous Linux avec efibootmgr et efivarfs. BootNext remplace ponctuellement le prochain démarrage. Le scénario modifie l'authentique NVRAM de la VM OVMF ; il ne valide pas les réglages d'activation des périphériques intégrés du BIOS.",
+  "objective_ids": [
+    "101.2"
+  ],
+  "concept_ids": [
+    "lpic1.101.2.bios-versus-uefi"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-implemented"
+  ],
+  "estimated_minutes": 14,
+  "practice_context": "101.2.uefi-boot-order-recovery",
+  "environment": {
+    "backend": "libvirt",
+    "image_ref": "fedora-44-x86_64-v2",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "full-machine",
+    "writable_guest_paths": [],
+    "machine": {
+      "firmware": "uefi"
+    }
+  },
+  "resources": {
+    "memory_mb": 1024,
+    "cpu_percent": 100,
+    "pids": 128,
+    "timeout_seconds": 1800
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -euo pipefail; test -d /sys/firmware/efi/efivars; test \"$(efibootmgr | sed -nE 's/^BootOrder:[[:space:]]*([[:xdigit:],]+).*$/\\1/p')\" = \"$(cat /var/lib/lpic-daily/uefi-boot-order/target-order)\""
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.101.2.bios-versus-uefi"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "set -euo pipefail; ! efibootmgr | grep -q '^BootNext:'; test \"$(efibootmgr | grep -Ec '^Boot[[:xdigit:]]{4}\\*?[[:space:]]+LPIC-primary[[:space:]]*$')\" = 1; test \"$(efibootmgr | grep -Ec '^Boot[[:xdigit:]]{4}\\*?[[:space:]]+LPIC-rescue[[:space:]]*$')\" = 1; sha256sum --status -c /var/lib/lpic-daily/uefi-boot-order/loaders.sha256"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.101.2.bios-versus-uefi"
+      ]
+    }
+  ],
+  "hint_ids": [
+    "lpic1.101.2.uefi-boot-order-recovery.hint-1",
+    "lpic1.101.2.uefi-boot-order-recovery.hint-2",
+    "lpic1.101.2.uefi-boot-order-recovery.hint-3",
+    "lpic1.101.2.uefi-boot-order-recovery.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

@@ -83,7 +83,8 @@
         "grub2-pc",
         "podman",
         "glibc-static",
-        "systemd-udev"
+        "systemd-udev",
+        "efibootmgr"
       ],
       "recipe": "fedora-cloud-v2"
     },

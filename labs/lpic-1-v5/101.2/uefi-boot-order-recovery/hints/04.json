@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.2.uefi-boot-order-recovery.hint-4",
+  "lab_id": "lpic1.101.2.uefi-boot-order-recovery",
+  "level": 4,
+  "content_fr": "Commande possible : efibootmgr -o \"$(cat /var/lib/lpic-daily/uefi-boot-order/target-order)\" ; supprime BootNext avec efibootmgr -N si nécessaire.",
+  "evidence_impact": "solution-revealed"
+}
