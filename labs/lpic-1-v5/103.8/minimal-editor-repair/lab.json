@@ -2,14 +2,14 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.8.minimal-editor-repair",
   "title_fr": "Corriger une configuration dans un environnement minimal",
-  "brief_fr": "Le poste de secours utilise vi comme éditeur par défaut. Ouvre /workspace/app.conf, retrouve la section [server], corrige port à 8443, remplace mode=debug par mode=production, supprime la ligne obsolete=true, duplique la ligne audit=enabled juste sous elle en audit=required, puis sauvegarde. L’inventaire des éditeurs disponibles doit aussi être écrit dans /workspace/editor-inventory.",
+  "brief_fr": "Après une intervention, la configuration /workspace/app.conf empêche le serveur de fonctionner correctement : le port [server] vaut 8080 au lieu de 8443, le mode debug reste activé et une directive obsolète est présente. Remets cette configuration en état depuis vi, conserve intégralement la section [client] et garde audit=enabled suivi de audit=required. Le poste doit utiliser vi par défaut ; fournis l'inventaire des éditeurs installés dans /workspace/editor-inventory.",
   "success_criteria_fr": [
     "EDITOR vaut vi dans un nouveau shell.",
     "app.conf contient la configuration corrigée, sans obsolete=true.",
     "La section server contient audit=enabled puis audit=required.",
     "editor-inventory indique que vi/vim et nano sont disponibles et qu’emacs ne l’est pas dans l’image."
   ],
-  "debrief_fr": "vi alterne notamment entre mode normal, insertion et commande. La navigation, la recherche, les opérations de suppression/copie/collage et les commandes de sauvegarde permettent d’éditer efficacement un fichier même sans interface graphique. EDITOR choisit l’éditeur par défaut ; vim et nano sont présents ici, tandis qu’emacs ne l’est pas.",
+  "debrief_fr": "Dans vi, le mode normal sert à naviguer, copier, coller et supprimer ; i/a activent l'insertion, : permet les substitutions et :wq sauvegarde puis quitte. /motif recherche une occurrence. Le correcteur valide le fichier, les paramètres et l'inventaire final sans imposer une séquence de frappes : il ne prétend pas prouver le détail des interactions clavier dans vi.",
   "objective_ids": [
     "103.8"
   ],
