@@ -44,7 +44,7 @@ efibootmgr -c -d "/dev/$disk_name" -p "$part_no" -L LPIC-primary -l "\\EFI\\LPIC
 efibootmgr -c -d "/dev/$disk_name" -p "$part_no" -L LPIC-rescue -l "\\EFI\\LPIC-rescue\\$loader_name"
 boot_id() {
   local label="$1"
-  efibootmgr | sed -nE "s/^Boot([[:xdigit:]]{4})\*?[[:space:]]+$label[[:space:]]*$/\1/p" | tr '[:lower:]' '[:upper:]'
+  efibootmgr | sed -nE "s/^Boot([[:xdigit:]]{4})\*?[[:space:]]+$label([[:space:]]|$).*$/\1/p" | tr '[:lower:]' '[:upper:]'
 }
 primary="$(boot_id LPIC-primary)"
 rescue="$(boot_id LPIC-rescue)"
@@ -54,7 +54,7 @@ test "$primary" != "$rescue"
 # OVMF may auto-discover an additional Fedora entry while efibootmgr creates
 # the LPIC options. Preserve the current non-LPIC order instead of comparing
 # against a stale snapshot taken before firmware enumeration.
-current_order="$(efibootmgr | sed -nE 's/^BootOrder:[[:space:]]*([[:xdigit:],]+).*$/\\1/p')"
+current_order="$(efibootmgr | sed -nE 's/^BootOrder:[[:space:]]*([[:xdigit:],]+).*$/\1/p')"
 [[ "$current_order" =~ ^[[:xdigit:]]{4}(,[[:xdigit:]]{4})*$ ]]
 original=''
 IFS=',' read -ra entries <<< "$current_order"
