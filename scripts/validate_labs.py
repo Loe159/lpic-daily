@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from pathlib import Path
 import json
+import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -50,6 +51,18 @@ def main():
 
     for lab_path in labs:
         lab_dir = lab_path.parent
+        for script_path in sorted(lab_dir.glob("*.sh")):
+            result = subprocess.run(
+                ["bash", "-n", str(script_path)],
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            if result.returncode:
+                errors.append(
+                    f"{script_path.relative_to(ROOT)}: invalid Bash syntax: "
+                    f"{result.stderr.strip()}"
+                )
         lab = load_json(lab_path)
         lab_id = lab.get("id")
 
