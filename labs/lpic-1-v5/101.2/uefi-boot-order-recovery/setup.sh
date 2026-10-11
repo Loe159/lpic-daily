@@ -51,6 +51,22 @@ rescue="$(boot_id LPIC-rescue)"
 [[ "$primary" =~ ^[[:xdigit:]]{4}$ ]]
 [[ "$rescue" =~ ^[[:xdigit:]]{4}$ ]]
 test "$primary" != "$rescue"
+# OVMF may auto-discover an additional Fedora entry while efibootmgr creates
+# the LPIC options. Preserve the current non-LPIC order instead of comparing
+# against a stale snapshot taken before firmware enumeration.
+current_order="$(efibootmgr | sed -nE 's/^BootOrder:[[:space:]]*([[:xdigit:],]+).*$/\\1/p')"
+[[ "$current_order" =~ ^[[:xdigit:]]{4}(,[[:xdigit:]]{4})*$ ]]
+original=''
+IFS=',' read -ra entries <<< "$current_order"
+for entry in "${entries[@]}"; do
+  entry="${entry^^}"
+  if [[ "$entry" == "$primary" || "$entry" == "$rescue" ]]; then
+    continue
+  fi
+  if [[ -n "$original" ]]; then original+=","; fi
+  original+="$entry"
+done
+[[ -n "$original" ]]
 target="$primary,$rescue,$original"
 broken="$rescue,$primary,$original"
 printf '%s\n' "$original" > "$state/original-order"
