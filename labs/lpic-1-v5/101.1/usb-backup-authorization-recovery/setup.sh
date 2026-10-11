@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
+# Report the failing setup line from disposable guests without exposing secrets.
+trap 'rc=$?; printf "Lab setup failed at line %s (exit=%s)\n" "$LINENO" "$rc" >&2' ERR
 for tool in lsusb lspci udevadm lsblk blkid mkfs.ext4; do command -v "$tool" >/dev/null; done
 test -b /dev/sda
 test "$(lsblk -dn -o TRAN /dev/sda)" = usb
