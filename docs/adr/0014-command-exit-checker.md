@@ -28,3 +28,9 @@ These cases should not force content authors to reverse-engineer every acceptabl
 - authored commands remain subject to the lab's resource/time limits.
 
 Using `/usr/bin/bash -lc` as an authored argv is allowed when shell semantics are the thing being tested. This is a **guest** shell inside the sandbox, never a host-shell fallback.
+
+## Grouped exit-bitmask checks
+
+When several criteria inspect the same sandbox state, consecutive `command-exit` entries may share `batch_id`, `argv` and `timeout_seconds`, with a unique power-of-two `failure_bit` per criterion. The trusted checker executes that argv **once** and maps each set exit-code bit to a failed criterion. Exit code 0 passes the entire group; timeouts or unexpected exit codes fail every criterion without granting mastery. Invalid groups fail closed.
+
+This avoids repeatedly starting guest shells or attaching an interactive TTY while retaining separate learner-facing results and concept evidence. Keep the individual descriptions and source-level checks explicit in the authored lab. The batch remains subject to a short guest-side timeout and a host-side deadline.
