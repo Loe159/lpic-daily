@@ -1,5 +1,8 @@
 # Roadmap
 
+**Mise à jour LPIC-101 du 12/10/2026 :** 69 scénarios publiés (`accepted`), couvrant 162/162 concepts et 23 objectifs. La validation manuelle avant publication n'est plus obligatoire : l'utilisateur testera les labs progressivement. Restent la réparation des échecs de CI et les tests KVM réels ; aucune validation de ces aspects n'est implicite dans `accepted`.
+
+
 ## Phase 0 — foundations (complete)
 - product interview and requirement freeze;
 - agent-first repository structure;
