@@ -1113,9 +1113,13 @@ func TestUpdateHelpDoesNotRunUpdater(t *testing.T) {
 func TestDashboardLabParentCanCheckFromEitherCommand(t *testing.T) {
 	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
 	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
 	authored, err := findLab(labs, "lpic1.103.1.set-env-et-portee-des-variables.standalone-diagnostic")
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
 	for _, input := range []string{":check\n", "\n"} {
 		t.Run(fmt.Sprintf("input-%q", input), func(t *testing.T) {
 			path := filepath.Join(t.TempDir(), "check.sock")
@@ -1123,7 +1127,9 @@ func TestDashboardLabParentCanCheckFromEitherCommand(t *testing.T) {
 				fmt.Fprintln(out, "OK · vérification dans le terminal enfant")
 				return true, nil
 			})
-			if err != nil { t.Fatal(err) }
+			if err != nil {
+				t.Fatal(err)
+			}
 			defer bridge.Close()
 			var stdout bytes.Buffer
 			if err := waitForDashboardLabCompletion(context.Background(), authored, 0, path, strings.NewReader(input), &stdout); err != nil {
