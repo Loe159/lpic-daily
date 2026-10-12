@@ -19,12 +19,13 @@ set -m
 probe_pid="$!"
 sleep 0.2
 kill -TSTP "$probe_pid"
-for i in $(seq 1 50); do test -f /run/lpic/maintenance-probe-stopped && break; sleep 0.02; done
+# Bash runs signal traps only once its child wait returns; allow > 2 seconds.
+for i in $(seq 1 250); do test -f /run/lpic/maintenance-probe-stopped && break; sleep 0.02; done
 test -f /run/lpic/maintenance-probe-stopped
 jobs -s | grep -Fq "lpic-maintenance-job-probe"
 bg %1
 jobs -r | grep -Fq "lpic-maintenance-job-probe"
-for i in $(seq 1 50); do test -f /run/lpic/maintenance-probe-background && break; sleep 0.02; done
+for i in $(seq 1 250); do test -f /run/lpic/maintenance-probe-background && break; sleep 0.02; done
 test -f /run/lpic/maintenance-probe-background
 kill -TERM "$probe_pid"
 wait "$probe_pid" || true
