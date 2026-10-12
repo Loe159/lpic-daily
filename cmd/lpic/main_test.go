@@ -1365,3 +1365,31 @@ func TestEditorInteractionOnlyRequiredForActualEditorScenario(t *testing.T) {
 		t.Fatal("unrelated lab must not require vi")
 	}
 }
+
+func TestEditorMissingInteractionDoesNotCreditAnyEditorOperation(t *testing.T) {
+	ids := []string{
+		"lpic1.103.8.modes-normal-insertion-commande",
+		"lpic1.103.8.navigation",
+		"lpic1.103.8.insertion-remplacement",
+		"lpic1.103.8.suppression-copie-collage",
+		"lpic1.103.8.recherche",
+		"lpic1.103.8.sauvegarde-quitter",
+		"lpic1.103.8.editeur-par-defaut",
+		"lpic1.103.8.connaissance-nano-emacs-vim",
+	}
+	results := make(map[string]learning.Result, len(ids))
+	for _, id := range ids {
+		results[id] = learning.ResultPass
+	}
+	markEditorConceptFailure(lab.Definition{ConceptIDs: ids}, results)
+	for _, id := range ids[:6] {
+		if results[id] != learning.ResultFail {
+			t.Fatalf("missing host editor interaction credited %s", id)
+		}
+	}
+	for _, id := range ids[6:] {
+		if results[id] != learning.ResultPass {
+			t.Fatalf("independently checked editor setup incorrectly failed %s", id)
+		}
+	}
+}
