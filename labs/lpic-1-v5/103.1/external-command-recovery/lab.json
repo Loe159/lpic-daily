@@ -63,7 +63,7 @@
         "lpic1.103.1.path-et-resolution-de-commande"
       ],
       "timeout_seconds": 10,
-      "description_fr": "Vérifier le résultat attendu sans ouvrir de terminal interactif"
+      "description_fr": "report-status reste introuvable par son nom seul, car il est hors du PATH."
     },
     {
       "type": "file-content-regex",
