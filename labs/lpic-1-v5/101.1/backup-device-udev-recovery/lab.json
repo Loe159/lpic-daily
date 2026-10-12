@@ -19,7 +19,7 @@
   "labels": [
     "lpic-required",
     "modern-practice",
-    "scenario-implemented"
+    "scenario-accepted"
   ],
   "estimated_minutes": 13,
   "practice_context": "backup-device-udev-recovery",
