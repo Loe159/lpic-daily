@@ -1932,13 +1932,17 @@ func labRequiresJobControl(definition lab.Definition) bool {
 }
 
 type jobControlInteractionEvidence struct {
-	sawCtrlZ bool
-	sawJobs  bool
-	sawBg    bool
+	sawCtrlZ      bool
+	sawJobs       bool
+	sawBg         bool
+	hostTypedJobs bool
+	hostTypedBg   bool
+	inputLine     []byte
 }
 
 func (evidence *jobControlInteractionEvidence) Complete() bool {
-	return evidence != nil && evidence.sawCtrlZ && evidence.sawJobs && evidence.sawBg
+	return evidence != nil && evidence.sawCtrlZ && evidence.sawJobs && evidence.sawBg &&
+		evidence.hostTypedJobs && evidence.hostTypedBg
 }
 
 func (evidence *jobControlInteractionEvidence) Reset() {
@@ -1961,6 +1965,44 @@ func (evidence *jobControlInteractionEvidence) observeShellEvents(raw []byte) {
 	}
 }
 
+// observeShellInput records commands typed through the trusted host terminal.
+// Writing fake guest-side job logs can never satisfy these host flags.
+func (evidence *jobControlInteractionEvidence) observeShellInput(raw []byte) {
+	if evidence == nil {
+		return
+	}
+	for _, ch := range raw {
+		switch ch {
+		case 0x1a:
+			evidence.sawCtrlZ = true
+			evidence.inputLine = nil
+		case 0x03:
+			evidence.inputLine = nil
+		case '\r', '\n':
+			fields := strings.Fields(string(evidence.inputLine))
+			if evidence.sawCtrlZ && len(fields) > 0 {
+				switch fields[0] {
+				case "jobs":
+					evidence.hostTypedJobs = true
+				case "bg":
+					if evidence.hostTypedJobs {
+						evidence.hostTypedBg = true
+					}
+				}
+			}
+			evidence.inputLine = nil
+		case 0x08, 0x7f:
+			if len(evidence.inputLine) > 0 {
+				evidence.inputLine = evidence.inputLine[:len(evidence.inputLine)-1]
+			}
+		default:
+			if ch >= 0x20 && ch < 0x7f && len(evidence.inputLine) < 512 {
+				evidence.inputLine = append(evidence.inputLine, ch)
+			}
+		}
+	}
+}
+
 type ctrlZObservingTerminalReader struct {
 	file     *os.File
 	reader   io.Reader
@@ -1973,11 +2015,7 @@ func (reader *ctrlZObservingTerminalReader) Read(buffer []byte) (int, error) {
 		source = reader.file
 	}
 	n, err := source.Read(buffer)
-	for _, value := range buffer[:n] {
-		if value == 0x1a && reader.evidence != nil {
-			reader.evidence.sawCtrlZ = true
-		}
-	}
+	reader.evidence.observeShellInput(buffer[:n])
 	return n, err
 }
 
@@ -1996,8 +2034,8 @@ __lpic_daily_job_control_log="/tmp/.lpic-daily-job-control-events"
 jobs() {
     builtin jobs "$@"
     local status=$?
-    if (( status == 0 )); then
-        printf 'jobs\\n' >> "$__lpic_daily_job_control_log"
+    if (( status == 0 )) && [[ -n "$(builtin jobs -s)" ]]; then
+        printf 'jobs\n' >> "$__lpic_daily_job_control_log"
     fi
     return "$status"
 }
@@ -2005,8 +2043,8 @@ jobs() {
 bg() {
     builtin bg "$@"
     local status=$?
-    if (( status == 0 )); then
-        printf 'bg\\n' >> "$__lpic_daily_job_control_log"
+    if (( status == 0 )) && [[ -n "$(builtin jobs -r)" ]]; then
+        printf 'bg\n' >> "$__lpic_daily_job_control_log"
     fi
     return "$status"
 }
