@@ -944,9 +944,9 @@ func TestBuiltinUEFIBootOrderShellCheck(t *testing.T) {
 		"Boot0000* Fedora\n" +
 		"Boot0001  UEFI:PXE\n"
 	cases := []struct {
-		name string
-		order string
-		entries string
+		name     string
+		order    string
+		entries  string
 		wantPass bool
 	}{
 		{name: "restored complete order", order: "0005,0004,0000,0001", entries: entries, wantPass: true},
