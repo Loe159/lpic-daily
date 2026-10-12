@@ -1008,21 +1008,11 @@ func TestEnvironmentBoundaryRepairChecksAreBounded(t *testing.T) {
 func TestEnvironmentBoundaryShellExportsWithoutBashrcEdits(t *testing.T) {
 	authored := loadBuiltinLab(t, "lpic1.103.1.environment-boundary-repair")
 	tmp := t.TempDir()
-	home := filepath.Join(tmp, "home")
 	lpic := filepath.Join(tmp, "lpic")
-	if err := os.MkdirAll(home, 0o700); err != nil {
-		t.Fatal(err)
-	}
-	setup := strings.ReplaceAll(authored.SetupScript, "/root/.bashrc", filepath.Join(home, ".bashrc"))
-	setup = strings.ReplaceAll(setup, "/run/lpic", lpic)
+	setup := strings.ReplaceAll(authored.SetupScript, "/run/lpic", lpic)
 	command := exec.Command("/usr/bin/bash", "-c", setup)
 	if output, err := command.CombinedOutput(); err != nil {
 		t.Fatalf("setup shell: %v: %s", err, output)
-	}
-	bashrc := filepath.Join(home, ".bashrc")
-	before, err := os.ReadFile(bashrc)
-	if err != nil {
-		t.Fatal(err)
 	}
 	runShell := func(source string, want string) {
 		t.Helper()
@@ -1039,17 +1029,13 @@ func TestEnvironmentBoundaryShellExportsWithoutBashrcEdits(t *testing.T) {
 			t.Fatalf("observed state = %q, want %q", got, want)
 		}
 	}
-	source := ". " + bashrc + "; . " + filepath.Join(lpic, ".lpic-env-capture.sh") + "; "
+	source := ". " + filepath.Join(lpic, ".lpic-shell-rc") + "; "
 	runShell(source+"__lpic_capture_environment", "30")
 	runShell(source+"export SERVICE_MODE=production; __lpic_capture_environment", "26")
 	runShell(source+"export SERVICE_MODE=production; export -n LOCAL_NOTE; unset LEGACY_TOKEN; "+
 		"printf '%s|%s\\n' \"$SERVICE_MODE\" \"$LOCAL_NOTE\" > "+filepath.Join(lpic, "env-summary")+
 		"; __lpic_capture_environment", "0")
-	after, err := os.ReadFile(bashrc)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !slices.Equal(before, after) {
-		t.Fatal(".bashrc was modified by the reference shell repair")
+	if _, err := os.Stat(filepath.Join(tmp, "home", ".bashrc")); !os.IsNotExist(err) {
+		t.Fatalf("the exercise should not create an unrelated .bashrc: %v", err)
 	}
 }
