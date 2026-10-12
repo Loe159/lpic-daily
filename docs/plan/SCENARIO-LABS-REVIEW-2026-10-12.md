@@ -31,3 +31,21 @@ Chaque scénario `implemented` doit satisfaire les portes du projet : setup fonc
 Les contrôles state-based de `103.8` prouvent une configuration correcte, **pas les frappes exactes dans vi**. Les tests interactifs sont un contrôle complémentaire, et ne doivent pas conduire à imposer un historique de commandes comme substitut.
 
 Aucune fusion `main` ni promotion automatique des 49 scénarios `implemented` sans recette réelle.
+
+## Durcissement suite à la review du 12 octobre
+
+- **101.2 UEFI** : le contrôle final utilise le BootOrder **complet** issu du firmware et le compare à une référence capturée par le runner libvirt côté hôte immédiatement après le setup. Changer `target-order` ou `original-order` dans le guest ne permet plus de changer cette référence. Un reset efface la référence et le nouveau setup en capture une nouvelle.
+- **101.3 ACPI** : un contrôle `acpi-button-sent` côté hôte exige que libvirt ait réellement accepté l'injection du bouton virtuel. Il complète les checks `acpid`/journald côté guest ; le marqueur `logger` seul ne peut plus valider le lab. L'attestation est privée à la VM et effacée par reset.
+- **103.5 job control** : le host terminal observe Ctrl-Z et la saisie de `jobs`/`bg`, et le shell instrumenté n'enregistre ces commandes que si une tâche stoppée/relancée est visible. Les fichiers d'événements du guest seuls ne suffisent plus.
+- **103.8 vi** : passage par un terminal interactif désormais obligatoire. Le host observe l'ouverture de `vi /workspace/app.conf` et la sauvegarde `:wq` ou `:x` en complément de la vérification du fichier. La validation ne prétend toujours pas prouver séparément toutes les frappes de navigation.
+- **103.7 regex** : données d'entrée variables à chaque setup et comparaison contre la transformation de l'input plutôt qu'une sortie constante.
+
+Ces vérifications réduisent les contournements trivials, mais ne constituent pas une preuve cryptographique des actions réalisées par l'apprenant root dans sa sandbox. La CI statique/unitaire ne remplace pas la recette KVM.
+
+### Points encore bloquants pour l'acceptation LPIC-101
+
+1. Les **49 scénarios `implemented`** restent hors des statistiques `accepted`. Aucun changement automatique de statut n'est prévu.
+2. Les 45 scénarios libvirt nécessitent une recette réelle sur image Fedora reconstruite, y compris une solution alternative, le reset rouge et la vérification d'isolation.
+3. Le scénario interactif GRUB nécessite une recette humaine sur console série.
+4. L'exercice PCI AHCI de 101.1 ne démontre **pas** un réglage d'activation/désactivation dans BIOS/UEFI. Ne pas déclarer cette compétence firmware acceptée sans scénario probant.
+5. L'acceptation de `103.8` repose maintenant sur une preuve d'interaction d'ouverture/sauvegarde, mais ses sous-compétences de navigation/recherche/coller restent à vérifier pédagogiquement en session humaine.
