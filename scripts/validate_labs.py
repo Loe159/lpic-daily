@@ -263,9 +263,12 @@ def main():
                 "process-absent",
                 "command-exit",
                 "block-device-state",
+                "acpi-button-sent",
             }:
                 errors.append(f"{lab_id}: unknown check type {check_type!r}")
 
+            if check_type == "acpi-button-sent" and backend != "libvirt":
+                errors.append(f"{lab_id}: acpi-button-sent requires libvirt")
             evidence_concepts = check.get("concept_ids")
             if (
                 not isinstance(evidence_concepts, list)
