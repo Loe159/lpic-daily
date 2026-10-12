@@ -8,8 +8,10 @@ import (
 	"io"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"slices"
 	"strconv"
+	"sync"
 	"strings"
 	"syscall"
 	"time"
@@ -223,7 +225,13 @@ func runDashboardLab(
 
 	printLab(authored, stdout)
 	fmt.Fprintln(stdout)
-	if err := desktop.LaunchLab(ctx, desktop.OSExecutor{}, authored.Definition.ID); err != nil {
+	checkDir, err := os.MkdirTemp("", "lpic-daily-check-")
+	if err != nil {
+		return fmt.Errorf("prepare parent lab check: %w", err)
+	}
+	defer os.RemoveAll(checkDir)
+	checkSocketPath := filepath.Join(checkDir, "check.sock")
+	if err := desktop.LaunchLabWithCheckSocket(ctx, desktop.OSExecutor{}, authored.Definition.ID, checkSocketPath); err != nil {
 		fmt.Fprintf(
 			stderr,
 			"warning: impossible d'ouvrir un terminal enfant pour le lab; utilisation du terminal courant: %v\n",
@@ -233,51 +241,81 @@ func runDashboardLab(
 	}
 
 	fmt.Fprintln(stdout, "Lab ouvert dans un nouveau terminal.")
-	fmt.Fprintln(stdout, "Garde cette fenêtre ouverte : la consigne reste visible ici pendant que tu travailles dans le terminal du lab.")
-	return waitForDashboardLabCompletion(ctx, authored, baselineAttempts, stdin, stdout)
+	fmt.Fprintln(stdout, "La consigne reste visible ici. Entrée ou :check vérifie le lab, depuis cette fenêtre ou depuis le terminal enfant.")
+	return waitForDashboardLabCompletion(ctx, authored, baselineAttempts, checkSocketPath, stdin, stdout)
 }
 
 func waitForDashboardLabCompletion(
 	ctx context.Context,
 	authored lab.Lab,
 	baselineAttempts int,
+	checkSocketPath string,
 	stdin io.Reader,
 	stdout io.Writer,
 ) error {
 	reader := bufio.NewReader(stdin)
 	for {
-		fmt.Fprint(
-			stdout,
-			"Termine le lab avec :check dans le terminal enfant. Après « Progression enregistrée », reviens ici et appuie seulement sur Entrée. ",
-		)
+		fmt.Fprint(stdout, "Entrée ou :check pour vérifier · :quit pour revenir au menu > ")
 		line, err := readLine(reader)
 		if err != nil {
-			return fmt.Errorf("wait for child lab completion: %w", err)
+			return fmt.Errorf("read parent lab command: %w", err)
 		}
-
-		if command := strings.TrimSpace(line); command != "" {
-			if command == ":check" {
-				fmt.Fprintln(stdout, ":check doit être saisi dans le terminal enfant du lab, pas dans cette fenêtre.")
-			} else {
-				fmt.Fprintf(stdout, "%q n'est pas une commande du terminal parent.\n", command)
-			}
+		command := strings.TrimSpace(line)
+		if command == ":quit" {
+			return nil
+		}
+		if command != "" && command != ":check" {
+			fmt.Fprintf(stdout, "Commande inconnue : %s (Entrée ou :check pour vérifier).\n", command)
 			continue
 		}
 
-		attempts, err := successfulLabAttemptCount(ctx, authored)
+		result, err := requestLabCheck(ctx, checkSocketPath, nil)
 		if err != nil {
-			return fmt.Errorf("refresh child lab progress: %w", err)
-		}
-		if attempts <= baselineAttempts {
-			fmt.Fprintln(
-				stdout,
-				"Aucune réussite enregistrée pour ce lab. Retourne dans le terminal enfant, lance :check et attends « Progression enregistrée ».",
-			)
+			// The child may have completed and closed while the parent was idle.
+			attempts, progressErr := successfulLabAttemptCount(ctx, authored)
+			if progressErr != nil {
+				return fmt.Errorf("read completed lab progress: %w", progressErr)
+			}
+			if attempts > baselineAttempts {
+				fmt.Fprintln(stdout, "Progression du lab détectée.")
+				return nil
+			}
+			fmt.Fprintf(stdout, "Vérification indisponible : %v\n", err)
 			continue
 		}
-
-		fmt.Fprintln(stdout, "Progression du lab détectée.")
-		return nil
+		if result.NeedsReflection {
+			// Older generated labs still contain an interactive reflection step.
+			// Keep the same questions available from either terminal.
+			answers := make([]string, 0, 2)
+			for _, prompt := range []string{"Qu'as-tu observé ? ", "Pourquoi cela démontre-t-il le concept ? "} {
+				fmt.Fprint(stdout, prompt)
+				answer, err := readLine(reader)
+				if err != nil {
+					return fmt.Errorf("read parent reflection: %w", err)
+				}
+				answers = append(answers, strings.TrimSpace(answer))
+			}
+			if answers[0] == "" || answers[1] == "" {
+				fmt.Fprintln(stdout, "La conclusion doit comporter deux réponses non vides.")
+				continue
+			}
+			result, err = requestLabCheck(ctx, checkSocketPath, answers)
+			if err != nil {
+				fmt.Fprintf(stdout, "Vérification indisponible : %v\n", err)
+				continue
+			}
+		}
+		if result.Output != "" {
+			fmt.Fprint(stdout, result.Output)
+		}
+		if result.Error != "" {
+			fmt.Fprintf(stdout, "Erreur de vérification : %s\n", result.Error)
+			continue
+		}
+		if result.Passed {
+			fmt.Fprintln(stdout, "Progression du lab détectée. Le terminal enfant reste ouvert.")
+			return nil
+		}
 	}
 }
 
@@ -1063,12 +1101,15 @@ func runLabCommand(args []string, stdin io.Reader, stdout, stderr io.Writer) err
 		printLab(authored, stdout)
 		return nil
 	case "run":
-		if len(args) != 2 {
+		if len(args) != 2 && (len(args) != 4 || args[2] != "--check-socket") {
 			return fmt.Errorf("usage: lpic lab run <lab-id>")
 		}
 		authored, err := findLab(labs, args[1])
 		if err != nil {
 			return err
+		}
+		if len(args) == 4 {
+			return runInteractiveLabWithSocket(authored, stdin, stdout, stderr, args[3])
 		}
 		return runInteractiveLab(authored, stdin, stdout, stderr)
 	case "hint":
@@ -1151,7 +1192,12 @@ func printLab(authored lab.Lab, out io.Writer) {
 }
 
 func runInteractiveLab(authored lab.Lab, stdin io.Reader, stdout, stderr io.Writer) error {
+	return runInteractiveLabWithSocket(authored, stdin, stdout, stderr, "")
+}
+
+func runInteractiveLabWithSocket(authored lab.Lab, stdin io.Reader, stdout, stderr io.Writer, checkSocketPath string) error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	ctx = context.WithValue(ctx, labCheckSocketKey{}, checkSocketPath)
 	defer stop()
 
 	switch authored.Definition.Environment.Backend {
@@ -1366,6 +1412,8 @@ func runInteractiveLabWithBackend(
 	scanner.Buffer(make([]byte, 4096), 256<<10)
 	shellCompleted := false
 	shellQuit := false
+	var checkMu sync.Mutex
+	labSucceeded := false
 	showHint := func() error {
 		if nextHint >= len(authored.Hints) {
 			fmt.Fprintln(stdout, "Aucun indice supplémentaire.")
@@ -1392,12 +1440,21 @@ func runInteractiveLabWithBackend(
 		return nil
 
 	}
-	checkLab := func() (bool, error) {
+	checkLab := func(out io.Writer, fromParent bool, reflection []string) (bool, error) {
 		if !reflectionRecorded {
+			reflectionScanner := scanner
+			if fromParent {
+				if _, required := lab.StandaloneReflectionPath(authored.Definition); required {
+					if len(reflection) != 2 {
+						return false, errLabReflectionRequired
+					}
+					reflectionScanner = bufio.NewScanner(strings.NewReader(strings.Join(reflection, "\\n") + "\\n"))
+				}
+			}
 			recorded, err := collectStandaloneReflection(
 				sessionCtx,
-				scanner,
-				stdout,
+				reflectionScanner,
+				out,
 				backend,
 				session.Instance,
 				authored.Definition,
@@ -1430,13 +1487,13 @@ func runInteractiveLabWithBackend(
 				}
 			}
 		}
-		fmt.Fprintf(stdout, "Vérification de %d critères...\n", len(authored.Definition.Checks))
+		fmt.Fprintf(out, "Vérification de %d critères...\n", len(authored.Definition.Checks))
 		checkCtx, cancelCheck := context.WithTimeout(sessionCtx, checkTimeout)
 		results, err := session.Evaluate(checkCtx)
 		cancelCheck()
 		if err != nil {
 			if errors.Is(err, context.DeadlineExceeded) {
-				fmt.Fprintf(stdout, "Validation interrompue après %s. Le lab reste ouvert; tu peux réessayer :check.\n", checkTimeout)
+				fmt.Fprintf(out, "Validation interrompue après %s. Le lab reste ouvert; tu peux réessayer :check.\n", checkTimeout)
 				return false, nil
 			}
 			return false, fmt.Errorf("evaluate lab: %w", err)
@@ -1447,7 +1504,7 @@ func runInteractiveLabWithBackend(
 		}
 		requiresJobControl := labRequiresJobControl(authored.Definition)
 		if authored.Definition.NeedsPersistentShell && !usedPersistentShell {
-			fmt.Fprintf(stdout,
+			fmt.Fprintf(out,
 				"  %-11s %s\n",
 				"À CORRIGER",
 				"Passe par :shell pour valider l'interaction terminal réelle.",
@@ -1456,7 +1513,7 @@ func runInteractiveLabWithBackend(
 			markPersistentShellConceptFailure(authored.Definition, conceptResults)
 		}
 		if requiresJobControl && !jobControlEvidence.Complete() {
-			fmt.Fprintf(stdout,
+			fmt.Fprintf(out,
 				"  %-11s %s\n",
 				"À CORRIGER",
 				"Dans :shell, utilise Ctrl-Z, vérifie avec jobs et reprends avec bg.",
@@ -1465,7 +1522,7 @@ func runInteractiveLabWithBackend(
 			markPersistentShellConceptFailure(authored.Definition, conceptResults)
 		}
 		if editorEvidence != nil && !editorEvidence.Complete() {
-			fmt.Fprintf(stdout,
+			fmt.Fprintf(out,
 				"  %-11s %s\n",
 				"À CORRIGER",
 				"Ouvre app.conf avec vi dans :shell et enregistre avec :wq ou :x.",
@@ -1505,12 +1562,12 @@ func runInteractiveLabWithBackend(
 				}
 			}
 			if description != "" {
-				fmt.Fprintf(stdout, "  %-11s %s\n", state, description)
+				fmt.Fprintf(out, "  %-11s %s\n", state, description)
 			}
 			if !result.Pass && result.Err != nil {
-				fmt.Fprintf(stdout, "              Erreur de vérification : %v\n", result.Err)
+				fmt.Fprintf(out, "              Erreur de vérification : %v\n", result.Err)
 			} else if !result.Pass && result.Detail != "" && result.Detail != "exit=1, expected=0" {
-				fmt.Fprintf(stdout, "              Diagnostic technique : %s\n", result.Detail)
+				fmt.Fprintf(out, "              Diagnostic technique : %s\n", result.Detail)
 			}
 		}
 		persistedHintLevel, err := pendingLabHintLevel(sessionCtx, authored.Definition.ID)
@@ -1527,8 +1584,8 @@ func runInteractiveLabWithBackend(
 		}
 		now := time.Now()
 		if passed {
-			fmt.Fprintln(stdout, "\nLab réussi.")
-			fmt.Fprintln(stdout, authored.Definition.DebriefFR)
+			fmt.Fprintln(out, "\nLab réussi.")
+			fmt.Fprintln(out, authored.Definition.DebriefFR)
 
 			recordErr := study.RecordLab(sessionCtx, store, authored, highestHintLevel, now)
 			if recordErr != nil {
@@ -1539,14 +1596,14 @@ func runInteractiveLabWithBackend(
 				_ = store.Close()
 				return false, fmt.Errorf("lab succeeded but disclosure state could not be cleared: %w", err)
 			}
-			fmt.Fprintln(stdout, "Progression enregistrée.")
+			fmt.Fprintln(out, "Progression enregistrée.")
 			recordGamificationBestEffort(
 				sessionCtx,
 				store,
 				gamification.EventLabPassed,
 				now,
 				map[string]string{"source_item_id": authored.Definition.ID},
-				stdout,
+				out,
 			)
 			if closeErr := store.Close(); closeErr != nil {
 				return false, fmt.Errorf("lab succeeded but progress store could not be closed: %w", closeErr)
@@ -1569,23 +1626,35 @@ func runInteractiveLabWithBackend(
 		if closeErr := store.Close(); closeErr != nil {
 			return false, fmt.Errorf("failed lab attempt store could not be closed: %w", closeErr)
 		}
-		fmt.Fprintln(stdout, "\nTentative enregistrée.")
+		fmt.Fprintln(out, "\nTentative enregistrée.")
 		return false, nil
 
+	}
+	runCheck := func(out io.Writer, fromParent bool, reflection []string) (bool, error) {
+		checkMu.Lock()
+		defer checkMu.Unlock()
+		if labSucceeded {
+			fmt.Fprintln(out, "Lab déjà validé. La progression est enregistrée.")
+			return true, nil
+		}
+		if jobControlEvidence != nil {
+			if err := collectJobControlEvidence(sessionCtx, backend, session.Instance, jobControlEvidence); err != nil {
+				return false, err
+			}
+		}
+		passed, err := checkLab(out, fromParent, reflection)
+		if passed {
+			labSucceeded = true
+			shellCompleted = true
+		}
+		return passed, err
 	}
 	shellCommands := func(command string) (bool, error) {
 		switch command {
 		case ":check":
-			if jobControlEvidence != nil {
-				if err := collectJobControlEvidence(sessionCtx, backend, session.Instance, jobControlEvidence); err != nil {
-					return false, err
-				}
-			}
-			ok, err := checkLab()
-			if ok {
-				shellCompleted = true
-			}
-			return ok, err
+			_, err := runCheck(stdout, false, nil)
+			// A successful check must not close the child's interactive shell.
+			return false, err
 		case ":hint":
 			return false, showHint()
 		case ":help":
@@ -1597,6 +1666,14 @@ func runInteractiveLabWithBackend(
 		}
 		return false, nil
 	}
+	checkSocketPath, _ := sessionCtx.Value(labCheckSocketKey{}).(string)
+	bridge, err := startLabCheckBridge(checkSocketPath, func(out io.Writer, reflection []string) (bool, error) {
+		return runCheck(out, true, reflection)
+	})
+	if err != nil {
+		return fmt.Errorf("start parent lab check: %w", err)
+	}
+	defer bridge.Close()
 
 	if persistentShell {
 		if interactiveTerminal(stdin, stdout) {
@@ -1796,11 +1873,11 @@ func runInteractiveLabWithBackend(
 			fmt.Fprintln(stdout, "Lab réinitialisé dans son état de départ.")
 			continue
 		case ":check":
-			ok, err := checkLab()
+			ok, err := runCheck(stdout, false, nil)
 			if err != nil {
 				return err
 			}
-			if ok {
+			if ok && checkSocketPath == "" {
 				return nil
 			}
 			continue
