@@ -5,7 +5,7 @@
   "brief_fr": "Après une intervention, la VM démarre en priorité sur l'entrée de secours. Les fichiers EFI sont présents, mais la priorité enregistrée dans le firmware est incorrecte. Place LPIC-primary avant LPIC-rescue sans perdre les autres entrées ni laisser de démarrage ponctuel forcé. Interviens uniquement dans la VM jetable.",
   "success_criteria_fr": [
     "LPIC-primary est le premier choix UEFI, LPIC-rescue le deuxième.",
-    "L'ordre relatif des autres entrées reste inchangé.",
+    "Les autres entrées UEFI restent présentes et leur priorité relative n'est pas modifiée.",
     "Aucun BootNext n'est présent et les chargeurs EFI restent intacts."
   ],
   "debrief_fr": "UEFI enregistre ses entrées Boot#### et leur priorité BootOrder dans la NVRAM, accessible sous Linux avec efibootmgr et efivarfs. BootNext remplace ponctuellement le prochain démarrage. Le scénario modifie l'authentique NVRAM de la VM OVMF ; il ne valide pas les réglages d'activation des périphériques intégrés du BIOS.",
@@ -49,7 +49,7 @@
       "argv": [
         "/usr/bin/bash",
         "-lc",
-        "set -euo pipefail; test -d /sys/firmware/efi/efivars; test \"$(efibootmgr | sed -nE 's/^BootOrder:[[:space:]]*([[:xdigit:],]+).*$/\\1/p')\" = \"$(cat /var/lib/lpic-daily/uefi-boot-order/target-order)\""
+        "set -euo pipefail\ntest -d /sys/firmware/efi/efivars\nstate=\"$(efibootmgr)\"\nboot_id() {\n  printf '%s\\n' \"$state\" | sed -nE \"s/^Boot([[:xdigit:]]{4})\\\\*?[[:space:]]+LPIC-$1([[:space:]]|$).*$/\\\\1/p\" | tr '[:lower:]' '[:upper:]'\n}\nprimary=\"$(boot_id primary)\"\nrescue=\"$(boot_id rescue)\"\n[[ \"$primary\" =~ ^[[:xdigit:]]{4}$ ]]\n[[ \"$rescue\" =~ ^[[:xdigit:]]{4}$ ]]\ntest \"$primary\" != \"$rescue\"\norder=\"$(printf '%s\\n' \"$state\" | sed -nE 's/^BootOrder:[[:space:]]*([[:xdigit:],]+).*$/\\\\1/p' | tr '[:lower:]' '[:upper:]')\"\n[[ \"$order\" =~ ^[[:xdigit:]]{4}(,[[:xdigit:]]{4})*$ ]]\n[[ \"$order\" == \"$primary,$rescue,\"* ]]\nIFS=',' read -ra entries <<< \"$order\"\nseen_primary=0\nseen_rescue=0\nfor entry in \"${entries[@]}\"; do\n  [[ \"$entry\" == \"$primary\" ]] && seen_primary=$((seen_primary + 1))\n  [[ \"$entry\" == \"$rescue\" ]] && seen_rescue=$((seen_rescue + 1))\ndone\ntest \"$seen_primary\" = 1\ntest \"$seen_rescue\" = 1"
       ],
       "expected_exit": 0,
       "concept_ids": [
