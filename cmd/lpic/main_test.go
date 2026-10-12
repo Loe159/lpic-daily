@@ -1110,50 +1110,30 @@ func TestUpdateHelpDoesNotRunUpdater(t *testing.T) {
 	}
 }
 
-func TestDashboardLabParentRejectsCheckAndWaitsForRecordedSuccess(t *testing.T) {
+func TestDashboardLabParentCanCheckFromEitherCommand(t *testing.T) {
 	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
-
 	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
-	if err != nil {
-		t.Fatalf("LoadAll() error = %v", err)
-	}
-	authored, err := findLab(
-		labs,
-		"lpic1.103.1.set-env-et-portee-des-variables.standalone-diagnostic",
-	)
-	if err != nil {
-		t.Fatalf("findLab() error = %v", err)
-	}
-
-	store, err := openProgressStore(context.Background())
-	if err != nil {
-		t.Fatalf("openProgressStore() error = %v", err)
-	}
-	if err := study.RecordLab(context.Background(), store, authored, 0, time.Now()); err != nil {
-		_ = store.Close()
-		t.Fatalf("RecordLab() error = %v", err)
-	}
-	if err := store.Close(); err != nil {
-		t.Fatalf("close progress store: %v", err)
-	}
-
-	var stdout bytes.Buffer
-	if err := waitForDashboardLabCompletion(
-		context.Background(),
-		authored,
-		0,
-		strings.NewReader(":check\n\n"),
-		&stdout,
-	); err != nil {
-		t.Fatalf("waitForDashboardLabCompletion() error = %v", err)
-	}
-
-	output := stdout.String()
-	if !strings.Contains(output, ":check doit être saisi dans le terminal enfant") {
-		t.Fatalf("parent did not reject :check: %q", output)
-	}
-	if !strings.Contains(output, "Progression du lab détectée.") {
-		t.Fatalf("recorded success was not detected: %q", output)
+	if err != nil { t.Fatal(err) }
+	authored, err := findLab(labs, "lpic1.103.1.set-env-et-portee-des-variables.standalone-diagnostic")
+	if err != nil { t.Fatal(err) }
+	for _, input := range []string{":check\n", "\n"} {
+		t.Run(fmt.Sprintf("input-%q", input), func(t *testing.T) {
+			path := filepath.Join(t.TempDir(), "check.sock")
+			bridge, err := startLabCheckBridge(path, func(out io.Writer, reflection []string) (bool, error) {
+				fmt.Fprintln(out, "OK · vérification dans le terminal enfant")
+				return true, nil
+			})
+			if err != nil { t.Fatal(err) }
+			defer bridge.Close()
+			var stdout bytes.Buffer
+			if err := waitForDashboardLabCompletion(context.Background(), authored, 0, path, strings.NewReader(input), &stdout); err != nil {
+				t.Fatalf("parent check: %v", err)
+			}
+			if !strings.Contains(stdout.String(), "OK · vérification dans le terminal enfant") ||
+				!strings.Contains(stdout.String(), "Le terminal enfant reste ouvert") {
+				t.Fatalf("parent did not run child check: %q", stdout.String())
+			}
+		})
 	}
 }
 
@@ -1218,7 +1198,7 @@ func TestLabShellCommandReaderInterceptsHostControls(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got := string(data); got != "env\rexit\r" {
+	if got := string(data); got != "env\r\r\r\rexit\r" {
 		t.Fatalf("sandbox received %q, want normal command and controlled exit", got)
 	}
 	if want := []string{":check", ":hint", ":help", ":quit"}; !slices.Equal(commands, want) {
@@ -1241,7 +1221,7 @@ func TestLabShellCommandReaderPreservesShellInputAndRejectsForgedCommands(t *tes
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got, want := string(data), "echo hello\r:check-not-real\r"; got != want {
+	if got, want := string(data), "echo hello\r:check-not-real\r\r"; got != want {
 		t.Fatalf("sandbox input = %q, want %q", got, want)
 	}
 	if want := []string{":check"}; !slices.Equal(commands, want) {
@@ -1263,7 +1243,7 @@ func TestLabShellCommandReaderHandlesBackspaceAndLongInput(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got, want := string(data), ":"+strings.Repeat("x", 80)+"\r"; got != want {
+	if got, want := string(data), "\r:"+strings.Repeat("x", 80)+"\r"; got != want {
 		t.Fatalf("forwarded input = %q, want %q", got, want)
 	}
 	if len(called) != 1 || called[0] != ":check" {
