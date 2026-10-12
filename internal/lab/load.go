@@ -214,10 +214,14 @@ func (lab Lab) CompileChecks() ([]checker.Check, error) {
 		case "process-absent":
 			checks = append(checks, checker.ProcessState{CheckID: id, Match: item.Match, Present: false})
 		case "command-exit":
+			if item.TimeoutSeconds < 0 || item.TimeoutSeconds > 120 {
+				return nil, fmt.Errorf("%s: command timeout must be 0..120 seconds", id)
+			}
 			checks = append(checks, checker.CommandExit{
 				CheckID:      id,
 				Argv:         append([]string(nil), item.Argv...),
 				ExpectedExit: item.ExpectedExit,
+				TimeoutSeconds: item.TimeoutSeconds,
 			})
 		case "acpi-button-sent":
 			if lab.Definition.Environment.Backend != "libvirt" {
