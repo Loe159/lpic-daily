@@ -1412,8 +1412,10 @@ func runInteractiveLabWithBackend(
 		// A grouped check has one short runner operation regardless of how many
 		// independent criteria it evaluates.
 		checkTimeout := operationTimeout
-		if authored.Definition.Environment.Backend == "podman" && checkTimeout > time.Minute {
-			checkTimeout = time.Minute
+		// Podman checks are normally quick; long-running interactive commands
+		// are a bug, not a reason to block the terminal for a minute.
+		if authored.Definition.Environment.Backend == "podman" && checkTimeout > 25*time.Second {
+			checkTimeout = 25 * time.Second
 		}
 		if len(authored.Definition.Checks) > 0 {
 			batchID := authored.Definition.Checks[0].BatchID
