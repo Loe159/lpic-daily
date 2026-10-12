@@ -67,7 +67,7 @@
         "lpic1.103.8.editeur-par-defaut"
       ],
       "timeout_seconds": 10,
-      "description_fr": "Vérifier le résultat attendu sans ouvrir de terminal interactif"
+      "description_fr": "La variable EDITOR sélectionne vi."
     },
     {
       "type": "command-exit",
