@@ -207,6 +207,27 @@ func (check CommandExit) Evaluate(ctx context.Context, probe Probe, instance run
 	}
 }
 
+// ACPIButtonSent requires proof outside the guest that libvirt dispatched
+// the ACPI event. It complements (but does not replace) guest journal checks.
+type ACPIButtonSent struct { CheckID string }
+
+func (check ACPIButtonSent) ID() string { return check.CheckID }
+
+func (check ACPIButtonSent) Evaluate(ctx context.Context, probe Probe, instance runner.Instance) Result {
+	host, ok := probe.(runner.ACPIEventProbe)
+	if !ok {
+		return Result{CheckID: check.ID(), Err: fmt.Errorf("%w: host ACPI evidence unavailable", runner.ErrNotSupported)}
+	}
+	sent, err := host.ACPIButtonObserved(ctx, instance)
+	if err != nil {
+		return Result{CheckID: check.ID(), Err: err}
+	}
+	if !sent {
+		return Result{CheckID: check.ID(), Detail: "no hypervisor ACPI event was sent to this VM"}
+	}
+	return Result{CheckID: check.ID(), Pass: true, Detail: "hypervisor ACPI event sent"}
+}
+
 func cloneEnvironment(environment map[string]string) map[string]string {
 	if environment == nil {
 		return nil
