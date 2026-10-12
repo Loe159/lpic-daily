@@ -1448,7 +1448,7 @@ func runInteractiveLabWithBackend(
 					if len(reflection) != 2 {
 						return false, errLabReflectionRequired
 					}
-					reflectionScanner = bufio.NewScanner(strings.NewReader(strings.Join(reflection, "\\n") + "\\n"))
+					reflectionScanner = bufio.NewScanner(strings.NewReader(strings.Join(reflection, "\n") + "\n"))
 				}
 			}
 			recorded, err := collectStandaloneReflection(
@@ -2606,7 +2606,7 @@ func (reader *labShellCommandReader) drawCommand(bytes []byte) {
 
 func (reader *labShellCommandReader) eraseCommand(count int) {
 	for i := 0; i < count && reader.echo != nil; i++ {
-		_, _ = io.WriteString(reader.echo, "\\b \\b")
+		_, _ = io.WriteString(reader.echo, "\b \b")
 	}
 }
 
@@ -2627,25 +2627,25 @@ func (reader *labShellCommandReader) Read(buffer []byte) (int, error) {
 		}
 		ch := one[0]
 		if len(reader.prefix) > 0 {
-			if ch == '\\r' || ch == '\\n' {
+			if ch == '\r' || ch == '\n' {
 				command := string(reader.prefix)
 				reader.prefix = nil
 				reader.column = 0
 				reader.lineStart = true
 				switch command {
 				case ":check", ":hint", ":help", ":quit":
-					reader.drawCommand([]byte("\\r\\n"))
+					reader.drawCommand([]byte("\r\n"))
 					stop, err := reader.onCommand(command)
 					if err != nil {
 						return 0, err
 					}
 					if stop {
 						reader.stop = true
-						reader.pending = []byte("exit\\r")
+						reader.pending = []byte("exit\r")
 					} else {
 						// Submit an empty line so Bash redraws its real prompt
 						// after host-owned check output without running :check.
-						reader.pending = []byte{'\\r'}
+						reader.pending = []byte{'\r'}
 					}
 					continue
 				default:
@@ -2678,7 +2678,7 @@ func (reader *labShellCommandReader) Read(buffer []byte) (int, error) {
 			reader.drawCommand([]byte{ch})
 			continue
 		}
-		if ch == '\\r' || ch == '\\n' {
+		if ch == '\r' || ch == '\n' {
 			reader.lineStart = true
 			reader.column = 0
 		} else if ch == 127 || ch == 8 {
