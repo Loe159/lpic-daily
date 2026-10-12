@@ -269,6 +269,13 @@ type ACPIEventProbe interface {
 	ACPIButtonObserved(context.Context, Instance) (bool, error)
 }
 
+// UEFIBootOrderBaseline is captured on the host immediately after trusted
+// lab setup, before the learner can modify the guest or its reference files.
+type UEFIBootOrderBaseline interface {
+	CaptureUEFIBootOrder(context.Context, Instance) error
+	ExpectedUEFIBootOrder(context.Context, Instance) (string, error)
+}
+
 // BootMenuRunner requests a managed VM reboot without waiting for guest-agent
 // reconnection. The learner needs the serial console while the guest is offline.
 type BootMenuRunner interface {
