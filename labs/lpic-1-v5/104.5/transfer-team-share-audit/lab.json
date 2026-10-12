@@ -136,7 +136,7 @@
         "lpic1.104.5.umask"
       ],
       "timeout_seconds": 10,
-      "description_fr": "Vérifier le résultat attendu sans ouvrir de terminal interactif"
+      "description_fr": "Le umask 0007 produit les permissions attendues dans le dossier d'équipe."
     },
     {
       "type": "command-exit",
