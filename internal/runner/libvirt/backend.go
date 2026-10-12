@@ -24,6 +24,7 @@ var (
 	_ runner.ConsoleRunner    = (*Backend)(nil)
 	_ runner.RebootRunner     = (*Backend)(nil)
 	_ runner.ACPIButtonRunner = (*Backend)(nil)
+	_ runner.ACPIEventProbe   = (*Backend)(nil)
 	_ runner.BootMenuRunner   = (*Backend)(nil)
 	_ runner.StorageProbe     = (*Backend)(nil)
 )
@@ -50,6 +51,7 @@ type managedInstance struct {
 	NetworkDefined bool
 	FilterName     string
 	FilterDefined  bool
+	ACPIButtonSent bool
 }
 
 func NewBackend(
@@ -592,7 +594,38 @@ func (backend *Backend) PressPowerButton(ctx context.Context, instance runner.In
 	if !ok {
 		return fmt.Errorf("%w: no managed ACPI event support", runner.ErrNotSupported)
 	}
-	return control.PressACPIButtonDomain(instance.ID)
+	if err := control.PressACPIButtonDomain(instance.ID); err != nil {
+		return err
+	}
+	backend.mu.Lock()
+	managed, exists := backend.instances[instance.ID]
+	if exists {
+		managed.ACPIButtonSent = true
+		backend.instances[instance.ID] = managed
+	}
+	backend.mu.Unlock()
+	if !exists {
+		return fmt.Errorf("%w %q after ACPI event", errUnknownVMInstance, instance.ID)
+	}
+	return nil
+}
+
+// ACPIButtonObserved reads only host-side state. It is never derived from
+// files or logs inside the disposable guest and is reset with the VM instance.
+func (backend *Backend) ACPIButtonObserved(ctx context.Context, instance runner.Instance) (bool, error) {
+	if err := ctx.Err(); err != nil {
+		return false, err
+	}
+	if _, err := backend.instance(instance); err != nil {
+		return false, err
+	}
+	backend.mu.RLock()
+	managed, exists := backend.instances[instance.ID]
+	backend.mu.RUnlock()
+	if !exists {
+		return false, fmt.Errorf("%w %q", errUnknownVMInstance, instance.ID)
+	}
+	return managed.ACPIButtonSent, nil
 }
 
 // RebootToBootMenu is nonblocking because waiting for the guest agent would
