@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
-	"strings"
 	"slices"
+	"strings"
 
 	"github.com/Loe159/lpic-daily/internal/runner"
 )
