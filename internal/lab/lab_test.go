@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"slices"
@@ -915,5 +916,59 @@ func TestBuiltinOnboardSATAControllerReenableUsesRealPCI(t *testing.T) {
 		if !strings.Contains(authored.SetupScript, marker) {
 			t.Errorf("missing physical PCI state evidence %q", marker)
 		}
+	}
+}
+
+// Test the actual authored shell checker with synthetic efibootmgr outputs.
+// This runs in CI without firmware, so BootOrder parsing cannot silently
+// regress while the host baseline check is tested independently.
+func TestBuiltinUEFIBootOrderShellCheck(t *testing.T) {
+	authored := loadBuiltinLab(t, "lpic1.101.2.uefi-boot-order-recovery")
+	if len(authored.Definition.Checks) < 3 {
+		t.Fatalf("missing UEFI checks: %d", len(authored.Definition.Checks))
+	}
+	check := authored.Definition.Checks[0]
+	if check.Type != "command-exit" || len(check.Argv) != 3 {
+		t.Fatalf("UEFI shell check shape changed: %#v", check)
+	}
+	command := check.Argv[2]
+	const precondition = "test -d /sys/firmware/efi/efivars"
+	if !strings.Contains(command, precondition) {
+		t.Fatalf("missing firmware precondition")
+	}
+	command = strings.Replace(command, precondition, "true", 1)
+	command = "efibootmgr() { cat \"$LPIC_TEST_EFI_STATE\"; }\n" + command
+
+	entries := "Boot0005* LPIC-primary HD(1,GPT,abc)\n" +
+		"Boot0004* LPIC-rescue HD(1,GPT,abc)\n" +
+		"Boot0000* Fedora\n" +
+		"Boot0001  UEFI:PXE\n"
+	cases := []struct {
+		name string
+		order string
+		entries string
+		wantPass bool
+	}{
+		{name: "restored complete order", order: "0005,0004,0000,0001", entries: entries, wantPass: true},
+		{name: "unrepaired rescue first", order: "0004,0005,0000,0001", entries: entries},
+		{name: "other entry before primary", order: "0000,0005,0004,0001", entries: entries},
+		{name: "duplicate primary", order: "0005,0004,0000,0005", entries: entries},
+		{name: "missing rescue entry", order: "0005,0004,0000,0001", entries: strings.Replace(entries, "Boot0004* LPIC-rescue HD(1,GPT,abc)\n", "", 1)},
+		{name: "no preserved entries", order: "0005,0004", entries: entries},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			statePath := filepath.Join(t.TempDir(), "efibootmgr.txt")
+			state := "BootCurrent: 0000\nBootOrder: " + tc.order + "\n" + tc.entries
+			if err := os.WriteFile(statePath, []byte(state), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			process := exec.Command("/usr/bin/bash", "-c", command)
+			process.Env = append(os.Environ(), "LPIC_TEST_EFI_STATE="+statePath)
+			output, err := process.CombinedOutput()
+			if (err == nil) != tc.wantPass {
+				t.Fatalf("UEFI check pass=%v, want %v: err=%v output=%q", err == nil, tc.wantPass, err, output)
+			}
+		})
 	}
 }
