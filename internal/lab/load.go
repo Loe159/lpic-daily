@@ -218,9 +218,9 @@ func (lab Lab) CompileChecks() ([]checker.Check, error) {
 				return nil, fmt.Errorf("%s: command timeout must be 0..120 seconds", id)
 			}
 			checks = append(checks, checker.CommandExit{
-				CheckID:      id,
-				Argv:         append([]string(nil), item.Argv...),
-				ExpectedExit: item.ExpectedExit,
+				CheckID:        id,
+				Argv:           append([]string(nil), item.Argv...),
+				ExpectedExit:   item.ExpectedExit,
 				TimeoutSeconds: item.TimeoutSeconds,
 			})
 		case "acpi-button-sent":
