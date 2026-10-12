@@ -203,3 +203,34 @@ func TestStateChecksAcceptDifferentCommandHistoriesWithSameFinalState(t *testing
 		}
 	}
 }
+
+type hostACPIProbe struct {
+	*fakeProbe
+	sent bool
+	err error
+}
+
+func (probe *hostACPIProbe) ACPIButtonObserved(_ context.Context, _ runner.Instance) (bool, error) {
+	return probe.sent, probe.err
+}
+
+func TestACPIButtonRequiresIndependentHostEvidence(t *testing.T) {
+	ctx := context.Background()
+	check := checker.ACPIButtonSent{CheckID: "host-acpi"}
+	instance := runner.Instance{ID: "owned-vm"}
+	if got := check.Evaluate(ctx, &fakeProbe{}, instance); got.Pass || !errors.Is(got.Err, runner.ErrNotSupported) {
+		t.Fatalf("guest-only probe incorrectly passed: %#v", got)
+	}
+	probe := &hostACPIProbe{fakeProbe: &fakeProbe{}}
+	if got := check.Evaluate(ctx, probe, instance); got.Pass || got.Err != nil {
+		t.Fatalf("no host event incorrectly passed: %#v", got)
+	}
+	probe.sent = true
+	if got := check.Evaluate(ctx, probe, instance); !got.Pass || got.Err != nil {
+		t.Fatalf("host event not accepted: %#v", got)
+	}
+	probe.err = errors.New("host unavailable")
+	if got := check.Evaluate(ctx, probe, instance); got.Pass || !errors.Is(got.Err, probe.err) {
+		t.Fatalf("host failure ignored: %#v", got)
+	}
+}
