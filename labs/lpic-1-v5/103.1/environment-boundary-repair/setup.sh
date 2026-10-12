@@ -1,11 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 install -d -m 0755 /run/lpic
-cat > /root/.bashrc <<'EOF'
-SERVICE_MODE=staging
-export LOCAL_NOTE=operator-note
-export LEGACY_TOKEN=deprecated
-EOF
 cat > /run/lpic/.lpic-env-capture.sh <<'EOF'
 # Snapshot the environment of the learner's currently running shell.
 __lpic_capture_environment() {
@@ -24,8 +19,10 @@ __lpic_capture_environment() {
 }
 EOF
 cat > /run/lpic/.lpic-shell-rc <<'EOF'
-# Startup wrapper for the lab; learners are not expected to edit .bashrc.
-source /root/.bashrc
+# Deliberately polluted initial shell environment; no startup file edits needed.
+SERVICE_MODE=staging
+export LOCAL_NOTE=operator-note
+export LEGACY_TOKEN=deprecated
 source /run/lpic/.lpic-env-capture.sh
 PROMPT_COMMAND=__lpic_capture_environment
 EOF
