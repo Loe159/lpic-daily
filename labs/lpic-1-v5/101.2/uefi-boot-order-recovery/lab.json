@@ -18,7 +18,7 @@
   "labels": [
     "lpic-required",
     "modern-practice",
-    "scenario-implemented"
+    "scenario-accepted"
   ],
   "estimated_minutes": 14,
   "practice_context": "101.2.uefi-boot-order-recovery",
