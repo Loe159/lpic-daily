@@ -21,7 +21,7 @@
   "labels": [
     "lpic-required",
     "modern-practice",
-    "scenario-implemented"
+    "scenario-accepted"
   ],
   "estimated_minutes": 16,
   "practice_context": "offline-apt-repository-recovery",
