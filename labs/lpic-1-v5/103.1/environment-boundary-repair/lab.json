@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.1.environment-boundary-repair",
   "title_fr": "Réparer la frontière entre shell et environnement",
-  "brief_fr": "Une relève d’astreinte lance des outils enfants avec un environnement pollué. Dans le shell interactif de root, SERVICE_MODE doit être exportée avec la valeur production, LOCAL_NOTE doit rester une variable du shell non transmise aux processus enfants et LEGACY_TOKEN ne doit plus exister. Produis ensuite /run/lpic/env-summary avec les valeurs développées SERVICE_MODE et LOCAL_NOTE, séparées par |.",
+  "brief_fr": "Une relève d’astreinte lance des outils enfants avec un environnement pollué. Dans le shell interactif de root, SERVICE_MODE doit être exportée avec la valeur production, LOCAL_NOTE doit rester une variable du shell non transmise aux processus enfants et LEGACY_TOKEN ne doit plus exister. Produis ensuite /run/lpic/env-summary avec les valeurs développées SERVICE_MODE et LOCAL_NOTE, séparées par |. Effectue les corrections directement dans ce shell, sans modifier les fichiers d’initialisation.",
   "success_criteria_fr": [
     "SERVICE_MODE vaut production et est visible dans l’environnement d’un processus enfant.",
     "LOCAL_NOTE vaut operator-note dans le shell mais n’apparaît pas dans env.",
@@ -59,7 +59,7 @@
         "--noprofile",
         "--norc",
         "-c",
-        ". /root/.bashrc || exit 125\nfailed=0\nif [[ ${LOCAL_NOTE-} != operator-note ]]; then failed=$((failed | 1)); fi\nchild=$'\\n'$(/usr/bin/env)$'\\n'\nif [[ \"$child\" == *$'\\nLOCAL_NOTE='* ]]; then failed=$((failed | 2)); fi\nif [[ \"$child\" != *$'\\nSERVICE_MODE=production\\n'* ]]; then failed=$((failed | 4)); fi\nif [[ ${LEGACY_TOKEN+x} ]] || [[ \"$child\" == *$'\\nLEGACY_TOKEN='* ]]; then failed=$((failed | 8)); fi\nsummary=$(/usr/bin/cat /run/lpic/env-summary 2>/dev/null; /usr/bin/printf '\\036')\nif [[ \"$summary\" != $'production|operator-note\\036' && \"$summary\" != $'production|operator-note\\n\\036' ]]; then failed=$((failed | 16)); fi\nexit \"$((160+failed))\""
+        "mask=$(/usr/bin/cat /run/lpic/.environment-check-state 2>/dev/null) || exit 125\n[[ \"$mask\" =~ ^([0-9]|[12][0-9]|3[01])$ ]] || exit 125\nexit \"$((160+mask))\""
       ],
       "expected_exit": 0,
       "concept_ids": [
@@ -82,7 +82,7 @@
         "--noprofile",
         "--norc",
         "-c",
-        ". /root/.bashrc || exit 125\nfailed=0\nif [[ ${LOCAL_NOTE-} != operator-note ]]; then failed=$((failed | 1)); fi\nchild=$'\\n'$(/usr/bin/env)$'\\n'\nif [[ \"$child\" == *$'\\nLOCAL_NOTE='* ]]; then failed=$((failed | 2)); fi\nif [[ \"$child\" != *$'\\nSERVICE_MODE=production\\n'* ]]; then failed=$((failed | 4)); fi\nif [[ ${LEGACY_TOKEN+x} ]] || [[ \"$child\" == *$'\\nLEGACY_TOKEN='* ]]; then failed=$((failed | 8)); fi\nsummary=$(/usr/bin/cat /run/lpic/env-summary 2>/dev/null; /usr/bin/printf '\\036')\nif [[ \"$summary\" != $'production|operator-note\\036' && \"$summary\" != $'production|operator-note\\n\\036' ]]; then failed=$((failed | 16)); fi\nexit \"$((160+failed))\""
+        "mask=$(/usr/bin/cat /run/lpic/.environment-check-state 2>/dev/null) || exit 125\n[[ \"$mask\" =~ ^([0-9]|[12][0-9]|3[01])$ ]] || exit 125\nexit \"$((160+mask))\""
       ],
       "expected_exit": 0,
       "concept_ids": [
@@ -104,7 +104,7 @@
         "--noprofile",
         "--norc",
         "-c",
-        ". /root/.bashrc || exit 125\nfailed=0\nif [[ ${LOCAL_NOTE-} != operator-note ]]; then failed=$((failed | 1)); fi\nchild=$'\\n'$(/usr/bin/env)$'\\n'\nif [[ \"$child\" == *$'\\nLOCAL_NOTE='* ]]; then failed=$((failed | 2)); fi\nif [[ \"$child\" != *$'\\nSERVICE_MODE=production\\n'* ]]; then failed=$((failed | 4)); fi\nif [[ ${LEGACY_TOKEN+x} ]] || [[ \"$child\" == *$'\\nLEGACY_TOKEN='* ]]; then failed=$((failed | 8)); fi\nsummary=$(/usr/bin/cat /run/lpic/env-summary 2>/dev/null; /usr/bin/printf '\\036')\nif [[ \"$summary\" != $'production|operator-note\\036' && \"$summary\" != $'production|operator-note\\n\\036' ]]; then failed=$((failed | 16)); fi\nexit \"$((160+failed))\""
+        "mask=$(/usr/bin/cat /run/lpic/.environment-check-state 2>/dev/null) || exit 125\n[[ \"$mask\" =~ ^([0-9]|[12][0-9]|3[01])$ ]] || exit 125\nexit \"$((160+mask))\""
       ],
       "expected_exit": 0,
       "concept_ids": [
@@ -127,7 +127,7 @@
         "--noprofile",
         "--norc",
         "-c",
-        ". /root/.bashrc || exit 125\nfailed=0\nif [[ ${LOCAL_NOTE-} != operator-note ]]; then failed=$((failed | 1)); fi\nchild=$'\\n'$(/usr/bin/env)$'\\n'\nif [[ \"$child\" == *$'\\nLOCAL_NOTE='* ]]; then failed=$((failed | 2)); fi\nif [[ \"$child\" != *$'\\nSERVICE_MODE=production\\n'* ]]; then failed=$((failed | 4)); fi\nif [[ ${LEGACY_TOKEN+x} ]] || [[ \"$child\" == *$'\\nLEGACY_TOKEN='* ]]; then failed=$((failed | 8)); fi\nsummary=$(/usr/bin/cat /run/lpic/env-summary 2>/dev/null; /usr/bin/printf '\\036')\nif [[ \"$summary\" != $'production|operator-note\\036' && \"$summary\" != $'production|operator-note\\n\\036' ]]; then failed=$((failed | 16)); fi\nexit \"$((160+failed))\""
+        "mask=$(/usr/bin/cat /run/lpic/.environment-check-state 2>/dev/null) || exit 125\n[[ \"$mask\" =~ ^([0-9]|[12][0-9]|3[01])$ ]] || exit 125\nexit \"$((160+mask))\""
       ],
       "expected_exit": 0,
       "concept_ids": [
@@ -154,7 +154,7 @@
         "--noprofile",
         "--norc",
         "-c",
-        ". /root/.bashrc || exit 125\nfailed=0\nif [[ ${LOCAL_NOTE-} != operator-note ]]; then failed=$((failed | 1)); fi\nchild=$'\\n'$(/usr/bin/env)$'\\n'\nif [[ \"$child\" == *$'\\nLOCAL_NOTE='* ]]; then failed=$((failed | 2)); fi\nif [[ \"$child\" != *$'\\nSERVICE_MODE=production\\n'* ]]; then failed=$((failed | 4)); fi\nif [[ ${LEGACY_TOKEN+x} ]] || [[ \"$child\" == *$'\\nLEGACY_TOKEN='* ]]; then failed=$((failed | 8)); fi\nsummary=$(/usr/bin/cat /run/lpic/env-summary 2>/dev/null; /usr/bin/printf '\\036')\nif [[ \"$summary\" != $'production|operator-note\\036' && \"$summary\" != $'production|operator-note\\n\\036' ]]; then failed=$((failed | 16)); fi\nexit \"$((160+failed))\""
+        "mask=$(/usr/bin/cat /run/lpic/.environment-check-state 2>/dev/null) || exit 125\n[[ \"$mask\" =~ ^([0-9]|[12][0-9]|3[01])$ ]] || exit 125\nexit \"$((160+mask))\""
       ],
       "expected_exit": 0,
       "timeout_seconds": 5,
@@ -169,5 +169,6 @@
     "lpic1.103.1.environment-boundary-repair.hint-4"
   ],
   "reference_solution_ref": "reference-solution.sh",
-  "reset_policy": "disposable"
+  "reset_policy": "disposable",
+  "requires_persistent_shell": true
 }
