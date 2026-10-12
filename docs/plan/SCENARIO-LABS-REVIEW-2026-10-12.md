@@ -86,3 +86,17 @@ PASS
 ### Suivi CI Podman
 
 La dernière CI étudiée (`38247883851`) conserve un échec `103.5/stuck-worker` sur les deux runners Podman. Un correctif ultérieur ajoute un marqueur de disponibilité après installation des traps du processus, afin de ne pas envoyer `SIGTSTP` trop tôt, ainsi que des diagnostics sur échec ; test CI du nouveau commit non encore confirmé.
+
+
+### Validation isolation KVM sur hôte réel — 12 octobre 2026
+
+Résultat fourni par l'utilisateur :
+
+```text
+LPIC_DAILY_RUN_KVM_INTEGRATION=1 go test -tags=integration ./internal/runner/libvirt -run '^TestRealKVMIsolationScenarioAndCrashReaping$' -count=1 -v -timeout=15m
+--- PASS: TestRealKVMIsolationScenarioAndCrashReaping (100.37s)
+PASS
+ok github.com/Loe159/lpic-daily/internal/runner/libvirt 100.391s
+```
+
+Ce test complète les **10/10 scénarios de référence KVM** déjà validés. Le test d'isolation porte sur réseau isolé, protections du système hôte, immutabilité de l'image de base, console série, destruction et réconciliation d'une VM simulée orpheline. Cela n'est pas une preuve d'exécution des 45 scénarios libvirt disponibles.
