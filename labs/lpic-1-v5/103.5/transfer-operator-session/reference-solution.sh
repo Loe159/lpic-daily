@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -Eeuo pipefail
+trap 'code=$?; printf "reference failure at line %s (exit %s): %s\n" "$LINENO" "$code" "$BASH_COMMAND" >&2' ERR
 
 reload_pid="$(pgrep -f '^reload-worker' | head -n1)"
 test -n "$reload_pid"
@@ -13,11 +14,17 @@ test -f /run/lpic/reload-requested
 command -v script >/dev/null
 cat > /run/lpic/.lpic-reference-job-control.sh <<'LPIC_JOB'
 #!/usr/bin/env bash
-set -euo pipefail
+set -Eeuo pipefail
+trap 'code=$?; printf "job-control failure at line %s (exit %s): %s\n" "$LINENO" "$code" "$BASH_COMMAND" >&2' ERR
 set -m
 /usr/local/bin/lpic-maintenance-job-probe &
 probe_pid="$!"
-sleep 0.2
+for i in $(seq 1 250); do
+  test -f /run/lpic/maintenance-probe-ready && break
+  kill -0 "$probe_pid" || { echo "signal probe exited before readiness" >&2; exit 1; }
+  sleep 0.02
+done
+test -f /run/lpic/maintenance-probe-ready || { echo "signal probe never became ready" >&2; exit 1; }
 kill -TSTP "$probe_pid"
 # Bash runs signal traps only once its child wait returns; allow > 2 seconds.
 for i in $(seq 1 250); do test -f /run/lpic/maintenance-probe-stopped && break; sleep 0.02; done
