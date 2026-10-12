@@ -155,3 +155,16 @@ func LaunchLab(ctx context.Context, executor Executor, labID string) error {
 	}
 	return launchTerminal(ctx, executor, "lab", "run", labID)
 }
+
+// LaunchLabWithCheckSocket starts the same child lab with a private IPC endpoint.
+// The socket is owned by the parent dashboard, not by the sandbox.
+func LaunchLabWithCheckSocket(ctx context.Context, executor Executor, labID, socketPath string) error {
+	labID = strings.TrimSpace(labID)
+	if labID == "" {
+		return errors.New("lab ID is required")
+	}
+	if !filepath.IsAbs(socketPath) {
+		return errors.New("lab check socket path must be absolute")
+	}
+	return launchTerminal(ctx, executor, "lab", "run", labID, "--check-socket", socketPath)
+}
