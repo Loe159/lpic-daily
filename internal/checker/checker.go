@@ -172,6 +172,8 @@ type CommandExit struct {
 	Argv           []string
 	ExpectedExit   int
 	TimeoutSeconds int
+	BatchID        string
+	FailureBit     int
 	WorkingDir     string
 	Env            map[string]string
 }
@@ -292,6 +294,71 @@ func cloneEnvironment(environment map[string]string) map[string]string {
 	return clone
 }
 
+// evaluateCommandBatch evaluates one trusted in-container command for multiple
+// independent criteria. Each bit of its exit status means a criterion failed.
+// The command runs once, so diagnostics remain granular without repeated shells.
+func evaluateCommandBatch(ctx context.Context, probe Probe, instance runner.Instance, group []CommandExit) ([]Result, error) {
+	if len(group) == 0 {
+		return nil, errors.New("empty command batch")
+	}
+	first := group[0]
+	allowedBits := 0
+	for _, check := range group {
+		if check.BatchID != first.BatchID || !slices.Equal(check.Argv, first.Argv) ||
+			check.ExpectedExit != 0 || check.TimeoutSeconds != first.TimeoutSeconds ||
+			check.FailureBit < 1 || check.FailureBit > 64 ||
+			check.FailureBit&(check.FailureBit-1) != 0 || allowedBits&check.FailureBit != 0 {
+			return nil, fmt.Errorf("invalid command batch %q at check %s", first.BatchID, check.CheckID)
+		}
+		allowedBits |= check.FailureBit
+	}
+	if len(first.Argv) == 0 || first.TimeoutSeconds < 1 || first.TimeoutSeconds > 120 {
+		return nil, fmt.Errorf("invalid execution settings for command batch %q", first.BatchID)
+	}
+
+	commandCtx, cancel := context.WithTimeout(ctx, time.Duration(first.TimeoutSeconds)*time.Second)
+	defer cancel()
+	execResult, execErr := probe.Exec(commandCtx, instance, runner.ExecRequest{
+		Argv: append([]string(nil), first.Argv...),
+		Env: cloneEnvironment(first.Env),
+		WorkingDir: first.WorkingDir,
+	})
+	results := make([]Result, 0, len(group))
+	switch {
+	case execErr != nil && ctx.Err() == nil && commandCtx.Err() == context.DeadlineExceeded &&
+		errors.Is(execErr, context.DeadlineExceeded):
+		for _, check := range group {
+			results = append(results, Result{CheckID: check.ID(), Detail: "vérification interrompue : le shell de diagnostic ne répond pas"})
+		}
+		return results, nil
+	case execErr != nil:
+		for _, check := range group {
+			results = append(results, Result{CheckID: check.ID(), Err: execErr})
+		}
+		return results, fmt.Errorf("run command batch %s: %w", first.BatchID, execErr)
+	case execResult.ExitCode == 124 || execResult.ExitCode == 137:
+		for _, check := range group {
+			results = append(results, Result{CheckID: check.ID(), Detail: "délai dépassé lors du chargement de .bashrc"})
+		}
+		return results, nil
+	case execResult.ExitCode&^allowedBits != 0:
+		for _, check := range group {
+			results = append(results, Result{CheckID: check.ID(), Detail: fmt.Sprintf("échec du diagnostic commun (code %d)", execResult.ExitCode)})
+		}
+		return results, nil
+	default:
+		for _, check := range group {
+			passed := execResult.ExitCode&check.FailureBit == 0
+			detail := "critère non satisfait"
+			if passed {
+				detail = "critère satisfait"
+			}
+			results = append(results, Result{CheckID: check.ID(), Pass: passed, Detail: detail})
+		}
+		return results, nil
+	}
+}
+
 func EvaluateAll(ctx context.Context, probe Probe, instance runner.Instance, checks []Check) ([]Result, error) {
 	if probe == nil {
 		return nil, errors.New("probe is required")
@@ -299,9 +366,30 @@ func EvaluateAll(ctx context.Context, probe Probe, instance runner.Instance, che
 
 	results := make([]Result, 0, len(checks))
 	var errs []error
-	for _, check := range checks {
+	for index := 0; index < len(checks); {
+		check := checks[index]
 		if check == nil {
 			errs = append(errs, errors.New("nil check"))
+			index++
+			continue
+		}
+		if first, ok := check.(CommandExit); ok && first.BatchID != "" {
+			end := index + 1
+			group := []CommandExit{first}
+			for end < len(checks) {
+				next, ok := checks[end].(CommandExit)
+				if !ok || next.BatchID != first.BatchID {
+					break
+				}
+				group = append(group, next)
+				end++
+			}
+			batchResults, err := evaluateCommandBatch(ctx, probe, instance, group)
+			if err != nil {
+				errs = append(errs, err)
+			}
+			results = append(results, batchResults...)
+			index = end
 			continue
 		}
 		result := check.Evaluate(ctx, probe, instance)
@@ -309,6 +397,7 @@ func EvaluateAll(ctx context.Context, probe Probe, instance runner.Instance, che
 		if result.Err != nil {
 			errs = append(errs, fmt.Errorf("%s: %w", result.CheckID, result.Err))
 		}
+		index++
 	}
 	return results, errors.Join(errs...)
 }
