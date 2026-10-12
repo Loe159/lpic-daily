@@ -319,8 +319,8 @@ func evaluateCommandBatch(ctx context.Context, probe Probe, instance runner.Inst
 	commandCtx, cancel := context.WithTimeout(ctx, time.Duration(first.TimeoutSeconds)*time.Second)
 	defer cancel()
 	execResult, execErr := probe.Exec(commandCtx, instance, runner.ExecRequest{
-		Argv: append([]string(nil), first.Argv...),
-		Env: cloneEnvironment(first.Env),
+		Argv:       append([]string(nil), first.Argv...),
+		Env:        cloneEnvironment(first.Env),
 		WorkingDir: first.WorkingDir,
 	})
 	results := make([]Result, 0, len(group))
