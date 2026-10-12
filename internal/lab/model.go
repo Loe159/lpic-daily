@@ -67,6 +67,7 @@ type CheckDefinition struct {
 	Match          string   `json:"match,omitempty"`
 	Argv           []string `json:"argv,omitempty"`
 	ExpectedExit   int      `json:"expected_exit,omitempty"`
+	TimeoutSeconds int      `json:"timeout_seconds,omitempty"`
 	DeviceType     string   `json:"device_type,omitempty"`
 	Filesystem     string   `json:"filesystem,omitempty"`
 	PartitionTable string   `json:"partition_table,omitempty"`

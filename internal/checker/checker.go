@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/Loe159/lpic-daily/internal/runner"
 )
@@ -167,11 +168,12 @@ func (check ProcessState) Evaluate(ctx context.Context, probe Probe, instance ru
 }
 
 type CommandExit struct {
-	CheckID      string
-	Argv         []string
-	ExpectedExit int
-	WorkingDir   string
-	Env          map[string]string
+	CheckID        string
+	Argv           []string
+	ExpectedExit   int
+	TimeoutSeconds int
+	WorkingDir     string
+	Env            map[string]string
 }
 
 func (check CommandExit) ID() string {
@@ -186,15 +188,34 @@ func (check CommandExit) Evaluate(ctx context.Context, probe Probe, instance run
 		return Result{CheckID: check.ID(), Err: fmt.Errorf("expected exit %d outside 0..255", check.ExpectedExit)}
 	}
 
-	result, err := probe.Exec(ctx, instance, runner.ExecRequest{
+	if check.TimeoutSeconds < 0 || check.TimeoutSeconds > 120 {
+		return Result{CheckID: check.ID(), Err: fmt.Errorf("invalid command timeout %d seconds", check.TimeoutSeconds)}
+	}
+
+	commandCtx := ctx
+	if check.TimeoutSeconds > 0 {
+		var cancel context.CancelFunc
+		commandCtx, cancel = context.WithTimeout(ctx, time.Duration(check.TimeoutSeconds)*time.Second)
+		defer cancel()
+	}
+	result, err := probe.Exec(commandCtx, instance, runner.ExecRequest{
 		Argv:       append([]string(nil), check.Argv...),
 		Env:        cloneEnvironment(check.Env),
 		WorkingDir: check.WorkingDir,
 	})
 	if err != nil {
+		// A blocked learner-controlled shell is an ordinary failed check, not
+		// a fatal lab error. Preserve caller cancellation and backend errors.
+		if check.TimeoutSeconds > 0 && ctx.Err() == nil &&
+			commandCtx.Err() == context.DeadlineExceeded && errors.Is(err, context.DeadlineExceeded) {
+			return Result{CheckID: check.ID(), Detail: fmt.Sprintf("délai dépassé après %d s : la commande de vérification ne se termine pas", check.TimeoutSeconds)}
+		}
 		return Result{CheckID: check.ID(), Err: err}
 	}
 	if result.ExitCode != check.ExpectedExit {
+		if result.ExitCode == 124 && len(check.Argv) > 0 && check.Argv[0] == "/usr/bin/timeout" {
+			return Result{CheckID: check.ID(), Detail: "délai dépassé : le shell reste bloqué (vérifie les commandes exécutées dans .bashrc)"}
+		}
 		return Result{
 			CheckID: check.ID(),
 			Pass:    false,

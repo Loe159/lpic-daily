@@ -1409,12 +1409,18 @@ func runInteractiveLabWithBackend(
 			reflectionRecorded = recorded
 		}
 		passed := true
-		checkCtx, cancelCheck := context.WithTimeout(sessionCtx, operationTimeout)
+		// The session may last 20 minutes, but a non-interactive check must not.
+		checkTimeout := operationTimeout
+		if authored.Definition.Environment.Backend == "podman" && checkTimeout > time.Minute {
+			checkTimeout = time.Minute
+		}
+		fmt.Fprintf(stdout, "Vérification de %d critères en cours (limite : %s)...\n", len(authored.Definition.Checks), checkTimeout)
+		checkCtx, cancelCheck := context.WithTimeout(sessionCtx, checkTimeout)
 		results, err := session.Evaluate(checkCtx)
 		cancelCheck()
 		if err != nil {
 			if errors.Is(err, context.DeadlineExceeded) {
-				fmt.Fprintf(stdout, "Validation interrompue après %s. Le lab reste ouvert; tu peux réessayer :check.\n", operationTimeout)
+				fmt.Fprintf(stdout, "Validation interrompue après %s. Le lab reste ouvert; tu peux réessayer :check.\n", checkTimeout)
 				return false, nil
 			}
 			return false, fmt.Errorf("evaluate lab: %w", err)
