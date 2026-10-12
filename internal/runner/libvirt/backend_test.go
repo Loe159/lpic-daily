@@ -1193,25 +1193,45 @@ func TestACPIHostEvidenceIsVMScopedAndClearedByReset(t *testing.T) {
 	backend, control, _, definition := backendFixture(t)
 	ctx := context.Background()
 	first, err := backend.Prepare(ctx, definition)
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
 	second, err := backend.Prepare(ctx, definition)
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
 	for _, guest := range []runner.Instance{first, second} {
-		if err := backend.Start(ctx, guest); err != nil { t.Fatal(err) }
+		if err := backend.Start(ctx, guest); err != nil {
+			t.Fatal(err)
+		}
 	}
 	for _, guest := range []runner.Instance{first, second} {
 		sent, err := backend.ACPIButtonObserved(ctx, guest)
-		if err != nil || sent { t.Fatalf("unexpected initial evidence for %s: sent=%t err=%v", guest.ID, sent, err) }
+		if err != nil || sent {
+			t.Fatalf("unexpected initial evidence for %s: sent=%t err=%v", guest.ID, sent, err)
+		}
 	}
-	if err := backend.PressPowerButton(ctx, first); err != nil { t.Fatal(err) }
-	if control.acpiButtons != 1 { t.Fatal("hypervisor event not dispatched exactly once") }
+	if err := backend.PressPowerButton(ctx, first); err != nil {
+		t.Fatal(err)
+	}
+	if control.acpiButtons != 1 {
+		t.Fatal("hypervisor event not dispatched exactly once")
+	}
 	sent, err := backend.ACPIButtonObserved(ctx, first)
-	if err != nil || !sent { t.Fatalf("first VM evidence: sent=%t err=%v", sent, err) }
+	if err != nil || !sent {
+		t.Fatalf("first VM evidence: sent=%t err=%v", sent, err)
+	}
 	sent, err = backend.ACPIButtonObserved(ctx, second)
-	if err != nil || sent { t.Fatalf("cross-instance evidence leak: sent=%t err=%v", sent, err) }
-	if err := backend.Reset(ctx, first); err != nil { t.Fatal(err) }
+	if err != nil || sent {
+		t.Fatalf("cross-instance evidence leak: sent=%t err=%v", sent, err)
+	}
+	if err := backend.Reset(ctx, first); err != nil {
+		t.Fatal(err)
+	}
 	sent, err = backend.ACPIButtonObserved(ctx, first)
-	if err != nil || sent { t.Fatalf("reset retained stale host evidence: sent=%t err=%v", sent, err) }
+	if err != nil || sent {
+		t.Fatalf("reset retained stale host evidence: sent=%t err=%v", sent, err)
+	}
 	if _, err := backend.ACPIButtonObserved(ctx, runner.Instance{ID: "foreign-vm"}); err == nil {
 		t.Fatal("foreign VM was allowed to query host evidence")
 	}
