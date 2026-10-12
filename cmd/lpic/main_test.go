@@ -775,6 +775,17 @@ func TestFailedLabCheckRecordsConceptGranularEvidence(t *testing.T) {
 	if !strings.Contains(stdout.String(), "Tentative enregistrée.") {
 		t.Fatalf("failed attempt was not acknowledged: %q", stdout.String())
 	}
+	checkOutput := stdout.String()
+	if start := strings.Index(checkOutput, "Vérification de "); start >= 0 {
+		checkOutput = checkOutput[start:]
+	} else {
+		t.Fatalf("missing check output: %q", stdout.String())
+	}
+	if strings.Contains(checkOutput, authored.Definition.ID+".check-") ||
+		!strings.Contains(checkOutput, "À CORRIGER") ||
+		!strings.Contains(checkOutput, "Permissions du fichier") {
+		t.Fatalf("check output should show human-readable criteria without technical IDs: %q", checkOutput)
+	}
 
 	store, err := openProgressStore(context.Background())
 	if err != nil {
@@ -847,8 +858,9 @@ func TestPersistentShellRequirementBlocksStateOnlySuccess(t *testing.T) {
 	); err != nil {
 		t.Fatalf("runInteractiveLabWithBackend() error = %v; stderr=%q", err, stderr.String())
 	}
-	if !strings.Contains(stdout.String(), ".persistent-shell") {
-		t.Fatalf("missing persistent-shell rejection: %q", stdout.String())
+	if !strings.Contains(stdout.String(), "Passe par :shell") ||
+		strings.Contains(stdout.String(), ".persistent-shell") {
+		t.Fatalf("persistent-shell check should show a human-readable instruction without a technical ID: %q", stdout.String())
 	}
 	if strings.Contains(stdout.String(), "Lab réussi.") {
 		t.Fatalf("lab succeeded without persistent shell: %q", stdout.String())
