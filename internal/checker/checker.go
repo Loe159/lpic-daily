@@ -168,12 +168,12 @@ func (check ProcessState) Evaluate(ctx context.Context, probe Probe, instance ru
 }
 
 type CommandExit struct {
-	CheckID      string
-	Argv         []string
-	ExpectedExit int
+	CheckID        string
+	Argv           []string
+	ExpectedExit   int
 	TimeoutSeconds int
-	WorkingDir   string
-	Env          map[string]string
+	WorkingDir     string
+	Env            map[string]string
 }
 
 func (check CommandExit) ID() string {
