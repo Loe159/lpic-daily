@@ -1,5 +1,8 @@
 # Revue des scénarios LPIC-101 — 12 octobre 2026
 
+**Mise à jour du 12 octobre (après revue) :** par décision du responsable du projet, les **69 scénarios sont désormais publiés (`accepted`)** afin d'être testés au fil de l'apprentissage. Les 49 anciens `implemented` ont été promus dans la matrice et les labels. La suite de cette note retrace les états historiques au moment de la review initiale et non le statut actuel. Publication ≠ confirmation de réussite des tests. La CI récente a révélé un échec de solution de référence `103.5/stuck-worker` sur les deux distributions Podman et un problème de formatage Go ; correctifs poussés, nouvelle CI à vérifier. La recette KVM reste à compléter sans bloquer la publication.
+
+
 ## Périmètre et statut
 
 Branche `scenario-migration-1031`. Relecture statique des définitions des **70 labs** de `labs/lpic-1-v5/`, de leurs références de correction, de leurs setups et d'un échantillon d'indices.
