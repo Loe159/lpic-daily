@@ -53,7 +53,7 @@
       "argv": [
         "/usr/bin/bash",
         "-lc",
-        "printf 'db_01\\nweb_01\\nweb_02\\n' | cmp -s - /workspace/output/error-hosts.txt"
+        "set -euo pipefail; awk -F '\\t' '$3 == \"ERROR\" { gsub(/-/, \"_\", $2); print $2 }' /workspace/input/events.tsv | LC_ALL=C sort -u | cmp -s - /workspace/output/error-hosts.txt"
       ],
       "expected_exit": 0,
       "concept_ids": [
@@ -67,7 +67,7 @@
       "argv": [
         "/usr/bin/bash",
         "-lc",
-        "printf 'db-01|data\\nweb-01|frontend\\nweb-02|frontend\\n' | cmp -s - /workspace/output/error-teams.txt"
+        "set -euo pipefail; awk -F '\\t' 'NR==FNR {owner[$1]=$2; next} $3==\"ERROR\" && !seen[$2]++ {print $2 \"|\" owner[$2]}' /workspace/input/owners.tsv /workspace/input/events.tsv | LC_ALL=C sort | cmp -s - /workspace/output/error-teams.txt"
       ],
       "expected_exit": 0,
       "concept_ids": [
@@ -80,7 +80,7 @@
       "argv": [
         "/usr/bin/bash",
         "-lc",
-        "printf 'db-01|data\\nweb-01|frontend\\n' | cmp -s - /workspace/output/chunks/error-00 && printf 'web-02|frontend\\n' | cmp -s - /workspace/output/chunks/error-01"
+        "set -euo pipefail; cmp -s <(sed -n '1,2p' /workspace/output/error-teams.txt) /workspace/output/chunks/error-00; cmp -s <(sed -n '3,$p' /workspace/output/error-teams.txt) /workspace/output/chunks/error-01; test \"$(find /workspace/output/chunks -maxdepth 1 -name 'error-*' -type f | wc -l)\" -eq 2"
       ],
       "expected_exit": 0,
       "concept_ids": [
@@ -92,7 +92,7 @@
       "argv": [
         "/usr/bin/bash",
         "-lc",
-        "printf 'errors=4\\nunique_hosts=3\\n' | cmp -s - /workspace/output/metrics.txt"
+        "set -euo pipefail; awk -F '\\t' '$3==\"ERROR\"{ errors++; seen[$2]=1 } END { for (name in seen) unique++; printf \"errors=%d\\nunique_hosts=%d\\n\", errors, unique }' /workspace/input/events.tsv | cmp -s - /workspace/output/metrics.txt"
       ],
       "expected_exit": 0,
       "concept_ids": [
