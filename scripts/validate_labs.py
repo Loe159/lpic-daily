@@ -264,11 +264,12 @@ def main():
                 "command-exit",
                 "block-device-state",
                 "acpi-button-sent",
+                "uefi-boot-order-preserved",
             }:
                 errors.append(f"{lab_id}: unknown check type {check_type!r}")
 
-            if check_type == "acpi-button-sent" and backend != "libvirt":
-                errors.append(f"{lab_id}: acpi-button-sent requires libvirt")
+            if check_type in {"acpi-button-sent", "uefi-boot-order-preserved"} and backend != "libvirt":
+                errors.append(f"{lab_id}: {check_type} requires libvirt")
             evidence_concepts = check.get("concept_ids")
             if (
                 not isinstance(evidence_concepts, list)
