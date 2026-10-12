@@ -58,63 +58,67 @@
       "argv": [
         "/usr/bin/bash",
         "--noprofile",
-        "--rcfile",
-        "/root/.bashrc",
-        "-ic",
-        "test \"$(command -v report-status)\" = /opt/lpic/approved/bin/report-status"
+        "--norc",
+        "-c",
+        ". \"/root/.bashrc\" || exit 1; test \"$(command -v report-status)\" = /opt/lpic/approved/bin/report-status"
       ],
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.1.path-et-resolution-de-commande",
         "lpic1.103.1.documentation-et-identification-d-une-commande"
-      ]
+      ],
+      "timeout_seconds": 10,
+      "description_fr": "Vérifier le résultat attendu sans ouvrir de terminal interactif"
     },
     {
       "type": "command-exit",
       "argv": [
         "/usr/bin/bash",
         "--noprofile",
-        "--rcfile",
-        "/root/.bashrc",
-        "-ic",
-        "test \"${HANDOFF_ROLE:-}\" = primary"
+        "--norc",
+        "-c",
+        ". \"/root/.bashrc\" || exit 1; test \"${HANDOFF_ROLE:-}\" = primary"
       ],
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.1.variables-shell-environnement"
-      ]
+      ],
+      "timeout_seconds": 10,
+      "description_fr": "Vérifier le résultat attendu sans ouvrir de terminal interactif"
     },
     {
       "type": "command-exit",
       "argv": [
         "/usr/bin/bash",
         "--noprofile",
-        "--rcfile",
-        "/root/.bashrc",
-        "-ic",
-        "test \"${HANDOFF_FILE:-}\" = \"/var/lib/lpic/reports/handoff notes.txt\""
+        "--norc",
+        "-c",
+        ". \"/root/.bashrc\" || exit 1; test \"${HANDOFF_FILE:-}\" = \"/var/lib/lpic/reports/handoff notes.txt\""
       ],
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.1.variables-shell-environnement",
         "lpic1.103.1.quoting-escaping"
-      ]
+      ],
+      "timeout_seconds": 10,
+      "description_fr": "Vérifier le résultat attendu sans ouvrir de terminal interactif"
     },
     {
       "type": "command-exit",
       "argv": [
         "/usr/bin/bash",
         "--noprofile",
-        "--rcfile",
-        "/root/.bashrc",
-        "-ic",
-        "test \"${HISTSIZE:-}\" = 1500 && test \"${HISTFILESIZE:-}\" = 3000 && test \"${HISTCONTROL:-}\" = ignoredups"
+        "--norc",
+        "-c",
+        ". \"/root/.bashrc\" || exit 1; test \"${HISTSIZE:-}\" = 1500 && test \"${HISTFILESIZE:-}\" = 3000 && test \"${HISTCONTROL:-}\" = ignoredups"
       ],
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.1.historique",
         "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes"
-      ]
+      ],
+      "timeout_seconds": 10,
+      "description_fr": "Vérifier le résultat attendu sans ouvrir de terminal interactif"
     },
     {
       "type": "command-exit",
