@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/Loe159/lpic-daily/internal/checker"
@@ -279,5 +280,39 @@ func TestUEFIBootOrderRequiresFullTrustedHostBaseline(t *testing.T) {
 	probe.err = errors.New("trusted baseline unavailable")
 	if got := check.Evaluate(ctx, probe, instance); got.Pass || !errors.Is(got.Err, probe.err) {
 		t.Fatalf("missing baseline treated as success: %#v", got)
+	}
+}
+
+type blockedCommandProbe struct { fakeProbe }
+
+func (probe *blockedCommandProbe) Exec(ctx context.Context, _ runner.Instance, _ runner.ExecRequest) (runner.ExecResult, error) {
+	<-ctx.Done()
+	return runner.ExecResult{}, ctx.Err()
+}
+
+func TestCommandExitTimeoutReportsFailedCheckAndContinues(t *testing.T) {
+	probe := &blockedCommandProbe{}
+	results, err := checker.EvaluateAll(context.Background(), probe, runner.Instance{ID: "fake"}, []checker.Check{
+		checker.CommandExit{CheckID: "blocked-shell", Argv: []string{"/usr/bin/bash", "-ic", "true"}, ExpectedExit: 0, TimeoutSeconds: 1},
+		checker.FileExists{CheckID: "still-checked", Path: "/exists"},
+	})
+	if err != nil {
+		t.Fatalf("EvaluateAll() error = %v", err)
+	}
+	if len(results) != 2 || results[0].Pass || results[0].Err != nil ||
+		!strings.Contains(results[0].Detail, "délai dépassé") {
+		t.Fatalf("timeout result = %#v", results)
+	}
+	if results[1].Pass || results[1].CheckID != "still-checked" {
+		t.Fatalf("following check skipped: %#v", results)
+	}
+}
+
+func TestCommandExitGuestTimeoutHasActionableDetail(t *testing.T) {
+	probe := &fakeProbe{execResult: runner.ExecResult{ExitCode: 124}}
+	check := checker.CommandExit{CheckID: "blocked-shell", Argv: []string{"/usr/bin/timeout", "6s", "/usr/bin/bash"}, ExpectedExit: 0}
+	result := check.Evaluate(context.Background(), probe, runner.Instance{ID: "fake"})
+	if result.Pass || result.Err != nil || !strings.Contains(result.Detail, ".bashrc") {
+		t.Fatalf("timeout detail = %#v", result)
 	}
 }
