@@ -127,15 +127,16 @@
       "argv": [
         "/usr/bin/bash",
         "--noprofile",
-        "--rcfile",
-        "/root/.bashrc",
-        "-ic",
-        "test \"$(umask)\" = 0007 && rm -f /srv/project-transfer/team/.umask-proof && : > /srv/project-transfer/team/.umask-proof && test \"$(stat -c %a /srv/project-transfer/team/.umask-proof)\" = 660"
+        "--norc",
+        "-c",
+        ". \"/root/.bashrc\" || exit 1; test \"$(umask)\" = 0007 && rm -f /srv/project-transfer/team/.umask-proof && : > /srv/project-transfer/team/.umask-proof && test \"$(stat -c %a /srv/project-transfer/team/.umask-proof)\" = 660"
       ],
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.104.5.umask"
-      ]
+      ],
+      "timeout_seconds": 10,
+      "description_fr": "Vérifier le résultat attendu sans ouvrir de terminal interactif"
     },
     {
       "type": "command-exit",
