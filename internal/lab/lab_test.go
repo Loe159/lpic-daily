@@ -973,7 +973,6 @@ func TestBuiltinUEFIBootOrderShellCheck(t *testing.T) {
 	}
 }
 
-
 func TestEnvironmentBoundaryRepairChecksAreBounded(t *testing.T) {
 	authored := loadBuiltinLab(t, "lpic1.103.1.environment-boundary-repair")
 	if len(authored.Definition.Checks) != 5 {
