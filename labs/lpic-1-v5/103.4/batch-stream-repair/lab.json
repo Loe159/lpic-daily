@@ -55,7 +55,7 @@
       "argv": [
         "/usr/bin/bash",
         "-lc",
-        "printf 'OK:alpha\\nOK:gamma\\n' | cmp -s - /workspace/output/stdout.log"
+        "set -euo pipefail; awk '$0 !~ /^bad-/ { print \"OK:\" $0 }' /workspace/input/jobs.txt | cmp -s - /workspace/output/stdout.log"
       ],
       "expected_exit": 0,
       "concept_ids": [
@@ -68,7 +68,7 @@
       "argv": [
         "/usr/bin/bash",
         "-lc",
-        "printf 'ERR:bad-beta\\nERR:bad-delta\\n' | cmp -s - /workspace/output/stderr.log"
+        "set -euo pipefail; awk '$0 ~ /^bad-/ { print \"ERR:\" $0 }' /workspace/input/jobs.txt | cmp -s - /workspace/output/stderr.log"
       ],
       "expected_exit": 0,
       "concept_ids": [
@@ -81,7 +81,7 @@
       "argv": [
         "/usr/bin/bash",
         "-lc",
-        "printf 'OK:alpha\\nERR:bad-beta\\nOK:gamma\\nERR:bad-delta\\n' | cmp -s - /workspace/output/combined.log"
+        "set -euo pipefail; awk '{ if ($0 ~ /^bad-/) print \"ERR:\" $0; else print \"OK:\" $0 }' /workspace/input/jobs.txt | cmp -s - /workspace/output/combined.log"
       ],
       "expected_exit": 0,
       "concept_ids": [
@@ -94,7 +94,7 @@
       "argv": [
         "/usr/bin/bash",
         "-lc",
-        "printf 'previous-run\\nOK:alpha\\nOK:gamma\\n' | cmp -s - /workspace/output/history.log"
+        "set -euo pipefail; { printf 'previous-run\\n'; awk '$0 !~ /^bad-/ { print \"OK:\" $0 }' /workspace/input/jobs.txt; } | cmp -s - /workspace/output/history.log"
       ],
       "expected_exit": 0,
       "concept_ids": [
@@ -106,7 +106,7 @@
       "argv": [
         "/usr/bin/bash",
         "-lc",
-        "printf 'OK:alpha\\nOK:gamma\\n' | cmp -s - /workspace/output/live.log && grep -qx '2' /workspace/output/success-count.txt"
+        "set -euo pipefail; awk '$0 !~ /^bad-/ { print \"OK:\" $0 }' /workspace/input/jobs.txt | cmp -s - /workspace/output/live.log; awk '$0 !~ /^bad-/ { n++ } END {print n+0}' /workspace/input/jobs.txt | cmp -s - /workspace/output/success-count.txt"
       ],
       "expected_exit": 0,
       "concept_ids": [
