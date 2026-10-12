@@ -2537,6 +2537,7 @@ func runPersistentShell(
 
 	shellInput := io.Reader(&labShellCommandReader{
 		input:     stdinFile,
+		echo:      stdoutFile,
 		lineStart: true,
 		onCommand: func(command string) (bool, error) {
 			if err := terminal.Restore(stdinFile, state); err != nil {
@@ -2588,11 +2589,25 @@ func runPersistentShell(
 
 type labShellCommandReader struct {
 	input     io.Reader
+	echo      io.Writer
 	onCommand func(string) (bool, error)
 	prefix    []byte
 	pending   []byte
 	lineStart bool
 	stop      bool
+	column    int
+}
+
+func (reader *labShellCommandReader) drawCommand(bytes []byte) {
+	if reader.echo != nil && len(bytes) > 0 {
+		_, _ = reader.echo.Write(bytes)
+	}
+}
+
+func (reader *labShellCommandReader) eraseCommand(count int) {
+	for i := 0; i < count && reader.echo != nil; i++ {
+		_, _ = io.WriteString(reader.echo, "\\b \\b")
+	}
 }
 
 func (reader *labShellCommandReader) Read(buffer []byte) (int, error) {
@@ -2611,34 +2626,48 @@ func (reader *labShellCommandReader) Read(buffer []byte) (int, error) {
 			return 0, err
 		}
 		ch := one[0]
-		if len(reader.prefix) != 0 {
-			if ch == '\r' || ch == '\n' {
+		if len(reader.prefix) > 0 {
+			if ch == '\\r' || ch == '\\n' {
 				command := string(reader.prefix)
 				reader.prefix = nil
+				reader.column = 0
 				reader.lineStart = true
 				switch command {
 				case ":check", ":hint", ":help", ":quit":
+					reader.drawCommand([]byte("\\r\\n"))
 					stop, err := reader.onCommand(command)
 					if err != nil {
 						return 0, err
 					}
 					if stop {
 						reader.stop = true
-						reader.pending = []byte("exit\r")
+						reader.pending = []byte("exit\\r")
+					} else {
+						// Submit an empty line so Bash redraws its real prompt
+						// after host-owned check output without running :check.
+						reader.pending = []byte{'\\r'}
 					}
 					continue
 				default:
+					reader.eraseCommand(len(command))
 					reader.pending = append([]byte(command), ch)
 					continue
 				}
 			}
 			if ch == 127 || ch == 8 {
+				reader.eraseCommand(1)
 				reader.prefix = reader.prefix[:len(reader.prefix)-1]
+				if len(reader.prefix) == 0 {
+					reader.lineStart = true
+				}
 				continue
 			}
 			reader.prefix = append(reader.prefix, ch)
+			reader.drawCommand([]byte{ch})
 			if len(reader.prefix) > 64 {
+				reader.eraseCommand(len(reader.prefix))
 				reader.pending = reader.prefix
+				reader.column = len(reader.prefix)
 				reader.prefix = nil
 				reader.lineStart = false
 			}
@@ -2646,9 +2675,21 @@ func (reader *labShellCommandReader) Read(buffer []byte) (int, error) {
 		}
 		if reader.lineStart && ch == ':' {
 			reader.prefix = []byte{':'}
+			reader.drawCommand([]byte{ch})
 			continue
 		}
-		reader.lineStart = ch == '\n' || ch == '\r'
+		if ch == '\\r' || ch == '\\n' {
+			reader.lineStart = true
+			reader.column = 0
+		} else if ch == 127 || ch == 8 {
+			if reader.column > 0 {
+				reader.column--
+			}
+			reader.lineStart = reader.column == 0
+		} else if ch >= 32 {
+			reader.column++
+			reader.lineStart = false
+		}
 		reader.pending = []byte{ch}
 	}
 }
