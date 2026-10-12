@@ -207,7 +207,7 @@ func TestStateChecksAcceptDifferentCommandHistoriesWithSameFinalState(t *testing
 type hostACPIProbe struct {
 	*fakeProbe
 	sent bool
-	err error
+	err  error
 }
 
 func (probe *hostACPIProbe) ACPIButtonObserved(_ context.Context, _ runner.Instance) (bool, error) {
