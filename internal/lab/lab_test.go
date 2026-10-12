@@ -1039,3 +1039,25 @@ func TestEnvironmentBoundaryShellExportsWithoutBashrcEdits(t *testing.T) {
 		t.Fatalf("the exercise should not create an unrelated .bashrc: %v", err)
 	}
 }
+
+// All built-in scenarios must grade state without opening a second interactive
+// Bash. Such shells can hang without a TTY and block :check for a full minute.
+func TestBuiltinCheckCommandsNeverLaunchInteractiveShell(t *testing.T) {
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, authored := range labs {
+		for i, check := range authored.Definition.Checks {
+			if check.Type != "command-exit" {
+				continue
+			}
+			for _, arg := range check.Argv {
+				switch arg {
+				case "-i", "-ic", "--interactive", "--rcfile":
+					t.Errorf("%s check %d launches an interactive Bash: %v", authored.Definition.ID, i+1, check.Argv)
+				}
+			}
+		}
+	}
+}
