@@ -21,13 +21,13 @@ import (
 var domainSlugUnsafe = regexp.MustCompile(`[^a-z0-9.-]+`)
 
 var (
-	_ runner.ConsoleRunner    = (*Backend)(nil)
-	_ runner.RebootRunner     = (*Backend)(nil)
-	_ runner.ACPIButtonRunner = (*Backend)(nil)
-	_ runner.ACPIEventProbe   = (*Backend)(nil)
+	_ runner.ConsoleRunner         = (*Backend)(nil)
+	_ runner.RebootRunner          = (*Backend)(nil)
+	_ runner.ACPIButtonRunner      = (*Backend)(nil)
+	_ runner.ACPIEventProbe        = (*Backend)(nil)
 	_ runner.UEFIBootOrderBaseline = (*Backend)(nil)
-	_ runner.BootMenuRunner   = (*Backend)(nil)
-	_ runner.StorageProbe     = (*Backend)(nil)
+	_ runner.BootMenuRunner        = (*Backend)(nil)
+	_ runner.StorageProbe          = (*Backend)(nil)
 )
 
 type Backend struct {
@@ -45,14 +45,14 @@ type Backend struct {
 }
 
 type managedInstance struct {
-	Definition     runner.Definition
-	Paths          OverlayPaths
-	DomainDefined  bool
-	NetworkName    string
-	NetworkDefined bool
-	FilterName     string
-	FilterDefined  bool
-	ACPIButtonSent         bool
+	Definition            runner.Definition
+	Paths                 OverlayPaths
+	DomainDefined         bool
+	NetworkName           string
+	NetworkDefined        bool
+	FilterName            string
+	FilterDefined         bool
+	ACPIButtonSent        bool
 	UEFIExpectedBootOrder string
 }
 
