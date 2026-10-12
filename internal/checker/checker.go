@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"strings"
 	"slices"
 
 	"github.com/Loe159/lpic-daily/internal/runner"
@@ -226,6 +227,37 @@ func (check ACPIButtonSent) Evaluate(ctx context.Context, probe Probe, instance 
 		return Result{CheckID: check.ID(), Detail: "no hypervisor ACPI event was sent to this VM"}
 	}
 	return Result{CheckID: check.ID(), Pass: true, Detail: "hypervisor ACPI event sent"}
+}
+
+// UEFIBootOrderPreserved compares live firmware variables against the
+// expected full order captured by the trusted host after setup.
+type UEFIBootOrderPreserved struct{ CheckID string }
+
+func (check UEFIBootOrderPreserved) ID() string { return check.CheckID }
+
+func (check UEFIBootOrderPreserved) Evaluate(ctx context.Context, probe Probe, instance runner.Instance) Result {
+	host, ok := probe.(runner.UEFIBootOrderBaseline)
+	if !ok {
+		return Result{CheckID: check.ID(), Err: fmt.Errorf("%w: host UEFI baseline unavailable", runner.ErrNotSupported)}
+	}
+	expected, err := host.ExpectedUEFIBootOrder(ctx, instance)
+	if err != nil {
+		return Result{CheckID: check.ID(), Err: err}
+	}
+	var output strings.Builder
+	result, err := probe.Exec(ctx, instance, runner.ExecRequest{
+		Argv: []string{"/usr/bin/bash", "-lc",
+			"set -euo pipefail; efibootmgr | sed -nE 's/^BootOrder:[[:space:]]*([[:xdigit:],]+).*$/\\1/p'"},
+		Stdout: &output,
+	})
+	if err != nil {
+		return Result{CheckID: check.ID(), Err: err}
+	}
+	actual := strings.ToUpper(strings.TrimSpace(output.String()))
+	if result.ExitCode != 0 || actual != expected {
+		return Result{CheckID: check.ID(), Detail: "firmware BootOrder differs from trusted initial target"}
+	}
+	return Result{CheckID: check.ID(), Pass: true, Detail: "firmware BootOrder matches host baseline"}
 }
 
 func cloneEnvironment(environment map[string]string) map[string]string {
