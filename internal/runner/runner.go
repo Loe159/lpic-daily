@@ -263,6 +263,12 @@ type ACPIButtonRunner interface {
 	PressPowerButton(context.Context, Instance) error
 }
 
+// ACPIEventProbe exposes a host-side, per-instance receipt of a successful
+// hypervisor ACPI power-button request. Guest processes cannot forge it.
+type ACPIEventProbe interface {
+	ACPIButtonObserved(context.Context, Instance) (bool, error)
+}
+
 // BootMenuRunner requests a managed VM reboot without waiting for guest-agent
 // reconnection. The learner needs the serial console while the guest is offline.
 type BootMenuRunner interface {
