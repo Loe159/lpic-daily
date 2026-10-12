@@ -325,15 +325,17 @@ func TestCommandBatchExecutesOnceAndPreservesIndividualResults(t *testing.T) {
 		checks := make([]checker.Check, 5)
 		for i := range checks {
 			checks[i] = checker.CommandExit{
-				CheckID: fmt.Sprintf("check-%02d", i+1),
-				Argv: []string{"/usr/bin/timeout", "3s", "/usr/bin/bash", "-c", "exit 0"},
-				BatchID: "group", FailureBit: 1 << i, TimeoutSeconds: 5,
+				CheckID:        fmt.Sprintf("check-%02d", i+1),
+				Argv:           []string{"/usr/bin/timeout", "3s", "/usr/bin/bash", "-c", "exit 0"},
+				BatchID:        "group",
+				FailureBit:     1 << i,
+				TimeoutSeconds: 5,
 			}
 		}
 		return checks
 	}
 	for _, tc := range []struct {
-		exit int
+		exit   int
 		failed []int
 	}{
 		{exit: 0},
@@ -345,7 +347,9 @@ func TestCommandBatchExecutesOnceAndPreservesIndividualResults(t *testing.T) {
 		t.Run(fmt.Sprint(tc.exit), func(t *testing.T) {
 			probe := &fakeProbe{execResult: runner.ExecResult{ExitCode: tc.exit}}
 			results, err := checker.EvaluateAll(context.Background(), probe, runner.Instance{ID: "fake"}, makeChecks())
-			if err != nil { t.Fatalf("EvaluateAll error: %v", err) }
+			if err != nil {
+				t.Fatalf("EvaluateAll error: %v", err)
+			}
 			if probe.execCalls != 1 || len(results) != 5 {
 				t.Fatalf("calls=%d, results=%#v", probe.execCalls, results)
 			}
