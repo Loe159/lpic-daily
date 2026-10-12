@@ -48,12 +48,14 @@ RUN dnf -y install \
         tar \
         tmux \
         util-linux \
+        util-linux-script \
         vim-enhanced \
         vim-minimal \
         which \
         xfsprogs \
         xz \
     && test -x /usr/bin/nano \
+    && test -x /usr/bin/script \
     && test -x /usr/bin/vi \
     && test -x /usr/bin/vim \
     && test -x /usr/bin/locate \
