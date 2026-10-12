@@ -69,8 +69,8 @@ func TestLabShellCommandReaderShowsCommandAndKeepsShellActive(t *testing.T) {
 	var echoed bytes.Buffer
 	commands := 0
 	reader := &labShellCommandReader{
-		input: strings.NewReader(":check\r:checkx\b\r:quit\r"),
-		echo: &echoed,
+		input:     strings.NewReader(":check\r:checkx\b\r:quit\r"),
+		echo:      &echoed,
 		lineStart: true,
 		onCommand: func(command string) (bool, error) {
 			if command == ":check" {
