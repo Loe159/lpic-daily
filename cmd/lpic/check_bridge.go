@@ -13,6 +13,8 @@ import (
 	"time"
 )
 
+type labCheckSocketKey struct{}
+
 // Only the child process has access to the running lab and its interactive
 // shell state. The dashboard asks that process to grade via a private socket.
 var errLabReflectionRequired = errors.New("reflection required before grading")
