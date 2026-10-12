@@ -16,3 +16,7 @@ description: Author realistic incident-driven, state-validated LPIC Linux labs
 9. Update `curriculum/lpic-1-v5/scenario-coverage.json` and the migration plan. The owner has authorized publishing authored scenarios as `accepted` before manual pedagogical review. Keep CI, runtime, setup-red/reference-green/reset-red, alternative solutions and KVM/Podman conformance as separately tracked verification work; never describe publication as proof that tests passed. An objective is coverage-migrated when its active concepts have authored accepted scenarios and no fallback is scheduled.
 10. Run `python3 scripts/validate_foundation.py`, `python3 scripts/validate_labs.py`, `python3 scripts/audit_scenario_coverage.py --check` and the appropriate Podman/KVM acceptance tests when supported. Report **exactly** which checks ran, failed or could not run. Never infer green CI from authored code.
 
+
+## Checker performance rule
+
+Do not use interactive Bash (`-i`, `-ic`, or `--rcfile ... -ic`) in authored `command-exit` checks or reference solutions. Use `bash --noprofile --norc -c 'source /path/to/rc; ...'` only when the lab specifically tests an rcfile; otherwise use direct noninteractive tools and filesystem state checks. Avoid hidden TTY requirements. Prefer quick side-effect-free checks with explicit `timeout_seconds` when needed; all commands have a short default deadline. Built-in tests reject interactive grading checks across every active scenario.

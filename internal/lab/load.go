@@ -223,11 +223,17 @@ func (lab Lab) CompileChecks() ([]checker.Check, error) {
 					item.FailureBit&(item.FailureBit-1) != 0)) {
 				return nil, fmt.Errorf("%s: invalid command batch settings", id)
 			}
+			// Boot, device and mount probes in KVM can legitimately take longer
+			// than short, isolated Podman shell checks.
+			timeoutSeconds := item.TimeoutSeconds
+			if timeoutSeconds == 0 && lab.Definition.Environment.Backend == "libvirt" {
+				timeoutSeconds = 45
+			}
 			checks = append(checks, checker.CommandExit{
 				CheckID:        id,
 				Argv:           append([]string(nil), item.Argv...),
 				ExpectedExit:   item.ExpectedExit,
-				TimeoutSeconds: item.TimeoutSeconds,
+				TimeoutSeconds: timeoutSeconds,
 				BatchID:        item.BatchID,
 				FailureBit:     item.FailureBit,
 			})

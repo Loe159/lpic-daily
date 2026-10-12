@@ -53,16 +53,17 @@
       "argv": [
         "/usr/bin/bash",
         "--noprofile",
-        "--rcfile",
-        "/root/.bashrc",
-        "-ic",
-        "! command -v report-status >/dev/null 2>&1"
+        "--norc",
+        "-c",
+        ". \"/root/.bashrc\" || exit 1; ! command -v report-status >/dev/null 2>&1"
       ],
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.1.execution-de-commandes-hors-path",
         "lpic1.103.1.path-et-resolution-de-commande"
-      ]
+      ],
+      "timeout_seconds": 10,
+      "description_fr": "report-status reste introuvable par son nom seul, car il est hors du PATH."
     },
     {
       "type": "file-content-regex",

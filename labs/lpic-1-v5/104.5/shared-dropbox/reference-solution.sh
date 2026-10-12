@@ -7,4 +7,4 @@ cat > /root/.bashrc <<'EOF'
 umask 0007
 EOF
 rm -f /srv/shared/team-note
-/usr/bin/bash --noprofile --rcfile /root/.bashrc -ic ': > /srv/shared/team-note'
+/usr/bin/bash --noprofile --norc -c '. /root/.bashrc || exit 1; : > /srv/shared/team-note'

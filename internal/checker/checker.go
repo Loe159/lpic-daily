@@ -194,12 +194,14 @@ func (check CommandExit) Evaluate(ctx context.Context, probe Probe, instance run
 		return Result{CheckID: check.ID(), Err: fmt.Errorf("invalid command timeout %d seconds", check.TimeoutSeconds)}
 	}
 
-	commandCtx := ctx
-	if check.TimeoutSeconds > 0 {
-		var cancel context.CancelFunc
-		commandCtx, cancel = context.WithTimeout(ctx, time.Duration(check.TimeoutSeconds)*time.Second)
-		defer cancel()
+	// Every command check needs its own deadline. Unspecified timeouts must
+	// never inherit the full lab/session duration (up to 20 minutes).
+	timeoutSeconds := check.TimeoutSeconds
+	if timeoutSeconds == 0 {
+		timeoutSeconds = 15
 	}
+	commandCtx, cancel := context.WithTimeout(ctx, time.Duration(timeoutSeconds)*time.Second)
+	defer cancel()
 	result, err := probe.Exec(commandCtx, instance, runner.ExecRequest{
 		Argv:       append([]string(nil), check.Argv...),
 		Env:        cloneEnvironment(check.Env),
@@ -208,9 +210,9 @@ func (check CommandExit) Evaluate(ctx context.Context, probe Probe, instance run
 	if err != nil {
 		// A blocked learner-controlled shell is an ordinary failed check, not
 		// a fatal lab error. Preserve caller cancellation and backend errors.
-		if check.TimeoutSeconds > 0 && ctx.Err() == nil &&
+		if ctx.Err() == nil &&
 			commandCtx.Err() == context.DeadlineExceeded && errors.Is(err, context.DeadlineExceeded) {
-			return Result{CheckID: check.ID(), Detail: fmt.Sprintf("délai dépassé après %d s : la commande de vérification ne se termine pas", check.TimeoutSeconds)}
+			return Result{CheckID: check.ID(), Detail: fmt.Sprintf("délai dépassé après %d s : la commande de vérification ne se termine pas", timeoutSeconds)}
 		}
 		return Result{CheckID: check.ID(), Err: err}
 	}

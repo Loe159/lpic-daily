@@ -1412,8 +1412,19 @@ func runInteractiveLabWithBackend(
 		// A grouped check has one short runner operation regardless of how many
 		// independent criteria it evaluates.
 		checkTimeout := operationTimeout
-		if authored.Definition.Environment.Backend == "podman" && checkTimeout > time.Minute {
-			checkTimeout = time.Minute
+		// Podman checks are normally quick; long-running interactive commands
+		// are a bug, not a reason to block the terminal for a minute.
+		switch authored.Definition.Environment.Backend {
+		case "podman":
+			if checkTimeout > 25*time.Second {
+				checkTimeout = 25 * time.Second
+			}
+		case "libvirt":
+			// VM checks can be slower than container checks, but a failed probe
+			// must not occupy the terminal for an entire 20-minute lab session.
+			if checkTimeout > 2*time.Minute {
+				checkTimeout = 2 * time.Minute
+			}
 		}
 		if len(authored.Definition.Checks) > 0 {
 			batchID := authored.Definition.Checks[0].BatchID

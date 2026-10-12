@@ -54,16 +54,17 @@
         "USER=root",
         "/usr/bin/bash",
         "--noprofile",
-        "--rcfile",
-        "/run/lpic/.bashrc",
-        "-ic",
-        "test \"$HISTSIZE\" = 2000 && test \"$HISTFILESIZE\" = 4000"
+        "--norc",
+        "-c",
+        ". \"/run/lpic/.bashrc\" || exit 1; set -o history; test \"$HISTSIZE\" = 2000 && test \"$HISTFILESIZE\" = 4000"
       ],
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.1.historique",
         "lpic1.103.1.edition-et-persistance-de-l-historique"
-      ]
+      ],
+      "timeout_seconds": 10,
+      "description_fr": "L'historique Bash utilise les tailles HISTSIZE et HISTFILESIZE attendues."
     },
     {
       "type": "command-exit",
@@ -94,16 +95,17 @@
         "USER=root",
         "/usr/bin/bash",
         "--noprofile",
-        "--rcfile",
-        "/run/lpic/.bashrc",
-        "-ic",
-        "history -c; history -r; history | grep -q 'history-proof'"
+        "--norc",
+        "-c",
+        ". \"/run/lpic/.bashrc\" || exit 1; set -o history; history -c; history -r; history | grep -q 'history-proof'"
       ],
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.1.edition-et-persistance-de-l-historique",
         "lpic1.103.1.historique"
-      ]
+      ],
+      "timeout_seconds": 10,
+      "description_fr": "La commande history-proof est présente dans l'historique Bash rechargé."
     }
   ],
   "hint_ids": [

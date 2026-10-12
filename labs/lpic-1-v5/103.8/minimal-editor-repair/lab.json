@@ -58,15 +58,16 @@
       "argv": [
         "/usr/bin/bash",
         "--noprofile",
-        "--rcfile",
-        "/root/.bashrc",
-        "-ic",
-        "test \"$EDITOR\" = vi"
+        "--norc",
+        "-c",
+        ". \"/root/.bashrc\" || exit 1; test \"$EDITOR\" = vi"
       ],
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.8.editeur-par-defaut"
-      ]
+      ],
+      "timeout_seconds": 10,
+      "description_fr": "La variable EDITOR sélectionne vi."
     },
     {
       "type": "command-exit",
