@@ -217,11 +217,19 @@ func (lab Lab) CompileChecks() ([]checker.Check, error) {
 			if item.TimeoutSeconds < 0 || item.TimeoutSeconds > 120 {
 				return nil, fmt.Errorf("%s: command timeout must be 0..120 seconds", id)
 			}
+			if (item.BatchID == "") != (item.FailureBit == 0) ||
+				(item.BatchID != "" && (item.TimeoutSeconds == 0 || item.ExpectedExit != 0 ||
+					item.FailureBit < 1 || item.FailureBit > 64 ||
+					item.FailureBit&(item.FailureBit-1) != 0)) {
+				return nil, fmt.Errorf("%s: invalid command batch settings", id)
+			}
 			checks = append(checks, checker.CommandExit{
 				CheckID:        id,
 				Argv:           append([]string(nil), item.Argv...),
 				ExpectedExit:   item.ExpectedExit,
 				TimeoutSeconds: item.TimeoutSeconds,
+				BatchID:        item.BatchID,
+				FailureBit:     item.FailureBit,
 			})
 		case "acpi-button-sent":
 			if lab.Definition.Environment.Backend != "libvirt" {
