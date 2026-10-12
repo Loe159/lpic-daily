@@ -62,7 +62,8 @@
       "concept_ids": [
         "lpic1.103.1.set-env-et-portee-des-variables",
         "lpic1.103.1.variables-shell-environnement"
-      ]
+      ],
+      "description_fr": "LOCAL_NOTE est définie dans le shell interactif avec la valeur attendue."
     },
     {
       "type": "command-exit",
@@ -77,7 +78,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.1.set-env-et-portee-des-variables"
-      ]
+      ],
+      "description_fr": "LOCAL_NOTE reste locale au shell et n'est pas transmise aux processus enfants."
     },
     {
       "type": "command-exit",
@@ -93,7 +95,8 @@
       "concept_ids": [
         "lpic1.103.1.set-env-et-portee-des-variables",
         "lpic1.103.1.export-unset-et-processus-enfants"
-      ]
+      ],
+      "description_fr": "SERVICE_MODE est exportée avec la valeur production vers les processus enfants."
     },
     {
       "type": "command-exit",
@@ -108,7 +111,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.1.export-unset-et-processus-enfants"
-      ]
+      ],
+      "description_fr": "LEGACY_TOKEN est absente à la fois du shell et des processus enfants."
     },
     {
       "type": "file-content-regex",
@@ -117,7 +121,8 @@
       "concept_ids": [
         "lpic1.103.1.echo-et-expansion-shell",
         "lpic1.103.1.variables-shell-environnement"
-      ]
+      ],
+      "description_fr": "Le fichier /run/lpic/env-summary contient le résumé attendu."
     }
   ],
   "hint_ids": [
