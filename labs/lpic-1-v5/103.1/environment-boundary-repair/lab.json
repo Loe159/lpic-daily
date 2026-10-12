@@ -57,10 +57,9 @@
         "6s",
         "/usr/bin/bash",
         "--noprofile",
-        "--rcfile",
-        "/root/.bashrc",
-        "-ic",
-        "set | grep -qx 'LOCAL_NOTE=operator-note'"
+        "--norc",
+        "-c",
+        ". /root/.bashrc || exit 1; set | grep -qx 'LOCAL_NOTE=operator-note'"
       ],
       "expected_exit": 0,
       "concept_ids": [
@@ -79,10 +78,9 @@
         "6s",
         "/usr/bin/bash",
         "--noprofile",
-        "--rcfile",
-        "/root/.bashrc",
-        "-ic",
-        "! env | grep -q '^LOCAL_NOTE='"
+        "--norc",
+        "-c",
+        ". /root/.bashrc || exit 1; ! env | grep -q '^LOCAL_NOTE='"
       ],
       "expected_exit": 0,
       "concept_ids": [
@@ -100,10 +98,9 @@
         "6s",
         "/usr/bin/bash",
         "--noprofile",
-        "--rcfile",
-        "/root/.bashrc",
-        "-ic",
-        "env | grep -qx 'SERVICE_MODE=production'"
+        "--norc",
+        "-c",
+        ". /root/.bashrc || exit 1; env | grep -qx 'SERVICE_MODE=production'"
       ],
       "expected_exit": 0,
       "concept_ids": [
@@ -122,10 +119,9 @@
         "6s",
         "/usr/bin/bash",
         "--noprofile",
-        "--rcfile",
-        "/root/.bashrc",
-        "-ic",
-        "! set | grep -q '^LEGACY_TOKEN=' && ! env | grep -q '^LEGACY_TOKEN='"
+        "--norc",
+        "-c",
+        ". /root/.bashrc || exit 1; ! set | grep -q '^LEGACY_TOKEN=' && ! env | grep -q '^LEGACY_TOKEN='"
       ],
       "expected_exit": 0,
       "concept_ids": [
