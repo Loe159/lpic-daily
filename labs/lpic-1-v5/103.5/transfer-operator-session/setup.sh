@@ -20,6 +20,8 @@ trap 'printf "stopped\n" > /run/lpic/maintenance-probe-stopped; kill -STOP "$$"'
 trap 'record_resume' CONT
 trap 'printf "terminated\n" > /run/lpic/maintenance-probe-terminated; exit 0' TERM
 
+# Handshake: SIGTSTP is only safe once Bash installed its traps.
+printf 'ready\n' > /run/lpic/maintenance-probe-ready
 while :; do
     sleep 2 &
     wait "$!"
