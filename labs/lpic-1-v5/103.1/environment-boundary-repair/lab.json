@@ -59,7 +59,7 @@
         "--noprofile",
         "--norc",
         "-c",
-        ". /root/.bashrc || exit 125\nfailed=0\nif [[ ${LOCAL_NOTE-} != operator-note ]]; then failed=$((failed | 1)); fi\nchild=$'\\n'$(/usr/bin/env)$'\\n'\nif [[ \"$child\" == *$'\\nLOCAL_NOTE='* ]]; then failed=$((failed | 2)); fi\nif [[ \"$child\" != *$'\\nSERVICE_MODE=production\\n'* ]]; then failed=$((failed | 4)); fi\nif [[ ${LEGACY_TOKEN+x} ]] || [[ \"$child\" == *$'\\nLEGACY_TOKEN='* ]]; then failed=$((failed | 8)); fi\nsummary=$(/usr/bin/cat /run/lpic/env-summary 2>/dev/null; /usr/bin/printf '\\036')\nif [[ \"$summary\" != $'production|operator-note\\036' && \"$summary\" != $'production|operator-note\\n\\036' ]]; then failed=$((failed | 16)); fi\nexit \"$failed\""
+        ". /root/.bashrc || exit 125\nfailed=0\nif [[ ${LOCAL_NOTE-} != operator-note ]]; then failed=$((failed | 1)); fi\nchild=$'\\n'$(/usr/bin/env)$'\\n'\nif [[ \"$child\" == *$'\\nLOCAL_NOTE='* ]]; then failed=$((failed | 2)); fi\nif [[ \"$child\" != *$'\\nSERVICE_MODE=production\\n'* ]]; then failed=$((failed | 4)); fi\nif [[ ${LEGACY_TOKEN+x} ]] || [[ \"$child\" == *$'\\nLEGACY_TOKEN='* ]]; then failed=$((failed | 8)); fi\nsummary=$(/usr/bin/cat /run/lpic/env-summary 2>/dev/null; /usr/bin/printf '\\036')\nif [[ \"$summary\" != $'production|operator-note\\036' && \"$summary\" != $'production|operator-note\\n\\036' ]]; then failed=$((failed | 16)); fi\nexit \"$((160+failed))\""
       ],
       "expected_exit": 0,
       "concept_ids": [
@@ -82,7 +82,7 @@
         "--noprofile",
         "--norc",
         "-c",
-        ". /root/.bashrc || exit 125\nfailed=0\nif [[ ${LOCAL_NOTE-} != operator-note ]]; then failed=$((failed | 1)); fi\nchild=$'\\n'$(/usr/bin/env)$'\\n'\nif [[ \"$child\" == *$'\\nLOCAL_NOTE='* ]]; then failed=$((failed | 2)); fi\nif [[ \"$child\" != *$'\\nSERVICE_MODE=production\\n'* ]]; then failed=$((failed | 4)); fi\nif [[ ${LEGACY_TOKEN+x} ]] || [[ \"$child\" == *$'\\nLEGACY_TOKEN='* ]]; then failed=$((failed | 8)); fi\nsummary=$(/usr/bin/cat /run/lpic/env-summary 2>/dev/null; /usr/bin/printf '\\036')\nif [[ \"$summary\" != $'production|operator-note\\036' && \"$summary\" != $'production|operator-note\\n\\036' ]]; then failed=$((failed | 16)); fi\nexit \"$failed\""
+        ". /root/.bashrc || exit 125\nfailed=0\nif [[ ${LOCAL_NOTE-} != operator-note ]]; then failed=$((failed | 1)); fi\nchild=$'\\n'$(/usr/bin/env)$'\\n'\nif [[ \"$child\" == *$'\\nLOCAL_NOTE='* ]]; then failed=$((failed | 2)); fi\nif [[ \"$child\" != *$'\\nSERVICE_MODE=production\\n'* ]]; then failed=$((failed | 4)); fi\nif [[ ${LEGACY_TOKEN+x} ]] || [[ \"$child\" == *$'\\nLEGACY_TOKEN='* ]]; then failed=$((failed | 8)); fi\nsummary=$(/usr/bin/cat /run/lpic/env-summary 2>/dev/null; /usr/bin/printf '\\036')\nif [[ \"$summary\" != $'production|operator-note\\036' && \"$summary\" != $'production|operator-note\\n\\036' ]]; then failed=$((failed | 16)); fi\nexit \"$((160+failed))\""
       ],
       "expected_exit": 0,
       "concept_ids": [
@@ -104,7 +104,7 @@
         "--noprofile",
         "--norc",
         "-c",
-        ". /root/.bashrc || exit 125\nfailed=0\nif [[ ${LOCAL_NOTE-} != operator-note ]]; then failed=$((failed | 1)); fi\nchild=$'\\n'$(/usr/bin/env)$'\\n'\nif [[ \"$child\" == *$'\\nLOCAL_NOTE='* ]]; then failed=$((failed | 2)); fi\nif [[ \"$child\" != *$'\\nSERVICE_MODE=production\\n'* ]]; then failed=$((failed | 4)); fi\nif [[ ${LEGACY_TOKEN+x} ]] || [[ \"$child\" == *$'\\nLEGACY_TOKEN='* ]]; then failed=$((failed | 8)); fi\nsummary=$(/usr/bin/cat /run/lpic/env-summary 2>/dev/null; /usr/bin/printf '\\036')\nif [[ \"$summary\" != $'production|operator-note\\036' && \"$summary\" != $'production|operator-note\\n\\036' ]]; then failed=$((failed | 16)); fi\nexit \"$failed\""
+        ". /root/.bashrc || exit 125\nfailed=0\nif [[ ${LOCAL_NOTE-} != operator-note ]]; then failed=$((failed | 1)); fi\nchild=$'\\n'$(/usr/bin/env)$'\\n'\nif [[ \"$child\" == *$'\\nLOCAL_NOTE='* ]]; then failed=$((failed | 2)); fi\nif [[ \"$child\" != *$'\\nSERVICE_MODE=production\\n'* ]]; then failed=$((failed | 4)); fi\nif [[ ${LEGACY_TOKEN+x} ]] || [[ \"$child\" == *$'\\nLEGACY_TOKEN='* ]]; then failed=$((failed | 8)); fi\nsummary=$(/usr/bin/cat /run/lpic/env-summary 2>/dev/null; /usr/bin/printf '\\036')\nif [[ \"$summary\" != $'production|operator-note\\036' && \"$summary\" != $'production|operator-note\\n\\036' ]]; then failed=$((failed | 16)); fi\nexit \"$((160+failed))\""
       ],
       "expected_exit": 0,
       "concept_ids": [
@@ -127,7 +127,7 @@
         "--noprofile",
         "--norc",
         "-c",
-        ". /root/.bashrc || exit 125\nfailed=0\nif [[ ${LOCAL_NOTE-} != operator-note ]]; then failed=$((failed | 1)); fi\nchild=$'\\n'$(/usr/bin/env)$'\\n'\nif [[ \"$child\" == *$'\\nLOCAL_NOTE='* ]]; then failed=$((failed | 2)); fi\nif [[ \"$child\" != *$'\\nSERVICE_MODE=production\\n'* ]]; then failed=$((failed | 4)); fi\nif [[ ${LEGACY_TOKEN+x} ]] || [[ \"$child\" == *$'\\nLEGACY_TOKEN='* ]]; then failed=$((failed | 8)); fi\nsummary=$(/usr/bin/cat /run/lpic/env-summary 2>/dev/null; /usr/bin/printf '\\036')\nif [[ \"$summary\" != $'production|operator-note\\036' && \"$summary\" != $'production|operator-note\\n\\036' ]]; then failed=$((failed | 16)); fi\nexit \"$failed\""
+        ". /root/.bashrc || exit 125\nfailed=0\nif [[ ${LOCAL_NOTE-} != operator-note ]]; then failed=$((failed | 1)); fi\nchild=$'\\n'$(/usr/bin/env)$'\\n'\nif [[ \"$child\" == *$'\\nLOCAL_NOTE='* ]]; then failed=$((failed | 2)); fi\nif [[ \"$child\" != *$'\\nSERVICE_MODE=production\\n'* ]]; then failed=$((failed | 4)); fi\nif [[ ${LEGACY_TOKEN+x} ]] || [[ \"$child\" == *$'\\nLEGACY_TOKEN='* ]]; then failed=$((failed | 8)); fi\nsummary=$(/usr/bin/cat /run/lpic/env-summary 2>/dev/null; /usr/bin/printf '\\036')\nif [[ \"$summary\" != $'production|operator-note\\036' && \"$summary\" != $'production|operator-note\\n\\036' ]]; then failed=$((failed | 16)); fi\nexit \"$((160+failed))\""
       ],
       "expected_exit": 0,
       "concept_ids": [
@@ -154,7 +154,7 @@
         "--noprofile",
         "--norc",
         "-c",
-        ". /root/.bashrc || exit 125\nfailed=0\nif [[ ${LOCAL_NOTE-} != operator-note ]]; then failed=$((failed | 1)); fi\nchild=$'\\n'$(/usr/bin/env)$'\\n'\nif [[ \"$child\" == *$'\\nLOCAL_NOTE='* ]]; then failed=$((failed | 2)); fi\nif [[ \"$child\" != *$'\\nSERVICE_MODE=production\\n'* ]]; then failed=$((failed | 4)); fi\nif [[ ${LEGACY_TOKEN+x} ]] || [[ \"$child\" == *$'\\nLEGACY_TOKEN='* ]]; then failed=$((failed | 8)); fi\nsummary=$(/usr/bin/cat /run/lpic/env-summary 2>/dev/null; /usr/bin/printf '\\036')\nif [[ \"$summary\" != $'production|operator-note\\036' && \"$summary\" != $'production|operator-note\\n\\036' ]]; then failed=$((failed | 16)); fi\nexit \"$failed\""
+        ". /root/.bashrc || exit 125\nfailed=0\nif [[ ${LOCAL_NOTE-} != operator-note ]]; then failed=$((failed | 1)); fi\nchild=$'\\n'$(/usr/bin/env)$'\\n'\nif [[ \"$child\" == *$'\\nLOCAL_NOTE='* ]]; then failed=$((failed | 2)); fi\nif [[ \"$child\" != *$'\\nSERVICE_MODE=production\\n'* ]]; then failed=$((failed | 4)); fi\nif [[ ${LEGACY_TOKEN+x} ]] || [[ \"$child\" == *$'\\nLEGACY_TOKEN='* ]]; then failed=$((failed | 8)); fi\nsummary=$(/usr/bin/cat /run/lpic/env-summary 2>/dev/null; /usr/bin/printf '\\036')\nif [[ \"$summary\" != $'production|operator-note\\036' && \"$summary\" != $'production|operator-note\\n\\036' ]]; then failed=$((failed | 16)); fi\nexit \"$((160+failed))\""
       ],
       "expected_exit": 0,
       "timeout_seconds": 5,
