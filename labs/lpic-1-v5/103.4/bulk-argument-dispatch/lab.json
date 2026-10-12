@@ -48,7 +48,7 @@
       "argv": [
         "/usr/bin/bash",
         "-lc",
-        "printf 'alpha.txt:6\\nbeta.txt:11\\ngamma.txt:4\\n' | cmp -s - /workspace/output/processed.log"
+        "set -euo pipefail; while IFS= read -r path; do printf '%s:%s\\n' \"$(basename \"$path\")\" \"$(wc -c < \"$path\")\"; done < /workspace/input/targets.txt | LC_ALL=C sort | cmp -s - /workspace/output/processed.log"
       ],
       "expected_exit": 0,
       "concept_ids": [
