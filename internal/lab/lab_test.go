@@ -972,3 +972,23 @@ func TestBuiltinUEFIBootOrderShellCheck(t *testing.T) {
 		})
 	}
 }
+
+
+func TestEnvironmentBoundaryRepairChecksAreBounded(t *testing.T) {
+	authored := loadBuiltinLab(t, "lpic1.103.1.environment-boundary-repair")
+	if len(authored.Definition.Checks) != 5 {
+		t.Fatalf("checks = %d, want 5", len(authored.Definition.Checks))
+	}
+	for i, check := range authored.Definition.Checks[:4] {
+		if check.Type != "command-exit" || check.TimeoutSeconds != 10 {
+			t.Fatalf("check %d must have a 10s command deadline: %#v", i+1, check)
+		}
+		want := []string{"/usr/bin/timeout", "-k", "1s", "6s", "/usr/bin/bash", "--noprofile", "--norc", "-c"}
+		if len(check.Argv) != len(want)+1 || !slices.Equal(check.Argv[:len(want)], want) {
+			t.Fatalf("check %d must use a bounded noninteractive shell: %#v", i+1, check.Argv)
+		}
+		if !strings.HasPrefix(check.Argv[len(want)], ". /root/.bashrc || exit 1; ") {
+			t.Fatalf("check %d must explicitly source the intended rcfile: %#v", i+1, check.Argv)
+		}
+	}
+}
