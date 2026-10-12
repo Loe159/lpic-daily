@@ -209,7 +209,7 @@ func (check CommandExit) Evaluate(ctx context.Context, probe Probe, instance run
 
 // ACPIButtonSent requires proof outside the guest that libvirt dispatched
 // the ACPI event. It complements (but does not replace) guest journal checks.
-type ACPIButtonSent struct { CheckID string }
+type ACPIButtonSent struct{ CheckID string }
 
 func (check ACPIButtonSent) ID() string { return check.CheckID }
 
