@@ -978,6 +978,12 @@ func TestEnvironmentBoundaryRepairChecksAreBounded(t *testing.T) {
 	if len(authored.Definition.Checks) != 5 {
 		t.Fatalf("checks = %d, want 5", len(authored.Definition.Checks))
 	}
+	if !authored.Definition.NeedsPersistentShell {
+		t.Fatal("environment grading must observe the persistent learner shell")
+	}
+	if !strings.Contains(authored.SetupScript, "PROMPT_COMMAND=__lpic_capture_environment") {
+		t.Fatal("shell startup must capture the live state before the prompt")
+	}
 	for i, check := range authored.Definition.Checks {
 		if check.Type != "command-exit" || check.TimeoutSeconds != 5 ||
 			check.BatchID != "environment-inspection" || check.FailureBit != 1<<i {
@@ -987,11 +993,49 @@ func TestEnvironmentBoundaryRepairChecksAreBounded(t *testing.T) {
 		if len(check.Argv) != len(want)+1 || !slices.Equal(check.Argv[:len(want)], want) {
 			t.Fatalf("check %d must use a bounded noninteractive shell: %#v", i+1, check.Argv)
 		}
-		if !strings.HasPrefix(check.Argv[len(want)], ". /root/.bashrc || exit 125") {
-			t.Fatalf("check %d must explicitly source the intended rcfile: %#v", i+1, check.Argv)
+		if !strings.Contains(check.Argv[len(want)], "/run/lpic/.environment-check-state") ||
+			strings.Contains(check.Argv[len(want)], "/root/.bashrc") {
+			t.Fatalf("check %d must observe a live shell snapshot, not source .bashrc: %#v", i+1, check.Argv)
 		}
 		if i > 0 && !slices.Equal(authored.Definition.Checks[0].Argv, check.Argv) {
 			t.Fatalf("check %d duplicates a different command", i+1)
 		}
+	}
+}
+
+// The active-shell probe must accept commands entered in the learner's shell,
+// not require hidden edits to .bashrc or a fresh login.
+func TestEnvironmentBoundaryShellExportsWithoutBashrcEdits(t *testing.T) {
+	authored := loadBuiltinLab(t, "lpic1.103.1.environment-boundary-repair")
+	tmp := t.TempDir()
+	lpic := filepath.Join(tmp, "lpic")
+	setup := strings.ReplaceAll(authored.SetupScript, "/run/lpic", lpic)
+	command := exec.Command("/usr/bin/bash", "-c", setup)
+	if output, err := command.CombinedOutput(); err != nil {
+		t.Fatalf("setup shell: %v: %s", err, output)
+	}
+	runShell := func(source string, want string) {
+		t.Helper()
+		command := exec.Command("/usr/bin/bash", "--noprofile", "--norc", "-c", source)
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("shell probe: %v: %s", err, output)
+		}
+		got, err := os.ReadFile(filepath.Join(lpic, ".environment-check-state"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if strings.TrimSpace(string(got)) != want {
+			t.Fatalf("observed state = %q, want %q", got, want)
+		}
+	}
+	source := ". " + filepath.Join(lpic, ".lpic-shell-rc") + "; "
+	runShell(source+"__lpic_capture_environment", "30")
+	runShell(source+"export SERVICE_MODE=production; __lpic_capture_environment", "26")
+	runShell(source+"export SERVICE_MODE=production; export -n LOCAL_NOTE; unset LEGACY_TOKEN; "+
+		"printf '%s|%s\\n' \"$SERVICE_MODE\" \"$LOCAL_NOTE\" > "+filepath.Join(lpic, "env-summary")+
+		"; __lpic_capture_environment", "0")
+	if _, err := os.Stat(filepath.Join(tmp, "home", ".bashrc")); !os.IsNotExist(err) {
+		t.Fatalf("the exercise should not create an unrelated .bashrc: %v", err)
 	}
 }

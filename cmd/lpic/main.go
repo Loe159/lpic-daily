@@ -1606,6 +1606,7 @@ func runInteractiveLabWithBackend(
 				sessionCtx,
 				backend,
 				session.Instance,
+				authored.Definition.ID,
 				stdin,
 				stdout,
 				jobControlEvidence,
@@ -1680,6 +1681,7 @@ func runInteractiveLabWithBackend(
 				sessionCtx,
 				backend,
 				session.Instance,
+				authored.Definition.ID,
 				stdin,
 				stdout,
 				jobControlEvidence,
@@ -2372,10 +2374,22 @@ func runVMConsole(
 	return nil
 }
 
+// persistentLabShellArgv starts one shell whose live state is used for grading.
+func persistentLabShellArgv(labID string, jobControl bool) []string {
+	if jobControl {
+		return []string{"/usr/bin/bash", "--noprofile", "--rcfile", jobControlShellRCPath, "-i"}
+	}
+	if labID == "lpic1.103.1.environment-boundary-repair" {
+		return []string{"/usr/bin/bash", "--noprofile", "--rcfile", "/run/lpic/.lpic-shell-rc", "-i"}
+	}
+	return []string{"/usr/bin/bash", "-l"}
+}
+
 func runPersistentShell(
 	ctx context.Context,
 	backend runner.Runner,
 	instance runner.Instance,
+	labID string,
 	stdin io.Reader,
 	stdout io.Writer,
 	evidence *jobControlInteractionEvidence,
@@ -2458,12 +2472,9 @@ func runPersistentShell(
 			return stop, commandErr
 		},
 	})
-	shellArgv := []string{"/usr/bin/bash", "-l"}
+	shellArgv := persistentLabShellArgv(labID, evidence != nil)
 	if evidence != nil || editor != nil {
 		shellInput = &ctrlZObservingTerminalReader{file: stdinFile, reader: shellInput, evidence: evidence, editor: editor}
-		if evidence != nil {
-			shellArgv = []string{"/usr/bin/bash", "--noprofile", "--rcfile", jobControlShellRCPath, "-i"}
-		}
 	}
 
 	result, execErr := backend.Exec(ctx, instance, runner.ExecRequest{

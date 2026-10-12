@@ -1405,3 +1405,16 @@ func TestEditorMissingInteractionDoesNotCreditAnyEditorOperation(t *testing.T) {
 		}
 	}
 }
+
+// A learner command (export, unset) must persist in the same shell inspected
+// by :check; it cannot be reconstructed by sourcing .bashrc in a new shell.
+func TestEnvironmentLabStartsInstrumentedPersistentShell(t *testing.T) {
+	want := []string{"/usr/bin/bash", "--noprofile", "--rcfile", "/run/lpic/.lpic-shell-rc", "-i"}
+	got := persistentLabShellArgv("lpic1.103.1.environment-boundary-repair", false)
+	if !slices.Equal(got, want) {
+		t.Fatalf("environment shell argv = %v, want %v", got, want)
+	}
+	if got := persistentLabShellArgv("some-other-lab", false); !slices.Equal(got, []string{"/usr/bin/bash", "-l"}) {
+		t.Fatalf("unrelated shell argv unexpectedly changed: %v", got)
+	}
+}
