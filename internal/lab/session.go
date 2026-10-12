@@ -80,6 +80,17 @@ func startAndSetup(ctx context.Context, authored Lab, backend runner.Runner, ins
 			authored.Definition.ID,
 		)
 	}
+	// Capture this value before the learner is given access to the guest.
+	// The guest's target-order file is NOT trusted by the later checker.
+	if authored.Definition.ID == "lpic1.101.2.uefi-boot-order-recovery" {
+		baseline, ok := backend.(runner.UEFIBootOrderBaseline)
+		if !ok {
+			return errors.New("UEFI lab requires a host-managed BootOrder baseline")
+		}
+		if err := baseline.CaptureUEFIBootOrder(ctx, instance); err != nil {
+			return fmt.Errorf("capture UEFI boot baseline: %w", err)
+		}
+	}
 	return nil
 }
 
