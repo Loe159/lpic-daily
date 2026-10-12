@@ -3,12 +3,14 @@ package libvirt
 import (
 	"context"
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"io"
 	"net/netip"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -1271,5 +1273,52 @@ func TestUEFIHostBaselineIsPerInstanceAndResetSafe(t *testing.T) {
 	}
 	if _, err := backend.ExpectedUEFIBootOrder(ctx, first); err == nil {
 		t.Fatal("reset retained stale firmware baseline")
+	}
+}
+
+func TestUEFIHostBaselineCapturedViaQGAGuestExec(t *testing.T) {
+	backend, control, _, definition := backendFixture(t)
+	instance, err := backend.Prepare(context.Background(), definition)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := backend.Start(context.Background(), instance); err != nil {
+		t.Fatal(err)
+	}
+
+	record := func(value string, code int) {
+		t.Helper()
+		// Simulate guest-ping, guest-exec and guest-exec-status.
+		status := `{"return":{"exited":true,"exitcode":` +
+			strconv.Itoa(code) + `,"out-data":"` +
+			base64.StdEncoding.EncodeToString([]byte(value)) + `"}}`
+		control.agentResponses = []string{
+			`{"return":{}}`,
+			`{"return":{"pid":9}}`,
+			status,
+		}
+		control.agentCommands = nil
+	}
+	record("0005,0004,0000,0001\n", 0)
+	if err := backend.CaptureUEFIBootOrder(context.Background(), instance); err != nil {
+		t.Fatalf("capture BootOrder over QGA: %v", err)
+	}
+	got, err := backend.ExpectedUEFIBootOrder(context.Background(), instance)
+	if err != nil || got != "0005,0004,0000,0001" {
+		t.Fatalf("trusted BootOrder = %q, %v", got, err)
+	}
+	if len(control.agentCommands) != 3 ||
+		!strings.Contains(control.agentCommands[1],
+			`"arg":["/usr/bin/cat","/var/lib/lpic-daily/uefi-boot-order/target-order"]`) {
+		t.Fatalf("capture did not use trusted QGA exec: %#v", control.agentCommands)
+	}
+
+	record("bad-uefi-state\n", 0)
+	if err := backend.CaptureUEFIBootOrder(context.Background(), instance); err == nil {
+		t.Fatal("invalid UEFI baseline accepted")
+	}
+	record("0005,0004\n", 1)
+	if err := backend.CaptureUEFIBootOrder(context.Background(), instance); err == nil {
+		t.Fatal("failed guest read accepted")
 	}
 }
