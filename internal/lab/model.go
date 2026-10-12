@@ -56,6 +56,7 @@ type Setup struct {
 }
 
 type CheckDefinition struct {
+	DescriptionFR  string   `json:"description_fr,omitempty"`
 	Type           string   `json:"type"`
 	ConceptIDs     []string `json:"concept_ids"`
 	Path           string   `json:"path,omitempty"`
