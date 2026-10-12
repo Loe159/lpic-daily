@@ -62,7 +62,7 @@
       "argv": [
         "/usr/bin/bash",
         "-lc",
-        "printf 'alpha\\nbeta\\ngamma\\ndelta\\nepsilon\\n' | cmp -s - /workspace/output/audit.txt"
+        "set -euo pipefail; { zcat /workspace/input/day1.txt.gz; bzcat /workspace/input/day2.txt.bz2; xzcat /workspace/input/day3.txt.xz; } | cmp -s - /workspace/output/audit.txt"
       ],
       "expected_exit": 0,
       "concept_ids": [
