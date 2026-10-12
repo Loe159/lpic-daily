@@ -382,6 +382,7 @@ type deadlineObservingProbe struct {
 	fakeProbe
 	deadline time.Time
 }
+
 func (probe *deadlineObservingProbe) Exec(ctx context.Context, _ runner.Instance, _ runner.ExecRequest) (runner.ExecResult, error) {
 	probe.deadline, _ = ctx.Deadline()
 	return runner.ExecResult{ExitCode: 0}, nil
