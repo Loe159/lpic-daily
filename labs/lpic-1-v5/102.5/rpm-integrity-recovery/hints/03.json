@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.5.rpm-integrity-recovery.hint-3",
+  "lab_id": "lpic1.102.5.rpm-integrity-recovery",
+  "level": 3,
+  "content_fr": "Vérifie le paquet installé avec rpm -V, le digest des RPM avec rpm -K, puis l'authenticité du bon fichier grâce à gpgv et au trousseau local.",
+  "evidence_impact": "material"
+}

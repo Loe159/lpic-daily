@@ -40,6 +40,7 @@ type Machine struct {
 type MachineDisk struct {
 	ID     string `json:"id"`
 	SizeMB int    `json:"size_mb"`
+	Bus    string `json:"bus,omitempty"`
 }
 
 type Resources struct {

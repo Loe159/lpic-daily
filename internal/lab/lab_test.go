@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"slices"
@@ -275,6 +276,35 @@ func TestVMSetupNoneSkipsGuestExec(t *testing.T) {
 	}
 	if fake.definition.Machine == nil || len(fake.definition.Machine.ExtraDisks) != 1 {
 		t.Fatalf("VM definition = %#v", fake.definition)
+	}
+}
+
+func TestVMSetupSandboxUsesStructuredGuestExec(t *testing.T) {
+	authored := loadBuiltinLab(t, sharedDropboxID)
+	authored.Definition.ID = "lpic1.104.2.test-vm-setup"
+	authored.Definition.Environment.Backend = "libvirt"
+	authored.Definition.Environment.CapabilityProfile = "full-machine"
+	authored.Definition.Environment.WritableGuestPaths = nil
+	authored.Definition.Environment.Machine = &lab.Machine{Firmware: "uefi"}
+	authored.Definition.Setup = lab.Setup{ExecutionScope: "sandbox", ScriptRef: "setup.sh"}
+	authored.SetupScript = "printf ready > /run/lpic-vm-setup"
+
+	fake := &fakeRunner{}
+	session, err := lab.Start(context.Background(), authored, fake)
+	if err != nil {
+		t.Fatalf("Start() error = %v", err)
+	}
+	defer session.Close(context.Background())
+
+	if fake.execCalls != 1 {
+		t.Fatalf("VM sandbox setup Exec calls = %d, want 1", fake.execCalls)
+	}
+	if len(fake.exec.Argv) != 4 ||
+		fake.exec.Argv[0] != "/usr/bin/bash" ||
+		fake.exec.Argv[1] != "-eu" ||
+		fake.exec.Argv[2] != "-c" ||
+		fake.exec.Argv[3] != authored.SetupScript {
+		t.Fatalf("VM setup argv = %#v, want structured bash setup", fake.exec.Argv)
 	}
 }
 
@@ -673,5 +703,272 @@ func TestGeneratedStandaloneLabsStayConcreteAndConcise(t *testing.T) {
 	}
 	if generated != 618 {
 		t.Fatalf("generated standalone labs = %d, want 618", generated)
+	}
+}
+
+func TestBuiltinStorageBusArchiveRecoveryPropagatesTransport(t *testing.T) {
+	authored := loadBuiltinLab(t, "lpic1.101.1.storage-bus-archive-recovery")
+	definition, err := authored.RunnerDefinition()
+	if err != nil {
+		t.Fatalf("RunnerDefinition() error = %v", err)
+	}
+	if definition.Machine == nil || len(definition.Machine.ExtraDisks) != 2 {
+		t.Fatalf("expected two isolated extra disks, got %#v", definition.Machine)
+	}
+	archive, queue := definition.Machine.ExtraDisks[0], definition.Machine.ExtraDisks[1]
+	if archive.ID != "archive" || archive.Bus != runner.VirtualDiskBusSATA {
+		t.Fatalf("archive disk = %#v, want SATA", archive)
+	}
+	if queue.ID != "queue" || queue.Bus != runner.VirtualDiskBusVirtio {
+		t.Fatalf("queue disk = %#v, want VirtIO", queue)
+	}
+	if len(authored.Hints) != 4 || len(authored.Definition.Checks) != 3 {
+		t.Fatalf("incomplete storage scenario: %d hints, %d checks", len(authored.Hints), len(authored.Definition.Checks))
+	}
+}
+
+func TestBuiltinUSBAuthorizationRecoveryUsesVirtualUSBTransport(t *testing.T) {
+	authored := loadBuiltinLab(t, "lpic1.101.1.usb-backup-authorization-recovery")
+	definition, err := authored.RunnerDefinition()
+	if err != nil {
+		t.Fatalf("RunnerDefinition() error = %v", err)
+	}
+	if definition.Machine == nil || len(definition.Machine.ExtraDisks) != 1 {
+		t.Fatalf("expected one isolated USB disk, got %#v", definition.Machine)
+	}
+	device := definition.Machine.ExtraDisks[0]
+	if device.Bus != runner.VirtualDiskBusUSB || device.ID != "usb-backup" {
+		t.Fatalf("virtual disk = %#v, want USB backup", device)
+	}
+	if len(authored.Definition.Checks) != 3 || len(authored.Hints) != 4 {
+		t.Fatalf("incomplete USB scenario: %d checks, %d hints", len(authored.Definition.Checks), len(authored.Hints))
+	}
+	for _, id := range []string{"lpic1.101.1.bus-pci-et-usb", "lpic1.101.1.manipulation-des-peripheriques-usb"} {
+		if !slices.Contains(authored.Definition.ConceptIDs, id) {
+			t.Fatalf("concept %s missing from USB scenario", id)
+		}
+		found := false
+		for _, check := range authored.Definition.Checks {
+			if slices.Contains(check.ConceptIDs, id) {
+				found = true
+			}
+		}
+		if !found {
+			t.Fatalf("concept %s has no state-based check", id)
+		}
+	}
+}
+
+func TestBuiltinRescueTargetRecoveryRequiresRealSystemdTargets(t *testing.T) {
+	authored := loadBuiltinLab(t, "lpic1.101.3.rescue-target-service-recovery")
+	definition, err := authored.RunnerDefinition()
+	if err != nil {
+		t.Fatalf("RunnerDefinition: %v", err)
+	}
+	if definition.Machine == nil || authored.Definition.Environment.Backend != "libvirt" {
+		t.Fatalf("rescue needs isolated full VM, got %#v", authored.Definition.Environment)
+	}
+	if len(authored.Hints) != 4 || len(authored.Definition.Checks) != 3 {
+		t.Fatalf("rescue scenario has %d hints / %d checks", len(authored.Hints), len(authored.Definition.Checks))
+	}
+	if !strings.Contains(authored.SetupScript, "IgnoreOnIsolate=yes") ||
+		!strings.Contains(authored.SetupScript, "isolate rescue.target") ||
+		!strings.Contains(authored.SetupScript, "is-active --quiet qemu-guest-agent.service") {
+		t.Fatal("rescue setup lacks real target isolation or remote-control guard")
+	}
+	for _, check := range authored.Definition.Checks {
+		if !slices.Contains(check.ConceptIDs, "lpic1.101.3.mode-mono-utilisateur-recuperation") {
+			t.Fatalf("unmapped rescue check: %#v", check)
+		}
+	}
+}
+
+func TestBuiltinACPIAuditRequiresRealVMEvent(t *testing.T) {
+	authored := loadBuiltinLab(t, "lpic1.101.3.acpi-power-event-audit-recovery")
+	definition, err := authored.RunnerDefinition()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if definition.Machine == nil || authored.Definition.Environment.Backend != "libvirt" {
+		t.Fatalf("ACPI lab requires disposable VM: %#v", authored.Definition.Environment)
+	}
+	if len(authored.Definition.Checks) != 4 || len(authored.Hints) != 4 {
+		t.Fatalf("incomplete ACPI lab: %d checks %d hints", len(authored.Definition.Checks), len(authored.Hints))
+	}
+	if authored.Definition.Checks[3].Type != "acpi-button-sent" {
+		t.Fatal("missing independent host ACPI evidence check")
+	}
+	for _, check := range authored.Definition.Checks {
+		if !slices.Contains(check.ConceptIDs, "lpic1.101.3.notion-d-evenements-acpi") {
+			t.Fatalf("ACPI concept missing on state check: %#v", check)
+		}
+	}
+	if !strings.Contains(authored.SetupScript, "HandlePowerKey=ignore") ||
+		!strings.Contains(authored.SetupScript, "action=/usr/bin/true") ||
+		authored.ReferenceSolutionRef != "reference-solution.sh" {
+		t.Fatal("ACPI audit scenario lacks safe power policy, broken rule, or manual event trigger")
+	}
+}
+
+func TestBuiltinLegacyInitServiceMigrationPreservesArchive(t *testing.T) {
+	authored := loadBuiltinLab(t, "lpic1.101.2.legacy-init-service-migration")
+	definition, err := authored.RunnerDefinition()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if definition.Machine == nil || authored.Definition.Environment.Backend != "libvirt" {
+		t.Fatalf("systemd integration requires actual isolated VM: %#v", authored.Definition.Environment)
+	}
+	if len(authored.Definition.Checks) != 3 || len(authored.Hints) != 4 {
+		t.Fatalf("incomplete init migration lab: %d checks %d hints", len(authored.Definition.Checks), len(authored.Hints))
+	}
+	for _, check := range authored.Definition.Checks {
+		if !slices.Contains(check.ConceptIDs, "lpic1.101.2.sysvinit-systemd-et-connaissance-historique-d-upstart") {
+			t.Fatalf("unmapped legacy init check: %#v", check)
+		}
+	}
+	for _, marker := range []string{"ExecStart=/etc/init/lpic-legacy-indexer.conf", "sha256sum", "start on runlevel", "### BEGIN INIT INFO", "heartbeat"} {
+		if !strings.Contains(authored.SetupScript, marker) {
+			t.Errorf("expected real compatibility evidence %q", marker)
+		}
+	}
+}
+
+func TestBuiltinGRUBConsoleRequiresTemporaryBootAndUnmodifiedConfig(t *testing.T) {
+	authored := loadBuiltinLab(t, "lpic1.102.2.grub-serial-one-time-diagnostics")
+	definition, err := authored.RunnerDefinition()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if definition.Machine == nil || authored.Definition.Environment.Backend != "libvirt" {
+		t.Fatalf("GRUB console lab needs a disposable full VM: %#v", authored.Definition.Environment)
+	}
+	if len(authored.Definition.Checks) != 3 || len(authored.Hints) != 4 {
+		t.Fatalf("incomplete GRUB console lab: %d checks %d hints", len(authored.Definition.Checks), len(authored.Hints))
+	}
+	for _, cid := range []string{"lpic1.101.2.commandes-du-chargeur-de-demarrage", "lpic1.102.2.interaction-au-menu-console-grub"} {
+		if !slices.Contains(authored.Definition.ConceptIDs, cid) {
+			t.Fatalf("missing concept %s", cid)
+		}
+		mapped := false
+		for _, check := range authored.Definition.Checks {
+			if slices.Contains(check.ConceptIDs, cid) {
+				mapped = true
+			}
+		}
+		if !mapped {
+			t.Fatalf("no state check for %s", cid)
+		}
+	}
+	if !strings.Contains(authored.SetupScript, "GRUB_TIMEOUT=90") ||
+		!strings.Contains(authored.SetupScript, "preserved-boot-config.sha256") ||
+		!strings.Contains(authored.SetupScript, "grub2-mkconfig") ||
+		authored.ReferenceSolutionRef != "reference-solution.sh" {
+		t.Fatal("GRUB lab missing serial-menu window, immutable config evidence, or manual procedure")
+	}
+}
+
+func TestBuiltinGRUBLegacyMigrationRetainsHistoricArchive(t *testing.T) {
+	authored := loadBuiltinLab(t, "lpic1.102.2.grub-legacy-migration-recovery")
+	definition, err := authored.RunnerDefinition()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if definition.Machine == nil || authored.Definition.Environment.Backend != "libvirt" {
+		t.Fatalf("legacy GRUB migration needs full VM: %#v", authored.Definition.Environment)
+	}
+	if len(authored.Definition.Checks) != 3 || len(authored.Hints) != 4 {
+		t.Fatalf("incomplete GRUB migration: %d checks %d hints", len(authored.Definition.Checks), len(authored.Hints))
+	}
+	for _, check := range authored.Definition.Checks {
+		if !slices.Contains(check.ConceptIDs, "lpic1.102.2.grub-legacy-versus-grub-2") {
+			t.Fatalf("unmapped legacy GRUB check: %#v", check)
+		}
+	}
+	for _, marker := range []string{"menu.lst", "root (hd0,0)", "kernel /vmlinuz-", "sha256sum", "grub2-set-default"} {
+		if !strings.Contains(authored.SetupScript, marker) {
+			t.Errorf("setup missing historic GRUB evidence %q", marker)
+		}
+	}
+}
+
+func TestBuiltinOnboardSATAControllerReenableUsesRealPCI(t *testing.T) {
+	authored := loadBuiltinLab(t, "lpic1.101.1.onboard-sata-controller-reenable")
+	definition, err := authored.RunnerDefinition()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if definition.Machine == nil || len(definition.Machine.ExtraDisks) != 1 {
+		t.Fatalf("expected isolated SATA controller and guest-only disk: %#v", definition.Machine)
+	}
+	if definition.Machine.ExtraDisks[0].Bus != runner.VirtualDiskBusSATA {
+		t.Fatalf("missing true SATA bus: %#v", definition.Machine.ExtraDisks)
+	}
+	if len(authored.Definition.Checks) != 3 || len(authored.Hints) != 4 {
+		t.Fatalf("incomplete PCI controller recovery: %d checks %d hints", len(authored.Definition.Checks), len(authored.Hints))
+	}
+	for _, check := range authored.Definition.Checks {
+		if !slices.Contains(check.ConceptIDs, "lpic1.101.1.activation-desactivation-peripheriques-integres") {
+			t.Fatalf("unmapped PCI controller check: %#v", check)
+		}
+	}
+	for _, marker := range []string{"/sys/bus/pci/drivers/ahci/unbind", "readlink -f", "udevadm settle", "mkfs.ext4"} {
+		if !strings.Contains(authored.SetupScript, marker) {
+			t.Errorf("missing physical PCI state evidence %q", marker)
+		}
+	}
+}
+
+// Test the actual authored shell checker with synthetic efibootmgr outputs.
+// This runs in CI without firmware, so BootOrder parsing cannot silently
+// regress while the host baseline check is tested independently.
+func TestBuiltinUEFIBootOrderShellCheck(t *testing.T) {
+	authored := loadBuiltinLab(t, "lpic1.101.2.uefi-boot-order-recovery")
+	if len(authored.Definition.Checks) < 3 {
+		t.Fatalf("missing UEFI checks: %d", len(authored.Definition.Checks))
+	}
+	check := authored.Definition.Checks[0]
+	if check.Type != "command-exit" || len(check.Argv) != 3 {
+		t.Fatalf("UEFI shell check shape changed: %#v", check)
+	}
+	command := check.Argv[2]
+	const precondition = "test -d /sys/firmware/efi/efivars"
+	if !strings.Contains(command, precondition) {
+		t.Fatalf("missing firmware precondition")
+	}
+	command = strings.Replace(command, precondition, "true", 1)
+	command = "efibootmgr() { cat \"$LPIC_TEST_EFI_STATE\"; }\n" + command
+
+	entries := "Boot0005* LPIC-primary HD(1,GPT,abc)\n" +
+		"Boot0004* LPIC-rescue HD(1,GPT,abc)\n" +
+		"Boot0000* Fedora\n" +
+		"Boot0001  UEFI:PXE\n"
+	cases := []struct {
+		name     string
+		order    string
+		entries  string
+		wantPass bool
+	}{
+		{name: "restored complete order", order: "0005,0004,0000,0001", entries: entries, wantPass: true},
+		{name: "unrepaired rescue first", order: "0004,0005,0000,0001", entries: entries},
+		{name: "other entry before primary", order: "0000,0005,0004,0001", entries: entries},
+		{name: "duplicate primary", order: "0005,0004,0000,0005", entries: entries},
+		{name: "missing rescue entry", order: "0005,0004,0000,0001", entries: strings.Replace(entries, "Boot0004* LPIC-rescue HD(1,GPT,abc)\n", "", 1)},
+		{name: "no preserved entries", order: "0005,0004", entries: entries},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			statePath := filepath.Join(t.TempDir(), "efibootmgr.txt")
+			state := "BootCurrent: 0000\nBootOrder: " + tc.order + "\n" + tc.entries
+			if err := os.WriteFile(statePath, []byte(state), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			process := exec.Command("/usr/bin/bash", "-c", command)
+			process.Env = append(os.Environ(), "LPIC_TEST_EFI_STATE="+statePath)
+			output, err := process.CombinedOutput()
+			if (err == nil) != tc.wantPass {
+				t.Fatalf("UEFI check pass=%v, want %v: err=%v output=%q", err == nil, tc.wantPass, err, output)
+			}
+		})
 	}
 }

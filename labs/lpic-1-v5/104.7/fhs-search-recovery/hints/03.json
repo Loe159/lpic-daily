@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.7.fhs-search-recovery.hint-3",
+  "lab_id": "lpic1.104.7.fhs-search-recovery",
+  "level": 3,
+  "content_fr": "updatedb -U /workspace/catalog -o /workspace/acme.db construit la base privée ; locate -d peut ensuite l’interroger. Ajoute /opt/acme/bin au PATH avant type/which.",
+  "evidence_impact": "material"
+}

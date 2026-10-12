@@ -140,8 +140,13 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 
 	labs := make(map[string][]string)
 	labContexts := make(map[string]string, len(input.Labs))
+	acceptedLabIDs := make(map[string]bool, len(input.Labs))
 	for _, authored := range input.Labs {
+		if slices.Contains(authored.Definition.Labels, "scenario-implemented") {
+			continue
+		}
 		labContexts[authored.Definition.ID] = authored.Definition.PracticeContext
+		acceptedLabIDs[authored.Definition.ID] = slices.Contains(authored.Definition.Labels, "scenario-accepted")
 		for _, conceptID := range authored.Definition.ConceptIDs {
 			if _, wanted := scopeConcepts[conceptID]; wanted {
 				labs[conceptID] = append(labs[conceptID], authored.Definition.ID)
@@ -186,6 +191,7 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 			item.MasteryStage,
 			item.LabIDs,
 			labContexts,
+			acceptedLabIDs,
 			evidenceByConcept[scheduled.ConceptID],
 			input.Now,
 		)
@@ -305,6 +311,9 @@ func schedulableScope(
 	}
 	practical := make(map[string]bool)
 	for _, authored := range labs {
+		if slices.Contains(authored.Definition.Labels, "scenario-implemented") {
+			continue
+		}
 		for _, conceptID := range authored.Definition.ConceptIDs {
 			practical[conceptID] = true
 		}
@@ -441,6 +450,7 @@ func recommendedLab(
 	stage learning.MasteryStage,
 	labIDs []string,
 	labContexts map[string]string,
+	acceptedLabIDs map[string]bool,
 	events []learning.EvidenceEvent,
 	now time.Time,
 ) string {
@@ -448,6 +458,18 @@ func recommendedLab(
 		return ""
 	}
 	candidates := slices.Clone(labIDs)
+	acceptedCandidates := make([]string, 0, len(candidates))
+	for _, labID := range candidates {
+		if acceptedLabIDs[labID] {
+			acceptedCandidates = append(acceptedCandidates, labID)
+		}
+	}
+	if len(acceptedCandidates) > 0 {
+		// Once a concept has accepted scenario coverage, generated standalone
+		// fallbacks remain loadable for historical compatibility but disappear
+		// from normal scheduling.
+		candidates = acceptedCandidates
+	}
 	slices.SortFunc(candidates, func(a, b string) int {
 		aStandalone := strings.Contains(a, ".standalone-")
 		bStandalone := strings.Contains(b, ".standalone-")

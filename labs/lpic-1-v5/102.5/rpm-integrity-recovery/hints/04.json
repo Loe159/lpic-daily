@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.5.rpm-integrity-recovery.hint-4",
+  "lab_id": "lpic1.102.5.rpm-integrity-recovery",
+  "level": 4,
+  "content_fr": "Contrôle la signature de l'archive intacte avec gpgv --keyring /etc/lpic-recovery/trustedkeys.gpg, puis rpm -K --nosignature. Réinstalle-la avec rpm -Uvh --replacepkgs, puis relance rpm -V lpic-ledger-watch.",
+  "evidence_impact": "solution-revealed"
+}

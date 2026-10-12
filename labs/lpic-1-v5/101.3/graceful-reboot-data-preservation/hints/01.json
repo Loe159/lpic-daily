@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.3.graceful-reboot-data-preservation.hint-1",
+  "lab_id": "lpic1.101.3.graceful-reboot-data-preservation",
+  "level": 1,
+  "content_fr": "Regarde comment l'unité de l'agent s'arrête actuellement ; un redémarrage immédiat ne suffit pas à garantir le point de reprise.",
+  "evidence_impact": "none"
+}

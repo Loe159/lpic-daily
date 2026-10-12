@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.5.offline-dnf-agent-recovery.hint-2",
+  "lab_id": "lpic1.102.5.offline-dnf-agent-recovery",
+  "level": 2,
+  "content_fr": "Le dépôt est présent sous /srv ; le gestionnaire doit utiliser la bonne source. Ne contourne pas sa résolution des dépendances.",
+  "evidence_impact": "material"
+}

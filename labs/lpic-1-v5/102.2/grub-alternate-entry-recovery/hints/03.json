@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.2.grub-alternate-entry-recovery.hint-3",
+  "lab_id": "lpic1.102.2.grub-alternate-entry-recovery",
+  "level": 3,
+  "content_fr": "Le choix enregistré dans grubenv doit correspondre à l'identifiant de l'entrée de secours. Vérifie après reboot, pas avant.",
+  "evidence_impact": "material"
+}

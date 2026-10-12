@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.5.offline-zypper-repository-recovery.hint-2",
+  "lab_id": "lpic1.102.5.offline-zypper-repository-recovery",
+  "level": 2,
+  "content_fr": "Le collecteur est fourni par un dépôt RPM local. Vérifie si l'URL annoncée dans les sources openSUSE pointe vers le répertoire existant.",
+  "evidence_impact": "material"
+}

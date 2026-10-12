@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.1.uefi-rescue-media-recovery.hint-4",
+  "lab_id": "lpic1.102.1.uefi-rescue-media-recovery",
+  "level": 4,
+  "content_fr": "Sur /dev/vdb, vérifie GPT puis marque la partition 1 avec le drapeau esp (parted set 1 esp on). Monte ensuite /dev/vdb1 sur /mnt/lpic-rescue-esp et vérifie EFI/BOOT/BOOTX64.EFI.",
+  "evidence_impact": "solution-revealed"
+}

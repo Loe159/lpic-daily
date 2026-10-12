@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.6.clone-identity-recovery.hint-1",
+  "lab_id": "lpic1.102.6.clone-identity-recovery",
+  "level": 1,
+  "content_fr": "Compare les identifiants persistants dans les deux racines clonées.",
+  "evidence_impact": "none"
+}

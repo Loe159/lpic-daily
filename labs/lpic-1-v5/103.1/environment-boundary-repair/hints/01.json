@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.environment-boundary-repair.hint-1",
+  "lab_id": "lpic1.103.1.environment-boundary-repair",
+  "level": 1,
+  "content_fr": "Compare ce que voit le shell avec ce qu’un processus enfant reçoit réellement.",
+  "evidence_impact": "none"
+}

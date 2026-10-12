@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.3.runlevel-compatibility-recovery.hint-2",
+  "lab_id": "lpic1.101.3.runlevel-compatibility-recovery",
+  "level": 2,
+  "content_fr": "Les niveaux SysV 3 et 5 correspondent à des cibles systemd différentes, même si aucun environnement graphique complet n'est installé.",
+  "evidence_impact": "material"
+}

@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.4.batch-stream-repair.hint-2",
+  "lab_id": "lpic1.103.4.batch-stream-repair",
+  "level": 2,
+  "content_fr": "Le batch lit jobs.txt sur stdin. stdout doit aller vers stdout.log et stderr vers stderr.log ; pour combined.log, réfléchis à ce que 2>&1 copie au moment où il est évalué.",
+  "evidence_impact": "material"
+}

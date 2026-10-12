@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.1.onboard-sata-controller-reenable.hint-4",
+  "lab_id": "lpic1.101.1.onboard-sata-controller-reenable",
+  "level": 4,
+  "content_fr": "Écris la valeur de /var/lib/lpic-onboard-sata/pci-bdf dans /sys/bus/pci/drivers/ahci/bind, attends le retour du disque SATA, puis monte le volume LABEL=LPICONBOARD en lecture seule sur /srv/lpic-onboard-archive.",
+  "evidence_impact": "solution-revealed"
+}

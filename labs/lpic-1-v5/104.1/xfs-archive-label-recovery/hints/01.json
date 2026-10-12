@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.1.xfs-archive-label-recovery.hint-1",
+  "lab_id": "lpic1.104.1.xfs-archive-label-recovery",
+  "level": 1,
+  "content_fr": "Vérifie le type et l'étiquette du système de fichiers sur le disque de données, ainsi que la configuration du point de montage.",
+  "evidence_impact": "none"
+}

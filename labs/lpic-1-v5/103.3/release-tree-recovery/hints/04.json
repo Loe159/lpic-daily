@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.3.release-tree-recovery.hint-4",
+  "lab_id": "lpic1.103.3.release-tree-recovery",
+  "level": 4,
+  "content_fr": "Crée release, copie source/app récursivement, déplace app/conf/*.conf vers config, supprime les .tmp de plus de 7 jours avec find, déplace les logs >20c vers large-logs puis touch READY.",
+  "evidence_impact": "solution-revealed"
+}

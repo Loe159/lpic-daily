@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.1.removable-media-formats.hint-3",
+  "lab_id": "lpic1.104.1.removable-media-formats",
+  "level": 3,
+  "content_fr": "Le premier support doit être préparé en FAT32, le second en exFAT. Ils doivent ensuite être montés, indépendamment, sur les deux répertoires de transfert.",
+  "evidence_impact": "material"
+}

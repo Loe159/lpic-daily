@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.4.batch-stream-repair.hint-4",
+  "lab_id": "lpic1.103.4.batch-stream-repair",
+  "level": 4,
+  "content_fr": "Exécute audit-stream quatre fois avec jobs.txt sur stdin : séparation stdout/stderr, sortie combinée via >combined.log 2>&1, append stdout vers history.log, puis stdout seul dans tee live.log | wc -l.",
+  "evidence_impact": "solution-revealed"
+}

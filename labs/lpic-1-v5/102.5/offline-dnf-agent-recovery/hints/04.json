@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.5.offline-dnf-agent-recovery.hint-4",
+  "lab_id": "lpic1.102.5.offline-dnf-agent-recovery",
+  "level": 4,
+  "content_fr": "Corrige baseurl dans /etc/yum.repos.d/lpic-offline.repo vers file:///srv/lpic-rpm-repo, puis installe lpic-dnf-agent avec DNF en n'activant que le dépôt lpic-offline. Vérifie que lpic-dnf-runtime a été installé automatiquement.",
+  "evidence_impact": "solution-revealed"
+}

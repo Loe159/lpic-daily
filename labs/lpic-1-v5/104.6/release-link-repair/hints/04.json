@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.6.release-link-repair.hint-4",
+  "lab_id": "lpic1.104.6.release-link-repair",
+  "level": 4,
+  "content_fr": "Utilise ln sur app-v2.conf pour archive-v2.conf, cp pour snapshot-v2.conf, ln -sfn releases/app-v2.conf pour current.conf. Vérifie que ln sur le répertoire et vers /run/lpic échoue, puis écris les deux lignes rejected dans limitations.txt.",
+  "evidence_impact": "solution-revealed"
+}

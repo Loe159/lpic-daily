@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.2.legacy-init-service-migration.hint-1",
+  "lab_id": "lpic1.101.2.legacy-init-service-migration",
+  "level": 1,
+  "content_fr": "Le système utilise systemd comme PID 1, mais il contient aussi des fichiers provenant des deux anciens systèmes d'initialisation. Identifie le format de chacun et examine la cause d'échec de l'unité active.",
+  "evidence_impact": "none"
+}

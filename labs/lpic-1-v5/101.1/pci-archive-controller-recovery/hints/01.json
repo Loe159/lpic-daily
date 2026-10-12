@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.1.pci-archive-controller-recovery.hint-1",
+  "lab_id": "lpic1.101.1.pci-archive-controller-recovery",
+  "level": 1,
+  "content_fr": "Compare la visibilité du volume avec celle du disque système, puis inspecte les événements du noyau et du service d'index.",
+  "evidence_impact": "none"
+}

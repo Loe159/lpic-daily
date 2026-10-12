@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.1.btrfs-pool-report-recovery.hint-1",
+  "lab_id": "lpic1.104.1.btrfs-pool-report-recovery",
+  "level": 1,
+  "content_fr": "Vérifie l'état du pool, le nombre de disques membres, l'espace de rapports et les options du montage actif.",
+  "evidence_impact": "none"
+}

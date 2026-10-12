@@ -1355,6 +1355,10 @@ func runInteractiveLabWithBackend(
 	if labRequiresJobControl(authored.Definition) {
 		jobControlEvidence = &jobControlInteractionEvidence{}
 	}
+	var editorEvidence *editorInteractionEvidence
+	if labRequiresEditorInteraction(authored.Definition) {
+		editorEvidence = &editorInteractionEvidence{}
+	}
 
 	// Keep the host as the sole authority for checks, hints and progress writes.
 	// Input typed at the sandbox Bash prompt is handled on the host side.
@@ -1429,7 +1433,8 @@ func runInteractiveLabWithBackend(
 			)
 			passed = false
 			markPersistentShellConceptFailure(authored.Definition, conceptResults)
-		} else if requiresJobControl && !jobControlEvidence.Complete() {
+		}
+		if requiresJobControl && !jobControlEvidence.Complete() {
 			fmt.Fprintf(
 				stdout,
 				"  %-11s %s.job-control — la validation exige Ctrl-Z, une observation avec jobs et un bg réussi dans :shell\n",
@@ -1438,6 +1443,16 @@ func runInteractiveLabWithBackend(
 			)
 			passed = false
 			markPersistentShellConceptFailure(authored.Definition, conceptResults)
+		}
+		if editorEvidence != nil && !editorEvidence.Complete() {
+			fmt.Fprintf(
+				stdout,
+				"  %-11s %s.editor-pty — ouvre app.conf avec vi dans :shell et enregistre avec :wq ou :x\n",
+				"À CORRIGER",
+				authored.Definition.ID,
+			)
+			passed = false
+			markEditorConceptFailure(authored.Definition, conceptResults)
 		}
 		for _, result := range results {
 			state := "OK"
@@ -1543,6 +1558,7 @@ func runInteractiveLabWithBackend(
 				stdin,
 				stdout,
 				jobControlEvidence,
+				editorEvidence,
 				shellCommands,
 			)
 			if err != nil {
@@ -1562,7 +1578,7 @@ func runInteractiveLabWithBackend(
 		fmt.Fprintln(stdout, "Commandes LPIC Daily : :shell  :check  :hint  :reset  :quit")
 	} else {
 		fmt.Fprintln(stdout, "Mode commandes VM. Chaque ligne est exécutée dans la VM via QEMU Guest Agent.")
-		fmt.Fprintln(stdout, "Commandes LPIC Daily : :console  :reboot  :check  :hint  :reset  :quit")
+		fmt.Fprintln(stdout, "Commandes LPIC Daily : :console  :reboot  :boot-menu  :acpi-power  :check  :hint  :reset  :quit")
 	}
 	fmt.Fprintln(stdout)
 
@@ -1616,6 +1632,7 @@ func runInteractiveLabWithBackend(
 				stdin,
 				stdout,
 				jobControlEvidence,
+				editorEvidence,
 				shellCommands,
 			)
 			if err != nil {
@@ -1640,6 +1657,48 @@ func runInteractiveLabWithBackend(
 				return fmt.Errorf("VM serial console: %w", err)
 			}
 			fmt.Fprintln(stdout, "\n[retour LPIC Daily]")
+			continue
+		case ":acpi-power":
+			if authored.Definition.ID != "lpic1.101.3.acpi-power-event-audit-recovery" {
+				fmt.Fprintln(stdout, "Commande réservée au lab ACPI : aucun événement envoyé à cette VM.")
+				continue
+			}
+			if persistentShell {
+				fmt.Fprintln(stdout, "Les événements ACPI sont réservés aux labs VM.")
+				continue
+			}
+			button, ok := backend.(runner.ACPIButtonRunner)
+			if !ok {
+				return fmt.Errorf("%w: backend has no ACPI button capability", runner.ErrNotSupported)
+			}
+			buttonCtx, cancelButton := context.WithTimeout(sessionCtx, operationTimeout)
+			err := button.PressPowerButton(buttonCtx, session.Instance)
+			cancelButton()
+			if err != nil {
+				return fmt.Errorf("send VM ACPI power button: %w", err)
+			}
+			fmt.Fprintln(stdout, "Bouton d'alimentation ACPI envoyé à la VM. Contrôle l'événement dans le système invité.")
+			continue
+		case ":boot-menu":
+			if authored.Definition.ID != "lpic1.102.2.grub-serial-one-time-diagnostics" {
+				fmt.Fprintln(stdout, "Commande réservée au lab GRUB interactif : aucun redémarrage envoyé.")
+				continue
+			}
+			if persistentShell {
+				fmt.Fprintln(stdout, "L'accès au menu de démarrage est réservé aux labs VM.")
+				continue
+			}
+			boot, ok := backend.(runner.BootMenuRunner)
+			if !ok {
+				return fmt.Errorf("%w: backend has no boot-menu capability", runner.ErrNotSupported)
+			}
+			bootCtx, cancelBoot := context.WithTimeout(sessionCtx, operationTimeout)
+			err := boot.RebootToBootMenu(bootCtx, session.Instance)
+			cancelBoot()
+			if err != nil {
+				return fmt.Errorf("reboot VM for GRUB menu: %w", err)
+			}
+			fmt.Fprintln(stdout, "Redémarrage demandé sans attendre le système invité. Saisis immédiatement :console pour accéder à GRUB.")
 			continue
 		case ":reboot":
 			if persistentShell {
@@ -1680,6 +1739,7 @@ func runInteractiveLabWithBackend(
 			reflectionRecorded = false
 			lastLearnerCommand = ""
 			jobControlEvidence.Reset()
+			editorEvidence.Reset()
 			fmt.Fprintln(stdout, "Lab réinitialisé dans son état de départ.")
 			continue
 		case ":check":
@@ -1879,6 +1939,20 @@ func recordStandaloneLabCommand(
 	return nil
 }
 
+func labRequiresEditorInteraction(definition lab.Definition) bool {
+	return definition.ID == "lpic1.103.8.minimal-editor-repair"
+}
+
+func markEditorConceptFailure(definition lab.Definition, results map[string]learning.Result) {
+	for _, conceptID := range definition.ConceptIDs {
+		if strings.HasPrefix(conceptID, "lpic1.103.8.") &&
+			conceptID != "lpic1.103.8.editeur-par-defaut" &&
+			conceptID != "lpic1.103.8.connaissance-nano-emacs-vim" {
+			results[conceptID] = learning.ResultFail
+		}
+	}
+}
+
 func labRequiresJobControl(definition lab.Definition) bool {
 	const jobControlConcept = "lpic1.103.5.jobs-du-shell"
 	for _, conceptID := range definition.ConceptIDs {
@@ -1890,13 +1964,17 @@ func labRequiresJobControl(definition lab.Definition) bool {
 }
 
 type jobControlInteractionEvidence struct {
-	sawCtrlZ bool
-	sawJobs  bool
-	sawBg    bool
+	sawCtrlZ      bool
+	sawJobs       bool
+	sawBg         bool
+	hostTypedJobs bool
+	hostTypedBg   bool
+	inputLine     []byte
 }
 
 func (evidence *jobControlInteractionEvidence) Complete() bool {
-	return evidence != nil && evidence.sawCtrlZ && evidence.sawJobs && evidence.sawBg
+	return evidence != nil && evidence.sawCtrlZ && evidence.sawJobs && evidence.sawBg &&
+		evidence.hostTypedJobs && evidence.hostTypedBg
 }
 
 func (evidence *jobControlInteractionEvidence) Reset() {
@@ -1919,10 +1997,110 @@ func (evidence *jobControlInteractionEvidence) observeShellEvents(raw []byte) {
 	}
 }
 
+// observeShellInput records commands typed through the trusted host terminal.
+// Writing fake guest-side job logs can never satisfy these host flags.
+func (evidence *jobControlInteractionEvidence) observeShellInput(raw []byte) {
+	if evidence == nil {
+		return
+	}
+	for _, ch := range raw {
+		switch ch {
+		case 0x1a:
+			evidence.sawCtrlZ = true
+			evidence.inputLine = nil
+		case 0x03:
+			evidence.inputLine = nil
+		case '\r', '\n':
+			fields := strings.Fields(string(evidence.inputLine))
+			if evidence.sawCtrlZ && len(fields) > 0 {
+				switch fields[0] {
+				case "jobs":
+					evidence.hostTypedJobs = true
+				case "bg":
+					if evidence.hostTypedJobs {
+						evidence.hostTypedBg = true
+					}
+				}
+			}
+			evidence.inputLine = nil
+		case 0x08, 0x7f:
+			if len(evidence.inputLine) > 0 {
+				evidence.inputLine = evidence.inputLine[:len(evidence.inputLine)-1]
+			}
+		default:
+			if ch >= 0x20 && ch < 0x7f && len(evidence.inputLine) < 512 {
+				evidence.inputLine = append(evidence.inputLine, ch)
+			}
+		}
+	}
+}
+
+// editorInteractionEvidence is kept exclusively on the host. File state
+// alone cannot claim interactive vi experience for the LPIC editor concept.
+type editorInteractionEvidence struct {
+	line     []byte
+	recent   []byte
+	sawOpen  bool
+	sawWrite bool
+}
+
+func (evidence *editorInteractionEvidence) Complete() bool {
+	return evidence != nil && evidence.sawOpen && evidence.sawWrite
+}
+
+func (evidence *editorInteractionEvidence) Reset() {
+	if evidence != nil {
+		*evidence = editorInteractionEvidence{}
+	}
+}
+
+func (evidence *editorInteractionEvidence) observeTerminalInput(raw []byte) {
+	if evidence == nil {
+		return
+	}
+	for _, ch := range raw {
+		if !evidence.sawOpen {
+			switch ch {
+			case '\r', '\n':
+				words := strings.Fields(string(evidence.line))
+				if len(words) > 1 {
+					editor := words[0]
+					if editor == "vi" || editor == "vim" || editor == "/usr/bin/vi" || editor == "/usr/bin/vim" {
+						for _, argument := range words[1:] {
+							if argument == "/workspace/app.conf" {
+								evidence.sawOpen = true
+								break
+							}
+						}
+					}
+				}
+				evidence.line = nil
+			case 0x08, 0x7f:
+				if len(evidence.line) > 0 {
+					evidence.line = evidence.line[:len(evidence.line)-1]
+				}
+			default:
+				if ch >= 0x20 && ch < 0x7f && len(evidence.line) < 512 {
+					evidence.line = append(evidence.line, ch)
+				}
+			}
+			continue
+		}
+		evidence.recent = append(evidence.recent, ch)
+		if len(evidence.recent) > 32 {
+			evidence.recent = evidence.recent[len(evidence.recent)-32:]
+		}
+		if strings.Contains(string(evidence.recent), ":wq") || strings.Contains(string(evidence.recent), ":x\r") {
+			evidence.sawWrite = true
+		}
+	}
+}
+
 type ctrlZObservingTerminalReader struct {
 	file     *os.File
 	reader   io.Reader
 	evidence *jobControlInteractionEvidence
+	editor   *editorInteractionEvidence
 }
 
 func (reader *ctrlZObservingTerminalReader) Read(buffer []byte) (int, error) {
@@ -1931,11 +2109,8 @@ func (reader *ctrlZObservingTerminalReader) Read(buffer []byte) (int, error) {
 		source = reader.file
 	}
 	n, err := source.Read(buffer)
-	for _, value := range buffer[:n] {
-		if value == 0x1a && reader.evidence != nil {
-			reader.evidence.sawCtrlZ = true
-		}
-	}
+	reader.evidence.observeShellInput(buffer[:n])
+	reader.editor.observeTerminalInput(buffer[:n])
 	return n, err
 }
 
@@ -1954,8 +2129,8 @@ __lpic_daily_job_control_log="/tmp/.lpic-daily-job-control-events"
 jobs() {
     builtin jobs "$@"
     local status=$?
-    if (( status == 0 )); then
-        printf 'jobs\\n' >> "$__lpic_daily_job_control_log"
+    if (( status == 0 )) && [[ -n "$(builtin jobs -s)" ]]; then
+        printf 'jobs\n' >> "$__lpic_daily_job_control_log"
     fi
     return "$status"
 }
@@ -1963,8 +2138,8 @@ jobs() {
 bg() {
     builtin bg "$@"
     local status=$?
-    if (( status == 0 )); then
-        printf 'bg\\n' >> "$__lpic_daily_job_control_log"
+    if (( status == 0 )) && [[ -n "$(builtin jobs -r)" ]]; then
+        printf 'bg\n' >> "$__lpic_daily_job_control_log"
     fi
     return "$status"
 }
@@ -2153,6 +2328,7 @@ func runPersistentShell(
 	stdin io.Reader,
 	stdout io.Writer,
 	evidence *jobControlInteractionEvidence,
+	editor *editorInteractionEvidence,
 	onCommand func(string) (bool, error),
 ) (result runner.ExecResult, returnErr error) {
 	stdinFile, ok := stdin.(*os.File)
@@ -2232,9 +2408,11 @@ func runPersistentShell(
 		},
 	})
 	shellArgv := []string{"/usr/bin/bash", "-l"}
-	if evidence != nil {
-		shellInput = &ctrlZObservingTerminalReader{file: stdinFile, reader: shellInput, evidence: evidence}
-		shellArgv = []string{"/usr/bin/bash", "--noprofile", "--rcfile", jobControlShellRCPath, "-i"}
+	if evidence != nil || editor != nil {
+		shellInput = &ctrlZObservingTerminalReader{file: stdinFile, reader: shellInput, evidence: evidence, editor: editor}
+		if evidence != nil {
+			shellArgv = []string{"/usr/bin/bash", "--noprofile", "--rcfile", jobControlShellRCPath, "-i"}
+		}
 	}
 
 	result, execErr := backend.Exec(ctx, instance, runner.ExecRequest{

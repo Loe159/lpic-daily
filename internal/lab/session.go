@@ -1,6 +1,7 @@
 package lab
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -58,14 +59,17 @@ func startAndSetup(ctx context.Context, authored Lab, backend runner.Runner, ins
 
 	switch authored.Definition.Setup.ExecutionScope {
 	case "sandbox":
+		var output bytes.Buffer
 		result, err := backend.Exec(ctx, instance, runner.ExecRequest{
-			Argv: []string{"/usr/bin/bash", "-eu", "-c", authored.SetupScript},
+			Argv:   []string{"/usr/bin/bash", "-eu", "-c", authored.SetupScript},
+			Stdout: &output,
+			Stderr: &output,
 		})
 		if err != nil {
-			return fmt.Errorf("run setup for %s: %w", authored.Definition.ID, err)
+			return fmt.Errorf("run setup for %s: %w (output: %.2048s)", authored.Definition.ID, err, output.String())
 		}
 		if result.ExitCode != 0 {
-			return fmt.Errorf("setup for %s exited with code %d", authored.Definition.ID, result.ExitCode)
+			return fmt.Errorf("setup for %s exited with code %d (output: %.2048s)", authored.Definition.ID, result.ExitCode, output.String())
 		}
 	case "none":
 		// The trusted VM image + disposable disks are the complete initial state.
@@ -75,6 +79,17 @@ func startAndSetup(ctx context.Context, authored Lab, backend runner.Runner, ins
 			authored.Definition.Setup.ExecutionScope,
 			authored.Definition.ID,
 		)
+	}
+	// Capture this value before the learner is given access to the guest.
+	// The guest's target-order file is NOT trusted by the later checker.
+	if authored.Definition.ID == "lpic1.101.2.uefi-boot-order-recovery" {
+		baseline, ok := backend.(runner.UEFIBootOrderBaseline)
+		if !ok {
+			return errors.New("UEFI lab requires a host-managed BootOrder baseline")
+		}
+		if err := baseline.CaptureUEFIBootOrder(ctx, instance); err != nil {
+			return fmt.Errorf("capture UEFI boot baseline: %w", err)
+		}
 	}
 	return nil
 }

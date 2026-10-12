@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.3.preload-library-recovery.hint-2",
+  "lab_id": "lpic1.102.3.preload-library-recovery",
+  "level": 2,
+  "content_fr": "Inspecte la variable LD_PRELOAD dans le lanceur et la cible du lien symbolique sous vendor.",
+  "evidence_impact": "material"
+}

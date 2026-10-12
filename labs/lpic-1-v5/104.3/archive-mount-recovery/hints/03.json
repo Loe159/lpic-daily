@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.3.archive-mount-recovery.hint-3",
+  "lab_id": "lpic1.104.3.archive-mount-recovery",
+  "level": 3,
+  "content_fr": "Le nom du périphérique n'est pas une identité persistante. La ligne de fstab doit pointer vers le volume existant et inclure les options de sécurité.",
+  "evidence_impact": "material"
+}

@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.1.btrfs-pool-report-recovery.hint-2",
+  "lab_id": "lpic1.104.1.btrfs-pool-report-recovery",
+  "level": 2,
+  "content_fr": "Le manifeste se trouve sur la racine du pool. Un simple répertoire reports ne correspond pas à l'espace attendu.",
+  "evidence_impact": "material"
+}

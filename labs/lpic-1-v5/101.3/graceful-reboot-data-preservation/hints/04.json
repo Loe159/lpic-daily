@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.3.graceful-reboot-data-preservation.hint-4",
+  "lab_id": "lpic1.101.3.graceful-reboot-data-preservation",
+  "level": 4,
+  "content_fr": "Ajoute une surcharge systemd à lpic-reboot-worker.service pour utiliser KillSignal=SIGTERM et TimeoutStopSec=20, exécute systemctl daemon-reload, puis utilise :reboot dans le terminal parent.",
+  "evidence_impact": "solution-revealed"
+}

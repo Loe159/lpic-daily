@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.2.incident-report-rebuild.hint-2",
+  "lab_id": "lpic1.103.2.incident-report-rebuild",
+  "level": 2,
+  "content_fr": "Construis d’abord une liste d’hôtes ERROR triée et sans doublon. Garde une version avec tirets pour l’association avec owners.tsv.",
+  "evidence_impact": "material"
+}

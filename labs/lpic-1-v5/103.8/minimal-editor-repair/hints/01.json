@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.8.minimal-editor-repair.hint-1",
+  "lab_id": "lpic1.103.8.minimal-editor-repair",
+  "level": 1,
+  "content_fr": "Commence par ouvrir le fichier dans vi et utilise la recherche pour rejoindre directement les lignes de la section server.",
+  "evidence_impact": "none"
+}

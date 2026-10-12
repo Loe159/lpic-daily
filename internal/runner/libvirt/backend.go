@@ -1,6 +1,7 @@
 package libvirt
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"encoding/hex"
@@ -21,9 +22,13 @@ import (
 var domainSlugUnsafe = regexp.MustCompile(`[^a-z0-9.-]+`)
 
 var (
-	_ runner.ConsoleRunner = (*Backend)(nil)
-	_ runner.RebootRunner  = (*Backend)(nil)
-	_ runner.StorageProbe  = (*Backend)(nil)
+	_ runner.ConsoleRunner         = (*Backend)(nil)
+	_ runner.RebootRunner          = (*Backend)(nil)
+	_ runner.ACPIButtonRunner      = (*Backend)(nil)
+	_ runner.ACPIEventProbe        = (*Backend)(nil)
+	_ runner.UEFIBootOrderBaseline = (*Backend)(nil)
+	_ runner.BootMenuRunner        = (*Backend)(nil)
+	_ runner.StorageProbe          = (*Backend)(nil)
 )
 
 type Backend struct {
@@ -41,13 +46,15 @@ type Backend struct {
 }
 
 type managedInstance struct {
-	Definition     runner.Definition
-	Paths          OverlayPaths
-	DomainDefined  bool
-	NetworkName    string
-	NetworkDefined bool
-	FilterName     string
-	FilterDefined  bool
+	Definition            runner.Definition
+	Paths                 OverlayPaths
+	DomainDefined         bool
+	NetworkName           string
+	NetworkDefined        bool
+	FilterName            string
+	FilterDefined         bool
+	ACPIButtonSent        bool
+	UEFIExpectedBootOrder string
 }
 
 func NewBackend(
@@ -273,7 +280,7 @@ func (backend *Backend) prepareNamedOnNetwork(
 		if !exists {
 			return fmt.Errorf("overlay manager omitted scratch disk %s", requested.ID)
 		}
-		extraDisks = append(extraDisks, DiskPath{ID: requested.ID, Path: path})
+		extraDisks = append(extraDisks, DiskPath{ID: requested.ID, Path: path, Bus: requested.Bus})
 	}
 
 	xml, err := BuildDomainXML(DomainSpec{
@@ -568,6 +575,134 @@ func (backend *Backend) Start(ctx context.Context, instance runner.Instance) err
 		return err
 	}
 	return nil
+}
+
+// PressPowerButton is limited to a running owned libvirt instance. A lab can
+// observe the kernel ACPI event without requesting a guest-agent shutdown.
+func (backend *Backend) PressPowerButton(ctx context.Context, instance runner.Instance) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	if _, err := backend.instance(instance); err != nil {
+		return err
+	}
+	state, err := backend.control.DomainState(instance.ID)
+	if err != nil {
+		return err
+	}
+	if !state.Active {
+		return fmt.Errorf("VM instance %s is not active", instance.ID)
+	}
+	control, ok := backend.control.(ACPIControlPlane)
+	if !ok {
+		return fmt.Errorf("%w: no managed ACPI event support", runner.ErrNotSupported)
+	}
+	if err := control.PressACPIButtonDomain(instance.ID); err != nil {
+		return err
+	}
+	backend.mu.Lock()
+	managed, exists := backend.instances[instance.ID]
+	if exists {
+		managed.ACPIButtonSent = true
+		backend.instances[instance.ID] = managed
+	}
+	backend.mu.Unlock()
+	if !exists {
+		return fmt.Errorf("%w %q after ACPI event", errUnknownVMInstance, instance.ID)
+	}
+	return nil
+}
+
+// ACPIButtonObserved reads only host-side state. It is never derived from
+// files or logs inside the disposable guest and is reset with the VM instance.
+func (backend *Backend) ACPIButtonObserved(ctx context.Context, instance runner.Instance) (bool, error) {
+	if err := ctx.Err(); err != nil {
+		return false, err
+	}
+	if _, err := backend.instance(instance); err != nil {
+		return false, err
+	}
+	backend.mu.RLock()
+	managed, exists := backend.instances[instance.ID]
+	backend.mu.RUnlock()
+	if !exists {
+		return false, fmt.Errorf("%w %q", errUnknownVMInstance, instance.ID)
+	}
+	return managed.ACPIButtonSent, nil
+}
+
+// CaptureUEFIBootOrder stores the trusted setup's complete target on the host.
+// The learner cannot change the expected value by editing guest files.
+func (backend *Backend) CaptureUEFIBootOrder(ctx context.Context, instance runner.Instance) error {
+	if _, err := backend.instance(instance); err != nil {
+		return err
+	}
+	// Guest file probes are not available in the libvirt backend. Use the
+	// already-supported structured QEMU guest-agent exec instead. The path is
+	// fixed by trusted lab setup and must never be taken from learner input.
+	var stdout bytes.Buffer
+	result, err := backend.Exec(ctx, instance, runner.ExecRequest{
+		Argv:   []string{"/usr/bin/cat", "/var/lib/lpic-daily/uefi-boot-order/target-order"},
+		Stdout: &stdout,
+	})
+	if err != nil {
+		return fmt.Errorf("capture initial UEFI target: %w", err)
+	}
+	if result.ExitCode != 0 {
+		return fmt.Errorf("capture initial UEFI target: cat exited %d", result.ExitCode)
+	}
+	if stdout.Len() > 4096 {
+		return errors.New("UEFI BootOrder baseline exceeds 4096 bytes")
+	}
+	expected := strings.ToUpper(strings.TrimSpace(stdout.String()))
+	if !regexp.MustCompile(`^[0-9A-F]{4}(,[0-9A-F]{4})+$`).MatchString(expected) {
+		return errors.New("invalid UEFI BootOrder baseline from trusted setup")
+	}
+	backend.mu.Lock()
+	defer backend.mu.Unlock()
+	managed, exists := backend.instances[instance.ID]
+	if !exists {
+		return fmt.Errorf("%w %q", errUnknownVMInstance, instance.ID)
+	}
+	managed.UEFIExpectedBootOrder = expected
+	backend.instances[instance.ID] = managed
+	return nil
+}
+
+// ExpectedUEFIBootOrder returns only the host-captured baseline.
+func (backend *Backend) ExpectedUEFIBootOrder(ctx context.Context, instance runner.Instance) (string, error) {
+	if err := ctx.Err(); err != nil {
+		return "", err
+	}
+	if _, err := backend.instance(instance); err != nil {
+		return "", err
+	}
+	backend.mu.RLock()
+	managed := backend.instances[instance.ID]
+	backend.mu.RUnlock()
+	if managed.UEFIExpectedBootOrder == "" {
+		return "", errors.New("UEFI BootOrder baseline not captured")
+	}
+	return managed.UEFIExpectedBootOrder, nil
+}
+
+// RebootToBootMenu is nonblocking because waiting for the guest agent would
+// consume the GRUB menu window before the learner could open the serial console.
+func (backend *Backend) RebootToBootMenu(ctx context.Context, instance runner.Instance) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	if _, err := backend.instance(instance); err != nil {
+		return err
+	}
+	state, err := backend.control.DomainState(instance.ID)
+	if err != nil {
+		return err
+	}
+	if !state.Active {
+		return fmt.Errorf("VM instance %s is not active", instance.ID)
+	}
+	return backend.control.RebootDomain(instance.ID)
 }
 
 func (backend *Backend) Reboot(ctx context.Context, instance runner.Instance) error {

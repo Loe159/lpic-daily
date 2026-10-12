@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.2.grub-legacy-migration-recovery.hint-3",
+  "lab_id": "lpic1.102.2.grub-legacy-migration-recovery",
+  "level": 3,
+  "content_fr": "Le chemin de l'entrée d'origine se trouve dans /var/lib/lpic-grub-legacy/source-entry. Le nouvel identifiant se trouve dans import-id. Copie l'entrée et conserve linux et initrd.",
+  "evidence_impact": "material"
+}

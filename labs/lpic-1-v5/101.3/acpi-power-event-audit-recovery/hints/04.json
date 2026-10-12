@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.3.acpi-power-event-audit-recovery.hint-4",
+  "lab_id": "lpic1.101.3.acpi-power-event-audit-recovery",
+  "level": 4,
+  "content_fr": "Dans /etc/acpi/events/lpic-power-audit, conserve event=button/power.* et remplace l'action par /usr/bin/logger -t lpic-acpi-power lpic-guest-power-button. Redémarre acpid, puis saisis :acpi-power et :check dans le terminal parent.",
+  "evidence_impact": "solution-revealed"
+}

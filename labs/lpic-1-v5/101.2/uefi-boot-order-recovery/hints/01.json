@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.2.uefi-boot-order-recovery.hint-1",
+  "lab_id": "lpic1.101.2.uefi-boot-order-recovery",
+  "level": 1,
+  "content_fr": "Identifie le mode de démarrage de la VM puis observe les entrées de démarrage vues par le firmware.",
+  "evidence_impact": "none"
+}

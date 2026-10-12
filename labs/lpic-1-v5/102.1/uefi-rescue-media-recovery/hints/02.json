@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.1.uefi-rescue-media-recovery.hint-2",
+  "lab_id": "lpic1.102.1.uefi-rescue-media-recovery",
+  "level": 2,
+  "content_fr": "Une partition FAT32 ordinaire ne porte pas forcément l'identifiant GPT attendu par UEFI. Les fichiers EFI sont déjà présents sur ce disque.",
+  "evidence_impact": "material"
+}

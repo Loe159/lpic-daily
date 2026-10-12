@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.3.graceful-maintenance-transition.hint-2",
+  "lab_id": "lpic1.101.3.graceful-maintenance-transition",
+  "level": 2,
+  "content_fr": "La cible de maintenance possède une relation de conflit avec le worker ; inspecte cette relation et les propriétés d'arrêt du service.",
+  "evidence_impact": "material"
+}

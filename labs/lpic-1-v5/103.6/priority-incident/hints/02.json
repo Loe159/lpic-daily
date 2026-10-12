@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.6.priority-incident.hint-2",
+  "lab_id": "lpic1.103.6.priority-incident",
+  "level": 2,
+  "content_fr": "Un processus existant se traite avec renice ; un nouveau processus peut recevoir sa nice value dès le lancement.",
+  "evidence_impact": "material"
+}

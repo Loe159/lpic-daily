@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.1.ramdisk-module-recovery.hint-2",
+  "lab_id": "lpic1.101.1.ramdisk-module-recovery",
+  "level": 2,
+  "content_fr": "Le pilote gérant les périphériques disque RAM est un module noyau. Regarde son état et ses paramètres, sans tenter de réparer le disque système.",
+  "evidence_impact": "material"
+}

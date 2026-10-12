@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.2.incident-report-rebuild.hint-3",
+  "lab_id": "lpic1.103.2.incident-report-rebuild",
+  "level": 3,
+  "content_fr": "cut/awk, sort -u, tr, awk/paste, split et wc couvrent directement les transformations demandées. Les lots attendus portent les suffixes 00 et 01.",
+  "evidence_impact": "material"
+}

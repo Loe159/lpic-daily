@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.3.graceful-maintenance-transition.hint-4",
+  "lab_id": "lpic1.101.3.graceful-maintenance-transition",
+  "level": 4,
+  "content_fr": "Démarre lpic-maintenance.target avec systemctl start, puis contrôle l'arrêt du worker et l'événement dans /var/lib/lpic-maintenance/stop-event.",
+  "evidence_impact": "solution-revealed"
+}

@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.3.acpi-power-event-audit-recovery.hint-2",
+  "lab_id": "lpic1.101.3.acpi-power-event-audit-recovery",
+  "level": 2,
+  "content_fr": "acpid utilise des règles dans /etc/acpi/events. Une règle contient un motif event= et une commande action=. Le journal attend une entrée avec le tag lpic-acpi-power.",
+  "evidence_impact": "material"
+}

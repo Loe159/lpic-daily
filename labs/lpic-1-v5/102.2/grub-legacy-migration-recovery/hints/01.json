@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.2.grub-legacy-migration-recovery.hint-1",
+  "lab_id": "lpic1.102.2.grub-legacy-migration-recovery",
+  "level": 1,
+  "content_fr": "Le fichier menu.lst est une archive GRUB Legacy. Sur Fedora, trouve les entrées BLS de GRUB 2 et identifie celle du noyau utilisé actuellement.",
+  "evidence_impact": "none"
+}

@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.3.shared-library-cache-recovery.hint-4",
+  "lab_id": "lpic1.102.3.shared-library-cache-recovery",
+  "level": 4,
+  "content_fr": "Corrige le chemin dans /etc/ld.so.conf.d/lpic-metrics.conf vers /opt/lpic/vendor/lib, exécute ldconfig puis vérifie /usr/local/bin/lpic-report et ldconfig -p.",
+  "evidence_impact": "solution-revealed"
+}

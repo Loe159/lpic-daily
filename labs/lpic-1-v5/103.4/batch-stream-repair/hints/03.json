@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.4.batch-stream-repair.hint-3",
+  "lab_id": "lpic1.103.4.batch-stream-repair",
+  "level": 3,
+  "content_fr": "Utilise > et 2> pour les journaux séparés, > fichier 2>&1 pour le combiné, >> pour history.log, puis 2>/dev/null | tee live.log | wc -l pour le compteur.",
+  "evidence_impact": "material"
+}

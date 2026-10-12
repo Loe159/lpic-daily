@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.5.offline-zypper-repository-recovery.hint-3",
+  "lab_id": "lpic1.102.5.offline-zypper-repository-recovery",
+  "level": 3,
+  "content_fr": "Le dépôt lpic-maint contient l'agent et un runtime requis. Lorsque sa source est réparée, Zypper peut rafraîchir les métadonnées et installer les deux paquets.",
+  "evidence_impact": "material"
+}

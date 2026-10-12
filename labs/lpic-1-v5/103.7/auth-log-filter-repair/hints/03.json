@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.7.auth-log-filter-repair.hint-3",
+  "lab_id": "lpic1.103.7.auth-log-filter-repair",
+  "level": 3,
+  "content_fr": "Utilise grep -E pour suspicious.txt, sed pour remplacer le statut final, et laisse le shell développer *.log pour la liste des fichiers actifs.",
+  "evidence_impact": "material"
+}

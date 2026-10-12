@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.2.legacy-init-service-migration.hint-4",
+  "lab_id": "lpic1.101.2.legacy-init-service-migration",
+  "level": 4,
+  "content_fr": "Dans le .service, remplace ExecStart par /usr/local/libexec/lpic-legacy-indexer, exécute systemctl daemon-reload, systemctl reset-failed et systemctl enable --now lpic-legacy-indexer.service. Vérifie le fichier /run/lpic-legacy-indexer/heartbeat.",
+  "evidence_impact": "solution-revealed"
+}

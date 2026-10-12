@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.2.grub-serial-one-time-diagnostics.hint-2",
+  "lab_id": "lpic1.102.2.grub-serial-one-time-diagnostics",
+  "level": 2,
+  "content_fr": "Dans GRUB, la touche c ouvre son invite de commandes ; la touche e édite temporairement l'entrée sélectionnée. Tu dois produire à la fois une variable d'environnement GRUB enregistrée et un paramètre noyau ponctuel.",
+  "evidence_impact": "material"
+}

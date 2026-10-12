@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.2.uefi-boot-order-recovery.hint-2",
+  "lab_id": "lpic1.101.2.uefi-boot-order-recovery",
+  "level": 2,
+  "content_fr": "Inspecte efibootmgr -v : distingue BootOrder, BootNext, LPIC-primary et LPIC-rescue.",
+  "evidence_impact": "material"
+}

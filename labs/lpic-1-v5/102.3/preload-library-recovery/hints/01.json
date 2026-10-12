@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.3.preload-library-recovery.hint-1",
+  "lab_id": "lpic1.102.3.preload-library-recovery",
+  "level": 1,
+  "content_fr": "Lance le programme et examine son message d’erreur ; distingue fichier absent et script cassé.",
+  "evidence_impact": "none"
+}

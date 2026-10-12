@@ -894,20 +894,34 @@ func TestPersistentShellFailureTargetsJobControlConcept(t *testing.T) {
 
 func TestJobControlEvidenceRequiresCtrlZJobsAndSuccessfulBg(t *testing.T) {
 	evidence := &jobControlInteractionEvidence{}
-	evidence.observeShellEvents([]byte("jobs\n"))
-	evidence.sawCtrlZ = true
+	evidence.observeShellEvents([]byte("jobs\nbg\n"))
 	if evidence.Complete() {
-		t.Fatal("Ctrl-Z plus jobs must not pass without a successful bg")
+		t.Fatal("guest-only evidence must not satisfy host-side PTY requirement")
 	}
-
-	evidence.observeShellEvents([]byte("bg\n"))
+	evidence.observeShellInput([]byte("jobs -s\rbg %1\r"))
+	if evidence.Complete() {
+		t.Fatal("commands typed without Ctrl-Z must not count")
+	}
+	evidence.observeShellInput([]byte("\x1a"))
+	if evidence.Complete() {
+		t.Fatal("Ctrl-Z alone must not satisfy job control")
+	}
+	evidence.observeShellInput([]byte("echo jobs\r"))
+	evidence.observeShellInput([]byte("echo bg\r"))
+	if evidence.Complete() {
+		t.Fatal("echoing command names must not satisfy the host requirement")
+	}
+	evidence.observeShellInput([]byte("jobs -s\r"))
+	if evidence.Complete() {
+		t.Fatal("must require bg after observed jobs")
+	}
+	evidence.observeShellInput([]byte("bg %1\r"))
 	if !evidence.Complete() {
-		t.Fatal("Ctrl-Z plus jobs plus successful bg should satisfy job-control evidence")
+		t.Fatal("Ctrl-Z, host-typed jobs/bg and guest-confirmed success should pass")
 	}
-
 	evidence.Reset()
 	if evidence.Complete() {
-		t.Fatal("Reset() must clear job-control evidence")
+		t.Fatal("Reset must discard both host and guest evidence")
 	}
 }
 
@@ -968,6 +982,26 @@ func (fake *consoleScriptedLabRunner) OpenConsole(
 	runner.ConsoleRequest,
 ) error {
 	fake.consoleCalls++
+	return nil
+}
+
+type acpiScriptedLabRunner struct {
+	scriptedLabRunner
+	pressCount int
+}
+
+func (fake *acpiScriptedLabRunner) PressPowerButton(context.Context, runner.Instance) error {
+	fake.pressCount++
+	return nil
+}
+
+type bootMenuScriptedLabRunner struct {
+	scriptedLabRunner
+	bootMenuCalls int
+}
+
+func (fake *bootMenuScriptedLabRunner) RebootToBootMenu(context.Context, runner.Instance) error {
+	fake.bootMenuCalls++
 	return nil
 }
 
@@ -1222,5 +1256,140 @@ func TestLabShellCommandReaderHandlesBackspaceAndLongInput(t *testing.T) {
 	}
 	if len(called) != 1 || called[0] != ":check" {
 		t.Fatalf("intercepted commands = %q", called)
+	}
+}
+
+func TestInteractiveVMLabDispatchesACPIButtonCommand(t *testing.T) {
+	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("LoadAll: %v", err)
+	}
+	authored, err := findLab(labs, "lpic1.101.3.acpi-power-event-audit-recovery")
+	if err != nil {
+		t.Fatalf("findLab: %v", err)
+	}
+	fake := &acpiScriptedLabRunner{}
+	var stdout, stderr bytes.Buffer
+	if err := runInteractiveLabWithBackend(context.Background(), authored, fake, false,
+		strings.NewReader(":acpi-power\n:quit\n"), &stdout, &stderr); err != nil {
+		t.Fatalf("runInteractiveLabWithBackend: %v (stderr %q)", err, stderr.String())
+	}
+	if fake.pressCount != 1 {
+		t.Fatalf("pressCount = %d", fake.pressCount)
+	}
+	if !strings.Contains(stdout.String(), "ACPI envoyé") {
+		t.Fatalf("confirmation absent: %q", stdout.String())
+	}
+}
+
+func TestInteractiveVMLabDispatchesBootMenuWithoutBlocking(t *testing.T) {
+	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatal(err)
+	}
+	authored, err := findLab(labs, "lpic1.102.2.grub-serial-one-time-diagnostics")
+	if err != nil {
+		t.Fatal(err)
+	}
+	fake := &bootMenuScriptedLabRunner{}
+	var out, errs bytes.Buffer
+	if err := runInteractiveLabWithBackend(context.Background(), authored, fake, false,
+		strings.NewReader(":boot-menu\n:quit\n"), &out, &errs); err != nil {
+		t.Fatalf("boot-menu CLI: %v (%q)", err, errs.String())
+	}
+	if fake.bootMenuCalls != 1 {
+		t.Fatalf("boot-menu dispatch count %d", fake.bootMenuCalls)
+	}
+	if !strings.Contains(out.String(), ":console") {
+		t.Fatalf("boot-menu guidance absent: %q", out.String())
+	}
+}
+
+func TestInteractiveVMLabGuardsPrivilegedACPIAndBootMenuActions(t *testing.T) {
+	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatal(err)
+	}
+	authored, err := findLab(labs, "lpic1.102.2.grub-kernel-parameter")
+	if err != nil {
+		t.Fatal(err)
+	}
+	fake := &bootMenuScriptedLabRunner{}
+	var out, errs bytes.Buffer
+	if err := runInteractiveLabWithBackend(context.Background(), authored, fake, false,
+		strings.NewReader(":boot-menu\n:acpi-power\n:quit\n"), &out, &errs); err != nil {
+		t.Fatalf("unsafe command guard: %v (stderr=%q)", err, errs.String())
+	}
+	if fake.bootMenuCalls != 0 {
+		t.Fatal("non-GRUB lab initiated a boot-menu reboot")
+	}
+	if !strings.Contains(out.String(), "aucun redémarrage envoyé") ||
+		!strings.Contains(out.String(), "aucun événement envoyé") {
+		t.Fatalf("no visible guard explanation: %q", out.String())
+	}
+}
+
+func TestEditorRequiresHostObservedViAndSave(t *testing.T) {
+	evidence := &editorInteractionEvidence{}
+	evidence.observeTerminalInput([]byte(":wq\r"))
+	if evidence.Complete() {
+		t.Fatal("a save command without an editor session cannot count")
+	}
+	evidence.observeTerminalInput([]byte("echo vi /workspace/app.conf\r"))
+	evidence.observeTerminalInput([]byte(":wq\r"))
+	if evidence.Complete() {
+		t.Fatal("printing a vi command cannot count as an editor session")
+	}
+	evidence.observeTerminalInput([]byte("vi /workspace/app.conf\r"))
+	if evidence.Complete() {
+		t.Fatal("opening vi alone must not count as saved")
+	}
+	evidence.observeTerminalInput([]byte(":wq\r"))
+	if !evidence.Complete() {
+		t.Fatal("host must recognize opening vi and its save command")
+	}
+	evidence.Reset()
+	if evidence.Complete() {
+		t.Fatal("reset must remove vi interaction evidence")
+	}
+}
+
+func TestEditorInteractionOnlyRequiredForActualEditorScenario(t *testing.T) {
+	if !labRequiresEditorInteraction(lab.Definition{ID: "lpic1.103.8.minimal-editor-repair"}) {
+		t.Fatal("the vi lab must require host evidence")
+	}
+	if labRequiresEditorInteraction(lab.Definition{ID: "lpic1.103.7.auth-log-filter-repair"}) {
+		t.Fatal("unrelated lab must not require vi")
+	}
+}
+
+func TestEditorMissingInteractionDoesNotCreditAnyEditorOperation(t *testing.T) {
+	ids := []string{
+		"lpic1.103.8.modes-normal-insertion-commande",
+		"lpic1.103.8.navigation",
+		"lpic1.103.8.insertion-remplacement",
+		"lpic1.103.8.suppression-copie-collage",
+		"lpic1.103.8.recherche",
+		"lpic1.103.8.sauvegarde-quitter",
+		"lpic1.103.8.editeur-par-defaut",
+		"lpic1.103.8.connaissance-nano-emacs-vim",
+	}
+	results := make(map[string]learning.Result, len(ids))
+	for _, id := range ids {
+		results[id] = learning.ResultPass
+	}
+	markEditorConceptFailure(lab.Definition{ConceptIDs: ids}, results)
+	for _, id := range ids[:6] {
+		if results[id] != learning.ResultFail {
+			t.Fatalf("missing host editor interaction credited %s", id)
+		}
+	}
+	for _, id := range ids[6:] {
+		if results[id] != learning.ResultPass {
+			t.Fatalf("independently checked editor setup incorrectly failed %s", id)
+		}
 	}
 }

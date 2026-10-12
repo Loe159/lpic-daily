@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.2.compressed-manifest-recovery.hint-3",
+  "lab_id": "lpic1.103.2.compressed-manifest-recovery",
+  "level": 3,
+  "content_fr": "Utilise zcat, bzcat et xzcat pour assembler audit.txt, puis régénère le manifeste avec sha256sum et calcule les trois empreintes demandées du rapport final.",
+  "evidence_impact": "material"
+}

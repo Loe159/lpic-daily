@@ -24,6 +24,23 @@ func TestMachineDefinitionValidation(t *testing.T) {
 		t.Fatal("duplicate disk ID unexpectedly accepted")
 	}
 
+	sata := valid
+	sata.ExtraDisks = []runner.VirtualDisk{{ID: "archive", SizeMB: 256, Bus: runner.VirtualDiskBusSATA}}
+	if err := sata.Validate(); err != nil {
+		t.Fatalf("SATA scratch disk rejected: %v", err)
+	}
+
+	badBus := valid
+	badBus.ExtraDisks = []runner.VirtualDisk{{ID: "archive", SizeMB: 256, Bus: "nvme"}}
+	usb := valid
+	usb.ExtraDisks = []runner.VirtualDisk{{ID: "rescue", SizeMB: 256, Bus: runner.VirtualDiskBusUSB}}
+	if err := usb.Validate(); err != nil {
+		t.Fatalf("USB scratch disk rejected: %v", err)
+	}
+	if err := badBus.Validate(); err == nil {
+		t.Fatal("unsupported NVMe bus unexpectedly accepted")
+	}
+
 	tooLarge := valid
 	tooLarge.ExtraDisks = []runner.VirtualDisk{{ID: "data", SizeMB: 9000}}
 	if err := tooLarge.Validate(); err == nil {

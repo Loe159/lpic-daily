@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.3.graceful-maintenance-transition.hint-3",
+  "lab_id": "lpic1.101.3.graceful-maintenance-transition",
+  "level": 3,
+  "content_fr": "Un arrêt coordonné par systemd transmet SIGTERM et permet au worker de finaliser son journal. L'arrêt forcé ne convient pas.",
+  "evidence_impact": "material"
+}

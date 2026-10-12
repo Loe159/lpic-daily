@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.3.indexer-service-recovery.hint-4",
+  "lab_id": "lpic1.101.3.indexer-service-recovery",
+  "level": 4,
+  "content_fr": "Consulte systemctl status lpic-indexer et journalctl -u lpic-indexer. Corrige ExecStart, puis systemctl daemon-reload et systemctl restart lpic-indexer.",
+  "evidence_impact": "solution-revealed"
+}

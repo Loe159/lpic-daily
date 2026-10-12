@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.6.release-link-repair.hint-2",
+  "lab_id": "lpic1.104.6.release-link-repair",
+  "level": 2,
+  "content_fr": "ln sans -s crée un hard link, ln -s crée un symlink. stat -c %i et readlink permettent de vérifier ce que tu as construit.",
+  "evidence_impact": "material"
+}

@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.1.storage-bus-archive-recovery.hint-4",
+  "lab_id": "lpic1.101.1.storage-bus-archive-recovery",
+  "level": 4,
+  "content_fr": "Le disque SATA portant le label LPICARCHIVE contient index.txt. Démonte /srv/lpic-archive, remplace LABEL=LPICQUEUE par LABEL=LPICARCHIVE dans /etc/fstab, puis remonte le répertoire.",
+  "evidence_impact": "solution-revealed"
+}

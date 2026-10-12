@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.3.archive-mount-recovery.hint-1",
+  "lab_id": "lpic1.104.3.archive-mount-recovery",
+  "level": 1,
+  "content_fr": "Observe les montages réellement actifs et compare-les avec le disque présent dans la VM.",
+  "evidence_impact": "none"
+}

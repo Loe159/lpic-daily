@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.2.inode-backlog-recovery.hint-4",
+  "lab_id": "lpic1.104.2.inode-backlog-recovery",
+  "level": 4,
+  "content_fr": "Nettoie uniquement les fichiers sous /srv/lpic-spool/ack/stale (par exemple avec find ... -type f -delete) et vérifie ensuite df -i.",
+  "evidence_impact": "solution-revealed"
+}

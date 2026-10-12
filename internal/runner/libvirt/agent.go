@@ -15,7 +15,7 @@ import (
 
 const (
 	guestAgentCallTimeoutSeconds = int32(5)
-	guestAgentReadyTimeout       = 20 * time.Second
+	guestAgentReadyTimeout       = 90 * time.Second
 	guestAgentReadyRetry         = 100 * time.Millisecond
 	guestExecHelperPath          = "/usr/libexec/qemu-ga/fsfreeze-hook.d/lpic-daily-exec"
 	maxGuestAgentResponseBytes   = 2 << 20
@@ -163,6 +163,9 @@ func (backend *Backend) Exec(
 	}
 }
 
+// A freshly recreated Fedora guest can spend over 20 seconds replaying its
+// journal and initializing devices. Retrying QGA must be bounded, but cannot
+// confuse boot latency after reset with an irrecoverable guest-agent failure.
 func (backend *Backend) waitForGuestAgent(ctx context.Context, domainName string) error {
 	waitCtx, cancel := context.WithTimeout(ctx, guestAgentReadyTimeout)
 	defer cancel()

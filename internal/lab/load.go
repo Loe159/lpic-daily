@@ -170,6 +170,7 @@ func (lab Lab) RunnerDefinition() (runner.Definition, error) {
 			definition.Machine.ExtraDisks = append(definition.Machine.ExtraDisks, runner.VirtualDisk{
 				ID:     disk.ID,
 				SizeMB: disk.SizeMB,
+				Bus:    runner.VirtualDiskBus(disk.Bus),
 			})
 		}
 	}
@@ -218,6 +219,16 @@ func (lab Lab) CompileChecks() ([]checker.Check, error) {
 				Argv:         append([]string(nil), item.Argv...),
 				ExpectedExit: item.ExpectedExit,
 			})
+		case "acpi-button-sent":
+			if lab.Definition.Environment.Backend != "libvirt" {
+				return nil, fmt.Errorf("%s: host ACPI evidence requires libvirt", id)
+			}
+			checks = append(checks, checker.ACPIButtonSent{CheckID: id})
+		case "uefi-boot-order-preserved":
+			if lab.Definition.Environment.Backend != "libvirt" {
+				return nil, fmt.Errorf("%s: host UEFI evidence requires libvirt", id)
+			}
+			checks = append(checks, checker.UEFIBootOrderPreserved{CheckID: id})
 		case "block-device-state":
 			checks = append(checks, checker.BlockDeviceState{
 				CheckID:        id,
@@ -301,11 +312,17 @@ func validateDefinition(fsys fs.FS, base string, definition Definition) error {
 		if definition.Resources.MemoryMB < 256 {
 			return errors.New("libvirt lab requires at least 256 MiB of memory")
 		}
-		if definition.Setup.ExecutionScope != "none" {
-			return errors.New("libvirt Phase-2 lab setup execution scope must be none")
-		}
-		if definition.Setup.ScriptRef != "" {
-			return errors.New("libvirt setup=none must not declare script_ref")
+		switch definition.Setup.ExecutionScope {
+		case "none":
+			if definition.Setup.ScriptRef != "" {
+				return errors.New("libvirt setup=none must not declare script_ref")
+			}
+		case "sandbox":
+			if _, err := resolveLocalRef(base, definition.Setup.ScriptRef); err != nil {
+				return fmt.Errorf("invalid libvirt setup reference: %w", err)
+			}
+		default:
+			return fmt.Errorf("unsupported libvirt setup execution scope %q", definition.Setup.ExecutionScope)
 		}
 	}
 	if definition.ResetPolicy != "disposable" {

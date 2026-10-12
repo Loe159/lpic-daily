@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.1.storage-bus-archive-recovery.hint-1",
+  "lab_id": "lpic1.101.1.storage-bus-archive-recovery",
+  "level": 1,
+  "content_fr": "Le point de montage existe, mais son contenu n'est pas celui attendu. Compare l'identité des deux disques de données et la source actuellement montée.",
+  "evidence_impact": "none"
+}

@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.3.release-tree-recovery.hint-1",
+  "lab_id": "lpic1.103.3.release-tree-recovery",
+  "level": 1,
+  "content_fr": "Recopie d’abord l’arborescence, puis traite séparément configuration, temporaires et logs selon leurs propriétés.",
+  "evidence_impact": "none"
+}

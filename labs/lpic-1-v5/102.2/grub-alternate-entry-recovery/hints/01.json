@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.2.grub-alternate-entry-recovery.hint-1",
+  "lab_id": "lpic1.102.2.grub-alternate-entry-recovery",
+  "level": 1,
+  "content_fr": "Compare les entrées disponibles, le noyau actif et le choix par défaut de GRUB 2.",
+  "evidence_impact": "none"
+}

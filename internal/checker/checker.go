@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"regexp"
 	"slices"
+	"strings"
 
 	"github.com/Loe159/lpic-daily/internal/runner"
 )
@@ -205,6 +206,58 @@ func (check CommandExit) Evaluate(ctx context.Context, probe Probe, instance run
 		Pass:    true,
 		Detail:  fmt.Sprintf("exit=%d", result.ExitCode),
 	}
+}
+
+// ACPIButtonSent requires proof outside the guest that libvirt dispatched
+// the ACPI event. It complements (but does not replace) guest journal checks.
+type ACPIButtonSent struct{ CheckID string }
+
+func (check ACPIButtonSent) ID() string { return check.CheckID }
+
+func (check ACPIButtonSent) Evaluate(ctx context.Context, probe Probe, instance runner.Instance) Result {
+	host, ok := probe.(runner.ACPIEventProbe)
+	if !ok {
+		return Result{CheckID: check.ID(), Err: fmt.Errorf("%w: host ACPI evidence unavailable", runner.ErrNotSupported)}
+	}
+	sent, err := host.ACPIButtonObserved(ctx, instance)
+	if err != nil {
+		return Result{CheckID: check.ID(), Err: err}
+	}
+	if !sent {
+		return Result{CheckID: check.ID(), Detail: "no hypervisor ACPI event was sent to this VM"}
+	}
+	return Result{CheckID: check.ID(), Pass: true, Detail: "hypervisor ACPI event sent"}
+}
+
+// UEFIBootOrderPreserved compares live firmware variables against the
+// expected full order captured by the trusted host after setup.
+type UEFIBootOrderPreserved struct{ CheckID string }
+
+func (check UEFIBootOrderPreserved) ID() string { return check.CheckID }
+
+func (check UEFIBootOrderPreserved) Evaluate(ctx context.Context, probe Probe, instance runner.Instance) Result {
+	host, ok := probe.(runner.UEFIBootOrderBaseline)
+	if !ok {
+		return Result{CheckID: check.ID(), Err: fmt.Errorf("%w: host UEFI baseline unavailable", runner.ErrNotSupported)}
+	}
+	expected, err := host.ExpectedUEFIBootOrder(ctx, instance)
+	if err != nil {
+		return Result{CheckID: check.ID(), Err: err}
+	}
+	var output strings.Builder
+	result, err := probe.Exec(ctx, instance, runner.ExecRequest{
+		Argv: []string{"/usr/bin/bash", "-lc",
+			"set -euo pipefail; efibootmgr | sed -nE 's/^BootOrder:[[:space:]]*([[:xdigit:],]+).*$/\\1/p'"},
+		Stdout: &output,
+	})
+	if err != nil {
+		return Result{CheckID: check.ID(), Err: err}
+	}
+	actual := strings.ToUpper(strings.TrimSpace(output.String()))
+	if result.ExitCode != 0 || actual != expected {
+		return Result{CheckID: check.ID(), Detail: "firmware BootOrder differs from trusted initial target"}
+	}
+	return Result{CheckID: check.ID(), Pass: true, Detail: "firmware BootOrder matches host baseline"}
 }
 
 func cloneEnvironment(environment map[string]string) map[string]string {

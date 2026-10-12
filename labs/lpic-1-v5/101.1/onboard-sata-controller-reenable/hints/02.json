@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.1.onboard-sata-controller-reenable.hint-2",
+  "lab_id": "lpic1.101.1.onboard-sata-controller-reenable",
+  "level": 2,
+  "content_fr": "Le disque système /dev/vda utilise VirtIO et ne doit pas être touché. Le disque d'archives SATA dépend du contrôleur AHCI PCI identifié dans /var/lib/lpic-onboard-sata/pci-bdf.",
+  "evidence_impact": "material"
+}

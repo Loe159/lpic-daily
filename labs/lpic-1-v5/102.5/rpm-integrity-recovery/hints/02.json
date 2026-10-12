@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.5.rpm-integrity-recovery.hint-2",
+  "lab_id": "lpic1.102.5.rpm-integrity-recovery",
+  "level": 2,
+  "content_fr": "La base RPM peut comparer les fichiers installés à leur état de référence. Une archive RPM et sa signature peuvent aussi être contrôlées hors ligne.",
+  "evidence_impact": "material"
+}

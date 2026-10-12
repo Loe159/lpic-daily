@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.3.busy-removable-volume.hint-4",
+  "lab_id": "lpic1.104.3.busy-removable-volume",
+  "level": 4,
+  "content_fr": "Utilise systemctl status lpic-transfer-reader.service, arrête ce service, puis lance umount /srv/transfer. Vérifie que le volume n'est plus monté.",
+  "evidence_impact": "solution-revealed"
+}

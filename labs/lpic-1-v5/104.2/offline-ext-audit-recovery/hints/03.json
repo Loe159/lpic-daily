@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.2.offline-ext-audit-recovery.hint-3",
+  "lab_id": "lpic1.104.2.offline-ext-audit-recovery",
+  "level": 3,
+  "content_fr": "Une réparation de cohérence est nécessaire avant de corriger les attributs du superbloc. Le contenu original doit rester lisible.",
+  "evidence_impact": "material"
+}

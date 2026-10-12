@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.6.guest-container-isolation-recovery.hint-4",
+  "lab_id": "lpic1.102.6.guest-container-isolation-recovery",
+  "level": 4,
+  "content_fr": "Recrée lpic-worker depuis localhost/lpic-guest-probe:1 avec podman run --network=none --pid=private --read-only, puis compare les liens /proc/PID/ns et le résultat de uname.",
+  "evidence_impact": "solution-revealed"
+}

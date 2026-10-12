@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.2.inode-backlog-recovery.hint-1",
+  "lab_id": "lpic1.104.2.inode-backlog-recovery",
+  "level": 1,
+  "content_fr": "Compare les ressources du volume occupées par les fichiers, et pas seulement la quantité de données en octets.",
+  "evidence_impact": "none"
+}

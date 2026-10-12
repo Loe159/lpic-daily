@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.2.grub-serial-one-time-diagnostics.hint-4",
+  "lab_id": "lpic1.102.2.grub-serial-one-time-diagnostics",
+  "level": 4,
+  "content_fr": "Appuie sur c puis saisis set lpic_grub_cli=verified et save_env lpic_grub_cli. Reviens au menu avec Échap, appuie sur e, ajoute lpic.console_probe=1 à la ligne linux, puis Ctrl-X pour démarrer. Après le boot, Ctrl-] puis :check.",
+  "evidence_impact": "solution-revealed"
+}

@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.1.pci-archive-controller-recovery.hint-3",
+  "lab_id": "lpic1.101.1.pci-archive-controller-recovery",
+  "level": 3,
+  "content_fr": "Le contrôleur virtio du second disque n'a plus de pilote associé. Examine ses informations PCI et les liens de pilote dans sysfs ; ne touche pas au contrôleur du disque système.",
+  "evidence_impact": "material"
+}

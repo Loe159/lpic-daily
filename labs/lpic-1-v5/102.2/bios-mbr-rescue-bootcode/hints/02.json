@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.2.bios-mbr-rescue-bootcode.hint-2",
+  "lab_id": "lpic1.102.2.bios-mbr-rescue-bootcode",
+  "level": 2,
+  "content_fr": "Le disque utilise un schéma msdos avec une partition commençant après un espace d'amorçage. Le problème se trouve avant cette partition.",
+  "evidence_impact": "material"
+}

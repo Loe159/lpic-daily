@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.4.collector-config-recovery.hint-3",
+  "lab_id": "lpic1.102.4.collector-config-recovery",
+  "level": 3,
+  "content_fr": "Le gestionnaire Debian peut relancer le script de configuration d'un paquet déjà installé, sans toucher aux données de production.",
+  "evidence_impact": "material"
+}

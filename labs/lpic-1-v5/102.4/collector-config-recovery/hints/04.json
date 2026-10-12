@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.4.collector-config-recovery.hint-4",
+  "lab_id": "lpic1.102.4.collector-config-recovery",
+  "level": 4,
+  "content_fr": "Utilise DEBIAN_FRONTEND=noninteractive dpkg-reconfigure lpic-collector-agent. Vérifie ensuite le fonctionnement de la commande, la configuration et le lot d'événements conservé.",
+  "evidence_impact": "solution-revealed"
+}

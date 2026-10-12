@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.1.usb-backup-authorization-recovery.hint-4",
+  "lab_id": "lpic1.101.1.usb-backup-authorization-recovery",
+  "level": 4,
+  "content_fr": "Retrouve le périphérique USB dont authorized vaut 0 et passe cet attribut à 1. Attends udev, puis remonte /srv/lpic-usb-backup depuis l'entrée fstab existante.",
+  "evidence_impact": "solution-revealed"
+}

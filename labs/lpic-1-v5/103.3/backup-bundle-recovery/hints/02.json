@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.3.backup-bundle-recovery.hint-2",
+  "lab_id": "lpic1.103.3.backup-bundle-recovery",
+  "level": 2,
+  "content_fr": "Prépare séparément tar, cpio et la copie brute. Pour les payloads, file --mime-type permet de distinguer gzip, bzip2 et xz.",
+  "evidence_impact": "material"
+}

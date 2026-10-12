@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.1.external-command-recovery.hint-1",
+  "lab_id": "lpic1.103.1.external-command-recovery",
+  "level": 1,
+  "content_fr": "Distingue « le shell résout ce nom » de « le fichier exécutable existe quelque part ».",
+  "evidence_impact": "none"
+}

@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.2.incident-report-rebuild.hint-1",
+  "lab_id": "lpic1.103.2.incident-report-rebuild",
+  "level": 1,
+  "content_fr": "Commence par isoler les lignes ERROR et regarde quelles colonnes sont réellement utiles au rapport.",
+  "evidence_impact": "none"
+}

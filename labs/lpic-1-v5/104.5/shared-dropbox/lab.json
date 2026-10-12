@@ -26,7 +26,8 @@
   ],
   "labels": [
     "lpic-required",
-    "modern-practice"
+    "modern-practice",
+    "scenario-accepted"
   ],
   "estimated_minutes": 15,
   "practice_context": "shared-dropbox-policy",

@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.3.archive-mount-recovery.hint-4",
+  "lab_id": "lpic1.104.3.archive-mount-recovery",
+  "level": 4,
+  "content_fr": "Lis l'UUID avec blkid /dev/vdb, répare la ligne /srv/archive dans /etc/fstab avec UUID=... et options defaults,nodev,nosuid,nofail, recharge systemd puis monte /srv/archive.",
+  "evidence_impact": "solution-revealed"
+}

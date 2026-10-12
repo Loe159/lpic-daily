@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.6.guest-container-isolation-recovery.hint-1",
+  "lab_id": "lpic1.102.6.guest-container-isolation-recovery",
+  "level": 1,
+  "content_fr": "Vérifie l'état du collecteur dans Podman et inspecte les paramètres de son conteneur, puis compare-les à ceux de la VM.",
+  "evidence_impact": "none"
+}

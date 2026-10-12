@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.6.guest-container-isolation-recovery.hint-2",
+  "lab_id": "lpic1.102.6.guest-container-isolation-recovery",
+  "level": 2,
+  "content_fr": "Le fait d'utiliser une image OCI ne signifie pas automatiquement que les espaces de noms de réseau et de processus sont isolés.",
+  "evidence_impact": "material"
+}

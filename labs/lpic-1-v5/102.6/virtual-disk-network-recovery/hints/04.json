@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.6.virtual-disk-network-recovery.hint-4",
+  "lab_id": "lpic1.102.6.virtual-disk-network-recovery",
+  "level": 4,
+  "content_fr": "Retrouve l'interface dans /var/lib/lpic-vm-resources/iface, reconnecte-la avec nmcli device connect, monte /srv/lpic-virtual-journal et redémarre lpic-virtual-journal.service.",
+  "evidence_impact": "solution-revealed"
+}

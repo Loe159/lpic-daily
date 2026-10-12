@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.1.backup-device-udev-recovery.hint-3",
+  "lab_id": "lpic1.101.1.backup-device-udev-recovery",
+  "level": 3,
+  "content_fr": "Une règle peut relier le label du système de fichiers LPICBACKUP à un nom stable, puis être appliquée via un événement udev.",
+  "evidence_impact": "material"
+}

@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.3.graceful-reboot-data-preservation.hint-2",
+  "lab_id": "lpic1.101.3.graceful-reboot-data-preservation",
+  "level": 2,
+  "content_fr": "Examine les propriétés KillSignal et TimeoutStopSec du service et la façon dont le worker réagit à SIGTERM.",
+  "evidence_impact": "material"
+}

@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.101.1.usb-backup-authorization-recovery.hint-1",
+  "lab_id": "lpic1.101.1.usb-backup-authorization-recovery",
+  "level": 1,
+  "content_fr": "Le contrôleur USB existe encore, mais son disque n'est plus visible dans /dev. Compare l'énumération PCI/USB et les attributs du périphérique dans sysfs.",
+  "evidence_impact": "none"
+}

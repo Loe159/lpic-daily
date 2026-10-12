@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.4.bulk-argument-dispatch.hint-2",
+  "lab_id": "lpic1.103.4.bulk-argument-dispatch",
+  "level": 2,
+  "content_fr": "Il faut un adaptateur entre stdin et la liste d’arguments de describe-file, puis un tri avant la redirection finale.",
+  "evidence_impact": "material"
+}

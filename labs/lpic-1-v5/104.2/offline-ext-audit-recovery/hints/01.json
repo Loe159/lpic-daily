@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.2.offline-ext-audit-recovery.hint-1",
+  "lab_id": "lpic1.104.2.offline-ext-audit-recovery",
+  "level": 1,
+  "content_fr": "Inspecte l’état de l’image disque sans la monter. Une vérification hors ligne est adaptée à ce fichier de volume.",
+  "evidence_impact": "none"
+}

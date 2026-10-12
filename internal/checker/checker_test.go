@@ -203,3 +203,81 @@ func TestStateChecksAcceptDifferentCommandHistoriesWithSameFinalState(t *testing
 		}
 	}
 }
+
+type hostACPIProbe struct {
+	*fakeProbe
+	sent bool
+	err  error
+}
+
+func (probe *hostACPIProbe) ACPIButtonObserved(_ context.Context, _ runner.Instance) (bool, error) {
+	return probe.sent, probe.err
+}
+
+func TestACPIButtonRequiresIndependentHostEvidence(t *testing.T) {
+	ctx := context.Background()
+	check := checker.ACPIButtonSent{CheckID: "host-acpi"}
+	instance := runner.Instance{ID: "owned-vm"}
+	if got := check.Evaluate(ctx, &fakeProbe{}, instance); got.Pass || !errors.Is(got.Err, runner.ErrNotSupported) {
+		t.Fatalf("guest-only probe incorrectly passed: %#v", got)
+	}
+	probe := &hostACPIProbe{fakeProbe: &fakeProbe{}}
+	if got := check.Evaluate(ctx, probe, instance); got.Pass || got.Err != nil {
+		t.Fatalf("no host event incorrectly passed: %#v", got)
+	}
+	probe.sent = true
+	if got := check.Evaluate(ctx, probe, instance); !got.Pass || got.Err != nil {
+		t.Fatalf("host event not accepted: %#v", got)
+	}
+	probe.err = errors.New("host unavailable")
+	if got := check.Evaluate(ctx, probe, instance); got.Pass || !errors.Is(got.Err, probe.err) {
+		t.Fatalf("host failure ignored: %#v", got)
+	}
+}
+
+type fakeUEFIBaselineProbe struct {
+	*fakeProbe
+	expected string
+	current  string
+	err      error
+}
+
+func (probe *fakeUEFIBaselineProbe) CaptureUEFIBootOrder(context.Context, runner.Instance) error {
+	return nil
+}
+
+func (probe *fakeUEFIBaselineProbe) ExpectedUEFIBootOrder(context.Context, runner.Instance) (string, error) {
+	return probe.expected, probe.err
+}
+
+func (probe *fakeUEFIBaselineProbe) Exec(_ context.Context, _ runner.Instance, request runner.ExecRequest) (runner.ExecResult, error) {
+	if request.Stdout != nil {
+		_, _ = request.Stdout.Write([]byte(probe.current + "\n"))
+	}
+	return runner.ExecResult{ExitCode: 0}, nil
+}
+
+func TestUEFIBootOrderRequiresFullTrustedHostBaseline(t *testing.T) {
+	ctx := context.Background()
+	instance := runner.Instance{ID: "uefi-vm"}
+	check := checker.UEFIBootOrderPreserved{CheckID: "firmware-order"}
+	if got := check.Evaluate(ctx, &fakeProbe{}, instance); got.Pass || !errors.Is(got.Err, runner.ErrNotSupported) {
+		t.Fatalf("guest-only UEFI evidence accepted: %#v", got)
+	}
+	probe := &fakeUEFIBaselineProbe{
+		fakeProbe: &fakeProbe{},
+		expected:  "0005,0004,0000,0001",
+		current:   "0005,0004,0001,0000",
+	}
+	if got := check.Evaluate(ctx, probe, instance); got.Pass {
+		t.Fatalf("reordered unrelated firmware entries passed: %#v", got)
+	}
+	probe.current = probe.expected
+	if got := check.Evaluate(ctx, probe, instance); !got.Pass || got.Err != nil {
+		t.Fatalf("correct complete boot order failed: %#v", got)
+	}
+	probe.err = errors.New("trusted baseline unavailable")
+	if got := check.Evaluate(ctx, probe, instance); got.Pass || !errors.Is(got.Err, probe.err) {
+		t.Fatalf("missing baseline treated as success: %#v", got)
+	}
+}

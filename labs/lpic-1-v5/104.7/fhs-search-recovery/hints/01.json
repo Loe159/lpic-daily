@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.7.fhs-search-recovery.hint-1",
+  "lab_id": "lpic1.104.7.fhs-search-recovery",
+  "level": 1,
+  "content_fr": "Classe d’abord chaque ressource selon son rôle : configuration, log, données servies ou logiciel optionnel.",
+  "evidence_impact": "none"
+}

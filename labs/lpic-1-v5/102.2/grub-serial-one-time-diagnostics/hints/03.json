@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.2.grub-serial-one-time-diagnostics.hint-3",
+  "lab_id": "lpic1.102.2.grub-serial-one-time-diagnostics",
+  "level": 3,
+  "content_fr": "L'invite grub> accepte les commandes set et save_env. L'éditeur de l'entrée GRUB permet d'ajouter un paramètre après la ligne linux sans modifier les entrées BLS sur le disque.",
+  "evidence_impact": "material"
+}

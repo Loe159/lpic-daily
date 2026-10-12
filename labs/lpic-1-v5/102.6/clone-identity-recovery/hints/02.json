@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.6.clone-identity-recovery.hint-2",
+  "lab_id": "lpic1.102.6.clone-identity-recovery",
+  "level": 2,
+  "content_fr": "Inspecte machine-id et les clés SSH hôte. Une simple modification du nom de la VM ne suffit pas.",
+  "evidence_impact": "material"
+}

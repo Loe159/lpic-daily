@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.2.bios-mbr-rescue-bootcode.hint-3",
+  "lab_id": "lpic1.102.2.bios-mbr-rescue-bootcode",
+  "level": 3,
+  "content_fr": "Le mode BIOS charge du code dans le MBR puis les autres morceaux de GRUB 2 ; le chargeur ne doit pas être installé sur une partition ni sur le disque système.",
+  "evidence_impact": "material"
+}

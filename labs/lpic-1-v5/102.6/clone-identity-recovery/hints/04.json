@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.6.clone-identity-recovery.hint-4",
+  "lab_id": "lpic1.102.6.clone-identity-recovery",
+  "level": 4,
+  "content_fr": "Génère un UUID sans tirets dans node-b/etc/machine-id puis recrée node-b/etc/ssh/ssh_host_ed25519_key avec ssh-keygen -t ed25519 -N ''.",
+  "evidence_impact": "solution-revealed"
+}

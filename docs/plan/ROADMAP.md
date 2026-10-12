@@ -1,5 +1,8 @@
 # Roadmap
 
+**Mise à jour LPIC-101 du 12/10/2026 :** 69 scénarios publiés (`accepted`), couvrant 162/162 concepts et 23 objectifs. La validation manuelle avant publication n'est plus obligatoire : l'utilisateur testera les labs progressivement. Restent la réparation des échecs de CI et les tests KVM réels ; aucune validation de ces aspects n'est implicite dans `accepted`.
+
+
 ## Phase 0 — foundations (complete)
 - product interview and requirement freeze;
 - agent-first repository structure;
@@ -44,8 +47,10 @@ Topics 101–104 are covered across all 23 objectives / 162 concepts with automa
 ## Phase 4 — Exam 102 curriculum
 Complete topics 105–110, including networking, services and crypto. Ensure modern-versus-legacy labeling remains accurate.
 
-## Cross-cutting initiative — scenario-based practical curriculum (planned)
+## Cross-cutting initiative — scenario-based practical curriculum (in progress)
 Replace the 618 concept-scoped fallback labs progressively with a smaller portfolio of realistic, state-based scenarios modeled after shell-environment-repair, stuck-worker and shared-dropbox. Keep full concept coverage throughout the migration, prefer scenario evidence in the scheduler, then retire fallback generation only after both exams are fully covered.
+
+Migration progress (2026-10-09, scenario-migration-1031 branch): Exam 101 has 80/162 concepts covered by `accepted` scenarios, 72 additional concepts by `implemented` scenarios awaiting runtime acceptance, and 10 concepts with no authored scenario. Topic 103 and objectives 104.5–104.7 are accepted; the remaining Exam-101 objective coverage is not yet accepted. This is a coverage inventory, not a completed or green KVM/Podman/CI acceptance report. Remaining hardware/boot/legacy-init concepts require dedicated test infrastructure; see the canonical migration plan.
 
 Canonical plan: docs/plan/SCENARIO-LABS-MIGRATION.md.
 

@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.7.auth-log-filter-repair.hint-4",
+  "lab_id": "lpic1.103.7.auth-log-filter-repair",
+  "level": 4,
+  "content_fr": "Filtre avec ^2026-10-07 (ssh|sudo) user[[:digit:]]{2} FAIL$, remplace FAIL$ par DENIED avec sed, puis développe /workspace/input/*.log et conserve les basenames triés.",
+  "evidence_impact": "solution-revealed"
+}

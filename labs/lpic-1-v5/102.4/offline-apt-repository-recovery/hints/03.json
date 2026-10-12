@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.4.offline-apt-repository-recovery.hint-3",
+  "lab_id": "lpic1.102.4.offline-apt-repository-recovery",
+  "level": 3,
+  "content_fr": "La source file: doit pointer vers le répertoire contenant l'index Packages ; ensuite, l'agent doit être installé à travers APT, pas copié à la main.",
+  "evidence_impact": "material"
+}

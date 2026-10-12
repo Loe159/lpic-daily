@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.5.offline-dnf-agent-recovery.hint-3",
+  "lab_id": "lpic1.102.5.offline-dnf-agent-recovery",
+  "level": 3,
+  "content_fr": "La mauvaise URL file:// empêche l'accès aux métadonnées. Après correction, DNF doit pouvoir installer l'agent et son runtime depuis le dépôt hors ligne.",
+  "evidence_impact": "material"
+}

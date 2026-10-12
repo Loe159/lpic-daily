@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.4.offline-apt-repository-recovery.hint-1",
+  "lab_id": "lpic1.102.4.offline-apt-repository-recovery",
+  "level": 1,
+  "content_fr": "Inspecte les sources configurées pour APT et les messages renvoyés lors de la recherche de l'agent.",
+  "evidence_impact": "none"
+}

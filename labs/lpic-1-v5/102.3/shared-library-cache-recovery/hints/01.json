@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.102.3.shared-library-cache-recovery.hint-1",
+  "lab_id": "lpic1.102.3.shared-library-cache-recovery",
+  "level": 1,
+  "content_fr": "Examine l'erreur au lancement de l'outil puis les dépendances ELF qui lui manquent.",
+  "evidence_impact": "none"
+}

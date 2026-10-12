@@ -3,12 +3,14 @@ package libvirt
 import (
 	"context"
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"io"
 	"net/netip"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -25,6 +27,7 @@ type fakeControlPlane struct {
 	networkFilters    map[string]string
 	starts            int
 	reboots           int
+	acpiButtons       int
 	destroys          int
 	undefines         int
 	networkStarts     int
@@ -86,6 +89,13 @@ func (fake *fakeControlPlane) RebootDomain(name string) error {
 		return errors.New("domain not active")
 	}
 	fake.reboots++
+	return nil
+}
+func (fake *fakeControlPlane) PressACPIButtonDomain(name string) error {
+	if !fake.active[name] {
+		return errors.New("domain not active")
+	}
+	fake.acpiButtons++
 	return nil
 }
 func (fake *fakeControlPlane) OpenConsole(_ context.Context, name string, input io.Reader, output io.Writer) error {
@@ -1100,5 +1110,215 @@ func TestVMInstanceNameIsSafe(t *testing.T) {
 	}
 	if strings.ContainsAny(name, "/ !") {
 		t.Fatalf("unsafe generated name = %q", name)
+	}
+}
+
+func TestPrepareUSBExtraDiskUsesPrivateEmulatedController(t *testing.T) {
+	backend, control, _, definition := backendFixture(t)
+	definition.Machine.ExtraDisks = []runner.VirtualDisk{{
+		ID: "usb-backup", SizeMB: 256, Bus: runner.VirtualDiskBusUSB,
+	}}
+	instance, err := backend.Prepare(context.Background(), definition)
+	if err != nil {
+		t.Fatalf("Prepare(USB scratch disk): %v", err)
+	}
+	payload := control.defined[instance.ID]
+	for _, want := range []string{
+		`<controller type="usb" index="0" model="qemu-xhci"></controller>`,
+		`<target dev="sda" bus="usb"></target>`,
+	} {
+		if !strings.Contains(payload, want) {
+			t.Errorf("USB controller/disk not propagated to domain XML: missing %q", want)
+		}
+	}
+	for _, forbidden := range []string{"<hostdev", "<redirdev", "<filesystem"} {
+		if strings.Contains(payload, forbidden) {
+			t.Errorf("VM unexpectedly exposes host resource %q", forbidden)
+		}
+	}
+}
+
+func TestPressPowerButtonRequiresOwnedActiveVM(t *testing.T) {
+	backend, control, _, definition := backendFixture(t)
+	instance, err := backend.Prepare(context.Background(), definition)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := backend.PressPowerButton(context.Background(), instance); err == nil {
+		t.Fatal("inactive guest accepted ACPI button")
+	}
+	if err := backend.Start(context.Background(), instance); err != nil {
+		t.Fatal(err)
+	}
+	if err := backend.PressPowerButton(context.Background(), instance); err != nil {
+		t.Fatal(err)
+	}
+	if control.acpiButtons != 1 {
+		t.Fatalf("ACPI count = %d", control.acpiButtons)
+	}
+	if err := backend.PressPowerButton(context.Background(), runner.Instance{ID: "foreign-domain"}); err == nil {
+		t.Fatal("foreign domain accepted ACPI button")
+	}
+	if control.acpiButtons != 1 {
+		t.Fatal("foreign ACPI event reached backend")
+	}
+}
+
+func TestRebootToBootMenuDoesNotWaitForGuestAgent(t *testing.T) {
+	backend, control, _, definition := backendFixture(t)
+	ctx := context.Background()
+	instance, err := backend.Prepare(ctx, definition)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := backend.RebootToBootMenu(ctx, instance); err == nil {
+		t.Fatal("inactive VM accepted boot-menu reboot")
+	}
+	if err := backend.Start(ctx, instance); err != nil {
+		t.Fatal(err)
+	}
+	if err := backend.RebootToBootMenu(ctx, instance); err != nil {
+		t.Fatal(err)
+	}
+	if control.reboots != 1 {
+		t.Fatalf("reboots = %d, want 1 (without guest-agent polling)", control.reboots)
+	}
+	if err := backend.RebootToBootMenu(ctx, runner.Instance{ID: "foreign-vm"}); err == nil {
+		t.Fatal("foreign VM accepted boot-menu reboot")
+	}
+	if control.reboots != 1 {
+		t.Fatal("foreign VM reboot was dispatched")
+	}
+}
+
+func TestACPIHostEvidenceIsVMScopedAndClearedByReset(t *testing.T) {
+	backend, control, _, definition := backendFixture(t)
+	ctx := context.Background()
+	first, err := backend.Prepare(ctx, definition)
+	if err != nil {
+		t.Fatal(err)
+	}
+	second, err := backend.Prepare(ctx, definition)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, guest := range []runner.Instance{first, second} {
+		if err := backend.Start(ctx, guest); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, guest := range []runner.Instance{first, second} {
+		sent, err := backend.ACPIButtonObserved(ctx, guest)
+		if err != nil || sent {
+			t.Fatalf("unexpected initial evidence for %s: sent=%t err=%v", guest.ID, sent, err)
+		}
+	}
+	if err := backend.PressPowerButton(ctx, first); err != nil {
+		t.Fatal(err)
+	}
+	if control.acpiButtons != 1 {
+		t.Fatal("hypervisor event not dispatched exactly once")
+	}
+	sent, err := backend.ACPIButtonObserved(ctx, first)
+	if err != nil || !sent {
+		t.Fatalf("first VM evidence: sent=%t err=%v", sent, err)
+	}
+	sent, err = backend.ACPIButtonObserved(ctx, second)
+	if err != nil || sent {
+		t.Fatalf("cross-instance evidence leak: sent=%t err=%v", sent, err)
+	}
+	if err := backend.Reset(ctx, first); err != nil {
+		t.Fatal(err)
+	}
+	sent, err = backend.ACPIButtonObserved(ctx, first)
+	if err != nil || sent {
+		t.Fatalf("reset retained stale host evidence: sent=%t err=%v", sent, err)
+	}
+	if _, err := backend.ACPIButtonObserved(ctx, runner.Instance{ID: "foreign-vm"}); err == nil {
+		t.Fatal("foreign VM was allowed to query host evidence")
+	}
+}
+
+func TestUEFIHostBaselineIsPerInstanceAndResetSafe(t *testing.T) {
+	backend, _, _, definition := backendFixture(t)
+	ctx := context.Background()
+	first, err := backend.Prepare(ctx, definition)
+	if err != nil {
+		t.Fatal(err)
+	}
+	second, err := backend.Prepare(ctx, definition)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := backend.ExpectedUEFIBootOrder(ctx, first); err == nil {
+		t.Fatal("uncaptured baseline must fail closed")
+	}
+	backend.mu.Lock()
+	managed := backend.instances[first.ID]
+	managed.UEFIExpectedBootOrder = "0005,0004,0000,0001"
+	backend.instances[first.ID] = managed
+	backend.mu.Unlock()
+	expected, err := backend.ExpectedUEFIBootOrder(ctx, first)
+	if err != nil || expected != "0005,0004,0000,0001" {
+		t.Fatalf("incorrect first baseline: %q, %v", expected, err)
+	}
+	if _, err := backend.ExpectedUEFIBootOrder(ctx, second); err == nil {
+		t.Fatal("second VM inherited first VM baseline")
+	}
+	if err := backend.Start(ctx, first); err != nil {
+		t.Fatal(err)
+	}
+	if err := backend.Reset(ctx, first); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := backend.ExpectedUEFIBootOrder(ctx, first); err == nil {
+		t.Fatal("reset retained stale firmware baseline")
+	}
+}
+
+func TestUEFIHostBaselineCapturedViaQGAGuestExec(t *testing.T) {
+	backend, control, _, definition := backendFixture(t)
+	instance, err := backend.Prepare(context.Background(), definition)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := backend.Start(context.Background(), instance); err != nil {
+		t.Fatal(err)
+	}
+
+	record := func(value string, code int) {
+		t.Helper()
+		// Simulate guest-ping, guest-exec and guest-exec-status.
+		status := `{"return":{"exited":true,"exitcode":` +
+			strconv.Itoa(code) + `,"out-data":"` +
+			base64.StdEncoding.EncodeToString([]byte(value)) + `"}}`
+		control.agentResponses = []string{
+			`{"return":{}}`,
+			`{"return":{"pid":9}}`,
+			status,
+		}
+		control.agentCommands = nil
+	}
+	record("0005,0004,0000,0001\n", 0)
+	if err := backend.CaptureUEFIBootOrder(context.Background(), instance); err != nil {
+		t.Fatalf("capture BootOrder over QGA: %v", err)
+	}
+	got, err := backend.ExpectedUEFIBootOrder(context.Background(), instance)
+	if err != nil || got != "0005,0004,0000,0001" {
+		t.Fatalf("trusted BootOrder = %q, %v", got, err)
+	}
+	if len(control.agentCommands) != 3 ||
+		!strings.Contains(control.agentCommands[1],
+			`"arg":["/usr/bin/cat","/var/lib/lpic-daily/uefi-boot-order/target-order"]`) {
+		t.Fatalf("capture did not use trusted QGA exec: %#v", control.agentCommands)
+	}
+
+	record("bad-uefi-state\n", 0)
+	if err := backend.CaptureUEFIBootOrder(context.Background(), instance); err == nil {
+		t.Fatal("invalid UEFI baseline accepted")
+	}
+	record("0005,0004\n", 1)
+	if err := backend.CaptureUEFIBootOrder(context.Background(), instance); err == nil {
+		t.Fatal("failed guest read accepted")
 	}
 }

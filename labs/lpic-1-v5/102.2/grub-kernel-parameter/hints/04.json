@@ -3,6 +3,6 @@
   "id": "lpic1.102.2.grub-kernel-parameter.hint-4",
   "lab_id": "lpic1.102.2.grub-kernel-parameter",
   "level": 4,
-  "content_fr": "Solution de référence : ajoute lpic_daily_boot=phase2 à la valeur GRUB_CMDLINE_LINUX de /etc/default/grub, exécute grub2-mkconfig -o /boot/grub2/grub.cfg, puis lance :reboot. Après le redémarrage, grep lpic_daily_boot=phase2 /proc/cmdline doit réussir.",
+  "content_fr": "Ajoute loglevel=7 et systemd.show_status=yes à la configuration GRUB persistante, mets à jour les entrées avec grubby --update-kernel=ALL, régénère grub.cfg avec grub2-mkconfig, puis redémarre avec :reboot et contrôle /proc/cmdline.",
   "evidence_impact": "solution-revealed"
 }
