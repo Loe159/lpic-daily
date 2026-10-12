@@ -60,3 +60,29 @@ Ces vérifications réduisent les contournements trivials, mais ne constituent p
 - **Bug de notation `103.8` :** les branches `else if` pouvaient créditer certains concepts `vi` malgré l'absence d'interaction PTY. L'interaction éditeur est dorénavant vérifiée indépendamment, et les six concepts associés échouent si elle manque. Test négatif ajouté.
 - **Réponses constantes :** `103.2/incident-report-rebuild`, `103.2/compressed-manifest-recovery`, `103.4/batch-stream-repair` et `103.4/bulk-argument-dispatch` utilisaient des sorties attendues écrites en dur. Les setups introduisent maintenant une variation d'entrée par session et les checks calculent les sorties depuis les vrais fichiers d'entrée. Les solutions restent opérationnelles sur ces variations.
 - **Limite résiduelle :** les checks de résultat évaluent l'effet de l'opération, et non l'historique exact des commandes. La preuve d'interaction `vi` reste une vérification d'ouverture/sauvegarde, pas un enregistrement complet de ses six sous-compétences. Le test interactif utilisateur reste utile pour le retour pédagogique, mais ne conditionne plus le statut `accepted`.
+
+## Validation KVM réelle — 12 octobre 2026
+
+Résultat fourni par l'utilisateur après mise à jour de la branche au commit `c653ad6` :
+
+```text
+LPIC_DAILY_RUN_KVM_INTEGRATION=1 go test -tags=integration ./internal/runner/libvirt -run '^TestRealKVMPhase2ReferenceLabs$' -count=1 -v -timeout=30m
+--- PASS: TestRealKVMPhase2ReferenceLabs (808.54s)
+    --- PASS: lpic1.101.1.onboard-sata-controller-reenable
+    --- PASS: lpic1.101.1.storage-bus-archive-recovery
+    --- PASS: lpic1.101.1.usb-backup-authorization-recovery
+    --- PASS: lpic1.101.2.legacy-init-service-migration
+    --- PASS: lpic1.101.2.uefi-boot-order-recovery
+    --- PASS: lpic1.101.3.acpi-power-event-audit-recovery
+    --- PASS: lpic1.101.3.rescue-target-service-recovery
+    --- PASS: lpic1.102.2.grub-kernel-parameter
+    --- PASS: lpic1.102.2.grub-legacy-migration-recovery
+    --- PASS: lpic1.104.1.partition-filesystems
+PASS
+```
+
+**Statut réel : 10/10 sous-tests KVM passés ensemble**, incluant état initial non résolu, solution de référence, reset, deuxième résolution. Les 45 scénarios libvirt publiés ne sont pas intégralement couverts par cette suite ; ne pas confondre publication et recette complète. Le test d'isolation `TestRealKVMIsolationScenarioAndCrashReaping` n'a pas été inclus dans cette exécution.
+
+### Suivi CI Podman
+
+La dernière CI étudiée (`38247883851`) conserve un échec `103.5/stuck-worker` sur les deux runners Podman. Un correctif ultérieur ajoute un marqueur de disponibilité après installation des traps du processus, afin de ne pas envoyer `SIGTSTP` trop tôt, ainsi que des diagnostics sur échec ; test CI du nouveau commit non encore confirmé.
