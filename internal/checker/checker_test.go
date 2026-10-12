@@ -283,7 +283,7 @@ func TestUEFIBootOrderRequiresFullTrustedHostBaseline(t *testing.T) {
 	}
 }
 
-type blockedCommandProbe struct { fakeProbe }
+type blockedCommandProbe struct{ fakeProbe }
 
 func (probe *blockedCommandProbe) Exec(ctx context.Context, _ runner.Instance, _ runner.ExecRequest) (runner.ExecResult, error) {
 	<-ctx.Done()
