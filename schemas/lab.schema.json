@@ -332,6 +332,10 @@
               },
               "concept_ids": {
                 "$ref": "common.schema.json#/$defs/conceptIds"
+              },
+              "description_fr": {
+                "type": "string",
+                "minLength": 8
               }
             }
           },
@@ -358,6 +362,10 @@
               },
               "concept_ids": {
                 "$ref": "common.schema.json#/$defs/conceptIds"
+              },
+              "description_fr": {
+                "type": "string",
+                "minLength": 8
               }
             }
           },
@@ -389,6 +397,10 @@
               },
               "concept_ids": {
                 "$ref": "common.schema.json#/$defs/conceptIds"
+              },
+              "description_fr": {
+                "type": "string",
+                "minLength": 8
               }
             }
           },
@@ -415,6 +427,10 @@
               },
               "concept_ids": {
                 "$ref": "common.schema.json#/$defs/conceptIds"
+              },
+              "description_fr": {
+                "type": "string",
+                "minLength": 8
               }
             }
           },
@@ -439,6 +455,10 @@
               },
               "concept_ids": {
                 "$ref": "common.schema.json#/$defs/conceptIds"
+              },
+              "description_fr": {
+                "type": "string",
+                "minLength": 8
               }
             }
           },
@@ -469,32 +489,50 @@
               },
               "concept_ids": {
                 "$ref": "common.schema.json#/$defs/conceptIds"
+              },
+              "description_fr": {
+                "type": "string",
+                "minLength": 8
               }
             }
           },
           {
             "type": "object",
             "additionalProperties": false,
-            "required": ["type", "concept_ids"],
+            "required": [
+              "type",
+              "concept_ids"
+            ],
             "properties": {
               "type": {
                 "const": "uefi-boot-order-preserved"
               },
               "concept_ids": {
                 "$ref": "common.schema.json#/$defs/conceptIds"
+              },
+              "description_fr": {
+                "type": "string",
+                "minLength": 8
               }
             }
           },
           {
             "type": "object",
             "additionalProperties": false,
-            "required": ["type", "concept_ids"],
+            "required": [
+              "type",
+              "concept_ids"
+            ],
             "properties": {
               "type": {
                 "const": "acpi-button-sent"
               },
               "concept_ids": {
                 "$ref": "common.schema.json#/$defs/conceptIds"
+              },
+              "description_fr": {
+                "type": "string",
+                "minLength": 8
               }
             }
           },
@@ -535,6 +573,10 @@
               },
               "concept_ids": {
                 "$ref": "common.schema.json#/$defs/conceptIds"
+              },
+              "description_fr": {
+                "type": "string",
+                "minLength": 8
               }
             }
           }
