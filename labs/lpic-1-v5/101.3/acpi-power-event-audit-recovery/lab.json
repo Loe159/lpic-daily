@@ -5,10 +5,10 @@
   "brief_fr": "Une VM d'exploitation est configurée pour rester allumée lorsque son bouton d'alimentation virtuel est pressé. Pourtant, aucun événement n'apparaît dans le journal d'audit : la règle acpid a été cassée. Répare cette règle, puis déclenche un vrai appui depuis le terminal LPIC Daily avec :acpi-power. Vérifie que le journal reçoit l'événement et que la VM n'a pas redémarré.",
   "success_criteria_fr": [
     "acpid surveille réellement les événements ACPI de bouton d'alimentation et applique une action de journalisation.",
-    "Un appui ACPI injecté depuis l'hyperviseur est visible dans le journal de la VM après le début du lab.",
+    "La VM journalise l'événement ET le runner confirme côté hôte qu'un véritable appui ACPI a été envoyé par libvirt.",
     "Le système n'a ni redémarré ni changé de politique de gestion du bouton d'alimentation."
   ],
-  "debrief_fr": "ACPI fournit à l'OS invité des notifications matérielles comme l'appui sur le bouton d'alimentation. Libvirt peut injecter un vrai événement ACPI dans une VM isolée via une requête explicite, sans passer par QEMU Guest Agent. acpid peut relayer cet événement vers une action ; systemd-logind possède, indépendamment, la politique qui déciderait d'éteindre ou non le système. Le correctif répare l'audit, pas la gestion de l'alimentation.",
+  "debrief_fr": "ACPI fournit à l'OS invité des notifications matérielles comme l'appui sur le bouton d'alimentation. Libvirt peut injecter un vrai événement ACPI dans une VM isolée via une requête explicite, sans passer par QEMU Guest Agent. acpid peut relayer cet événement vers une action ; systemd-logind possède, indépendamment, la politique qui déciderait d'éteindre ou non le système. Le correctif répare l'audit, pas la gestion de l'alimentation. Le validateur exige deux preuves indépendantes : journalisation côté invité et envoi effectif enregistré côté hôte.",
   "objective_ids": [
     "101.3"
   ],
@@ -76,6 +76,12 @@
         "set -e; grep -Eq '^[[:space:]]*HandlePowerKey=ignore[[:space:]]*$' /etc/systemd/logind.conf.d/95-lpic-acpi-lab.conf; systemctl is-active --quiet qemu-guest-agent.service; test \"$(cat /proc/sys/kernel/random/boot_id)\" = \"$(cat /var/lib/lpic-acpi-audit/boot-id)\""
       ],
       "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.101.3.notion-d-evenements-acpi"
+      ]
+    },
+    {
+      "type": "acpi-button-sent",
       "concept_ids": [
         "lpic1.101.3.notion-d-evenements-acpi"
       ]
