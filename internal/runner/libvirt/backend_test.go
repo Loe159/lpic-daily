@@ -1236,3 +1236,40 @@ func TestACPIHostEvidenceIsVMScopedAndClearedByReset(t *testing.T) {
 		t.Fatal("foreign VM was allowed to query host evidence")
 	}
 }
+
+func TestUEFIHostBaselineIsPerInstanceAndResetSafe(t *testing.T) {
+	backend, _, _, definition := backendFixture(t)
+	ctx := context.Background()
+	first, err := backend.Prepare(ctx, definition)
+	if err != nil {
+		t.Fatal(err)
+	}
+	second, err := backend.Prepare(ctx, definition)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := backend.ExpectedUEFIBootOrder(ctx, first); err == nil {
+		t.Fatal("uncaptured baseline must fail closed")
+	}
+	backend.mu.Lock()
+	managed := backend.instances[first.ID]
+	managed.UEFIExpectedBootOrder = "0005,0004,0000,0001"
+	backend.instances[first.ID] = managed
+	backend.mu.Unlock()
+	expected, err := backend.ExpectedUEFIBootOrder(ctx, first)
+	if err != nil || expected != "0005,0004,0000,0001" {
+		t.Fatalf("incorrect first baseline: %q, %v", expected, err)
+	}
+	if _, err := backend.ExpectedUEFIBootOrder(ctx, second); err == nil {
+		t.Fatal("second VM inherited first VM baseline")
+	}
+	if err := backend.Start(ctx, first); err != nil {
+		t.Fatal(err)
+	}
+	if err := backend.Reset(ctx, first); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := backend.ExpectedUEFIBootOrder(ctx, first); err == nil {
+		t.Fatal("reset retained stale firmware baseline")
+	}
+}
