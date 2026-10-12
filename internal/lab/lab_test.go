@@ -791,8 +791,11 @@ func TestBuiltinACPIAuditRequiresRealVMEvent(t *testing.T) {
 	if definition.Machine == nil || authored.Definition.Environment.Backend != "libvirt" {
 		t.Fatalf("ACPI lab requires disposable VM: %#v", authored.Definition.Environment)
 	}
-	if len(authored.Definition.Checks) != 3 || len(authored.Hints) != 4 {
+	if len(authored.Definition.Checks) != 4 || len(authored.Hints) != 4 {
 		t.Fatalf("incomplete ACPI lab: %d checks %d hints", len(authored.Definition.Checks), len(authored.Hints))
+	}
+	if authored.Definition.Checks[3].Type != "acpi-button-sent" {
+		t.Fatal("missing independent host ACPI evidence check")
 	}
 	for _, check := range authored.Definition.Checks {
 		if !slices.Contains(check.ConceptIDs, "lpic1.101.3.notion-d-evenements-acpi") {
