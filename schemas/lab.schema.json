@@ -475,6 +475,19 @@
           {
             "type": "object",
             "additionalProperties": false,
+            "required": ["type", "concept_ids"],
+            "properties": {
+              "type": {
+                "const": "acpi-button-sent"
+              },
+              "concept_ids": {
+                "$ref": "common.schema.json#/$defs/conceptIds"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
             "required": [
               "type",
               "path",
