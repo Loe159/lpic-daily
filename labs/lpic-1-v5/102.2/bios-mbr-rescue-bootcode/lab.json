@@ -18,7 +18,7 @@
   "labels": [
     "lpic-required",
     "modern-practice",
-    "scenario-implemented"
+    "scenario-accepted"
   ],
   "estimated_minutes": 18,
   "practice_context": "102.2.bios-mbr-rescue-bootcode",
