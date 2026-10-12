@@ -219,6 +219,11 @@ func (lab Lab) CompileChecks() ([]checker.Check, error) {
 				Argv:         append([]string(nil), item.Argv...),
 				ExpectedExit: item.ExpectedExit,
 			})
+		case "acpi-button-sent":
+			if lab.Definition.Environment.Backend != "libvirt" {
+				return nil, fmt.Errorf("%s: host ACPI evidence requires libvirt", id)
+			}
+			checks = append(checks, checker.ACPIButtonSent{CheckID: id})
 		case "block-device-state":
 			checks = append(checks, checker.BlockDeviceState{
 				CheckID:        id,
