@@ -1,6 +1,15 @@
 {
   "schema_version": "1.0.0",
   "migrated_objective_ids": [
+    "101.1",
+    "101.2",
+    "101.3",
+    "102.1",
+    "102.2",
+    "102.3",
+    "102.4",
+    "102.5",
+    "102.6",
     "103.1",
     "103.2",
     "103.3",
@@ -9,6 +18,9 @@
     "103.6",
     "103.7",
     "103.8",
+    "104.1",
+    "104.2",
+    "104.3",
     "104.5",
     "104.6",
     "104.7"
@@ -364,7 +376,7 @@
         "lpic1.104.1.creation-de-filesystem"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "state"
     },
     {
@@ -377,7 +389,7 @@
         "lpic1.104.2.symptomes-de-corruption-espace-epuise"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "behavior"
     },
     {
@@ -390,7 +402,7 @@
         "lpic1.102.6.identites-devant-etre-regenerees-lors-d-un-clonage"
       ],
       "backend": "podman",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "state"
     },
     {
@@ -404,7 +416,7 @@
         "lpic1.102.3.diagnostic-d-une-bibliotheque-manquante"
       ],
       "backend": "podman",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "state"
     },
     {
@@ -418,7 +430,7 @@
         "lpic1.102.5.identifier-fichier-paquet"
       ],
       "backend": "podman",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "artifact"
     },
     {
@@ -432,7 +444,7 @@
         "lpic1.104.2.tuning-ext"
       ],
       "backend": "podman",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "state"
     },
     {
@@ -447,7 +459,7 @@
         "lpic1.104.3.options-de-montage"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "behavior"
     },
     {
@@ -459,7 +471,7 @@
         "lpic1.101.3.target-par-defaut"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "state"
     },
     {
@@ -471,7 +483,7 @@
         "lpic1.101.3.services-et-dependances-de-demarrage"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "behavior"
     },
     {
@@ -484,7 +496,7 @@
         "lpic1.104.3.peripheriques-amovibles"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "behavior"
     },
     {
@@ -496,7 +508,7 @@
         "lpic1.104.3.unites-mount-systemd"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "behavior"
     },
     {
@@ -511,7 +523,7 @@
         "lpic1.104.2.difference-outils-online-offline-selon-fs"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "behavior"
     },
     {
@@ -526,7 +538,7 @@
         "lpic1.102.4.identifier-quel-paquet-fournit-possede-un-fichier"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "behavior"
     },
     {
@@ -538,7 +550,7 @@
         "lpic1.104.1.principes-btrfs-multi-device-compression-subvolumes"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "state"
     },
     {
@@ -550,7 +562,7 @@
         "lpic1.104.1.vfat-exfat"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "behavior"
     },
     {
@@ -563,7 +575,7 @@
         "lpic1.102.4.inspection-d-un-paquet-et-de-ses-fichiers"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "behavior"
     },
     {
@@ -575,7 +587,7 @@
         "lpic1.102.4.reconfiguration"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "behavior"
     },
     {
@@ -588,7 +600,7 @@
         "lpic1.102.3.cache-ldconfig"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "behavior"
     },
     {
@@ -601,7 +613,7 @@
         "lpic1.102.1.partitions-et-points-de-montage"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "behavior"
     },
     {
@@ -615,7 +627,7 @@
         "lpic1.102.1.partitions-et-points-de-montage"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "behavior"
     },
     {
@@ -630,7 +642,7 @@
         "lpic1.101.2.parametres-noyau-au-boot"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "behavior"
     },
     {
@@ -643,7 +655,7 @@
         "lpic1.102.1.contraintes-boot-et-architecture"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "state"
     },
     {
@@ -656,7 +668,7 @@
         "lpic1.101.1.sysfs-udev-et-d-bus-comme-couches-de-decouverte-gestion"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "behavior"
     },
     {
@@ -669,7 +681,7 @@
         "lpic1.102.5.repositories-yum-dnf"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "behavior"
     },
     {
@@ -681,7 +693,7 @@
         "lpic1.101.2.diagnostic-des-evenements-de-boot"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "behavior"
     },
     {
@@ -693,7 +705,7 @@
         "lpic1.102.5.signature-integrite"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "behavior"
     },
     {
@@ -705,7 +717,7 @@
         "lpic1.102.5.workflow-zypper-opensuse"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "behavior"
     },
     {
@@ -720,7 +732,7 @@
         "lpic1.102.6.guest-drivers"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "behavior"
     },
     {
@@ -732,7 +744,7 @@
         "lpic1.101.1.modules-du-noyau-lies-au-materiel"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "behavior"
     },
     {
@@ -744,7 +756,7 @@
         "lpic1.101.3.terminaison-propre-des-processus"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "behavior"
     },
     {
@@ -756,7 +768,7 @@
         "lpic1.102.2.entrees-alternatives-et-recuperation"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "behavior"
     },
     {
@@ -768,7 +780,7 @@
         "lpic1.102.6.principes-cloud-init-iaas"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "behavior"
     },
     {
@@ -780,7 +792,7 @@
         "lpic1.102.6.ressources-virtuelles-block-network"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "behavior"
     },
     {
@@ -792,7 +804,7 @@
         "lpic1.101.3.arret-redemarrage-propre"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "behavior"
     },
     {
@@ -805,7 +817,7 @@
         "lpic1.101.2.sequence-firmware-bootloader-kernel-initramfs-init-systemd"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "behavior"
     },
     {
@@ -817,7 +829,7 @@
         "lpic1.102.2.mbr-et-relation-avec-schema-de-boot"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "state"
     },
     {
@@ -829,7 +841,7 @@
         "lpic1.101.3.notification-aux-utilisateurs"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "behavior"
     },
     {
@@ -841,7 +853,7 @@
         "lpic1.102.6.vm-versus-conteneur-applicatif-systeme"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "behavior"
     },
     {
@@ -853,7 +865,7 @@
         "lpic1.101.3.runlevels-sysv-et-targets-systemd"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "behavior"
     },
     {
@@ -865,7 +877,7 @@
         "lpic1.101.2.bios-versus-uefi"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "state"
     },
     {
@@ -877,7 +889,7 @@
         "lpic1.101.1.differences-entre-grandes-familles-de-stockage"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "behavior"
     },
     {
@@ -890,7 +902,7 @@
         "lpic1.101.1.manipulation-des-peripheriques-usb"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "behavior"
     },
     {
@@ -902,7 +914,7 @@
         "lpic1.101.3.mode-mono-utilisateur-recuperation"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "behavior"
     },
     {
@@ -914,7 +926,7 @@
         "lpic1.101.3.notion-d-evenements-acpi"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "behavior"
     },
     {
@@ -926,7 +938,7 @@
         "lpic1.101.2.sysvinit-systemd-et-connaissance-historique-d-upstart"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "behavior"
     },
     {
@@ -940,7 +952,7 @@
         "lpic1.102.2.interaction-au-menu-console-grub"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "behavior"
     },
     {
@@ -952,7 +964,7 @@
         "lpic1.102.2.grub-legacy-versus-grub-2"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "behavior"
     },
     {
@@ -964,7 +976,7 @@
         "lpic1.101.1.activation-desactivation-peripheriques-integres"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "behavior"
     },
     {
@@ -976,7 +988,7 @@
         "lpic1.101.2.bios-versus-uefi"
       ],
       "backend": "libvirt",
-      "status": "implemented",
+      "status": "accepted",
       "evidence_strength": "state"
     }
   ]
