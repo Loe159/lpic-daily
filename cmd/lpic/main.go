@@ -1414,8 +1414,17 @@ func runInteractiveLabWithBackend(
 		checkTimeout := operationTimeout
 		// Podman checks are normally quick; long-running interactive commands
 		// are a bug, not a reason to block the terminal for a minute.
-		if authored.Definition.Environment.Backend == "podman" && checkTimeout > 25*time.Second {
-			checkTimeout = 25 * time.Second
+		switch authored.Definition.Environment.Backend {
+		case "podman":
+			if checkTimeout > 25*time.Second {
+				checkTimeout = 25 * time.Second
+			}
+		case "libvirt":
+			// VM checks can be slower than container checks, but a failed probe
+			// must not occupy the terminal for an entire 20-minute lab session.
+			if checkTimeout > 2*time.Minute {
+				checkTimeout = 2 * time.Minute
+			}
 		}
 		if len(authored.Definition.Checks) > 0 {
 			batchID := authored.Definition.Checks[0].BatchID
