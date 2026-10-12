@@ -224,6 +224,11 @@ func (lab Lab) CompileChecks() ([]checker.Check, error) {
 				return nil, fmt.Errorf("%s: host ACPI evidence requires libvirt", id)
 			}
 			checks = append(checks, checker.ACPIButtonSent{CheckID: id})
+		case "uefi-boot-order-preserved":
+			if lab.Definition.Environment.Backend != "libvirt" {
+				return nil, fmt.Errorf("%s: host UEFI evidence requires libvirt", id)
+			}
+			checks = append(checks, checker.UEFIBootOrderPreserved{CheckID: id})
 		case "block-device-state":
 			checks = append(checks, checker.BlockDeviceState{
 				CheckID:        id,
