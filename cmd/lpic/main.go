@@ -1447,31 +1447,28 @@ func runInteractiveLabWithBackend(
 		}
 		requiresJobControl := labRequiresJobControl(authored.Definition)
 		if authored.Definition.NeedsPersistentShell && !usedPersistentShell {
-			fmt.Fprintf(
-				stdout,
-				"  %-11s %s.persistent-shell — ce lab exige un passage par :shell pour valider l'interaction terminal réelle\n",
+			fmt.Fprintf(stdout,
+				"  %-11s %s\n",
 				"À CORRIGER",
-				authored.Definition.ID,
+				"Passe par :shell pour valider l'interaction terminal réelle.",
 			)
 			passed = false
 			markPersistentShellConceptFailure(authored.Definition, conceptResults)
 		}
 		if requiresJobControl && !jobControlEvidence.Complete() {
-			fmt.Fprintf(
-				stdout,
-				"  %-11s %s.job-control — la validation exige Ctrl-Z, une observation avec jobs et un bg réussi dans :shell\n",
+			fmt.Fprintf(stdout,
+				"  %-11s %s\n",
 				"À CORRIGER",
-				authored.Definition.ID,
+				"Dans :shell, utilise Ctrl-Z, vérifie avec jobs et reprends avec bg.",
 			)
 			passed = false
 			markPersistentShellConceptFailure(authored.Definition, conceptResults)
 		}
 		if editorEvidence != nil && !editorEvidence.Complete() {
-			fmt.Fprintf(
-				stdout,
-				"  %-11s %s.editor-pty — ouvre app.conf avec vi dans :shell et enregistre avec :wq ou :x\n",
+			fmt.Fprintf(stdout,
+				"  %-11s %s\n",
 				"À CORRIGER",
-				authored.Definition.ID,
+				"Ouvre app.conf avec vi dans :shell et enregistre avec :wq ou :x.",
 			)
 			passed = false
 			markEditorConceptFailure(authored.Definition, conceptResults)
@@ -1501,14 +1498,14 @@ func runInteractiveLabWithBackend(
 					case "process-absent":
 						description = "Processus à arrêter : " + check.Match
 					case "command-exit":
-						description = "Condition de commande non satisfaite (consulter les critères du lab)"
+						description = "Vérification du comportement demandé dans le lab"
 					default:
 						description = "Vérification de l'état du système"
 					}
 				}
 			}
 			if description != "" {
-				fmt.Fprintf(stdout, "  %-11s %s — %s\n", state, result.CheckID, description)
+				fmt.Fprintf(stdout, "  %-11s %s\n", state, description)
 			}
 			if !result.Pass && result.Err != nil {
 				fmt.Fprintf(stdout, "              Erreur de vérification : %v\n", result.Err)
