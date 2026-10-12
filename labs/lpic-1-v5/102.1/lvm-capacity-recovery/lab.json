@@ -19,7 +19,7 @@
   "labels": [
     "lpic-required",
     "modern-practice",
-    "scenario-implemented"
+    "scenario-accepted"
   ],
   "estimated_minutes": 17,
   "practice_context": "lvm-capacity-recovery",
