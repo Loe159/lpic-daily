@@ -8,7 +8,7 @@ Labs are adversarial inputs from the host's perspective. Read `docs/SECURITY.md`
 - `success_criteria_fr` describe outcomes, never the procedure; `debrief_fr` may explain the underlying commands and mechanism after success.
 - Four hints progress from observation to diagnosis to mechanism to near-solution. The final hint must declare `solution-revealed` when it exposes the repair.
 - Each `checks[].concept_ids` must correspond to a competency genuinely established by that check. Require a broken initial state, a valid reference repair and an independent outcome-based check; prefer invariant properties over identical prescribed text.
-- **Acceptance gate:** setup -> at least one check fails; reference solution -> all checks pass; alternate plausible solution -> passes where feasible; reset -> reproduces initial failure; backend security and timeout validated. Without these, register `implemented`, not `accepted`. If KVM/Podman testing is unavailable, report that plainly.
+- **Publication versus conformance:** `accepted` publishes a scenario for progressive learner testing (owner decision 2026-10-12), not a claim of backend success. Independently validate setup red -> reference green -> reset red, an alternate repair where feasible, and backend isolation/timeouts. Record failed or unavailable tests explicitly; fix regressions before merging even when a lab is published.
 - Podman may test files, shell and user-space tools, but cannot certify actual reboot, kernel/module behavior or systemd PID 1. Never mislabel simulated evidence as machine-level acceptance.
 
 - Choose rootless Podman unless the learning objective genuinely needs a separate machine/kernel/boot/storage stack.
