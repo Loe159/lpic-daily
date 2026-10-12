@@ -894,20 +894,34 @@ func TestPersistentShellFailureTargetsJobControlConcept(t *testing.T) {
 
 func TestJobControlEvidenceRequiresCtrlZJobsAndSuccessfulBg(t *testing.T) {
 	evidence := &jobControlInteractionEvidence{}
-	evidence.observeShellEvents([]byte("jobs\n"))
-	evidence.sawCtrlZ = true
+	evidence.observeShellEvents([]byte("jobs\nbg\n"))
 	if evidence.Complete() {
-		t.Fatal("Ctrl-Z plus jobs must not pass without a successful bg")
+		t.Fatal("guest-only evidence must not satisfy host-side PTY requirement")
 	}
-
-	evidence.observeShellEvents([]byte("bg\n"))
+	evidence.observeShellInput([]byte("jobs -s\rbg %1\r"))
+	if evidence.Complete() {
+		t.Fatal("commands typed without Ctrl-Z must not count")
+	}
+	evidence.observeShellInput([]byte("\x1a"))
+	if evidence.Complete() {
+		t.Fatal("Ctrl-Z alone must not satisfy job control")
+	}
+	evidence.observeShellInput([]byte("echo jobs\r"))
+	evidence.observeShellInput([]byte("echo bg\r"))
+	if evidence.Complete() {
+		t.Fatal("echoing command names must not satisfy the host requirement")
+	}
+	evidence.observeShellInput([]byte("jobs -s\r"))
+	if evidence.Complete() {
+		t.Fatal("must require bg after observed jobs")
+	}
+	evidence.observeShellInput([]byte("bg %1\r"))
 	if !evidence.Complete() {
-		t.Fatal("Ctrl-Z plus jobs plus successful bg should satisfy job-control evidence")
+		t.Fatal("Ctrl-Z, host-typed jobs/bg and guest-confirmed success should pass")
 	}
-
 	evidence.Reset()
 	if evidence.Complete() {
-		t.Fatal("Reset() must clear job-control evidence")
+		t.Fatal("Reset must discard both host and guest evidence")
 	}
 }
 
