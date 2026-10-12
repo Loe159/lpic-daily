@@ -1454,13 +1454,45 @@ func runInteractiveLabWithBackend(
 			passed = false
 			markEditorConceptFailure(authored.Definition, conceptResults)
 		}
-		for _, result := range results {
+		for index, result := range results {
 			state := "OK"
 			if !result.Pass {
 				state = "À CORRIGER"
 				passed = false
 			}
-			fmt.Fprintf(stdout, "  %-11s %s — %s\n", state, result.CheckID, result.Detail)
+			description := ""
+			if index < len(authored.Definition.Checks) {
+				check := authored.Definition.Checks[index]
+				description = check.DescriptionFR
+				if description == "" {
+					switch check.Type {
+					case "file-exists":
+						description = "Présence du fichier : " + check.Path
+					case "file-mode":
+						description = "Permissions du fichier : " + check.Path
+					case "file-owner":
+						description = "Propriétaire du fichier : " + check.Path
+					case "file-content-regex":
+						description = "Contenu du fichier : " + check.Path
+					case "process-running":
+						description = "Processus attendu : " + check.Match
+					case "process-absent":
+						description = "Processus à arrêter : " + check.Match
+					case "command-exit":
+						description = "Condition de commande non satisfaite (consulter les critères du lab)"
+					default:
+						description = "Vérification de l'état du système"
+					}
+				}
+			}
+			if description != "" {
+				fmt.Fprintf(stdout, "  %-11s %s — %s\n", state, result.CheckID, description)
+			}
+			if !result.Pass && result.Err != nil {
+				fmt.Fprintf(stdout, "              Erreur de vérification : %v\n", result.Err)
+			} else if !result.Pass && result.Detail != "" && result.Detail != "exit=1, expected=0" {
+				fmt.Fprintf(stdout, "              Diagnostic technique : %s\n", result.Detail)
+			}
 		}
 		persistedHintLevel, err := pendingLabHintLevel(sessionCtx, authored.Definition.ID)
 		if err != nil {
