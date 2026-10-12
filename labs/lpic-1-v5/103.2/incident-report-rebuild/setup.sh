@@ -15,4 +15,8 @@ db-01	data
 web-01	frontend
 web-02	frontend
 EOF
+# Randomize an incident hostname so static answer files cannot pass across sessions.
+suffix="$(od -An -N2 -tu2 /dev/urandom | tr -d '[:space:]')"
+suffix="$(printf '%02d' "$((10 + suffix % 90))")"
+sed -i "s/web-02/web-$suffix/g" /workspace/input/events.tsv /workspace/input/owners.tsv
 mkdir -p /workspace/output/chunks
