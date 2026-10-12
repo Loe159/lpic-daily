@@ -64,7 +64,7 @@
         "lpic1.103.1.edition-et-persistance-de-l-historique"
       ],
       "timeout_seconds": 10,
-      "description_fr": "Vérifier le résultat attendu sans ouvrir de terminal interactif"
+      "description_fr": "L'historique Bash utilise les tailles HISTSIZE et HISTFILESIZE attendues."
     },
     {
       "type": "command-exit",
@@ -105,7 +105,7 @@
         "lpic1.103.1.historique"
       ],
       "timeout_seconds": 10,
-      "description_fr": "Vérifier le résultat attendu sans ouvrir de terminal interactif"
+      "description_fr": "La commande history-proof est présente dans l'historique Bash rechargé."
     }
   ],
   "hint_ids": [
