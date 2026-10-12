@@ -338,9 +338,10 @@ func TestCommandBatchExecutesOnceAndPreservesIndividualResults(t *testing.T) {
 		exit   int
 		failed []int
 	}{
-		{exit: 0},
-		{exit: 5, failed: []int{0, 2}},
-		{exit: 16, failed: []int{4}},
+		{exit: 160},
+		{exit: 165, failed: []int{0, 2}},
+		{exit: 176, failed: []int{4}},
+		{exit: 0, failed: []int{0, 1, 2, 3, 4}},
 		{exit: 124, failed: []int{0, 1, 2, 3, 4}},
 		{exit: 125, failed: []int{0, 1, 2, 3, 4}},
 	} {
