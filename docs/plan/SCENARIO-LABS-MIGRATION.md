@@ -1,5 +1,8 @@
 # Plan — migration vers des labs scénarisés et state-based
 
+**État actuel (12/10/2026) :** migration de couverture terminée : 69/69 scénarios marqués `accepted`, 162/162 concepts LPIC-101 couverts, 23/23 objectifs. `accepted` signifie maintenant *publié pour validation progressive par l'apprenant* et ne certifie ni une CI verte, ni les exercices KVM. Les compteurs et interdictions d'acceptation manuelle ci-dessous documentent l'évolution historique, remplacés par cette décision.
+
+
 Status: **In progress**
 
 Ce document définit la migration du curriculum pratique LPIC-Daily depuis les micro-labs générés par concept vers des scénarios réalistes de diagnostic, réparation et administration Linux.
