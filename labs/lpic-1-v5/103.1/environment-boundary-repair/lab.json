@@ -51,6 +51,10 @@
     {
       "type": "command-exit",
       "argv": [
+        "/usr/bin/timeout",
+        "-k",
+        "1s",
+        "6s",
         "/usr/bin/bash",
         "--noprofile",
         "--rcfile",
@@ -63,11 +67,16 @@
         "lpic1.103.1.set-env-et-portee-des-variables",
         "lpic1.103.1.variables-shell-environnement"
       ],
-      "description_fr": "LOCAL_NOTE est définie dans le shell interactif avec la valeur attendue."
+      "description_fr": "LOCAL_NOTE est définie dans le shell interactif avec la valeur attendue.",
+      "timeout_seconds": 10
     },
     {
       "type": "command-exit",
       "argv": [
+        "/usr/bin/timeout",
+        "-k",
+        "1s",
+        "6s",
         "/usr/bin/bash",
         "--noprofile",
         "--rcfile",
@@ -79,11 +88,16 @@
       "concept_ids": [
         "lpic1.103.1.set-env-et-portee-des-variables"
       ],
-      "description_fr": "LOCAL_NOTE reste locale au shell et n'est pas transmise aux processus enfants."
+      "description_fr": "LOCAL_NOTE reste locale au shell et n'est pas transmise aux processus enfants.",
+      "timeout_seconds": 10
     },
     {
       "type": "command-exit",
       "argv": [
+        "/usr/bin/timeout",
+        "-k",
+        "1s",
+        "6s",
         "/usr/bin/bash",
         "--noprofile",
         "--rcfile",
@@ -96,11 +110,16 @@
         "lpic1.103.1.set-env-et-portee-des-variables",
         "lpic1.103.1.export-unset-et-processus-enfants"
       ],
-      "description_fr": "SERVICE_MODE est exportée avec la valeur production vers les processus enfants."
+      "description_fr": "SERVICE_MODE est exportée avec la valeur production vers les processus enfants.",
+      "timeout_seconds": 10
     },
     {
       "type": "command-exit",
       "argv": [
+        "/usr/bin/timeout",
+        "-k",
+        "1s",
+        "6s",
         "/usr/bin/bash",
         "--noprofile",
         "--rcfile",
@@ -112,7 +131,8 @@
       "concept_ids": [
         "lpic1.103.1.export-unset-et-processus-enfants"
       ],
-      "description_fr": "LEGACY_TOKEN est absente à la fois du shell et des processus enfants."
+      "description_fr": "LEGACY_TOKEN est absente à la fois du shell et des processus enfants.",
+      "timeout_seconds": 10
     },
     {
       "type": "file-content-regex",
