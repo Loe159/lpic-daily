@@ -15,4 +15,4 @@ history -r
 history -s 'echo "$USER:$PWD" > /run/lpic/history-proof'
 history -w
 EOF
-HOME=/run/lpic USER=root /usr/bin/bash --noprofile --rcfile /run/lpic/.bashrc -ic 'source /run/lpic/.lpic-history-update'
+HOME=/run/lpic USER=root /usr/bin/bash --noprofile --norc -c '. /run/lpic/.bashrc || exit 1; set -o history; source /run/lpic/.lpic-history-update'
