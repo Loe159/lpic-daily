@@ -1355,6 +1355,10 @@ func runInteractiveLabWithBackend(
 	if labRequiresJobControl(authored.Definition) {
 		jobControlEvidence = &jobControlInteractionEvidence{}
 	}
+	var editorEvidence *editorInteractionEvidence
+	if labRequiresEditorInteraction(authored.Definition) {
+		editorEvidence = &editorInteractionEvidence{}
+	}
 
 	// Keep the host as the sole authority for checks, hints and progress writes.
 	// Input typed at the sandbox Bash prompt is handled on the host side.
@@ -1438,6 +1442,15 @@ func runInteractiveLabWithBackend(
 			)
 			passed = false
 			markPersistentShellConceptFailure(authored.Definition, conceptResults)
+		} else if editorEvidence != nil && !editorEvidence.Complete() {
+			fmt.Fprintf(
+				stdout,
+				"  %-11s %s.editor-pty — ouvre app.conf avec vi dans :shell et enregistre avec :wq ou :x\n",
+				"À CORRIGER",
+				authored.Definition.ID,
+			)
+			passed = false
+			markEditorConceptFailure(authored.Definition, conceptResults)
 		}
 		for _, result := range results {
 			state := "OK"
@@ -1543,6 +1556,7 @@ func runInteractiveLabWithBackend(
 				stdin,
 				stdout,
 				jobControlEvidence,
+				editorEvidence,
 				shellCommands,
 			)
 			if err != nil {
@@ -1616,6 +1630,7 @@ func runInteractiveLabWithBackend(
 				stdin,
 				stdout,
 				jobControlEvidence,
+				editorEvidence,
 				shellCommands,
 			)
 			if err != nil {
@@ -1722,6 +1737,7 @@ func runInteractiveLabWithBackend(
 			reflectionRecorded = false
 			lastLearnerCommand = ""
 			jobControlEvidence.Reset()
+			editorEvidence.Reset()
 			fmt.Fprintln(stdout, "Lab réinitialisé dans son état de départ.")
 			continue
 		case ":check":
@@ -1921,6 +1937,20 @@ func recordStandaloneLabCommand(
 	return nil
 }
 
+func labRequiresEditorInteraction(definition lab.Definition) bool {
+	return definition.ID == "lpic1.103.8.minimal-editor-repair"
+}
+
+func markEditorConceptFailure(definition lab.Definition, results map[string]learning.Result) {
+	for _, conceptID := range definition.ConceptIDs {
+		if strings.HasPrefix(conceptID, "lpic1.103.8.") &&
+			conceptID != "lpic1.103.8.editeur-par-defaut" &&
+			conceptID != "lpic1.103.8.connaissance-nano-emacs-vim" {
+			results[conceptID] = learning.ResultFail
+		}
+	}
+}
+
 func labRequiresJobControl(definition lab.Definition) bool {
 	const jobControlConcept = "lpic1.103.5.jobs-du-shell"
 	for _, conceptID := range definition.ConceptIDs {
@@ -2003,10 +2033,72 @@ func (evidence *jobControlInteractionEvidence) observeShellInput(raw []byte) {
 	}
 }
 
+// editorInteractionEvidence is kept exclusively on the host. File state
+// alone cannot claim interactive vi experience for the LPIC editor concept.
+type editorInteractionEvidence struct {
+	line     []byte
+	recent   []byte
+	sawOpen  bool
+	sawWrite bool
+}
+
+func (evidence *editorInteractionEvidence) Complete() bool {
+	return evidence != nil && evidence.sawOpen && evidence.sawWrite
+}
+
+func (evidence *editorInteractionEvidence) Reset() {
+	if evidence != nil {
+		*evidence = editorInteractionEvidence{}
+	}
+}
+
+func (evidence *editorInteractionEvidence) observeTerminalInput(raw []byte) {
+	if evidence == nil {
+		return
+	}
+	for _, ch := range raw {
+		if !evidence.sawOpen {
+			switch ch {
+			case '\r', '\n':
+				words := strings.Fields(string(evidence.line))
+				if len(words) > 1 {
+					editor := words[0]
+					if editor == "vi" || editor == "vim" || editor == "/usr/bin/vi" || editor == "/usr/bin/vim" {
+						for _, argument := range words[1:] {
+							if argument == "/workspace/app.conf" {
+								evidence.sawOpen = true
+								break
+							}
+						}
+					}
+				}
+				evidence.line = nil
+			case 0x08, 0x7f:
+				if len(evidence.line) > 0 {
+					evidence.line = evidence.line[:len(evidence.line)-1]
+				}
+			default:
+				if ch >= 0x20 && ch < 0x7f && len(evidence.line) < 512 {
+					evidence.line = append(evidence.line, ch)
+				}
+			}
+			continue
+		}
+		evidence.recent = append(evidence.recent, ch)
+		if len(evidence.recent) > 32 {
+			evidence.recent = evidence.recent[len(evidence.recent)-32:]
+		}
+		if strings.Contains(string(evidence.recent), ":wq") || strings.Contains(string(evidence.recent), ":x\r") {
+			evidence.sawWrite = true
+		}
+	}
+}
+
 type ctrlZObservingTerminalReader struct {
 	file     *os.File
 	reader   io.Reader
 	evidence *jobControlInteractionEvidence
+	editor   *editorInteractionEvidence
 }
 
 func (reader *ctrlZObservingTerminalReader) Read(buffer []byte) (int, error) {
@@ -2016,6 +2108,7 @@ func (reader *ctrlZObservingTerminalReader) Read(buffer []byte) (int, error) {
 	}
 	n, err := source.Read(buffer)
 	reader.evidence.observeShellInput(buffer[:n])
+	reader.editor.observeTerminalInput(buffer[:n])
 	return n, err
 }
 
@@ -2233,6 +2326,7 @@ func runPersistentShell(
 	stdin io.Reader,
 	stdout io.Writer,
 	evidence *jobControlInteractionEvidence,
+	editor *editorInteractionEvidence,
 	onCommand func(string) (bool, error),
 ) (result runner.ExecResult, returnErr error) {
 	stdinFile, ok := stdin.(*os.File)
@@ -2312,9 +2406,11 @@ func runPersistentShell(
 		},
 	})
 	shellArgv := []string{"/usr/bin/bash", "-l"}
-	if evidence != nil {
-		shellInput = &ctrlZObservingTerminalReader{file: stdinFile, reader: shellInput, evidence: evidence}
-		shellArgv = []string{"/usr/bin/bash", "--noprofile", "--rcfile", jobControlShellRCPath, "-i"}
+	if evidence != nil || editor != nil {
+		shellInput = &ctrlZObservingTerminalReader{file: stdinFile, reader: shellInput, evidence: evidence, editor: editor}
+		if evidence != nil {
+			shellArgv = []string{"/usr/bin/bash", "--noprofile", "--rcfile", jobControlShellRCPath, "-i"}
+		}
 	}
 
 	result, execErr := backend.Exec(ctx, instance, runner.ExecRequest{
