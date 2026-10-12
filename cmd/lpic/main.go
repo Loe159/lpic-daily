@@ -1433,7 +1433,8 @@ func runInteractiveLabWithBackend(
 			)
 			passed = false
 			markPersistentShellConceptFailure(authored.Definition, conceptResults)
-		} else if requiresJobControl && !jobControlEvidence.Complete() {
+		}
+		if requiresJobControl && !jobControlEvidence.Complete() {
 			fmt.Fprintf(
 				stdout,
 				"  %-11s %s.job-control — la validation exige Ctrl-Z, une observation avec jobs et un bg réussi dans :shell\n",
@@ -1442,7 +1443,8 @@ func runInteractiveLabWithBackend(
 			)
 			passed = false
 			markPersistentShellConceptFailure(authored.Definition, conceptResults)
-		} else if editorEvidence != nil && !editorEvidence.Complete() {
+		}
+		if editorEvidence != nil && !editorEvidence.Complete() {
 			fmt.Fprintf(
 				stdout,
 				"  %-11s %s.editor-pty — ouvre app.conf avec vi dans :shell et enregistre avec :wq ou :x\n",
