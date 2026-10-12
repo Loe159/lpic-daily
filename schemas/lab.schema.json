@@ -506,7 +506,7 @@
               "failure_bit": {
                 "type": "integer",
                 "minimum": 1,
-                "maximum": 64
+                "maximum": 32
               }
             }
           },
