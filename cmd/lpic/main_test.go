@@ -1331,3 +1331,37 @@ func TestInteractiveVMLabGuardsPrivilegedACPIAndBootMenuActions(t *testing.T) {
 		t.Fatalf("no visible guard explanation: %q", out.String())
 	}
 }
+
+func TestEditorRequiresHostObservedViAndSave(t *testing.T) {
+	evidence := &editorInteractionEvidence{}
+	evidence.observeTerminalInput([]byte(":wq\r"))
+	if evidence.Complete() {
+		t.Fatal("a save command without an editor session cannot count")
+	}
+	evidence.observeTerminalInput([]byte("echo vi /workspace/app.conf\r"))
+	evidence.observeTerminalInput([]byte(":wq\r"))
+	if evidence.Complete() {
+		t.Fatal("printing a vi command cannot count as an editor session")
+	}
+	evidence.observeTerminalInput([]byte("vi /workspace/app.conf\r"))
+	if evidence.Complete() {
+		t.Fatal("opening vi alone must not count as saved")
+	}
+	evidence.observeTerminalInput([]byte(":wq\r"))
+	if !evidence.Complete() {
+		t.Fatal("host must recognize opening vi and its save command")
+	}
+	evidence.Reset()
+	if evidence.Complete() {
+		t.Fatal("reset must remove vi interaction evidence")
+	}
+}
+
+func TestEditorInteractionOnlyRequiredForActualEditorScenario(t *testing.T) {
+	if !labRequiresEditorInteraction(lab.Definition{ID: "lpic1.103.8.minimal-editor-repair"}) {
+		t.Fatal("the vi lab must require host evidence")
+	}
+	if labRequiresEditorInteraction(lab.Definition{ID: "lpic1.103.7.auth-log-filter-repair"}) {
+		t.Fatal("unrelated lab must not require vi")
+	}
+}
