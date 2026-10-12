@@ -348,14 +348,17 @@ func runReferenceSolution(
 	script []byte,
 ) {
 	t.Helper()
+	var output bytes.Buffer
 	result, err := backend.Exec(ctx, instance, runner.ExecRequest{
-		Argv: []string{"/usr/bin/bash", "-eu", "-c", string(script)},
+		Argv:   []string{"/usr/bin/bash", "-eu", "-c", string(script)},
+		Stdout: &output,
+		Stderr: &output,
 	})
 	if err != nil {
-		t.Fatalf("reference solution exec error = %v", err)
+		t.Fatalf("reference solution exec error = %v; output=%q", err, output.String())
 	}
 	if result.ExitCode != 0 {
-		t.Fatalf("reference solution exit = %d, want 0", result.ExitCode)
+		t.Fatalf("reference solution exit = %d, want 0; output=%q", result.ExitCode, output.String())
 	}
 }
 
