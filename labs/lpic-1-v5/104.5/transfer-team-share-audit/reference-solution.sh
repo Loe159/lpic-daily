@@ -8,4 +8,4 @@ cat > /root/.bashrc <<'EOF'
 umask 0007
 EOF
 rm -f /srv/project-transfer/team/handoff-note
-/usr/bin/bash --noprofile --rcfile /root/.bashrc -ic ': > /srv/project-transfer/team/handoff-note'
+/usr/bin/bash --noprofile --norc -c '. /root/.bashrc || exit 1; : > /srv/project-transfer/team/handoff-note'
