@@ -54,12 +54,12 @@
         "/usr/bin/timeout",
         "-k",
         "1s",
-        "6s",
+        "3s",
         "/usr/bin/bash",
         "--noprofile",
         "--norc",
         "-c",
-        ". /root/.bashrc || exit 1; set | grep -qx 'LOCAL_NOTE=operator-note'"
+        ". /root/.bashrc || exit 125\nfailed=0\nif [[ ${LOCAL_NOTE-} != operator-note ]]; then failed=$((failed | 1)); fi\nchild=$'\\n'$(/usr/bin/env)$'\\n'\nif [[ \"$child\" == *$'\\nLOCAL_NOTE='* ]]; then failed=$((failed | 2)); fi\nif [[ \"$child\" != *$'\\nSERVICE_MODE=production\\n'* ]]; then failed=$((failed | 4)); fi\nif [[ ${LEGACY_TOKEN+x} ]] || [[ \"$child\" == *$'\\nLEGACY_TOKEN='* ]]; then failed=$((failed | 8)); fi\nsummary=$(/usr/bin/cat /run/lpic/env-summary 2>/dev/null; /usr/bin/printf '\\036')\nif [[ \"$summary\" != $'production|operator-note\\036' && \"$summary\" != $'production|operator-note\\n\\036' ]]; then failed=$((failed | 16)); fi\nexit \"$((160+failed))\""
       ],
       "expected_exit": 0,
       "concept_ids": [
@@ -67,7 +67,9 @@
         "lpic1.103.1.variables-shell-environnement"
       ],
       "description_fr": "LOCAL_NOTE est définie dans le shell interactif avec la valeur attendue.",
-      "timeout_seconds": 10
+      "timeout_seconds": 5,
+      "batch_id": "environment-inspection",
+      "failure_bit": 1
     },
     {
       "type": "command-exit",
@@ -75,19 +77,21 @@
         "/usr/bin/timeout",
         "-k",
         "1s",
-        "6s",
+        "3s",
         "/usr/bin/bash",
         "--noprofile",
         "--norc",
         "-c",
-        ". /root/.bashrc || exit 1; ! env | grep -q '^LOCAL_NOTE='"
+        ". /root/.bashrc || exit 125\nfailed=0\nif [[ ${LOCAL_NOTE-} != operator-note ]]; then failed=$((failed | 1)); fi\nchild=$'\\n'$(/usr/bin/env)$'\\n'\nif [[ \"$child\" == *$'\\nLOCAL_NOTE='* ]]; then failed=$((failed | 2)); fi\nif [[ \"$child\" != *$'\\nSERVICE_MODE=production\\n'* ]]; then failed=$((failed | 4)); fi\nif [[ ${LEGACY_TOKEN+x} ]] || [[ \"$child\" == *$'\\nLEGACY_TOKEN='* ]]; then failed=$((failed | 8)); fi\nsummary=$(/usr/bin/cat /run/lpic/env-summary 2>/dev/null; /usr/bin/printf '\\036')\nif [[ \"$summary\" != $'production|operator-note\\036' && \"$summary\" != $'production|operator-note\\n\\036' ]]; then failed=$((failed | 16)); fi\nexit \"$((160+failed))\""
       ],
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.1.set-env-et-portee-des-variables"
       ],
       "description_fr": "LOCAL_NOTE reste locale au shell et n'est pas transmise aux processus enfants.",
-      "timeout_seconds": 10
+      "timeout_seconds": 5,
+      "batch_id": "environment-inspection",
+      "failure_bit": 2
     },
     {
       "type": "command-exit",
@@ -95,12 +99,12 @@
         "/usr/bin/timeout",
         "-k",
         "1s",
-        "6s",
+        "3s",
         "/usr/bin/bash",
         "--noprofile",
         "--norc",
         "-c",
-        ". /root/.bashrc || exit 1; env | grep -qx 'SERVICE_MODE=production'"
+        ". /root/.bashrc || exit 125\nfailed=0\nif [[ ${LOCAL_NOTE-} != operator-note ]]; then failed=$((failed | 1)); fi\nchild=$'\\n'$(/usr/bin/env)$'\\n'\nif [[ \"$child\" == *$'\\nLOCAL_NOTE='* ]]; then failed=$((failed | 2)); fi\nif [[ \"$child\" != *$'\\nSERVICE_MODE=production\\n'* ]]; then failed=$((failed | 4)); fi\nif [[ ${LEGACY_TOKEN+x} ]] || [[ \"$child\" == *$'\\nLEGACY_TOKEN='* ]]; then failed=$((failed | 8)); fi\nsummary=$(/usr/bin/cat /run/lpic/env-summary 2>/dev/null; /usr/bin/printf '\\036')\nif [[ \"$summary\" != $'production|operator-note\\036' && \"$summary\" != $'production|operator-note\\n\\036' ]]; then failed=$((failed | 16)); fi\nexit \"$((160+failed))\""
       ],
       "expected_exit": 0,
       "concept_ids": [
@@ -108,7 +112,9 @@
         "lpic1.103.1.export-unset-et-processus-enfants"
       ],
       "description_fr": "SERVICE_MODE est exportée avec la valeur production vers les processus enfants.",
-      "timeout_seconds": 10
+      "timeout_seconds": 5,
+      "batch_id": "environment-inspection",
+      "failure_bit": 4
     },
     {
       "type": "command-exit",
@@ -116,29 +122,44 @@
         "/usr/bin/timeout",
         "-k",
         "1s",
-        "6s",
+        "3s",
         "/usr/bin/bash",
         "--noprofile",
         "--norc",
         "-c",
-        ". /root/.bashrc || exit 1; ! set | grep -q '^LEGACY_TOKEN=' && ! env | grep -q '^LEGACY_TOKEN='"
+        ". /root/.bashrc || exit 125\nfailed=0\nif [[ ${LOCAL_NOTE-} != operator-note ]]; then failed=$((failed | 1)); fi\nchild=$'\\n'$(/usr/bin/env)$'\\n'\nif [[ \"$child\" == *$'\\nLOCAL_NOTE='* ]]; then failed=$((failed | 2)); fi\nif [[ \"$child\" != *$'\\nSERVICE_MODE=production\\n'* ]]; then failed=$((failed | 4)); fi\nif [[ ${LEGACY_TOKEN+x} ]] || [[ \"$child\" == *$'\\nLEGACY_TOKEN='* ]]; then failed=$((failed | 8)); fi\nsummary=$(/usr/bin/cat /run/lpic/env-summary 2>/dev/null; /usr/bin/printf '\\036')\nif [[ \"$summary\" != $'production|operator-note\\036' && \"$summary\" != $'production|operator-note\\n\\036' ]]; then failed=$((failed | 16)); fi\nexit \"$((160+failed))\""
       ],
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.1.export-unset-et-processus-enfants"
       ],
       "description_fr": "LEGACY_TOKEN est absente à la fois du shell et des processus enfants.",
-      "timeout_seconds": 10
+      "timeout_seconds": 5,
+      "batch_id": "environment-inspection",
+      "failure_bit": 8
     },
     {
-      "type": "file-content-regex",
-      "path": "/run/lpic/env-summary",
-      "pattern": "^production\\|operator-note\\n?$",
+      "type": "command-exit",
       "concept_ids": [
         "lpic1.103.1.echo-et-expansion-shell",
         "lpic1.103.1.variables-shell-environnement"
       ],
-      "description_fr": "Le fichier /run/lpic/env-summary contient le résumé attendu."
+      "description_fr": "Le fichier /run/lpic/env-summary contient le résumé attendu.",
+      "argv": [
+        "/usr/bin/timeout",
+        "-k",
+        "1s",
+        "3s",
+        "/usr/bin/bash",
+        "--noprofile",
+        "--norc",
+        "-c",
+        ". /root/.bashrc || exit 125\nfailed=0\nif [[ ${LOCAL_NOTE-} != operator-note ]]; then failed=$((failed | 1)); fi\nchild=$'\\n'$(/usr/bin/env)$'\\n'\nif [[ \"$child\" == *$'\\nLOCAL_NOTE='* ]]; then failed=$((failed | 2)); fi\nif [[ \"$child\" != *$'\\nSERVICE_MODE=production\\n'* ]]; then failed=$((failed | 4)); fi\nif [[ ${LEGACY_TOKEN+x} ]] || [[ \"$child\" == *$'\\nLEGACY_TOKEN='* ]]; then failed=$((failed | 8)); fi\nsummary=$(/usr/bin/cat /run/lpic/env-summary 2>/dev/null; /usr/bin/printf '\\036')\nif [[ \"$summary\" != $'production|operator-note\\036' && \"$summary\" != $'production|operator-note\\n\\036' ]]; then failed=$((failed | 16)); fi\nexit \"$((160+failed))\""
+      ],
+      "expected_exit": 0,
+      "timeout_seconds": 5,
+      "batch_id": "environment-inspection",
+      "failure_bit": 16
     }
   ],
   "hint_ids": [

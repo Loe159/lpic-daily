@@ -1409,12 +1409,28 @@ func runInteractiveLabWithBackend(
 			reflectionRecorded = recorded
 		}
 		passed := true
-		// The session may last 20 minutes, but a non-interactive check must not.
+		// A grouped check has one short runner operation regardless of how many
+		// independent criteria it evaluates.
 		checkTimeout := operationTimeout
 		if authored.Definition.Environment.Backend == "podman" && checkTimeout > time.Minute {
 			checkTimeout = time.Minute
 		}
-		fmt.Fprintf(stdout, "Vérification de %d critères en cours (limite : %s)...\n", len(authored.Definition.Checks), checkTimeout)
+		if len(authored.Definition.Checks) > 0 {
+			batchID := authored.Definition.Checks[0].BatchID
+			if batchID != "" {
+				allGrouped := true
+				for _, check := range authored.Definition.Checks {
+					if check.BatchID != batchID {
+						allGrouped = false
+						break
+					}
+				}
+				if allGrouped && checkTimeout > 12*time.Second {
+					checkTimeout = 12 * time.Second
+				}
+			}
+		}
+		fmt.Fprintf(stdout, "Vérification de %d critères...\n", len(authored.Definition.Checks))
 		checkCtx, cancelCheck := context.WithTimeout(sessionCtx, checkTimeout)
 		results, err := session.Evaluate(checkCtx)
 		cancelCheck()

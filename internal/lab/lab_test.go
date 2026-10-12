@@ -978,16 +978,20 @@ func TestEnvironmentBoundaryRepairChecksAreBounded(t *testing.T) {
 	if len(authored.Definition.Checks) != 5 {
 		t.Fatalf("checks = %d, want 5", len(authored.Definition.Checks))
 	}
-	for i, check := range authored.Definition.Checks[:4] {
-		if check.Type != "command-exit" || check.TimeoutSeconds != 10 {
-			t.Fatalf("check %d must have a 10s command deadline: %#v", i+1, check)
+	for i, check := range authored.Definition.Checks {
+		if check.Type != "command-exit" || check.TimeoutSeconds != 5 ||
+			check.BatchID != "environment-inspection" || check.FailureBit != 1<<i {
+			t.Fatalf("check %d must use one grouped, bounded command: %#v", i+1, check)
 		}
-		want := []string{"/usr/bin/timeout", "-k", "1s", "6s", "/usr/bin/bash", "--noprofile", "--norc", "-c"}
+		want := []string{"/usr/bin/timeout", "-k", "1s", "3s", "/usr/bin/bash", "--noprofile", "--norc", "-c"}
 		if len(check.Argv) != len(want)+1 || !slices.Equal(check.Argv[:len(want)], want) {
 			t.Fatalf("check %d must use a bounded noninteractive shell: %#v", i+1, check.Argv)
 		}
-		if !strings.HasPrefix(check.Argv[len(want)], ". /root/.bashrc || exit 1; ") {
+		if !strings.HasPrefix(check.Argv[len(want)], ". /root/.bashrc || exit 125") {
 			t.Fatalf("check %d must explicitly source the intended rcfile: %#v", i+1, check.Argv)
+		}
+		if i > 0 && !slices.Equal(authored.Definition.Checks[0].Argv, check.Argv) {
+			t.Fatalf("check %d duplicates a different command", i+1)
 		}
 	}
 }

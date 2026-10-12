@@ -3,6 +3,7 @@ package checker_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"slices"
 	"strings"
 	"testing"
@@ -16,11 +17,13 @@ type fakeProbe struct {
 	contents    map[string][]byte
 	processes   []runner.Process
 	execResult  runner.ExecResult
+	execCalls   int
 	execErr     error
 	lastRequest runner.ExecRequest
 }
 
 func (probe *fakeProbe) Exec(_ context.Context, _ runner.Instance, request runner.ExecRequest) (runner.ExecResult, error) {
+	probe.execCalls++
 	probe.lastRequest = request
 	return probe.execResult, probe.execErr
 }
@@ -314,5 +317,61 @@ func TestCommandExitGuestTimeoutHasActionableDetail(t *testing.T) {
 	result := check.Evaluate(context.Background(), probe, runner.Instance{ID: "fake"})
 	if result.Pass || result.Err != nil || !strings.Contains(result.Detail, ".bashrc") {
 		t.Fatalf("timeout detail = %#v", result)
+	}
+}
+
+func TestCommandBatchExecutesOnceAndPreservesIndividualResults(t *testing.T) {
+	makeChecks := func() []checker.Check {
+		checks := make([]checker.Check, 5)
+		for i := range checks {
+			checks[i] = checker.CommandExit{
+				CheckID:        fmt.Sprintf("check-%02d", i+1),
+				Argv:           []string{"/usr/bin/timeout", "3s", "/usr/bin/bash", "-c", "exit 0"},
+				BatchID:        "group",
+				FailureBit:     1 << i,
+				TimeoutSeconds: 5,
+			}
+		}
+		return checks
+	}
+	for _, tc := range []struct {
+		exit   int
+		failed []int
+	}{
+		{exit: 160},
+		{exit: 165, failed: []int{0, 2}},
+		{exit: 176, failed: []int{4}},
+		{exit: 0, failed: []int{0, 1, 2, 3, 4}},
+		{exit: 124, failed: []int{0, 1, 2, 3, 4}},
+		{exit: 125, failed: []int{0, 1, 2, 3, 4}},
+	} {
+		t.Run(fmt.Sprint(tc.exit), func(t *testing.T) {
+			probe := &fakeProbe{execResult: runner.ExecResult{ExitCode: tc.exit}}
+			results, err := checker.EvaluateAll(context.Background(), probe, runner.Instance{ID: "fake"}, makeChecks())
+			if err != nil {
+				t.Fatalf("EvaluateAll error: %v", err)
+			}
+			if probe.execCalls != 1 || len(results) != 5 {
+				t.Fatalf("calls=%d, results=%#v", probe.execCalls, results)
+			}
+			for i, result := range results {
+				wantFail := slices.Contains(tc.failed, i)
+				if result.Pass == wantFail {
+					t.Errorf("check %d: got pass=%v, want fail=%v", i+1, result.Pass, wantFail)
+				}
+			}
+		})
+	}
+}
+
+func TestCommandBatchRejectsMismatchedCommandsWithoutRunning(t *testing.T) {
+	probe := &fakeProbe{}
+	group := []checker.Check{
+		checker.CommandExit{CheckID: "a", Argv: []string{"true"}, BatchID: "group", FailureBit: 1, TimeoutSeconds: 5},
+		checker.CommandExit{CheckID: "b", Argv: []string{"false"}, BatchID: "group", FailureBit: 2, TimeoutSeconds: 5},
+	}
+	_, err := checker.EvaluateAll(context.Background(), probe, runner.Instance{ID: "fake"}, group)
+	if err == nil || probe.execCalls != 0 {
+		t.Fatalf("invalid batch ran: calls=%d err=%v", probe.execCalls, err)
 	}
 }

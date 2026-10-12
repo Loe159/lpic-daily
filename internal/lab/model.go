@@ -68,6 +68,8 @@ type CheckDefinition struct {
 	Argv           []string `json:"argv,omitempty"`
 	ExpectedExit   int      `json:"expected_exit,omitempty"`
 	TimeoutSeconds int      `json:"timeout_seconds,omitempty"`
+	BatchID        string   `json:"batch_id,omitempty"`
+	FailureBit     int      `json:"failure_bit,omitempty"`
 	DeviceType     string   `json:"device_type,omitempty"`
 	Filesystem     string   `json:"filesystem,omitempty"`
 	PartitionTable string   `json:"partition_table,omitempty"`
