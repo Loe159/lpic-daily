@@ -1,6 +1,7 @@
 package libvirt
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"encoding/hex"
@@ -636,11 +637,24 @@ func (backend *Backend) CaptureUEFIBootOrder(ctx context.Context, instance runne
 	if _, err := backend.instance(instance); err != nil {
 		return err
 	}
-	payload, err := backend.ReadFile(ctx, instance, "/var/lib/lpic-daily/uefi-boot-order/target-order", 4096)
+	// Guest file probes are not available in the libvirt backend. Use the
+	// already-supported structured QEMU guest-agent exec instead. The path is
+	// fixed by trusted lab setup and must never be taken from learner input.
+	var stdout bytes.Buffer
+	result, err := backend.Exec(ctx, instance, runner.ExecRequest{
+		Argv:   []string{"/usr/bin/cat", "/var/lib/lpic-daily/uefi-boot-order/target-order"},
+		Stdout: &stdout,
+	})
 	if err != nil {
 		return fmt.Errorf("capture initial UEFI target: %w", err)
 	}
-	expected := strings.ToUpper(strings.TrimSpace(string(payload)))
+	if result.ExitCode != 0 {
+		return fmt.Errorf("capture initial UEFI target: cat exited %d", result.ExitCode)
+	}
+	if stdout.Len() > 4096 {
+		return errors.New("UEFI BootOrder baseline exceeds 4096 bytes")
+	}
+	expected := strings.ToUpper(strings.TrimSpace(stdout.String()))
 	if !regexp.MustCompile(`^[0-9A-F]{4}(,[0-9A-F]{4})+$`).MatchString(expected) {
 		return errors.New("invalid UEFI BootOrder baseline from trusted setup")
 	}
