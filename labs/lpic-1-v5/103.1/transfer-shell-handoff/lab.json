@@ -68,7 +68,7 @@
         "lpic1.103.1.documentation-et-identification-d-une-commande"
       ],
       "timeout_seconds": 10,
-      "description_fr": "Vérifier le résultat attendu sans ouvrir de terminal interactif"
+      "description_fr": "report-status se résout vers le binaire approuvé via PATH."
     },
     {
       "type": "command-exit",
@@ -84,7 +84,7 @@
         "lpic1.103.1.variables-shell-environnement"
       ],
       "timeout_seconds": 10,
-      "description_fr": "Vérifier le résultat attendu sans ouvrir de terminal interactif"
+      "description_fr": "HANDOFF_ROLE vaut primary dans le shell configuré."
     },
     {
       "type": "command-exit",
@@ -101,7 +101,7 @@
         "lpic1.103.1.quoting-escaping"
       ],
       "timeout_seconds": 10,
-      "description_fr": "Vérifier le résultat attendu sans ouvrir de terminal interactif"
+      "description_fr": "HANDOFF_FILE pointe vers le rapport avec son espace dans le nom."
     },
     {
       "type": "command-exit",
@@ -118,7 +118,7 @@
         "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes"
       ],
       "timeout_seconds": 10,
-      "description_fr": "Vérifier le résultat attendu sans ouvrir de terminal interactif"
+      "description_fr": "L'historique utilise les tailles et la politique de doublons attendues."
     },
     {
       "type": "command-exit",
