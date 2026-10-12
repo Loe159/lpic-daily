@@ -7,9 +7,10 @@
     "EDITOR vaut vi dans un nouveau shell.",
     "app.conf contient la configuration corrigée, sans obsolete=true.",
     "La section server contient audit=enabled puis audit=required.",
-    "editor-inventory indique que vi/vim et nano sont disponibles et qu’emacs ne l’est pas dans l’image."
+    "editor-inventory indique que vi/vim et nano sont disponibles et qu’emacs ne l’est pas dans l’image.",
+    "L'édition a été réalisée dans le terminal interactif avec vi ; une sauvegarde :wq ou :x a été observée côté hôte."
   ],
-  "debrief_fr": "Dans vi, le mode normal sert à naviguer, copier, coller et supprimer ; i/a activent l'insertion, : permet les substitutions et :wq sauvegarde puis quitte. /motif recherche une occurrence. Le correcteur valide le fichier, les paramètres et l'inventaire final sans imposer une séquence de frappes : il ne prétend pas prouver le détail des interactions clavier dans vi.",
+  "debrief_fr": "Dans vi, le mode normal sert à naviguer, copier, coller et supprimer ; i/a activent l'insertion, : permet les substitutions et :wq sauvegarde puis quitte. /motif recherche une occurrence. Le correcteur vérifie le résultat et exige une session vi ainsi qu'une sauvegarde observées depuis le terminal hôte. Il n'impose pas chaque frappe de navigation ou de substitution.",
   "objective_ids": [
     "103.8"
   ],
@@ -104,5 +105,6 @@
     "lpic1.103.8.minimal-editor-repair.hint-4"
   ],
   "reference_solution_ref": "reference-solution.sh",
-  "reset_policy": "disposable"
+  "reset_policy": "disposable",
+  "requires_persistent_shell": true
 }
