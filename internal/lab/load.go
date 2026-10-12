@@ -219,7 +219,7 @@ func (lab Lab) CompileChecks() ([]checker.Check, error) {
 			}
 			if (item.BatchID == "") != (item.FailureBit == 0) ||
 				(item.BatchID != "" && (item.TimeoutSeconds == 0 || item.ExpectedExit != 0 ||
-					item.FailureBit < 1 || item.FailureBit > 64 ||
+					item.FailureBit < 1 || item.FailureBit > 32 ||
 					item.FailureBit&(item.FailureBit-1) != 0)) {
 				return nil, fmt.Errorf("%s: invalid command batch settings", id)
 			}
