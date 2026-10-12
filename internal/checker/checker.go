@@ -294,6 +294,10 @@ func cloneEnvironment(environment map[string]string) map[string]string {
 	return clone
 }
 
+// A success marker ensures an early exit in learner-controlled .bashrc cannot
+// be mistaken for a passing set of grouped checks.
+const commandBatchExitMarker = 160
+
 // evaluateCommandBatch evaluates one trusted in-container command for multiple
 // independent criteria. Each bit of its exit status means a criterion failed.
 // The command runs once, so diagnostics remain granular without repeated shells.
@@ -306,7 +310,7 @@ func evaluateCommandBatch(ctx context.Context, probe Probe, instance runner.Inst
 	for _, check := range group {
 		if check.BatchID != first.BatchID || !slices.Equal(check.Argv, first.Argv) ||
 			check.ExpectedExit != 0 || check.TimeoutSeconds != first.TimeoutSeconds ||
-			check.FailureBit < 1 || check.FailureBit > 64 ||
+			check.FailureBit < 1 || check.FailureBit > 32 ||
 			check.FailureBit&(check.FailureBit-1) != 0 || allowedBits&check.FailureBit != 0 {
 			return nil, fmt.Errorf("invalid command batch %q at check %s", first.BatchID, check.CheckID)
 		}
@@ -341,14 +345,17 @@ func evaluateCommandBatch(ctx context.Context, probe Probe, instance runner.Inst
 			results = append(results, Result{CheckID: check.ID(), Detail: "délai dépassé lors du chargement de .bashrc"})
 		}
 		return results, nil
-	case execResult.ExitCode&^allowedBits != 0:
+	case execResult.ExitCode < commandBatchExitMarker ||
+		execResult.ExitCode >= commandBatchExitMarker+64 ||
+		(execResult.ExitCode-commandBatchExitMarker)&^allowedBits != 0:
 		for _, check := range group {
 			results = append(results, Result{CheckID: check.ID(), Detail: fmt.Sprintf("échec du diagnostic commun (code %d)", execResult.ExitCode)})
 		}
 		return results, nil
 	default:
+		failedBits := execResult.ExitCode - commandBatchExitMarker
 		for _, check := range group {
-			passed := execResult.ExitCode&check.FailureBit == 0
+			passed := failedBits&check.FailureBit == 0
 			detail := "critère non satisfait"
 			if passed {
 				detail = "critère satisfait"
