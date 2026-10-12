@@ -294,7 +294,7 @@ func TestCommandExitTimeoutReportsFailedCheckAndContinues(t *testing.T) {
 	probe := &blockedCommandProbe{}
 	results, err := checker.EvaluateAll(context.Background(), probe, runner.Instance{ID: "fake"}, []checker.Check{
 		checker.CommandExit{CheckID: "blocked-shell", Argv: []string{"/usr/bin/bash", "-ic", "true"}, ExpectedExit: 0, TimeoutSeconds: 1},
-		checker.FileExists{CheckID: "still-checked", Path: "/exists"},
+		checker.ProcessState{CheckID: "still-checked", Match: "not-running", Present: false},
 	})
 	if err != nil {
 		t.Fatalf("EvaluateAll() error = %v", err)
@@ -303,7 +303,7 @@ func TestCommandExitTimeoutReportsFailedCheckAndContinues(t *testing.T) {
 		!strings.Contains(results[0].Detail, "délai dépassé") {
 		t.Fatalf("timeout result = %#v", results)
 	}
-	if results[1].Pass || results[1].CheckID != "still-checked" {
+	if !results[1].Pass || results[1].CheckID != "still-checked" {
 		t.Fatalf("following check skipped: %#v", results)
 	}
 }
