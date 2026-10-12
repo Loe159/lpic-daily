@@ -13,7 +13,7 @@ Scenario-migration contract:
 - Preserve every immutable concept ID and the complete course -> quiz/recall -> scenario path.
 - Do not mark an objective migrated until **all** active concepts are covered by accepted scenarios with explicit check-to-concept evidence.
 - Lab briefs are incident/outcome-driven, never sequences of commands. Never inflate concept coverage by adding unused concept IDs to a lab.
-- Run `python3 scripts/audit_scenario_coverage.py --check` and the objective-specific acceptance tests before marking a scenario accepted.
+- Run `python3 scripts/audit_scenario_coverage.py --check` for mapping integrity when publishing a scenario. Track objective-specific tests separately; `accepted` is now a publication status and must not be presented as test evidence.
 
 Rules:
 - Keep official IDs and weights exact.
