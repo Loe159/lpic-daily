@@ -7,6 +7,7 @@ import (
 	"slices"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/Loe159/lpic-daily/internal/checker"
 	"github.com/Loe159/lpic-daily/internal/runner"
@@ -373,5 +374,27 @@ func TestCommandBatchRejectsMismatchedCommandsWithoutRunning(t *testing.T) {
 	_, err := checker.EvaluateAll(context.Background(), probe, runner.Instance{ID: "fake"}, group)
 	if err == nil || probe.execCalls != 0 {
 		t.Fatalf("invalid batch ran: calls=%d err=%v", probe.execCalls, err)
+	}
+}
+
+// A check with no authored timeout must not run for the whole lab duration.
+type deadlineObservingProbe struct {
+	fakeProbe
+	deadline time.Time
+}
+func (probe *deadlineObservingProbe) Exec(ctx context.Context, _ runner.Instance, _ runner.ExecRequest) (runner.ExecResult, error) {
+	probe.deadline, _ = ctx.Deadline()
+	return runner.ExecResult{ExitCode: 0}, nil
+}
+func TestCommandExitWithoutExplicitTimeoutHasBoundedDeadline(t *testing.T) {
+	probe := &deadlineObservingProbe{}
+	check := checker.CommandExit{CheckID: "default-deadline", Argv: []string{"/usr/bin/true"}}
+	before := time.Now()
+	result := check.Evaluate(context.Background(), probe, runner.Instance{ID: "fake"})
+	if !result.Pass || probe.deadline.IsZero() {
+		t.Fatalf("missing default deadline: %#v, deadline=%s", result, probe.deadline)
+	}
+	if remaining := probe.deadline.Sub(before); remaining < 14*time.Second || remaining > 16*time.Second {
+		t.Fatalf("default timeout = %s, expected 15 seconds", remaining)
 	}
 }
