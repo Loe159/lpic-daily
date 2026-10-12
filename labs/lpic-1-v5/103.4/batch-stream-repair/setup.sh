@@ -17,6 +17,9 @@ while IFS= read -r job; do
   esac
 done
 EOF
+# Keep the problem reproducible but change a valid job name per session.
+suffix="$(od -An -N2 -tu2 /dev/urandom | tr -d '[:space:]')"
+sed -i "s/^alpha$/alpha-$((suffix % 10000))/" /workspace/input/jobs.txt
 chmod 0755 /workspace/bin/audit-stream
 printf 'STALE\n' > /workspace/output/stdout.log
 printf 'previous-run\n' > /workspace/output/history.log
