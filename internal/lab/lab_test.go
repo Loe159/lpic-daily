@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -467,8 +468,12 @@ func TestBuiltinLabsAreAuthoredScenariosOnly(t *testing.T) {
 	if err != nil {
 		t.Fatalf("LoadAll() error = %v", err)
 	}
-	if len(labs) != 70 {
-		t.Fatalf("loaded labs = %d, want 70 authored scenarios", len(labs))
+	paths, err := fs.Glob(lpicdaily.BuiltinFS, "labs/lpic-1-v5/*/*/lab.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(labs) != len(paths) {
+		t.Fatalf("loaded labs = %d, want precisely %d authored lab.json files, no generated labs", len(labs), len(paths))
 	}
 	for _, authored := range labs {
 		if strings.Contains(authored.Definition.ID, ".standalone-") {
