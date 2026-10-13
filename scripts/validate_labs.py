@@ -264,6 +264,7 @@ def main():
                 "command-exit",
                 "block-device-state",
                 "acpi-button-sent",
+                "host-reboot-observed",
                 "uefi-boot-order-preserved",
             }:
                 errors.append(f"{lab_id}: unknown check type {check_type!r}")

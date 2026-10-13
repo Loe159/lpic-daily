@@ -789,7 +789,7 @@ func TestFailedLabCheckRecordsConceptGranularEvidence(t *testing.T) {
 	}
 	if strings.Contains(checkOutput, authored.Definition.ID+".check-") ||
 		!strings.Contains(checkOutput, "À CORRIGER") ||
-		!strings.Contains(checkOutput, "Permissions du fichier") {
+		!strings.Contains(checkOutput, "Permissions : /srv/shared") {
 		t.Fatalf("check output should show human-readable criteria without technical IDs: %q", checkOutput)
 	}
 

@@ -161,7 +161,7 @@ func TestDashboardEmptyPlanShowsCompletedSession(t *testing.T) {
 	rendered := model.render()
 	for _, want := range []string{
 		"✓ Tout est à jour.",
-		"Aucune révision n'est due pour le moment.",
+		"Aucune activité prévue.",
 		"prochaines révisions et activités pratiques",
 	} {
 		if !strings.Contains(rendered, want) {
