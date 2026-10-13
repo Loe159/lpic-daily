@@ -1180,6 +1180,20 @@ func findLab(labs []lab.Lab, id string) (lab.Lab, error) {
 	return lab.Lab{}, fmt.Errorf("unknown lab %q", id)
 }
 
+// labStatusStyle keeps redirected output and test fixtures free of ANSI codes.
+func labStatusStyle(out io.Writer, code, value string) string {
+	if out != os.Stdout || os.Getenv("NO_COLOR") != "" || os.Getenv("TERM") == "dumb" || os.Getenv("TERM") == "" {
+		return value
+	}
+	if file, ok := out.(*os.File); ok {
+		info, err := file.Stat()
+		if err != nil || info.Mode()&os.ModeCharDevice == 0 {
+			return value
+		}
+	}
+	return "\x1b[" + code + "m" + value + "\x1b[0m"
+}
+
 func printLab(authored lab.Lab, out io.Writer) {
 	definition := authored.Definition
 	fmt.Fprintln(out, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
@@ -1580,7 +1594,7 @@ func runInteractiveLabWithBackend(
 			description = strings.Join(strings.Fields(description), " ")
 			if result.Pass {
 				okCount++
-				passedLines = append(passedLines, "  ✓ "+description)
+				passedLines = append(passedLines, "  "+labStatusStyle(out, "32", "✓ "+description))
 				continue
 			}
 			passed = false
@@ -1591,7 +1605,7 @@ func runInteractiveLabWithBackend(
 			} else if result.Detail != "" && result.Detail != "exit=1, expected=0" {
 				detail = result.Detail
 			}
-			line := "  ✗ " + description
+			line := "  "+labStatusStyle(out, "31", "✗ "+description)
 			if detail != "" {
 				line += "\n      Détail : " + strings.Join(strings.Fields(detail), " ")
 			}
@@ -1599,13 +1613,13 @@ func runInteractiveLabWithBackend(
 		}
 		fmt.Fprintf(out, "\nRÉSULTAT  ·  %d/%d OK\n", okCount, okCount+failedCount)
 		if len(failedLines) > 0 {
-			fmt.Fprintln(out, "\nÀ CORRIGER")
+			fmt.Fprintln(out, "\n"+labStatusStyle(out, "1;31", "À CORRIGER"))
 			for _, line := range failedLines {
 				fmt.Fprintln(out, line)
 			}
 		}
 		if len(passedLines) > 0 {
-			fmt.Fprintln(out, "\nVALIDÉ")
+			fmt.Fprintln(out, "\n"+labStatusStyle(out, "1;32", "VALIDÉ"))
 			for _, line := range passedLines {
 				fmt.Fprintln(out, line)
 			}
