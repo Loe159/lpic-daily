@@ -9,5 +9,5 @@ EOF
 cat > /run/lpic/.bash_history <<'EOF'
 pwd
 export API_TOKEN=should-not-stay
-echo old
+uname -r
 EOF
