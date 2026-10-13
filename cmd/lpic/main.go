@@ -1524,7 +1524,7 @@ func runInteractiveLabWithBackend(
 		visibleChecks := make([]lpicui.CheckPresentation, 0, len(results)+3)
 		if authored.Definition.NeedsPersistentShell && !usedPersistentShell {
 			visibleChecks = append(visibleChecks, lpicui.CheckPresentation{
-				Label: "Utilise :shell pour travailler dans le terminal Linux interactif.",
+				Label: "Passe par :shell pour travailler dans le terminal Linux interactif.",
 			})
 			passed = false
 			markPersistentShellConceptFailure(authored.Definition, conceptResults)
