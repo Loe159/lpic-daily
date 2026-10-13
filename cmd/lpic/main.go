@@ -1182,14 +1182,19 @@ func findLab(labs []lab.Lab, id string) (lab.Lab, error) {
 
 func printLab(authored lab.Lab, out io.Writer) {
 	definition := authored.Definition
-	fmt.Fprintf(out, "%s\n", definition.TitleFR)
-	fmt.Fprintf(out, "%s · environ %d min\n\n", strings.Join(definition.ObjectiveIDs, ", "), definition.EstimatedMinutes)
+	fmt.Fprintln(out, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+	fmt.Fprintf(out, "MISSION  ·  %s  ·  ~%d min\n", strings.Join(definition.ObjectiveIDs, ", "), definition.EstimatedMinutes)
+	fmt.Fprintln(out, definition.TitleFR)
+	fmt.Fprintln(out, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+	fmt.Fprintln(out, "\nSITUATION")
 	fmt.Fprintln(out, lpicui.RenderMarkdown(definition.BriefFR))
-	fmt.Fprintln(out, "\nRéussite :")
-	for _, criterion := range definition.SuccessCriteriaFR {
-		fmt.Fprintf(out, "• %s\n", criterion)
+	if len(definition.SuccessCriteriaFR) > 0 {
+		fmt.Fprintln(out, "\nOBJECTIFS À ATTEINDRE")
+		for index, criterion := range definition.SuccessCriteriaFR {
+			fmt.Fprintf(out, "  %d. %s\n", index+1, lpicui.RenderMarkdown(criterion))
+		}
 	}
-	fmt.Fprintln(out, "\nCommandes utiles : :check  :hint  :reset  :quit")
+	fmt.Fprintln(out, "\n:check Vérifier   :hint Aide   :reset Recommencer   :quit Quitter")
 }
 
 func runInteractiveLab(authored lab.Lab, stdin io.Reader, stdout, stderr io.Writer) error {
@@ -1542,44 +1547,67 @@ func runInteractiveLabWithBackend(
 			passed = false
 			markEditorConceptFailure(authored.Definition, conceptResults)
 		}
+		okCount := 0
+		failedCount := 0
+		var passedLines []string
+		var failedLines []string
 		for index, result := range results {
-			state := "OK"
-			if !result.Pass {
-				state = "À CORRIGER"
-				passed = false
-			}
-			description := ""
+			description := "État du système conforme"
 			if index < len(authored.Definition.Checks) {
 				check := authored.Definition.Checks[index]
 				description = check.DescriptionFR
 				if description == "" {
 					switch check.Type {
 					case "file-exists":
-						description = "Présence du fichier : " + check.Path
+						description = "Fichier présent : " + check.Path
 					case "file-mode":
-						description = "Permissions du fichier : " + check.Path
+						description = "Permissions : " + check.Path
 					case "file-owner":
-						description = "Propriétaire du fichier : " + check.Path
+						description = "Propriétaire : " + check.Path
 					case "file-content-regex":
-						description = "Contenu du fichier : " + check.Path
+						description = "Contenu : " + check.Path
 					case "process-running":
-						description = "Processus attendu : " + check.Match
+						description = "Processus actif : " + check.Match
 					case "process-absent":
-						description = "Processus à arrêter : " + check.Match
+						description = "Processus arrêté : " + check.Match
 					case "command-exit":
-						description = "Vérification du comportement demandé dans le lab"
+						description = "Comportement attendu"
 					default:
-						description = "Vérification de l'état du système"
+						description = "État du système conforme"
 					}
 				}
 			}
-			if description != "" {
-				fmt.Fprintf(out, "  %-11s %s\n", state, description)
+			description = strings.Join(strings.Fields(description), " ")
+			if result.Pass {
+				okCount++
+				passedLines = append(passedLines, "  ✓ "+description)
+				continue
 			}
-			if !result.Pass && result.Err != nil {
-				fmt.Fprintf(out, "              Erreur de vérification : %v\n", result.Err)
-			} else if !result.Pass && result.Detail != "" && result.Detail != "exit=1, expected=0" {
-				fmt.Fprintf(out, "              Diagnostic technique : %s\n", result.Detail)
+			passed = false
+			failedCount++
+			detail := ""
+			if result.Err != nil {
+				detail = result.Err.Error()
+			} else if result.Detail != "" && result.Detail != "exit=1, expected=0" {
+				detail = result.Detail
+			}
+			line := "  ✗ " + description
+			if detail != "" {
+				line += "\n      Détail : " + strings.Join(strings.Fields(detail), " ")
+			}
+			failedLines = append(failedLines, line)
+		}
+		fmt.Fprintf(out, "\nRÉSULTAT  ·  %d/%d OK\n", okCount, okCount+failedCount)
+		if len(failedLines) > 0 {
+			fmt.Fprintln(out, "\nÀ CORRIGER")
+			for _, line := range failedLines {
+				fmt.Fprintln(out, line)
+			}
+		}
+		if len(passedLines) > 0 {
+			fmt.Fprintln(out, "\nVALIDÉ")
+			for _, line := range passedLines {
+				fmt.Fprintln(out, line)
 			}
 		}
 		persistedHintLevel, err := pendingLabHintLevel(sessionCtx, authored.Definition.ID)
