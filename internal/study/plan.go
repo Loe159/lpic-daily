@@ -95,7 +95,7 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 		projections[conceptID] = projection
 	}
 
-	readiness := completeObjectiveReadiness(input.Curriculum, scopeConcepts, evidenceByConcept)
+	readiness := completeObjectiveReadiness(input.Curriculum, scopeConcepts, evidenceByConcept, input.Labs)
 	activeScopeObjectives := examProgressionScope(input.Curriculum, scopeObjectives, readiness)
 
 	session, err := learning.BuildSession(learning.SessionInput{
@@ -218,7 +218,17 @@ func completeObjectiveReadiness(
 	bundle *curriculum.Bundle,
 	scopeConcepts map[string]struct{},
 	evidenceByConcept map[string][]learning.EvidenceEvent,
+	labs []lab.Lab,
 ) map[string]bool {
+	availablePractice := make(map[string]bool)
+	for _, authored := range labs {
+		if slices.Contains(authored.Definition.Labels, "scenario-implemented") {
+			continue
+		}
+		for _, conceptID := range authored.Definition.ConceptIDs {
+			availablePractice[conceptID] = true
+		}
+	}
 	total := make(map[string]int)
 	complete := make(map[string]int)
 	for _, concept := range bundle.Concepts.Concepts {
@@ -243,7 +253,9 @@ func completeObjectiveReadiness(
 				practical = true
 			}
 		}
-		if lesson && question && practical {
+		// An objective with no authored practical scenario for a concept may
+		// advance after theory/quiz, without inventing proof of a missing lab.
+		if lesson && question && (practical || !availablePractice[concept.ID]) {
 			complete[concept.ObjectiveID]++
 		}
 	}
