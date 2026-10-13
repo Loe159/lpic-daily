@@ -316,6 +316,7 @@ func waitForDashboardLabCompletion(
 			fmt.Fprintln(stdout, "Progression du lab détectée. Le terminal enfant reste ouvert.")
 			return nil
 		}
+		fmt.Fprintln(stdout, "Lab non validé : corrige les critères ci-dessus dans le terminal enfant, puis relance la vérification. (:quit pour revenir au menu)")
 	}
 }
 
