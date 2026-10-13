@@ -1,15 +1,14 @@
 {
   "schema_version": "1.0.0",
   "id": "lpic1.103.1.history-handoff-recovery",
-  "title_fr": "Rendre l’historique de relève durable",
-  "brief_fr": "Le shell de maintenance perd rapidement son historique et conserve une ancienne ligne avec API_TOKEN. Travaille dans /run/lpic : corrige .bashrc pour HISTSIZE=2000 et HISTFILESIZE=4000, nettoie .bash_history, puis génère history-proof avec la valeur développée root:/run/lpic. La commande doit rester dans l’historique après ouverture d’un nouveau shell.",
+  "title_fr": "Retrouver l’historique après une reconnexion",
+  "brief_fr": "Un administrateur reprend la maintenance du serveur, mais les commandes précédentes disparaissent trop vite et l’historique contient une ligne avec API_TOKEN. Dans /run/lpic, corrige .bashrc pour garder 2000 commandes en mémoire et 4000 sur disque. Supprime uniquement la ligne sensible de .bash_history. Puis, depuis /run/lpic, affiche root:/run/lpic avec echo et les variables $USER et $PWD. Sauvegarde l’historique pour que le prochain administrateur retrouve cette commande dans un nouveau shell Bash.",
   "success_criteria_fr": [
-    "Un nouveau shell interactif du shell de maintenance utilise HISTSIZE=2000 et HISTFILESIZE=4000.",
-    "/run/lpic/.bash_history ne contient plus API_TOKEN.",
-    "history-proof contient alice:/root issu d’une expansion shell.",
-    "Un nouveau shell du shell de maintenance recharge une entrée d’historique liée à history-proof."
+    "Un nouveau shell de maintenance utilise HISTFILE=/run/lpic/.bash_history, HISTSIZE=2000 et HISTFILESIZE=4000.",
+    "L’historique sur disque ne contient plus API_TOKEN mais conserve les anciennes commandes non sensibles.",
+    "Un nouveau shell Bash retrouve la commande echo utilisant $USER et $PWD dans l’historique sauvegardé."
   ],
-  "debrief_fr": "HISTSIZE limite l’historique chargé en mémoire et HISTFILESIZE celui conservé sur disque. history permet de relire, modifier et réécrire l’historique persistant. Une nouvelle session ne voit une commande précédente que si l’état a réellement été écrit dans .bash_history. L’expansion de PWD est évaluée par le shell avant l’écriture du résultat.",
+  "debrief_fr": "Le fichier .bashrc fixe les paramètres du shell, HISTSIZE limite l’historique en mémoire et HISTFILESIZE celui conservé sur disque. .bash_history contient les commandes persistantes ; history -r les recharge et history -w les écrit. L’expansion de $USER et $PWD est faite lors de l’exécution de echo, tandis que l’historique garde le texte de la commande. Lancer echo sans enregistrer l’historique ne garantit pas que la prochaine session puisse le retrouver.",
   "objective_ids": [
     "103.1"
   ],
@@ -56,7 +55,7 @@
         "--noprofile",
         "--norc",
         "-c",
-        ". \"/run/lpic/.bashrc\" || exit 1; set -o history; test \"$HISTSIZE\" = 2000 && test \"$HISTFILESIZE\" = 4000"
+        ". \"/run/lpic/.bashrc\" || exit 1; test \"$HISTFILE\" = /run/lpic/.bash_history && test \"$HISTSIZE\" = 2000 && test \"$HISTFILESIZE\" = 4000"
       ],
       "expected_exit": 0,
       "concept_ids": [
@@ -64,28 +63,23 @@
         "lpic1.103.1.edition-et-persistance-de-l-historique"
       ],
       "timeout_seconds": 10,
-      "description_fr": "L'historique Bash utilise les tailles HISTSIZE et HISTFILESIZE attendues."
+      "description_fr": "Les paramètres d’historique sont corrects dans un nouveau Bash."
     },
     {
       "type": "command-exit",
       "argv": [
-        "/usr/bin/grep",
-        "-q",
-        "API_TOKEN",
-        "/run/lpic/.bash_history"
+        "/usr/bin/bash",
+        "--noprofile",
+        "--norc",
+        "-c",
+        "! /usr/bin/grep -q API_TOKEN /run/lpic/.bash_history && /usr/bin/grep -Fxq pwd /run/lpic/.bash_history && /usr/bin/grep -Fxq 'uname -r' /run/lpic/.bash_history"
       ],
-      "expected_exit": 1,
+      "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.1.edition-et-persistance-de-l-historique"
-      ]
-    },
-    {
-      "type": "file-content-regex",
-      "path": "/run/lpic/history-proof",
-      "pattern": "^root:/run/lpic\\n?$",
-      "concept_ids": [
-        "lpic1.103.1.echo-et-expansion-shell"
-      ]
+      ],
+      "timeout_seconds": 10,
+      "description_fr": "La ligne sensible a disparu, sans effacer les commandes précédentes."
     },
     {
       "type": "command-exit",
@@ -97,15 +91,16 @@
         "--noprofile",
         "--norc",
         "-c",
-        ". \"/run/lpic/.bashrc\" || exit 1; set -o history; history -c; history -r; history | grep -q 'history-proof'"
+        ". \"/run/lpic/.bashrc\" || exit 1; set -o history; history -c; history -r; history | /usr/bin/grep -Eq \"(^|[[:space:]])echo[[:space:]].*[$][{]?USER[}]?:[$][{]?PWD[}]?\"; result=$?; HISTFILE=/dev/null; exit \"$result\""
       ],
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.1.edition-et-persistance-de-l-historique",
-        "lpic1.103.1.historique"
+        "lpic1.103.1.historique",
+        "lpic1.103.1.echo-et-expansion-shell"
       ],
       "timeout_seconds": 10,
-      "description_fr": "La commande history-proof est présente dans l'historique Bash rechargé."
+      "description_fr": "Un nouveau Bash retrouve la commande echo avec les variables $USER et $PWD."
     }
   ],
   "hint_ids": [

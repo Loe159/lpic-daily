@@ -5,14 +5,17 @@ export HISTFILE=/run/lpic/.bash_history
 export HISTSIZE=2000
 export HISTFILESIZE=4000
 EOF
-grep -v 'API_TOKEN' /run/lpic/.bash_history > /run/lpic/.bash_history.clean
+/usr/bin/grep -v 'API_TOKEN' /run/lpic/.bash_history > /run/lpic/.bash_history.clean
 mv /run/lpic/.bash_history.clean /run/lpic/.bash_history
-cat > /run/lpic/.lpic-history-update <<'EOF'
-cd /run/lpic
-echo "$USER:$PWD" > /run/lpic/history-proof
-history -c
-history -r
-history -s 'echo "$USER:$PWD" > /run/lpic/history-proof'
-history -w
-EOF
-HOME=/run/lpic USER=root /usr/bin/bash --noprofile --norc -c '. /run/lpic/.bashrc || exit 1; set -o history; source /run/lpic/.lpic-history-update'
+HOME=/run/lpic USER=root /usr/bin/bash --noprofile --norc -c '
+  set -e
+  . /run/lpic/.bashrc
+  set -o history
+  history -c
+  history -r
+  cd /run/lpic
+  echo "$USER:$PWD"
+  history -s '\''echo "$USER:$PWD"'\''
+  history -w
+  HISTFILE=/dev/null
+'
