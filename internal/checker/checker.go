@@ -1,8 +1,8 @@
 package checker
 
 import (
-	"context"
 	"bytes"
+	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"errors"

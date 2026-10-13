@@ -363,4 +363,3 @@ func TestLabConceptResultsPreserveMixedCheckOutcomes(t *testing.T) {
 		t.Fatalf("sticky events = %#v, want partial", stickyEvents)
 	}
 }
-
