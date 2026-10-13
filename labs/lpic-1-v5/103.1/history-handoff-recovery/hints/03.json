@@ -3,6 +3,6 @@
   "id": "lpic1.103.1.history-handoff-recovery.hint-3",
   "lab_id": "lpic1.103.1.history-handoff-recovery",
   "level": 3,
-  "content_fr": "Corrige HISTSIZE/HISTFILESIZE dans le shell de maintenance, nettoie l’entrée sensible, crée history-proof depuis /run/lpic puis ajoute une entrée correspondante à l’historique avant de l’écrire sur disque.",
+  "content_fr": "Après modification de .bashrc et suppression de la ligne API_TOKEN, recharge l’historique propre dans le shell de maintenance. Place-toi dans /run/lpic, utilise echo avec $USER et $PWD, puis écris l’historique sur disque.",
   "evidence_impact": "material"
 }
