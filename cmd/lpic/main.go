@@ -255,7 +255,7 @@ func waitForDashboardLabCompletion(
 ) error {
 	reader := bufio.NewReader(stdin)
 	for {
-		fmt.Fprint(stdout, "Entrée ou :check pour vérifier · :quit pour revenir au menu > ")
+		fmt.Fprint(stdout, "Entrée / :check  Vérifier   :quit  Menu  > ")
 		line, err := readLine(reader)
 		if err != nil {
 			return fmt.Errorf("read parent lab command: %w", err)
@@ -316,7 +316,7 @@ func waitForDashboardLabCompletion(
 			fmt.Fprintln(stdout, "Progression du lab détectée. Le terminal enfant reste ouvert.")
 			return nil
 		}
-		fmt.Fprintln(stdout, "Lab non validé : corrige les critères ci-dessus dans le terminal enfant, puis relance la vérification. (:quit pour revenir au menu)")
+		fmt.Fprintln(stdout, "\nCorrige dans le terminal du lab, puis relance :check.")
 	}
 }
 
@@ -1181,6 +1181,80 @@ func findLab(labs []lab.Lab, id string) (lab.Lab, error) {
 }
 
 // labStatusStyle keeps redirected output and test fixtures free of ANSI codes.
+// labTerminal reports whether the destination is an interactive terminal.
+func labTerminal(out io.Writer) bool {
+	file, ok := out.(*os.File)
+	if !ok || os.Getenv("TERM") == "" || os.Getenv("TERM") == "dumb" {
+		return false
+	}
+	info, err := file.Stat()
+	return err == nil && info.Mode()&os.ModeCharDevice != 0
+}
+
+// labWrap preserves every word of a long mission instead of clipping it.
+func labWrap(value string, width int) string {
+	if width < 32 {
+		width = 32
+	}
+	var lines []string
+	for _, paragraph := range strings.Split(value, "\n") {
+		if strings.TrimSpace(paragraph) == "" {
+			lines = append(lines, "")
+			continue
+		}
+		var line string
+		for _, word := range strings.Fields(paragraph) {
+			if line != "" && len([]rune(line))+1+len([]rune(word)) > width {
+				lines = append(lines, line)
+				line = ""
+			}
+			if line != "" {
+				line += " "
+			}
+			line += word
+		}
+		lines = append(lines, line)
+	}
+	return strings.Join(lines, "\n")
+}
+
+func labWidth() int {
+	if value, err := strconv.Atoi(os.Getenv("COLUMNS")); err == nil && value >= 40 && value <= 240 {
+		if value > 84 {
+			return 84
+		}
+		return value
+	}
+	return 78
+}
+
+func labResetScreen(out io.Writer) {
+	if labTerminal(out) {
+		fmt.Fprint(out, "\x1b[2J\x1b[H")
+	}
+}
+
+// labPaintCheck colors a complete check response at its display boundary.
+// Checks run through a socket/buffer, so the checker itself cannot detect a TTY.
+func labPaintCheck(out io.Writer, result string) string {
+	if !labTerminal(out) || os.Getenv("NO_COLOR") != "" {
+		return result
+	}
+	var painted []string
+	for _, line := range strings.Split(result, "\n") {
+		switch {
+		case strings.Contains(line, "À CORRIGER"), strings.HasPrefix(line, "  ✗"):
+			line = "\x1b[1;31m" + line + "\x1b[0m"
+		case strings.Contains(line, "VALIDÉ"), strings.HasPrefix(line, "  ✓"), strings.Contains(line, "Lab réussi"):
+			line = "\x1b[1;32m" + line + "\x1b[0m"
+		case strings.HasPrefix(line, "RÉSULTAT"):
+			line = "\x1b[1;36m" + line + "\x1b[0m"
+		}
+		painted = append(painted, line)
+	}
+	return strings.Join(painted, "\n")
+}
+
 func labStatusStyle(out io.Writer, code, value string) string {
 	if out != os.Stdout || os.Getenv("NO_COLOR") != "" || os.Getenv("TERM") == "dumb" || os.Getenv("TERM") == "" {
 		return value
@@ -1196,19 +1270,19 @@ func labStatusStyle(out io.Writer, code, value string) string {
 
 func printLab(authored lab.Lab, out io.Writer) {
 	definition := authored.Definition
-	fmt.Fprintln(out, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-	fmt.Fprintf(out, "MISSION  ·  %s  ·  ~%d min\n", strings.Join(definition.ObjectiveIDs, ", "), definition.EstimatedMinutes)
-	fmt.Fprintln(out, definition.TitleFR)
-	fmt.Fprintln(out, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-	fmt.Fprintln(out, "\nSITUATION")
-	fmt.Fprintln(out, lpicui.RenderMarkdown(definition.BriefFR))
+	width := labWidth() - 4
+	title := strings.Join(definition.ObjectiveIDs, ", ") + " · ~" + strconv.Itoa(definition.EstimatedMinutes) + " min"
+	fmt.Fprintln(out, labStatusStyle(out, "1;36", "MISSION  "+title))
+	fmt.Fprintln(out, labStatusStyle(out, "1", labWrap(definition.TitleFR, width)))
+	fmt.Fprintln(out, "\n"+labStatusStyle(out, "1", "SITUATION"))
+	fmt.Fprintln(out, labWrap(lpicui.RenderMarkdown(definition.BriefFR), width))
 	if len(definition.SuccessCriteriaFR) > 0 {
-		fmt.Fprintln(out, "\nOBJECTIFS À ATTEINDRE")
+		fmt.Fprintln(out, "\n"+labStatusStyle(out, "1", "OBJECTIFS"))
 		for index, criterion := range definition.SuccessCriteriaFR {
-			fmt.Fprintf(out, "  %d. %s\n", index+1, lpicui.RenderMarkdown(criterion))
+			fmt.Fprintf(out, "%d. %s\n", index+1, labWrap(lpicui.RenderMarkdown(criterion), width-4))
 		}
 	}
-	fmt.Fprintln(out, "\n:check Vérifier   :hint Aide   :reset Recommencer   :quit Quitter")
+	fmt.Fprintln(out, "\n"+labStatusStyle(out, "36", ":check Vérifier   :hint Aide   :reset Recommencer   :quit Quitter"))
 }
 
 func runInteractiveLab(authored lab.Lab, stdin io.Reader, stdout, stderr io.Writer) error {
