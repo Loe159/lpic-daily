@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -253,13 +254,22 @@ func (backend *Backend) archiveResponse(
 	guestPath string,
 ) (*http.Response, error) {
 	query := url.Values{"path": {guestPath}}
-	return backend.doRaw(
+	response, err := backend.doRaw(
 		ctx,
 		http.MethodGet,
 		apiBase+"/containers/"+url.PathEscape(instance.ID)+"/archive",
 		query,
 		"application/x-tar",
 	)
+	// A missing learner-produced output file is an ordinary unmet criterion.
+	// The archive endpoint reports ENOENT as HTTP 404; expose the standard
+	// sentinel instead of turning a not-yet-completed lab into a fatal error.
+	var status *statusError
+	if errors.As(err, &status) && status.Code == http.StatusNotFound &&
+		strings.Contains(strings.ToLower(status.Message), "no such file or directory") {
+		return nil, fmt.Errorf("%s: %w", guestPath, os.ErrNotExist)
+	}
+	return response, err
 }
 
 func (backend *Backend) lookupIdentity(

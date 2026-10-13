@@ -8,6 +8,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"sync/atomic"
@@ -313,5 +314,20 @@ func TestExecHonorsContextCancellationWhilePolling(t *testing.T) {
 	_, err := backend.Exec(ctx, runner.Instance{ID: "ctr"}, runner.ExecRequest{Argv: []string{"/bin/sleep", "10"}})
 	if !errors.Is(err, context.DeadlineExceeded) {
 		t.Fatalf("Exec() error = %v, want context deadline", err)
+	}
+}
+
+func TestArchiveMissingFileReturnsNotExist(t *testing.T) {
+	backend, stop := openFakeBackend(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet && strings.HasSuffix(r.URL.Path, "/archive") {
+			http.Error(w, "no such file or directory", http.StatusNotFound)
+			return
+		}
+		http.NotFound(w, r)
+	})
+	defer stop()
+	_, err := backend.ReadFile(context.Background(), runner.Instance{ID: "ctr"}, "/run/lpic/summary", 100)
+	if !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("missing archive should be os.ErrNotExist, got %v", err)
 	}
 }
