@@ -3,6 +3,6 @@
   "id": "lpic1.103.1.history-handoff-recovery.hint-4",
   "lab_id": "lpic1.103.1.history-handoff-recovery",
   "level": 4,
-  "content_fr": "Mets HISTSIZE=2000 et HISTFILESIZE=4000 dans le shell de maintenance, supprime les lignes API_TOKEN, crée history-proof avec l’expansion de USER et PWD depuis /run/lpic, puis utilise history -s et history -w pour rendre cette commande visible dans une nouvelle session.",
+  "content_fr": "Mets HISTSIZE=2000 et HISTFILESIZE=4000 dans .bashrc. Supprime la ligne API_TOKEN de .bash_history en préservant pwd et uname -r. Charge .bashrc ; utilise history -c puis history -r pour vider la mémoire et reprendre les entrées propres. Depuis /run/lpic, exécute echo \"$USER:$PWD\" et history -w. Un nouveau shell doit retrouver cette commande avec history -r.",
   "evidence_impact": "solution-revealed"
 }
