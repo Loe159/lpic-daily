@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
-
-source /root/.bashrc
-export REPORT_ENV
+cat > /run/lpic/worker-env-repair.sh <<'EOF'
+export REPORT_ENV=production
 unset REPORT_DEBUG
-start-report-worker
+EOF
+. /root/.bashrc
+. /run/lpic/worker-env-repair.sh
+/usr/local/bin/start-report-worker

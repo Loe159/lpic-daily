@@ -7,3 +7,9 @@ export REPORT_ENV=production
 export REPORT_FILE="/var/lib/lpic/reports/daily report.txt"
 EOF
 rm -f /run/lpic/report-ok /run/lpic/external-command-summary
+
+cat > /run/lpic/run-approved-report.sh <<'EOF'
+#!/usr/bin/env bash
+# Invoque le binaire approuve par son chemin absolu et traite REPORT_FILE.
+EOF
+chmod 0755 /run/lpic/run-approved-report.sh

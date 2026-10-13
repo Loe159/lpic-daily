@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# Correct the current shell's environment; startup-file edits are unnecessary.
-source /run/lpic/.lpic-shell-rc
+cat > /run/lpic/repair-environment.sh <<'EOF'
 export SERVICE_MODE=production
 export -n LOCAL_NOTE
 unset LEGACY_TOKEN
 printf '%s|%s\n' "$SERVICE_MODE" "$LOCAL_NOTE" > /run/lpic/env-summary
-__lpic_capture_environment
+EOF
