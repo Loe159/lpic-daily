@@ -1894,10 +1894,12 @@ func runInteractiveLabWithBackend(
 			// across resets/restarts and remains attached to the learning attempt.
 			nextHint = nextHintIndex(authored.Hints, highestHintLevel)
 			usedPersistentShell = false
-			reflectionRecorded = false
-			lastLearnerCommand = ""
-			jobControlEvidence.Reset()
-			editorEvidence.Reset()
+			if jobControlEvidence != nil {
+				jobControlEvidence.Reset()
+			}
+			if editorEvidence != nil {
+				editorEvidence.Reset()
+			}
 			fmt.Fprintln(stdout, "Lab réinitialisé dans son état de départ.")
 			continue
 		case ":check":

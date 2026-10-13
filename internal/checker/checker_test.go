@@ -419,3 +419,17 @@ func TestMissingLabOutputsAreFailedCriteriaNotFatalErrors(t *testing.T) {
 		}
 	}
 }
+
+// A learner-controlled login profile may call 'exit 0' before the verifier
+// is reached. A zero exit status without the randomized final receipt fails.
+func TestBashCheckRequiresActualVerifierCompletion(t *testing.T) {
+	probe := &fakeProbe{execResult: runner.ExecResult{ExitCode: 0}}
+	check := checker.CommandExit{CheckID: "login", Argv: []string{"/usr/bin/bash", "-lc", "test -f /workspace/READY"}}
+	got := check.Evaluate(context.Background(), probe, runner.Instance{ID:"fake"})
+	if got.Pass || !strings.Contains(got.Detail, "avant") {
+		t.Fatalf("zero exit without verifier receipt unexpectedly passed: %+v", got)
+	}
+	if len(probe.lastRequest.Argv) < 3 || !strings.Contains(probe.lastRequest.Argv[2], "LPIC_CHECK_COMPLETED_") {
+		t.Fatalf("check script has no randomized completion receipt: %v", probe.lastRequest.Argv)
+	}
+}
