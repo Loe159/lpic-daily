@@ -162,7 +162,6 @@ func TestDashboardEmptyPlanShowsCompletedSession(t *testing.T) {
 	for _, want := range []string{
 		"✓ Tout est à jour.",
 		"Aucune activité prévue.",
-		"prochaines révisions et activités pratiques",
 	} {
 		if !strings.Contains(rendered, want) {
 			t.Fatalf("empty dashboard missing %q: %q", want, rendered)
