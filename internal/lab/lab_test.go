@@ -7,13 +7,11 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 	"slices"
 	"strings"
 	"testing"
 
 	lpicdaily "github.com/Loe159/lpic-daily"
-	"github.com/Loe159/lpic-daily/internal/content"
 	"github.com/Loe159/lpic-daily/internal/curriculum"
 	"github.com/Loe159/lpic-daily/internal/lab"
 	"github.com/Loe159/lpic-daily/internal/runner"
@@ -458,251 +456,21 @@ func TestFailedResetCleanupRemainsRetryable(t *testing.T) {
 	}
 }
 
-func TestBuiltinLabsProvideTwoPracticeContextsPerActiveConcept(t *testing.T) {
+func TestBuiltinLabsAreAuthoredScenariosOnly(t *testing.T) {
 	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
 	if err != nil {
 		t.Fatalf("LoadAll() error = %v", err)
 	}
-	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
-	if err != nil {
-		t.Fatalf("curriculum.Load() error = %v", err)
-	}
-
-	contexts := make(map[string]map[string]struct{})
-	for _, authored := range labs {
-		evidenced := make(map[string]struct{})
-		for _, check := range authored.Definition.Checks {
-			for _, conceptID := range check.ConceptIDs {
-				evidenced[conceptID] = struct{}{}
-			}
-		}
-		for conceptID := range evidenced {
-			if contexts[conceptID] == nil {
-				contexts[conceptID] = make(map[string]struct{})
-			}
-			contexts[conceptID][authored.Definition.PracticeContext] = struct{}{}
-		}
-	}
-
-	for _, concept := range curriculumBundle.Concepts.Concepts {
-		if !concept.Active {
-			continue
-		}
-		if got := len(contexts[concept.ID]); got < 2 {
-			t.Errorf("concept %s practical contexts = %d, want at least 2", concept.ID, got)
-		}
-	}
-}
-
-func TestGeneratedStandaloneLabsUseConceptAnchors(t *testing.T) {
-	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
-	if err != nil {
-		t.Fatalf("LoadAll() error = %v", err)
-	}
-	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
-	if err != nil {
-		t.Fatalf("curriculum.Load() error = %v", err)
-	}
-
-	conceptByID := make(map[string]curriculum.Concept)
-	objectiveExam := make(map[string]string)
-	for _, objective := range curriculumBundle.Objectives.Objectives {
-		if objective.Active {
-			objectiveExam[objective.ID] = objective.Exam
-		}
-	}
-	for _, concept := range curriculumBundle.Concepts.Concepts {
-		if concept.Active {
-			conceptByID[concept.ID] = concept
-		}
-	}
-	seen := make(map[string]int)
-	commandEvidence := make(map[string]int)
-	for _, authored := range labs {
-		if !strings.Contains(authored.Definition.ID, ".standalone-") {
-			continue
-		}
-		if len(authored.Definition.ConceptIDs) != 1 {
-			t.Fatalf("%s generated fallback spans %d concepts, want exactly 1", authored.Definition.ID, len(authored.Definition.ConceptIDs))
-		}
-		historyPath, _ := lab.StandaloneCommandHistoryPath(authored.Definition)
-		for _, conceptID := range authored.Definition.ConceptIDs {
-			concept := conceptByID[conceptID]
-			wantTerms := "TERMS=" + strings.Join(concept.AnchorTerms, ",")
-			foundStructuredEvidence := false
-			foundRuntimeCommand := false
-			for _, check := range authored.Definition.Checks {
-				if !slices.Contains(check.ConceptIDs, conceptID) {
-					continue
-				}
-				if check.Path == historyPath {
-					foundRuntimeCommand = true
-					continue
-				}
-				if check.Type == "file-content-regex" &&
-					strings.Contains(check.Pattern, regexp.QuoteMeta(wantTerms)) {
-					foundStructuredEvidence = true
-				}
-			}
-			if !foundStructuredEvidence {
-				t.Errorf("%s has no structured evidence check for %s anchors %v", authored.Definition.ID, conceptID, concept.AnchorTerms)
-			}
-			for _, anchor := range concept.AnchorTerms {
-				if !strings.Contains(authored.Definition.BriefFR, "`"+anchor+"`") {
-					t.Errorf("%s brief misses %s anchor %q", authored.Definition.ID, conceptID, anchor)
-				}
-			}
-			if foundRuntimeCommand {
-				commandEvidence[conceptID]++
-			}
-			seen[conceptID]++
-		}
-	}
-	for conceptID, concept := range conceptByID {
-		if seen[conceptID] < 2 {
-			t.Errorf("%s appears in %d generated standalone labs, want at least 2", conceptID, seen[conceptID])
-		}
-		if objectiveExam[concept.ObjectiveID] != "101" {
-			continue
-		}
-		hasCommandAnchor := false
-		for _, anchor := range concept.AnchorTerms {
-			switch anchor {
-			case "vi", "vim", "screen", "tmux", "shutdown", "init", "telinit",
-				"grub-install", "grub-mkconfig", "dpkg-reconfigure":
-				continue
-			}
-			usage := strings.TrimSpace(content.PedagogicalTermUsage(anchor))
-			if usage == anchor || strings.HasPrefix(usage, anchor+" ") || strings.HasPrefix(usage, anchor+" ;") {
-				hasCommandAnchor = true
-				break
-			}
-		}
-		if conceptID == "lpic1.103.1.set-env-et-portee-des-variables" {
-			// This exercise compares shell-local and exported state inside one
-			// persistent shell. The learner reflection is the evidence source;
-			// a separate one-shot command would run in another shell.
-			continue
-		}
-		if hasCommandAnchor && commandEvidence[conceptID] < 2 {
-			t.Errorf("%s runtime command-evidence contexts = %d, want at least 2", conceptID, commandEvidence[conceptID])
-		}
-	}
-}
-
-func TestGeneratedStandaloneCommandEvidenceRequiresCommandPosition(t *testing.T) {
-	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
-	if err != nil {
-		t.Fatalf("lab.LoadAll() error = %v", err)
+	if len(labs) != 70 {
+		t.Fatalf("loaded labs = %d, want 70 authored scenarios", len(labs))
 	}
 	for _, authored := range labs {
-		if !strings.HasPrefix(authored.Definition.ID, "lpic1.103.5.") || !strings.Contains(authored.Definition.ID, ".standalone-") {
-			continue
+		if strings.Contains(authored.Definition.ID, ".standalone-") {
+			t.Errorf("generated standalone lab is still loadable: %s", authored.Definition.ID)
 		}
-		historyPath, ok := lab.StandaloneCommandHistoryPath(authored.Definition)
-		if !ok {
-			continue
+		if authored.Definition.ReferenceSolutionRef == "" {
+			t.Errorf("%s is missing a reference solution", authored.Definition.ID)
 		}
-		for _, check := range authored.Definition.Checks {
-			if check.Path != historyPath || !slices.Contains(check.ConceptIDs, "lpic1.103.5.inspection-arbres-ressources") {
-				continue
-			}
-			re := regexp.MustCompile(check.Pattern)
-			if re.MatchString("EXIT=0\tCOMMAND=echo ps") {
-				t.Fatalf("%s accepts a mere textual mention of ps: %q", authored.Definition.ID, check.Pattern)
-			}
-			if !re.MatchString("EXIT=0\tCOMMAND=ps aux") {
-				t.Fatalf("%s rejects actual ps execution: %q", authored.Definition.ID, check.Pattern)
-			}
-			return
-		}
-	}
-	t.Fatal("no generated ps command-evidence check found")
-}
-
-func TestGeneratedStandaloneLabsStayConcreteAndConcise(t *testing.T) {
-	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
-	if err != nil {
-		t.Fatalf("LoadAll() error = %v", err)
-	}
-	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
-	if err != nil {
-		t.Fatalf("curriculum.Load() error = %v", err)
-	}
-
-	conceptByID := make(map[string]curriculum.Concept)
-	for _, concept := range curriculumBundle.Concepts.Concepts {
-		if concept.Active {
-			conceptByID[concept.ID] = concept
-		}
-	}
-
-	generated := 0
-	for _, authored := range labs {
-		if !strings.Contains(authored.Definition.ID, ".standalone-") {
-			continue
-		}
-		generated++
-		if len(authored.Definition.ConceptIDs) != 1 {
-			t.Fatalf("%s concept count = %d, want 1", authored.Definition.ID, len(authored.Definition.ConceptIDs))
-		}
-		concept := conceptByID[authored.Definition.ConceptIDs[0]]
-		brief := authored.Definition.BriefFR
-
-		for _, forbidden := range []string{
-			"pour montrer concrètement",
-			"Fais au moins une manipulation",
-			"Exercice spécifique indisponible",
-			"CONCEPT=",
-			"TERMS=",
-			"COMMAND=",
-			"OBSERVATION=",
-			"EXPLANATION=",
-			"lpic-daily-evidence",
-			"## Contexte de diagnostic",
-		} {
-			if strings.Contains(brief, forbidden) {
-				t.Errorf("%s contains generic/internal learner text %q", authored.Definition.ID, forbidden)
-			}
-		}
-		if strings.Contains(brief, "**") {
-			t.Errorf("%s still contains raw bold markdown in its brief", authored.Definition.ID)
-		}
-		if !strings.Contains(brief, "## À faire") || !strings.Contains(brief, "Quand tu as terminé, tape `:check`.") {
-			t.Errorf("%s does not use the compact learner format", authored.Definition.ID)
-		}
-		for _, anchor := range concept.AnchorTerms {
-			if !strings.Contains(brief, "`"+anchor+"`") {
-				t.Errorf("%s brief misses anchor %q", authored.Definition.ID, anchor)
-			}
-		}
-
-		if words := len(strings.Fields(brief)); words > 130 {
-			t.Errorf("%s brief = %d words, want <= 130", authored.Definition.ID, words)
-		}
-		if words := len(strings.Fields(authored.Definition.DebriefFR)); words > 80 {
-			t.Errorf("%s debrief = %d words, want <= 80", authored.Definition.ID, words)
-		}
-
-		for _, hint := range authored.Hints {
-			for _, forbidden := range []string{
-				"Fais une petite manipulation",
-				"Repars de la consigne",
-				"montre concrètement",
-				"CONCEPT=",
-				"TERMS=",
-			} {
-				if strings.Contains(hint.ContentFR, forbidden) {
-					t.Errorf("%s hint %d contains generic/internal text %q", authored.Definition.ID, hint.Level, forbidden)
-				}
-			}
-			if words := len(strings.Fields(hint.ContentFR)); words > 55 {
-				t.Errorf("%s hint %d = %d words, want <= 55", authored.Definition.ID, hint.Level, words)
-			}
-		}
-	}
-	if generated != 618 {
-		t.Fatalf("generated standalone labs = %d, want 618", generated)
 	}
 }
 

@@ -465,9 +465,7 @@ func recommendedLab(
 		}
 	}
 	if len(acceptedCandidates) > 0 {
-		// Once a concept has accepted scenario coverage, generated standalone
-		// fallbacks remain loadable for historical compatibility but disappear
-		// from normal scheduling.
+		// Prefer accepted scenarios when they exist.
 		candidates = acceptedCandidates
 	}
 	slices.SortFunc(candidates, func(a, b string) int {
@@ -492,9 +490,7 @@ func recommendedLab(
 		usedContexts[event.PracticeContext] = true
 	}
 
-	// Generated fallback labs intentionally remain guided evidence. Rotate to a
-	// second authored practice context after the first successful lab instead of
-	// waiting for independent mastery, which those labs can never claim.
+	// Prefer a distinct scenario context after an earlier successful attempt.
 	if stage < learning.StageIndependent && len(usedContexts) > 0 {
 		for _, labID := range candidates {
 			practiceContext := labContexts[labID]

@@ -1115,7 +1115,7 @@ func TestDashboardLabParentCanCheckFromEitherCommand(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	authored, err := findLab(labs, "lpic1.103.1.set-env-et-portee-des-variables.standalone-diagnostic")
+	authored, err := findLab(labs, "lpic1.103.1.environment-boundary-repair")
 	if err != nil {
 		t.Fatal(err)
 	}
