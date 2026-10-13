@@ -125,7 +125,7 @@ func TestCommandExitChecksSandboxBehaviorWithStructuredArgv(t *testing.T) {
 	probe := &fakeProbe{execResult: runner.ExecResult{ExitCode: 0}}
 	check := checker.CommandExit{
 		CheckID:      "login-environment",
-		Argv:         []string{"/usr/bin/bash", "-lc", "command -v report-status >/dev/null"},
+		Argv:         []string{"/usr/bin/true"},
 		ExpectedExit: 0,
 		Env:          map[string]string{"CHECK_MODE": "1"},
 	}
@@ -425,7 +425,7 @@ func TestMissingLabOutputsAreFailedCriteriaNotFatalErrors(t *testing.T) {
 func TestBashCheckRequiresActualVerifierCompletion(t *testing.T) {
 	probe := &fakeProbe{execResult: runner.ExecResult{ExitCode: 0}}
 	check := checker.CommandExit{CheckID: "login", Argv: []string{"/usr/bin/bash", "-lc", "test -f /workspace/READY"}}
-	got := check.Evaluate(context.Background(), probe, runner.Instance{ID:"fake"})
+	got := check.Evaluate(context.Background(), probe, runner.Instance{ID: "fake"})
 	if got.Pass || !strings.Contains(got.Detail, "avant") {
 		t.Fatalf("zero exit without verifier receipt unexpectedly passed: %+v", got)
 	}

@@ -9,7 +9,6 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
-	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -1579,7 +1578,7 @@ func runInteractiveLabWithBackend(
 			} else if result.Detail != "" && result.Detail != "exit=1, expected=0" {
 				detail = result.Detail
 			}
-			line := "  "+labStatusStyle(out, "31", "✗ "+description)
+			line := "  " + labStatusStyle(out, "31", "✗ "+description)
 			if detail != "" {
 				line += "\n      Détail : " + strings.Join(strings.Fields(detail), " ")
 			}

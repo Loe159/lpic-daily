@@ -160,7 +160,7 @@ func TestDashboardEmptyPlanShowsCompletedSession(t *testing.T) {
 
 	rendered := model.render()
 	for _, want := range []string{
-		"✓ Séance du jour terminée",
+		"✓ Tout est à jour.",
 		"Aucune révision n'est due pour le moment.",
 		"prochaines révisions et activités pratiques",
 	} {

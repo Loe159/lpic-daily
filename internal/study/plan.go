@@ -337,13 +337,20 @@ func schedulableScope(
 			return nil, nil, fmt.Errorf("active objective %s has no concepts", objectiveID)
 		}
 		complete := true
+		hasRealScenario := false
 		for _, conceptID := range conceptIDs {
-			if introductionCounts[conceptID] != 1 || !questions[conceptID] || !practical[conceptID] {
+			if introductionCounts[conceptID] != 1 || !questions[conceptID] {
 				complete = false
 				break
 			}
+			if practical[conceptID] {
+				hasRealScenario = true
+			}
 		}
-		if !complete {
+		// Do not fabricate fallback labs to make a partially migrated objective
+		// look complete. Allow theory/quiz progression once at least one real
+		// scenario exists; missing practical coverage remains explicit.
+		if !complete || !hasRealScenario {
 			continue
 		}
 		objectives = append(objectives, objectiveID)

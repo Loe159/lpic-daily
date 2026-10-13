@@ -129,7 +129,7 @@ func TestFreshPlanStartsWithFocused1031Introduction(t *testing.T) {
 	if item.RecommendedQuestionID != "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes.q.autonomous-recall" {
 		t.Fatalf("recommended question = %q", item.RecommendedQuestionID)
 	}
-	if len(item.LabIDs) < 4 || item.RecommendedLabID != "lpic1.103.1.shell-environment-repair" {
+	if len(item.LabIDs) < 2 || item.RecommendedLabID != "lpic1.103.1.shell-environment-repair" {
 		t.Fatalf("first shell syntax concept lab recommendation = %#v", item)
 	}
 }

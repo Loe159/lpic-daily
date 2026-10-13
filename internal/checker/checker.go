@@ -2,9 +2,9 @@ package checker
 
 import (
 	"context"
+	"bytes"
 	"crypto/rand"
 	"encoding/hex"
-	"bytes"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -266,7 +266,9 @@ func (check CommandExit) Evaluate(ctx context.Context, probe Probe, instance run
 
 // Retain only a short suffix: shell output may be unbounded but the verifier
 // receipt is always the final line. Avoid caching untrusted output in memory.
-type checkOutputTail struct { data []byte }
+type checkOutputTail struct {
+	data []byte
+}
 
 func (tail *checkOutputTail) Write(p []byte) (int, error) {
 	n := len(p)
