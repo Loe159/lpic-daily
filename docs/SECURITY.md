@@ -77,3 +77,9 @@ Run on a Linux machine with rootless Podman:
 ```
 
 Set `LPIC_DAILY_SKIP_IMAGE_BUILD=1` only when `localhost/lpic-daily/fedora-phase1:1` is already present locally. The supported CI workflow executes the real rootless Podman conformance/host-safety suite on Ubuntu and Fedora jobs; local runs remain available through the same script.
+
+## Integrity of learning evidence (2026-10)
+
+Lab definitions must distinguish **state** (a file, permission, mount or service) from **behavior** (an executed program, signal, reboot or notification). Learner-writable output or logs must never be treated as unforgeable proof that an action occurred. Use fresh behavioral checks or a host-owned event receipt for action-based objectives. The VM reboot checker uses a host-side receipt, and Podman shell command checks require a randomized completion marker appended outside the learner-controlled startup script. Neither measure attests to every command typed by the learner.
+
+Never restore generated standalone labs that grade self-authored reflections or mutable command-history files. Coverage gaps are explicit and cannot unlock independent practical mastery. Remaining guest-written signal, notification and shutdown markers must be reviewed as **weak evidence** until independently observed by the host; do not describe them as tamper-proof.
