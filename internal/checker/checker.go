@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/fs"
 	"regexp"
 	"slices"
 	"strings"
@@ -42,8 +43,11 @@ func (check FileExists) ID() string {
 
 func (check FileExists) Evaluate(ctx context.Context, probe Probe, instance runner.Instance) Result {
 	_, err := probe.Stat(ctx, instance, check.Path)
+	if errors.Is(err, fs.ErrNotExist) {
+		return Result{CheckID: check.ID(), Detail: "Le fichier demandé n'existe pas encore."}
+	}
 	if err != nil {
-		return Result{CheckID: check.ID(), Pass: false, Detail: "path missing or inaccessible", Err: err}
+		return Result{CheckID: check.ID(), Err: err}
 	}
 	return Result{CheckID: check.ID(), Pass: true, Detail: "path exists"}
 }
@@ -60,6 +64,9 @@ func (check FileMode) ID() string {
 
 func (check FileMode) Evaluate(ctx context.Context, probe Probe, instance runner.Instance) Result {
 	info, err := probe.Stat(ctx, instance, check.Path)
+	if errors.Is(err, fs.ErrNotExist) {
+		return Result{CheckID: check.ID(), Detail: "Le fichier demandé n'existe pas encore."}
+	}
 	if err != nil {
 		return Result{CheckID: check.ID(), Err: err}
 	}
@@ -88,6 +95,9 @@ func (check FileOwner) ID() string {
 
 func (check FileOwner) Evaluate(ctx context.Context, probe Probe, instance runner.Instance) Result {
 	info, err := probe.Stat(ctx, instance, check.Path)
+	if errors.Is(err, fs.ErrNotExist) {
+		return Result{CheckID: check.ID(), Detail: "Le fichier demandé n'existe pas encore."}
+	}
 	if err != nil {
 		return Result{CheckID: check.ID(), Err: err}
 	}
@@ -122,6 +132,9 @@ func (check FileContentRegex) Evaluate(ctx context.Context, probe Probe, instanc
 		limit = 1 << 20
 	}
 	content, err := probe.ReadFile(ctx, instance, check.Path, limit)
+	if errors.Is(err, fs.ErrNotExist) {
+		return Result{CheckID: check.ID(), Detail: "Le fichier demandé n'existe pas encore."}
+	}
 	if err != nil {
 		return Result{CheckID: check.ID(), Err: err}
 	}
