@@ -95,7 +95,7 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 		projections[conceptID] = projection
 	}
 
-	readiness := completeObjectiveReadiness(input.Curriculum, scopeConcepts, evidenceByConcept, input.Labs)
+	readiness := completeObjectiveReadiness(input.Curriculum, scopeConcepts, evidenceByConcept)
 	activeScopeObjectives := examProgressionScope(input.Curriculum, scopeObjectives, readiness)
 
 	session, err := learning.BuildSession(learning.SessionInput{
@@ -218,17 +218,7 @@ func completeObjectiveReadiness(
 	bundle *curriculum.Bundle,
 	scopeConcepts map[string]struct{},
 	evidenceByConcept map[string][]learning.EvidenceEvent,
-	labs []lab.Lab,
 ) map[string]bool {
-	availablePractice := make(map[string]bool)
-	for _, authored := range labs {
-		if slices.Contains(authored.Definition.Labels, "scenario-implemented") {
-			continue
-		}
-		for _, conceptID := range authored.Definition.ConceptIDs {
-			availablePractice[conceptID] = true
-		}
-	}
 	total := make(map[string]int)
 	complete := make(map[string]int)
 	for _, concept := range bundle.Concepts.Concepts {
@@ -253,9 +243,7 @@ func completeObjectiveReadiness(
 				practical = true
 			}
 		}
-		// An objective with no authored practical scenario for a concept may
-		// advance after theory/quiz, without inventing proof of a missing lab.
-		if lesson && question && (practical || !availablePractice[concept.ID]) {
+		if lesson && question && practical {
 			complete[concept.ObjectiveID]++
 		}
 	}
@@ -349,20 +337,14 @@ func schedulableScope(
 			return nil, nil, fmt.Errorf("active objective %s has no concepts", objectiveID)
 		}
 		complete := true
-		hasRealScenario := false
 		for _, conceptID := range conceptIDs {
-			if introductionCounts[conceptID] != 1 || !questions[conceptID] {
+			if introductionCounts[conceptID] != 1 || !questions[conceptID] || !practical[conceptID] {
 				complete = false
 				break
 			}
-			if practical[conceptID] {
-				hasRealScenario = true
-			}
 		}
-		// Do not fabricate fallback labs to make a partially migrated objective
-		// look complete. Allow theory/quiz progression once at least one real
-		// scenario exists; missing practical coverage remains explicit.
-		if !complete || !hasRealScenario {
+		// Do not pretend partially migrated objectives have practical coverage.
+		if !complete {
 			continue
 		}
 		objectives = append(objectives, objectiveID)
