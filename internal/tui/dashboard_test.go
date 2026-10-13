@@ -37,7 +37,7 @@ func TestDashboardRenderSanitizesPlanText(t *testing.T) {
 	if strings.ContainsRune(rendered, '\x1b') || strings.ContainsRune(rendered, '\r') || strings.ContainsRune(rendered, '\x07') {
 		t.Fatalf("render contains control sequence: %q", rendered)
 	}
-	if !strings.Contains(rendered, "Maîtrise: unseen") {
+	if !strings.Contains(rendered, "Maîtrise: À découvrir") {
 		t.Fatalf("render lost mastery stage label: %q", rendered)
 	}
 }
@@ -150,7 +150,7 @@ func TestPracticeDefaultsToQuestion(t *testing.T) {
 	if !quit || model.action != (Action{Kind: ActionQuestion, ID: "question.first"}) {
 		t.Fatalf("action = %#v quit=%v", model.action, quit)
 	}
-	if !strings.Contains(model.render(), "Consolidation") {
+	if !strings.Contains(model.render(), "CONSOLIDATION") {
 		t.Fatalf("render = %q", model.render())
 	}
 }

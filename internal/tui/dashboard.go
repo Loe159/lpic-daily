@@ -32,26 +32,20 @@ type Dashboard struct {
 	cursor int
 	width  int
 	height int
+	color  bool
 	action Action
 }
 
 func NewDashboard(plan study.Plan, game gamification.Snapshot) Dashboard {
-	return Dashboard{
-		plan:  plan,
-		game:  game,
-		width: 80,
-	}
+	return Dashboard{plan: plan, game: game, width: 80}
 }
 
-func (model Dashboard) Init() tea.Cmd {
-	return nil
-}
+func (model Dashboard) Init() tea.Cmd { return nil }
 
 func (model Dashboard) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 	switch message := message.(type) {
 	case tea.WindowSizeMsg:
-		model.width = message.Width
-		model.height = message.Height
+		model.width, model.height = message.Width, message.Height
 		return model, nil
 	case tea.KeyPressMsg:
 		next, quit := model.updateKey(message.String())
@@ -64,13 +58,9 @@ func (model Dashboard) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 	}
 }
 
-func (model Dashboard) View() tea.View {
-	return tea.NewView(model.render())
-}
+func (model Dashboard) View() tea.View { return tea.NewView(model.renderWithColor(model.color)) }
 
-func (model Dashboard) ChosenAction() Action {
-	return model.action
-}
+func (model Dashboard) ChosenAction() Action { return model.action }
 
 func (model Dashboard) updateKey(key string) (Dashboard, bool) {
 	switch key {
@@ -141,74 +131,155 @@ func defaultAction(item *study.Item) Action {
 	return Action{}
 }
 
-func (model Dashboard) render() string {
+func kindLabel(kind learning.SessionItemKind) string {
+	switch kind {
+	case learning.SessionReview:
+		return "RÉVISION"
+	case learning.SessionPractice:
+		return "CONSOLIDATION"
+	default:
+		return "NOUVEAU"
+	}
+}
+
+func masteryLabel(stage learning.MasteryStage) string {
+	switch stage {
+	case learning.StageUnseen:
+		return "À découvrir"
+	case learning.StageExposed:
+		return "Découverte"
+	case learning.StageRecall:
+		return "À mémoriser"
+	case learning.StageGuided:
+		return "Avec aide"
+	case learning.StageIndependent:
+		return "Autonome"
+	case learning.StageTransfer:
+		return "Maîtrisé"
+	default:
+		return "Non évalué"
+	}
+}
+
+func actionLabel(action Action) string {
+	switch action.Kind {
+	case ActionLesson:
+		return "Cours"
+	case ActionQuestion:
+		return "Question"
+	case ActionLab:
+		return "Lab"
+	default:
+		return "Aucune activité"
+	}
+}
+
+func (model Dashboard) render() string { return model.renderWithColor(false) }
+
+func (model Dashboard) renderWithColor(colored bool) string {
 	width := model.width
-	if width < 40 {
-		width = 40
+	if width < 36 {
+		width = 36
 	}
 
 	var output strings.Builder
-	output.WriteString("LPIC Daily · Aujourd'hui\n")
-	output.WriteString(clip(
-		fmt.Sprintf(
-			"XP %d · série %d jour(s) · achievements %d",
-			model.game.XP,
-			model.game.CurrentStreakDays,
-			len(model.game.UnlockedAchievements),
-		),
-		width,
-	))
+	output.WriteString(Paint(colored, ToneAccent, "LPIC DAILY  /  AUJOURD'HUI"))
+	output.WriteByte('\n')
+	stats := fmt.Sprintf("%d XP   ·   série %d j   ·   %d badge(s)", model.game.XP, model.game.CurrentStreakDays, len(model.game.UnlockedAchievements))
+	output.WriteString(Paint(colored, ToneMuted, clip(stats, width)))
 	output.WriteString("\n")
-	output.WriteString(strings.Repeat("─", min(width, 72)))
-	output.WriteString("\n")
+	output.WriteString(Paint(colored, ToneMuted, strings.Repeat("─", min(width, 64))))
+	output.WriteByte('\n')
 
 	if len(model.plan.Items) == 0 {
-		output.WriteString("\n✓ Séance du jour terminée\n")
+		output.WriteString("\n")
+		output.WriteString(Paint(colored, ToneSuccess, "✓ Séance du jour terminée"))
+		output.WriteString("\n")
 		output.WriteString("Aucune révision n'est due pour le moment.\n")
-		output.WriteString("LPIC Daily te proposera automatiquement les prochaines révisions et activités pratiques lorsqu'elles seront dues.\n")
+		output.WriteString("Les prochaines révisions et activités pratiques seront proposées à leur échéance.\n")
 		output.WriteString("\nq quitter\n")
 		return output.String()
 	}
 
-	for index, item := range model.plan.Items {
+	output.WriteString(Paint(colored, ToneTitle, fmt.Sprintf("\nÀ FAIRE  ·  %d activité(s)\n\n", len(model.plan.Items))))
+	compact := model.height > 0 && model.height < 18
+	maxRows := len(model.plan.Items)
+	if model.height > 0 {
+		reserved := 14
+		if compact {
+			reserved = 9
+		}
+		maxRows = min(maxRows, max(2, model.height-reserved))
+	}
+	start := 0
+	if model.cursor >= maxRows {
+		start = model.cursor - maxRows + 1
+	}
+	if start > 0 {
+		output.WriteString(Paint(colored, ToneMuted, "  ↑ autres activités"))
+		output.WriteByte('\n')
+	}
+	for index := start; index < min(len(model.plan.Items), start+maxRows); index++ {
+		item := model.plan.Items[index]
 		prefix := "  "
 		if index == model.cursor {
-			prefix = "> "
+			prefix = "▸ "
 		}
-		kind := "Nouveau"
-		switch item.Kind {
-		case learning.SessionReview:
-			kind = "Révision"
-		case learning.SessionPractice:
-			kind = "Consolidation"
-		}
-
-		title := singleLine(item.ConceptTitleFR)
-		line := fmt.Sprintf("%s%d. %s · %s · %s", prefix, index+1, kind, singleLine(item.ObjectiveID), title)
-		output.WriteString(clip(line, width))
-		output.WriteString("\n")
-
+		line := fmt.Sprintf("%s%2d  %-13s %s  %s", prefix, index+1, kindLabel(item.Kind), singleLine(item.ObjectiveID), singleLine(item.ConceptTitleFR))
+		line = clip(line, width)
 		if index == model.cursor {
-			output.WriteString(clip(fmt.Sprintf("   Maîtrise: %s", singleLine(item.MasteryStage.String())), width))
-			output.WriteString("\n")
-			output.WriteString(clip("   "+singleLine(item.ReasonFR), width))
-			output.WriteString("\n")
-			if item.RecommendedLessonID != "" {
-				output.WriteString(clip("   [l] Cours: "+singleLine(item.RecommendedLessonID), width))
-				output.WriteString("\n")
-			}
-			if item.RecommendedQuestionID != "" {
-				output.WriteString(clip("   [a] Question: "+singleLine(item.RecommendedQuestionID), width))
-				output.WriteString("\n")
-			}
-			if item.RecommendedLabID != "" {
-				output.WriteString(clip("   [p] Lab: "+singleLine(item.RecommendedLabID), width))
-				output.WriteString("\n")
-			}
+			line = Paint(colored, ToneAccent, line)
+		}
+		output.WriteString(line)
+		output.WriteByte('\n')
+	}
+	if start+maxRows < len(model.plan.Items) {
+		output.WriteString(Paint(colored, ToneMuted, "  ↓ autres activités"))
+		output.WriteByte('\n')
+	}
+	item := model.currentItem()
+	if compact {
+		if item != nil {
+			output.WriteString("\n" + Paint(colored, ToneSuccess, "Entrée  →  "+actionLabel(defaultAction(item))) + "\n")
+		}
+		output.WriteString(Paint(colored, ToneMuted, clip("↑↓ naviguer   ·   Entrée lancer   ·   q quitter", width)))
+		output.WriteByte('\n')
+		return output.String()
+	}
+	if item != nil {
+		output.WriteString("\n")
+		output.WriteString(Paint(colored, ToneMuted, strings.Repeat("─", min(width, 64))))
+		output.WriteString("\n")
+		title := clip("SÉLECTION  ·  "+singleLine(item.ConceptTitleFR), width)
+		output.WriteString(Paint(colored, ToneTitle, title))
+		output.WriteByte('\n')
+		output.WriteString(clip("Maîtrise: "+masteryLabel(item.MasteryStage), width))
+		output.WriteByte('\n')
+		if reason := singleLine(item.ReasonFR); reason != "" && (model.height == 0 || model.height > 15) {
+			output.WriteString(Paint(colored, ToneMuted, clip("Pourquoi : "+reason, width)))
+			output.WriteByte('\n')
+		}
+		recommended := actionLabel(defaultAction(item))
+		output.WriteString(Paint(colored, ToneSuccess, "Entrée  →  "+recommended))
+		output.WriteByte('\n')
+		var alternatives []string
+		if item.RecommendedLessonID != "" {
+			alternatives = append(alternatives, "[l] cours")
+		}
+		if item.RecommendedQuestionID != "" {
+			alternatives = append(alternatives, "[a] question")
+		}
+		if item.RecommendedLabID != "" {
+			alternatives = append(alternatives, "[p] lab")
+		}
+		if len(alternatives) > 0 {
+			output.WriteString(Paint(colored, ToneMuted, clip(strings.Join(alternatives, "  ·  "), width)))
+			output.WriteByte('\n')
 		}
 	}
-
-	output.WriteString("\n↑/↓ ou j/k naviguer · Entrée lancer · l cours · a question · p pratique · q quitter\n")
+	output.WriteString("\n")
+	output.WriteString(Paint(colored, ToneMuted, clip("↑↓ naviguer   ·   Entrée lancer   ·   q quitter", width)))
+	output.WriteByte('\n')
 	return output.String()
 }
 

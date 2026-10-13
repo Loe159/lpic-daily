@@ -17,8 +17,10 @@ func Run(
 	input io.Reader,
 	output io.Writer,
 ) (Action, error) {
+	model := NewDashboard(plan, game)
+	model.color = ColorEnabled(output)
 	program := tea.NewProgram(
-		NewDashboard(plan, game),
+		model,
 		tea.WithContext(ctx),
 		tea.WithInput(input),
 		tea.WithOutput(output),
