@@ -233,6 +233,11 @@ func (lab Lab) CompileChecks() ([]checker.Check, error) {
 				BatchID:        item.BatchID,
 				FailureBit:     item.FailureBit,
 			})
+		case "host-reboot-observed":
+			if lab.Definition.Environment.Backend != "libvirt" {
+				return nil, fmt.Errorf("%s: host reboot evidence requires libvirt", id)
+			}
+			checks = append(checks, checker.HostRebootObserved{CheckID: id})
 		case "acpi-button-sent":
 			if lab.Definition.Environment.Backend != "libvirt" {
 				return nil, fmt.Errorf("%s: host ACPI evidence requires libvirt", id)

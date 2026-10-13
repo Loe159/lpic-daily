@@ -24,6 +24,7 @@ var domainSlugUnsafe = regexp.MustCompile(`[^a-z0-9.-]+`)
 var (
 	_ runner.ConsoleRunner         = (*Backend)(nil)
 	_ runner.RebootRunner          = (*Backend)(nil)
+	_ runner.RebootEventProbe      = (*Backend)(nil)
 	_ runner.ACPIButtonRunner      = (*Backend)(nil)
 	_ runner.ACPIEventProbe        = (*Backend)(nil)
 	_ runner.UEFIBootOrderBaseline = (*Backend)(nil)
@@ -54,6 +55,7 @@ type managedInstance struct {
 	FilterName            string
 	FilterDefined         bool
 	ACPIButtonSent        bool
+	HostRebootObserved    bool
 	UEFIExpectedBootOrder string
 }
 
@@ -737,6 +739,16 @@ func (backend *Backend) Reboot(ctx context.Context, instance runner.Instance) er
 	for {
 		bootID, probeErr := backend.guestBootID(waitCtx, instance)
 		if probeErr == nil && bootID != beforeBootID {
+			backend.mu.Lock()
+			managed, exists := backend.instances[instance.ID]
+			if exists {
+				managed.HostRebootObserved = true
+				backend.instances[instance.ID] = managed
+			}
+			backend.mu.Unlock()
+			if !exists {
+				return fmt.Errorf("%w %q after reboot", errUnknownVMInstance, instance.ID)
+			}
 			return nil
 		}
 		if probeErr != nil {
@@ -752,6 +764,24 @@ func (backend *Backend) Reboot(ctx context.Context, instance runner.Instance) er
 		case <-ticker.C:
 		}
 	}
+}
+
+// RebootObserved reads only the host's per-instance receipt, never a guest
+// marker or editable baseline. It resets when the managed instance is removed.
+func (backend *Backend) RebootObserved(ctx context.Context, instance runner.Instance) (bool, error) {
+	if err := ctx.Err(); err != nil {
+		return false, err
+	}
+	if _, err := backend.instance(instance); err != nil {
+		return false, err
+	}
+	backend.mu.RLock()
+	managed, exists := backend.instances[instance.ID]
+	backend.mu.RUnlock()
+	if !exists {
+		return false, fmt.Errorf("%w %q", errUnknownVMInstance, instance.ID)
+	}
+	return managed.HostRebootObserved, nil
 }
 
 func (backend *Backend) guestBootID(ctx context.Context, instance runner.Instance) (string, error) {

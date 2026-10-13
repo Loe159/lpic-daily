@@ -433,3 +433,26 @@ func TestBashCheckRequiresActualVerifierCompletion(t *testing.T) {
 		t.Fatalf("check script has no randomized completion receipt: %v", probe.lastRequest.Argv)
 	}
 }
+
+type fakeRebootEvidenceProbe struct {
+	fakeProbe
+	observed bool
+}
+
+func (probe *fakeRebootEvidenceProbe) RebootObserved(_ context.Context, _ runner.Instance) (bool, error) {
+	return probe.observed, nil
+}
+
+func TestRebootEvidenceMustOriginateFromHost(t *testing.T) {
+	check := checker.HostRebootObserved{CheckID: "reboot"}
+	instance := runner.Instance{ID: "fake"}
+	if got := check.Evaluate(context.Background(), &fakeProbe{}, instance); got.Pass || !errors.Is(got.Err, runner.ErrNotSupported) {
+		t.Fatalf("host proof missing: %+v", got)
+	}
+	if got := check.Evaluate(context.Background(), &fakeRebootEvidenceProbe{}, instance); got.Pass {
+		t.Fatalf("host proof not observed: %+v", got)
+	}
+	if got := check.Evaluate(context.Background(), &fakeRebootEvidenceProbe{observed: true}, instance); !got.Pass {
+		t.Fatalf("host proof present: %+v", got)
+	}
+}

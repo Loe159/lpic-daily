@@ -310,6 +310,29 @@ func guardBashCheckCompletion(argv []string) ([]string, string, error) {
 	return args, completion, nil
 }
 
+// HostRebootObserved prevents a learner from simulating a reboot by
+// overwriting initial-boot-id or dropping a guessed clean-exit marker.
+type HostRebootObserved struct {
+	CheckID string
+}
+
+func (check HostRebootObserved) ID() string { return check.CheckID }
+
+func (check HostRebootObserved) Evaluate(ctx context.Context, probe Probe, instance runner.Instance) Result {
+	host, ok := probe.(runner.RebootEventProbe)
+	if !ok {
+		return Result{CheckID: check.ID(), Err: fmt.Errorf("%w: host reboot evidence unavailable", runner.ErrNotSupported)}
+	}
+	observed, err := host.RebootObserved(ctx, instance)
+	if err != nil {
+		return Result{CheckID: check.ID(), Err: err}
+	}
+	if !observed {
+		return Result{CheckID: check.ID(), Detail: "aucun vrai redémarrage de VM observé depuis le terminal parent"}
+	}
+	return Result{CheckID: check.ID(), Pass: true, Detail: "host-confirmed VM reboot"}
+}
+
 // ACPIButtonSent requires proof outside the guest that libvirt dispatched
 // the ACPI event. It complements (but does not replace) guest journal checks.
 type ACPIButtonSent struct{ CheckID string }

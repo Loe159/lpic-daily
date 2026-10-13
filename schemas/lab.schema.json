@@ -593,6 +593,26 @@
                 "minLength": 8
               }
             }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "type",
+              "concept_ids"
+            ],
+            "properties": {
+              "type": {
+                "const": "host-reboot-observed"
+              },
+              "concept_ids": {
+                "$ref": "common.schema.json#/$defs/conceptIds"
+              },
+              "description_fr": {
+                "type": "string",
+                "minLength": 8
+              }
+            }
           }
         ]
       }
