@@ -146,70 +146,66 @@ func (model Dashboard) render() string {
 	if width < 40 {
 		width = 40
 	}
-
-	var output strings.Builder
-	output.WriteString("LPIC Daily · Aujourd'hui\n")
-	output.WriteString(clip(
-		fmt.Sprintf(
-			"XP %d · série %d jour(s) · achievements %d",
-			model.game.XP,
-			model.game.CurrentStreakDays,
-			len(model.game.UnlockedAchievements),
-		),
-		width,
-	))
-	output.WriteString("\n")
-	output.WriteString(strings.Repeat("─", min(width, 72)))
-	output.WriteString("\n")
+	if width > 90 {
+		width = 90
+	}
+	var out strings.Builder
+	out.WriteString("LPIC DAILY  /  Ma séance\n")
+	out.WriteString(fmt.Sprintf("%d XP  ·  %d jours de série  ·  %d succès\n",
+		model.game.XP, model.game.CurrentStreakDays, len(model.game.UnlockedAchievements)))
+	out.WriteString(strings.Repeat("─", width))
+	out.WriteString("\n")
 
 	if len(model.plan.Items) == 0 {
-		output.WriteString("\n✓ Séance du jour terminée\n")
-		output.WriteString("Aucune révision n'est due pour le moment.\n")
-		output.WriteString("LPIC Daily te proposera automatiquement les prochaines révisions et activités pratiques lorsqu'elles seront dues.\n")
-		output.WriteString("\nq quitter\n")
-		return output.String()
+		out.WriteString("\n✓ Tout est à jour. Aucune activité prévue.\n\n[q] Quitter\n")
+		return out.String()
 	}
-
+	out.WriteString(fmt.Sprintf("\nAUJOURD'HUI  ·  %d activités\n\n", len(model.plan.Items)))
 	for index, item := range model.plan.Items {
 		prefix := "  "
 		if index == model.cursor {
-			prefix = "> "
+			prefix = "▸ "
 		}
-		kind := "Nouveau"
+		kind := "Cours"
 		switch item.Kind {
 		case learning.SessionReview:
 			kind = "Révision"
 		case learning.SessionPractice:
-			kind = "Consolidation"
+			kind = "Pratique"
 		}
-
-		title := singleLine(item.ConceptTitleFR)
-		line := fmt.Sprintf("%s%d. %s · %s · %s", prefix, index+1, kind, singleLine(item.ObjectiveID), title)
-		output.WriteString(clip(line, width))
-		output.WriteString("\n")
-
-		if index == model.cursor {
-			output.WriteString(clip(fmt.Sprintf("   Maîtrise: %s", singleLine(item.MasteryStage.String())), width))
-			output.WriteString("\n")
-			output.WriteString(clip("   "+singleLine(item.ReasonFR), width))
-			output.WriteString("\n")
-			if item.RecommendedLessonID != "" {
-				output.WriteString(clip("   [l] Cours: "+singleLine(item.RecommendedLessonID), width))
-				output.WriteString("\n")
-			}
-			if item.RecommendedQuestionID != "" {
-				output.WriteString(clip("   [a] Question: "+singleLine(item.RecommendedQuestionID), width))
-				output.WriteString("\n")
-			}
-			if item.RecommendedLabID != "" {
-				output.WriteString(clip("   [p] Lab: "+singleLine(item.RecommendedLabID), width))
-				output.WriteString("\n")
-			}
+		label := fmt.Sprintf("%s%d  %-9s %s  %s", prefix, index+1, kind,
+			singleLine(item.ObjectiveID), singleLine(item.ConceptTitleFR))
+		out.WriteString(clip(label, width))
+		out.WriteString("\n")
+	}
+	item := model.currentItem()
+	if item != nil {
+		out.WriteString("\n")
+		out.WriteString(strings.Repeat("─", width))
+		out.WriteString("\nSÉLECTION  ·  ")
+		out.WriteString(clip(singleLine(item.ConceptTitleFR), width-14))
+		out.WriteString("\n")
+		out.WriteString("Maîtrise : " + singleLine(item.MasteryStage.String()) + "\n")
+		if reason := singleLine(item.ReasonFR); reason != "" {
+			out.WriteString(clip("Pourquoi : "+reason, width))
+			out.WriteString("\n")
+		}
+		var choices []string
+		if item.RecommendedLessonID != "" {
+			choices = append(choices, "[l] Cours")
+		}
+		if item.RecommendedQuestionID != "" {
+			choices = append(choices, "[a] Quiz")
+		}
+		if item.RecommendedLabID != "" {
+			choices = append(choices, "[p] Lab")
+		}
+		if len(choices) > 0 {
+			out.WriteString("Activités : " + strings.Join(choices, "   ") + "\n")
 		}
 	}
-
-	output.WriteString("\n↑/↓ ou j/k naviguer · Entrée lancer · l cours · a question · p pratique · q quitter\n")
-	return output.String()
+	out.WriteString("\n↑↓ Naviguer   Entrée Commencer   q Quitter\n")
+	return out.String()
 }
 
 func SanitizeText(value string) string {
