@@ -17,4 +17,5 @@ HOME=/run/lpic USER=root /usr/bin/bash --noprofile --norc -c '
   echo "$USER:$PWD"
   history -s '\''echo "$USER:$PWD"'\''
   history -w
+  HISTFILE=/dev/null
 '
