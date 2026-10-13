@@ -1403,3 +1403,26 @@ func TestEnvironmentLabStartsInstrumentedPersistentShell(t *testing.T) {
 		t.Fatalf("unrelated shell argv unexpectedly changed: %v", got)
 	}
 }
+
+func TestLabWrapDoesNotTruncateDescription(t *testing.T) {
+	description := "Un outil approuvé doit être exécuté depuis son chemin absolu sans changer la politique PATH du système."
+	got := labWrap(description, 34)
+	for _, word := range strings.Fields(description) {
+		if !strings.Contains(got, word) {
+			t.Fatalf("missing %q in wrapped mission: %q", word, got)
+		}
+	}
+	for _, line := range strings.Split(got, "\n") {
+		if len([]rune(line)) > 34 {
+			t.Fatalf("line exceeds width: %q", line)
+		}
+	}
+}
+
+func TestLabPaintCheckWithoutTerminalRemainsPlain(t *testing.T) {
+	var out bytes.Buffer
+	content := "RÉSULTAT  ·  2/3 OK\nÀ CORRIGER\n  ✗ Fichier absent"
+	if got := labPaintCheck(&out, content); got != content {
+		t.Fatalf("non-TTY output mutated: %q", got)
+	}
+}
