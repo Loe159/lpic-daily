@@ -17,7 +17,8 @@ Mode **Operate** : l'utilisateur doit comprendre ce qu'il doit faire, agir dans 
 |---|---|---|
 | Navigation et section | MISSION, RÉUSSITE, curseur ▸ | Cyan gras |
 | Action réussie | OK, bilan complet | Vert gras |
-| Intervention requise | À CORRIGER, bilan incomplet | Jaune gras |
+| Intervention requise | À CORRIGER, bilan incomplet | Rouge gras |
+| Avertissement | Vérification interrompue | Jaune gras |
 | Métadonnées et aide | Textes secondaires, détails techniques | Atténué |
 | Informations principales | Titre / libellés | Gras ou couleur par défaut |
 

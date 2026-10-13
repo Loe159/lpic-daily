@@ -17,6 +17,7 @@ const (
 	ToneAccent  Tone = "accent"
 	ToneSuccess Tone = "success"
 	ToneWarning Tone = "warning"
+	ToneError   Tone = "error"
 	ToneMuted   Tone = "muted"
 	ToneTitle   Tone = "title"
 )
@@ -41,6 +42,8 @@ func Paint(enabled bool, tone Tone, value string) string {
 		code = "1;32"
 	case ToneWarning:
 		code = "1;33"
+	case ToneError:
+		code = "1;31"
 	case ToneMuted:
 		code = "2"
 	case ToneTitle:
@@ -139,7 +142,7 @@ func PrintCheckResults(out io.Writer, checks []CheckPresentation) {
 	}
 	summaryTone := ToneSuccess
 	if passed < total {
-		summaryTone = ToneWarning
+		summaryTone = ToneError
 	}
 	fmt.Fprintln(out)
 	fmt.Fprintln(out, Paint(color, summaryTone, fmt.Sprintf("BILAN  %d/%d OK  ·  %d à corriger", passed, total, total-passed)))
@@ -147,7 +150,7 @@ func PrintCheckResults(out io.Writer, checks []CheckPresentation) {
 		if check.Passed {
 			continue
 		}
-		fmt.Fprintln(out, Paint(color, ToneWarning, "  À CORRIGER")+"  "+WrapParagraph(singleLine(check.Label), TerminalWidth(out)-15, "             "))
+		fmt.Fprintln(out, Paint(color, ToneError, "  À CORRIGER")+"  "+WrapParagraph(singleLine(check.Label), TerminalWidth(out)-15, "             "))
 		if check.Diagnostic != "" {
 			fmt.Fprintln(out, Paint(color, ToneMuted, "     ↳ "+WrapParagraph(singleLine(check.Diagnostic), TerminalWidth(out)-8, "       ")))
 		}
@@ -177,7 +180,9 @@ func PrintCheckOutput(out io.Writer, report string) {
 		line := strings.TrimSuffix(raw, "\n")
 		tone := ToneMuted
 		switch {
-		case strings.Contains(line, "À CORRIGER"), strings.Contains(line, "à corriger"), strings.Contains(line, "interrompue"):
+		case strings.Contains(line, "À CORRIGER"), strings.Contains(line, "à corriger"):
+			tone = ToneError
+		case strings.Contains(line, "interrompue"):
 			tone = ToneWarning
 		case strings.HasPrefix(line, "  OK"), strings.Contains(line, "BILAN  "), strings.Contains(line, "Lab réussi"):
 			tone = ToneSuccess

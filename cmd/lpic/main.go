@@ -1505,7 +1505,7 @@ func runInteractiveLabWithBackend(
 				}
 			}
 		}
-		fmt.Fprintf(out, "Vérification de %d critères...\n", len(authored.Definition.Checks))
+		fmt.Fprintf(out, "Vérification de %d critères système...\n", len(authored.Definition.Checks))
 		checkCtx, cancelCheck := context.WithTimeout(sessionCtx, checkTimeout)
 		results, err := session.Evaluate(checkCtx)
 		cancelCheck()
