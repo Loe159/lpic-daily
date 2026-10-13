@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"slices"
 	"strings"
 	"testing"
@@ -32,7 +33,7 @@ func (probe *fakeProbe) Exec(_ context.Context, _ runner.Instance, request runne
 func (probe *fakeProbe) Stat(_ context.Context, _ runner.Instance, path string) (runner.FileInfo, error) {
 	info, exists := probe.files[path]
 	if !exists {
-		return runner.FileInfo{}, errors.New("not found")
+		return runner.FileInfo{}, os.ErrNotExist
 	}
 	return info, nil
 }
@@ -40,7 +41,7 @@ func (probe *fakeProbe) Stat(_ context.Context, _ runner.Instance, path string) 
 func (probe *fakeProbe) ReadFile(_ context.Context, _ runner.Instance, path string, max int64) ([]byte, error) {
 	content, exists := probe.contents[path]
 	if !exists {
-		return nil, errors.New("not found")
+		return nil, os.ErrNotExist
 	}
 	if int64(len(content)) > max {
 		return nil, errors.New("content exceeds limit")
@@ -397,5 +398,24 @@ func TestCommandExitWithoutExplicitTimeoutHasBoundedDeadline(t *testing.T) {
 	}
 	if remaining := probe.deadline.Sub(before); remaining < 14*time.Second || remaining > 16*time.Second {
 		t.Fatalf("default timeout = %s, expected 15 seconds", remaining)
+	}
+}
+
+func TestMissingLabOutputsAreFailedCriteriaNotFatalErrors(t *testing.T) {
+	probe := &fakeProbe{files: map[string]runner.FileInfo{}, contents: map[string][]byte{}}
+	checks := []checker.Check{
+		checker.FileExists{CheckID: "exists", Path: "/run/lpic/missing"},
+		checker.FileContentRegex{CheckID: "content", Path: "/run/lpic/missing", Pattern: "^ready$"},
+		checker.FileMode{CheckID: "mode", Path: "/run/lpic/missing", Mode: 0o644},
+		checker.FileOwner{CheckID: "owner", Path: "/run/lpic/missing", User: "root", Group: "root"},
+	}
+	results, err := checker.EvaluateAll(context.Background(), probe, runner.Instance{ID: "fake"}, checks)
+	if err != nil {
+		t.Fatalf("missing outputs must not abort check: %v", err)
+	}
+	for _, result := range results {
+		if result.Pass || result.Err != nil || result.Detail == "" {
+			t.Fatalf("missing output not reported as unmet criterion: %+v", result)
+		}
 	}
 }
