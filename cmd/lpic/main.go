@@ -240,8 +240,8 @@ func runDashboardLab(
 		return runInteractiveLab(authored, stdin, stdout, stderr)
 	}
 
-	fmt.Fprintln(stdout, "Lab ouvert dans un nouveau terminal.")
-	fmt.Fprintln(stdout, "La consigne reste visible ici. Entrée ou :check vérifie le lab, depuis cette fenêtre ou depuis le terminal enfant.")
+	fmt.Fprintln(stdout, lpicui.Paint(lpicui.ColorEnabled(stdout), lpicui.ToneSuccess, "✓ Terminal de travail ouvert."))
+	fmt.Fprintln(stdout, "Mission ici · commandes Linux dans le terminal enfant · :check ici ou là-bas.")
 	return waitForDashboardLabCompletion(ctx, authored, baselineAttempts, checkSocketPath, stdin, stdout)
 }
 
@@ -255,7 +255,7 @@ func waitForDashboardLabCompletion(
 ) error {
 	reader := bufio.NewReader(stdin)
 	for {
-		fmt.Fprint(stdout, "Entrée ou :check pour vérifier · :quit pour revenir au menu > ")
+		fmt.Fprint(stdout, "[:check vérifier · :quit menu] > ")
 		line, err := readLine(reader)
 		if err != nil {
 			return fmt.Errorf("read parent lab command: %w", err)
@@ -306,7 +306,7 @@ func waitForDashboardLabCompletion(
 			}
 		}
 		if result.Output != "" {
-			fmt.Fprint(stdout, result.Output)
+			lpicui.PrintCheckOutput(stdout, result.Output)
 		}
 		if result.Error != "" {
 			fmt.Fprintf(stdout, "Erreur de vérification : %s\n", result.Error)
@@ -316,7 +316,7 @@ func waitForDashboardLabCompletion(
 			fmt.Fprintln(stdout, "Progression du lab détectée. Le terminal enfant reste ouvert.")
 			return nil
 		}
-		fmt.Fprintln(stdout, "Lab non validé : corrige les critères ci-dessus dans le terminal enfant, puis relance la vérification. (:quit pour revenir au menu)")
+		fmt.Fprintln(stdout, "Répare les points signalés dans le terminal enfant, puis :check.")
 	}
 }
 
@@ -1182,14 +1182,13 @@ func findLab(labs []lab.Lab, id string) (lab.Lab, error) {
 
 func printLab(authored lab.Lab, out io.Writer) {
 	definition := authored.Definition
-	fmt.Fprintf(out, "%s\n", definition.TitleFR)
-	fmt.Fprintf(out, "%s · environ %d min\n\n", strings.Join(definition.ObjectiveIDs, ", "), definition.EstimatedMinutes)
-	fmt.Fprintln(out, lpicui.RenderMarkdown(definition.BriefFR))
-	fmt.Fprintln(out, "\nRéussite :")
-	for _, criterion := range definition.SuccessCriteriaFR {
-		fmt.Fprintf(out, "• %s\n", criterion)
-	}
-	fmt.Fprintln(out, "\nCommandes utiles : :check  :hint  :reset  :quit")
+	lpicui.PrintLabBrief(out, lpicui.LabPresentation{
+		Title:      definition.TitleFR,
+		Objectives: definition.ObjectiveIDs,
+		Minutes:    definition.EstimatedMinutes,
+		Mission:    definition.BriefFR,
+		Criteria:   definition.SuccessCriteriaFR,
+	})
 }
 
 func runInteractiveLab(authored lab.Lab, stdin io.Reader, stdout, stderr io.Writer) error {
@@ -1391,8 +1390,15 @@ func runInteractiveLabWithBackend(
 		}
 	}()
 
-	printLab(authored, stdout)
-	fmt.Fprintln(stdout)
+	if checkSocketPath, _ := sessionCtx.Value(labCheckSocketKey{}).(string); checkSocketPath != "" {
+		fmt.Fprintln(stdout, lpicui.Paint(lpicui.ColorEnabled(stdout), lpicui.ToneAccent, "LPIC DAILY  /  ENVIRONNEMENT"))
+		fmt.Fprintln(stdout, "Mission et critères dans le terminal principal.")
+		fmt.Fprintln(stdout, ":check valider  ·  :hint indice  ·  :quit quitter")
+		fmt.Fprintln(stdout)
+	} else {
+		printLab(authored, stdout)
+		fmt.Fprintln(stdout)
+	}
 
 	nextHint := nextHintIndex(authored.Hints, highestHintLevel)
 	usedPersistentShell := false
@@ -1499,7 +1505,7 @@ func runInteractiveLabWithBackend(
 				}
 			}
 		}
-		fmt.Fprintf(out, "Vérification de %d critères...\n", len(authored.Definition.Checks))
+		fmt.Fprintf(out, "Vérification de %d critères système...\n", len(authored.Definition.Checks))
 		checkCtx, cancelCheck := context.WithTimeout(sessionCtx, checkTimeout)
 		results, err := session.Evaluate(checkCtx)
 		cancelCheck()
@@ -1515,37 +1521,30 @@ func runInteractiveLabWithBackend(
 			return false, fmt.Errorf("derive per-concept lab results: %w", err)
 		}
 		requiresJobControl := labRequiresJobControl(authored.Definition)
+		visibleChecks := make([]lpicui.CheckPresentation, 0, len(results)+3)
 		if authored.Definition.NeedsPersistentShell && !usedPersistentShell {
-			fmt.Fprintf(out,
-				"  %-11s %s\n",
-				"À CORRIGER",
-				"Passe par :shell pour valider l'interaction terminal réelle.",
-			)
+			visibleChecks = append(visibleChecks, lpicui.CheckPresentation{
+				Label: "Passe par :shell pour travailler dans le terminal Linux interactif.",
+			})
 			passed = false
 			markPersistentShellConceptFailure(authored.Definition, conceptResults)
 		}
 		if requiresJobControl && !jobControlEvidence.Complete() {
-			fmt.Fprintf(out,
-				"  %-11s %s\n",
-				"À CORRIGER",
-				"Dans :shell, utilise Ctrl-Z, vérifie avec jobs et reprends avec bg.",
-			)
+			visibleChecks = append(visibleChecks, lpicui.CheckPresentation{
+				Label: "Dans :shell, utilise Ctrl-Z, vérifie avec jobs puis reprends avec bg.",
+			})
 			passed = false
 			markPersistentShellConceptFailure(authored.Definition, conceptResults)
 		}
 		if editorEvidence != nil && !editorEvidence.Complete() {
-			fmt.Fprintf(out,
-				"  %-11s %s\n",
-				"À CORRIGER",
-				"Ouvre app.conf avec vi dans :shell et enregistre avec :wq ou :x.",
-			)
+			visibleChecks = append(visibleChecks, lpicui.CheckPresentation{
+				Label: "Ouvre app.conf avec vi dans :shell et enregistre avec :wq ou :x.",
+			})
 			passed = false
 			markEditorConceptFailure(authored.Definition, conceptResults)
 		}
 		for index, result := range results {
-			state := "OK"
 			if !result.Pass {
-				state = "À CORRIGER"
 				passed = false
 			}
 			description := ""
@@ -1573,15 +1572,17 @@ func runInteractiveLabWithBackend(
 					}
 				}
 			}
-			if description != "" {
-				fmt.Fprintf(out, "  %-11s %s\n", state, description)
-			}
+			diagnostic := ""
 			if !result.Pass && result.Err != nil {
-				fmt.Fprintf(out, "              Erreur de vérification : %v\n", result.Err)
+				diagnostic = "Erreur : " + result.Err.Error()
 			} else if !result.Pass && result.Detail != "" && result.Detail != "exit=1, expected=0" {
-				fmt.Fprintf(out, "              Diagnostic technique : %s\n", result.Detail)
+				diagnostic = "Détail : " + result.Detail
 			}
+			visibleChecks = append(visibleChecks, lpicui.CheckPresentation{
+				Label: description, Passed: result.Pass, Diagnostic: diagnostic,
+			})
 		}
+		lpicui.PrintCheckResults(out, visibleChecks)
 		persistedHintLevel, err := pendingLabHintLevel(sessionCtx, authored.Definition.ID)
 		if err != nil {
 			return false, fmt.Errorf("refresh lab disclosure before recording attempt: %w", err)
@@ -1597,7 +1598,7 @@ func runInteractiveLabWithBackend(
 		now := time.Now()
 		if passed {
 			fmt.Fprintln(out, "\nLab réussi.")
-			fmt.Fprintln(out, authored.Definition.DebriefFR)
+			fmt.Fprintln(out, "À retenir : "+lpicui.RenderMarkdown(authored.Definition.DebriefFR))
 
 			recordErr := study.RecordLab(sessionCtx, store, authored, highestHintLevel, now)
 			if recordErr != nil {

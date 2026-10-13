@@ -243,7 +243,7 @@ func TestLabListAliasesAndShow(t *testing.T) {
 		t.Fatalf("lab show error = %v", err)
 	}
 	output := stdout.String()
-	for _, want := range []string{"Réussite", "groupe project", "conserve le groupe project", "Commandes utiles"} {
+	for _, want := range []string{"MISSION", "RÉUSSITE", "groupe project", "conserve le groupe project", ":check vérifier"} {
 		if !strings.Contains(output, want) {
 			t.Fatalf("show output missing %q: %q", want, output)
 		}
