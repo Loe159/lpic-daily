@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "id": "lpic1.101.1.usb-backup-authorization-recovery",
   "title_fr": "Réactiver un support USB de sauvegarde non autorisé",
-  "brief_fr": "Un support USB de sauvegarde branché sur le contrôleur USB de la VM n'apparaît plus dans /dev : le point de montage /srv/lpic-usb-backup reste vide. Les données n'ont pas été supprimées et le contrôleur fonctionne. Diagnostique la déconnexion logique du périphérique, rétablis son accès puis remonte la sauvegarde sans reformater ni modifier le disque système.",
+  "brief_fr": "Un disque USB de sauvegarde ne peut plus être lu par la VM : son emplacement de montage est vide, alors que le support est toujours connecté et que ses données sont intactes. Identifie pourquoi le système ne l’expose plus comme périphérique utilisable, puis rétablis l’accès au volume sans formatage et sans toucher au disque système.",
   "success_criteria_fr": [
     "Le support USB réapparaît parmi les périphériques du noyau et est autorisé sur son port d'origine.",
     "Le contrôleur PCI USB, le périphérique USB et le volume disque identifié correspondent au même matériel virtuel.",
