@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.1.transfer-shell-handoff",
   "title_fr": "Préparer un shell de relève interactif",
-  "brief_fr": "Après une relève d’astreinte, les outils exécutés dans un nouveau Bash interactif n’utilisent plus le binaire approuvé ni les bonnes variables. Répare /root/.bashrc (sans modifier le profil de login) : PATH doit privilégier report-status approuvé, HANDOFF_ROLE=primary et HANDOFF_FILE doit désigner /var/lib/lpic/reports/handoff notes.txt. Configure aussi HISTSIZE=1500, HISTFILESIZE=3000 et HISTCONTROL=ignoredups. Prépare /run/lpic/handoff-summary pour ton collègue : architecture obtenue avec uname -m en première ligne, type Bash de report-status en seconde.",
+  "brief_fr": "Le shell interactif d'une relève d'astreinte utilise un mauvais outil et de mauvaises variables. Répare /root/.bashrc, sans toucher au profil de login : privilégie report-status approuvé dans PATH, règle HANDOFF_ROLE=primary, HANDOFF_FILE vers le rapport contenant un espace et HISTSIZE=1500, HISTFILESIZE=3000, HISTCONTROL=ignoredups. Fournis /run/lpic/handoff-summary à ton collègue avec l'architecture (uname -m), puis le type Bash de report-status.",
   "success_criteria_fr": [
     "Un nouveau shell interactif résout report-status vers le binaire approuvé.",
     "Les deux variables de relève sont exportées et le chemin contenant un espace est conservé intégralement.",
