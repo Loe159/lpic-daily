@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.6.priority-incident",
   "title_fr": "Rééquilibrer des processus concurrents",
-  "brief_fr": "Une maintenance lance trois charges avec des priorités différentes. Laisse service-worker à sa priorité normale, baisse reindex-worker à nice 10 sans le redémarrer, puis lance batch-worker avec nice 15. Termine en enregistrant dans /run/lpic/priority-report les trois noms et leur valeur nice actuelle.",
+  "brief_fr": "Trois traitements se disputent les ressources d’un serveur : un service normal, une réindexation non urgente déjà en cours et un nouveau batch de fond. Rééquilibre les priorités sans redémarrer le service ni la réindexation : priorité normale pour le service, priorité relative 10 pour la réindexation et 15 pour le batch. Remets à l’équipe /run/lpic/priority-report avec les trois noms de processus et leurs priorités réellement observées.",
   "success_criteria_fr": [
     "service-worker reste actif avec nice 0.",
     "reindex-worker reste le même processus mais passe à nice 10.",
