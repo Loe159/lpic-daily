@@ -2,9 +2,9 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.4.bulk-argument-dispatch",
   "title_fr": "Distribuer une liste de fichiers vers un outil",
-  "brief_fr": "targets.txt contient une liste de fichiers produite en amont. Fais consommer cette liste depuis stdin pour appeler describe-file avec les chemins comme arguments, trie le résultat et écris /workspace/output/processed.log.",
+  "brief_fr": "L'outil /workspace/bin/describe-file décrit les fichiers passés en arguments, mais le traitement reçoit une liste de chemins via l'entrée standard de /workspace/input/targets.txt. Transmets cette liste à l'outil comme arguments (concept xargs), trie ses résultats et enregistre-les dans /workspace/output/processed.log. Les fichiers se trouvent sous /workspace/input/data et leur taille peut varier selon la session.",
   "success_criteria_fr": [
-    "processed.log contient alpha.txt:6, beta.txt:11 et gamma.txt:4, triés par nom."
+    "processed.log contient une ligne nom-du-fichier:nombre-d'octets pour alpha.txt, beta.txt et gamma.txt, dans l'ordre alphabétique. Les nombres doivent correspondre aux tailles réelles des fichiers, sans valeurs fixées à l'avance."
   ],
   "debrief_fr": "xargs transforme des éléments lus sur stdin en arguments d’une commande. Il s’insère naturellement dans un pipeline : la commande précédente produit la liste, xargs invoque l’outil cible, puis une autre étape peut trier ou filtrer sa sortie.",
   "objective_ids": [
