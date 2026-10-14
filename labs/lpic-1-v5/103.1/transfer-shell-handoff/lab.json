@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.1.transfer-shell-handoff",
   "title_fr": "Préparer un shell de relève interactif",
-  "brief_fr": "Lors d’une relève d’astreinte, le terminal de maintenance de root choisit le mauvais outil de diagnostic et transmet des informations erronées au prochain opérateur. Rétablis le comportement des nouveaux shells interactifs, sans toucher à la configuration des shells de connexion. L’outil report-status approuvé doit être utilisé en priorité, la relève identifiée comme principale et le chemin du rapport transmis sans perdre ses espaces. L’historique doit conserver 1 500 commandes en session, 3 000 sur disque et éviter les doublons consécutifs. Fournis /run/lpic/handoff-summary avec l’architecture du serveur puis le type de la commande report-status.",
+  "brief_fr": "Lors d’une relève d’astreinte, les nouveaux terminaux interactifs de root utilisent le mauvais outil report-status et transmettent des informations erronées. Sans modifier la configuration des shells de connexion, rétablis le choix de l’outil approuvé, le rôle de responsable principal et le chemin complet du rapport, espaces compris. L’historique doit conserver 1 500 commandes en session, 3 000 sur disque et éviter les doublons successifs. Prépare /run/lpic/handoff-summary avec l’architecture et le type de l’outil de diagnostic.",
   "success_criteria_fr": [
     "Un nouveau shell interactif de root retrouve l’exécutable report-status approuvé.",
     "La relève est identifiée comme primary, et le chemin complet du rapport est transmis aux processus enfants, espaces compris.",
