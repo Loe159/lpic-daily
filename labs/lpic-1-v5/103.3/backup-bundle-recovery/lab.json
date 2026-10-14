@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.3.backup-bundle-recovery",
   "title_fr": "Préparer un bundle de sauvegarde hors ligne",
-  "brief_fr": "Un transfert hors ligne doit contenir les configurations sous forme tar et cpio, une copie bit à bit d’un petit segment disque et trois payloads compressés dont les extensions ont été perdues. Identifie leurs formats, restaure les bons noms .gz/.bz2/.xz et reconstruis recovered.txt à partir de leur contenu.",
+  "brief_fr": "Une équipe doit transmettre un lot de secours hors ligne depuis /workspace/input vers /workspace/output. Le lot doit contenir config.tar et config.cpio avec les deux fichiers du dossier input/config, une copie octet pour octet de input/disk-slice.bin nommée disk-slice.copy, ainsi que trois archives input/payload.one, .two et .three dont les extensions ont été perdues. Identifie le format réel de chaque archive et copie-la vers payload.gz, payload.bz2 ou payload.xz. Enfin, concatène les trois contenus décompressés, dans l'ordre initial, dans recovered.txt. Ne modifie pas les sources.",
   "success_criteria_fr": [
     "config.tar contient config/a.conf et config/b.conf.",
     "config.cpio contient les mêmes deux fichiers.",
