@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "id": "lpic1.102.6.nocloud-provisioning-recovery",
   "title_fr": "Réparer le provisionnement cloud-init NoCloud",
-  "brief_fr": "Une VM Debian clonée ne reçoit plus la configuration de son agent de supervision. Le provisionnement se fait sans Internet à partir des fichiers NoCloud situés dans /var/lib/cloud/seed/nocloud. La configuration /etc/lpic-cloud/agent.conf doit être créée par cloud-init (contenu agent=ready, permissions 0640, propriétaire root), pas copiée à la main. Repère et corrige l'erreur dans user-data, puis relance le provisionnement cloud-init afin que la configuration soit générée pour l'instance prévue.",
+  "brief_fr": "Une VM Debian clonée démarre sans la configuration nécessaire à son agent de supervision. Les métadonnées de provisionnement hors ligne sont toujours présentes, mais la configuration initiale n’a pas été appliquée. Corrige l’origine du problème et rétablis un provisionnement effectif, sans accès à Internet et sans recopier manuellement le fichier final. L’agent doit retrouver sa configuration attendue, avec les bonnes permissions, grâce au mécanisme de première initialisation de la VM.",
   "success_criteria_fr": [
     "Le provisionnement cloud-init reconnaît l'identité de l'instance NoCloud.",
     "La configuration de l'agent est générée avec le bon contenu et des permissions adaptées.",
