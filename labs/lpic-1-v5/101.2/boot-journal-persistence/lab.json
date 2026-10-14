@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "id": "lpic1.101.2.boot-journal-persistence",
   "title_fr": "Retrouver le diagnostic du démarrage précédent",
-  "brief_fr": "Après un redémarrage, l'équipe d'exploitation ne retrouve plus les journaux du boot précédent. Sur cette VM, les événements sont uniquement conservés en mémoire. Rétablis la conservation des journaux système entre deux démarrages et vérifie que le message de diagnostic émis pendant l'incident reste consultable après un vrai reboot. Ne désactive pas journald et ne supprime pas les autres services.",
+  "brief_fr": "L'équipe ne retrouve plus le message de diagnostic du démarrage précédent : journald ne conserve les événements qu'en mémoire. Configure la persistance des journaux, puis déclenche un vrai redémarrage avec :reboot dans le terminal parent LPIC Daily. Après le démarrage, retrouve dans journalctl le message lpic-incident=journal-recovery du boot précédent. Préserve les autres journaux et le service systemd-journald.",
   "success_criteria_fr": [
     "Les événements de l'ancienne session de démarrage sont toujours consultables après reboot.",
     "Le système enregistre réellement ses journaux sur disque pour les futurs démarrages.",
