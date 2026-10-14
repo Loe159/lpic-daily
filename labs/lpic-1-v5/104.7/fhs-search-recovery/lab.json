@@ -2,12 +2,12 @@
   "schema_version": "1.0.0",
   "id": "lpic1.104.7.fhs-search-recovery",
   "title_fr": "Ranger et retrouver les ressources d’un service",
-  "brief_fr": "Les fichiers Acme ont été déposés dans /workspace/incoming au lieu de suivre le FHS. Range configuration, logs, données servies et outil optionnel sous /etc/acme, /var/log/acme, /srv/acme et /opt/acme/bin. Retrouve le guide acme-guide.txt dans /workspace/catalog par recherche indexée (base privée /workspace/acme.db) et en temps réel (résultat dans /workspace/find-result.txt). Rends compte de la résolution de acmectl et de whereis bash dans /workspace/command-report.txt, au format décrit dans les critères.",
+  "brief_fr": "Après une installation précipitée, les ressources du service Acme sont réunies dans /workspace/incoming et ne respectent pas l’organisation standard d’un système Linux. Remets configuration, journaux, données du service et programme optionnel à leurs emplacements habituels, sans en perdre le contenu. Le guide du service doit pouvoir être retrouvé de deux façons : depuis un index local et par une recherche immédiate dans /workspace/catalog. Remets enfin /workspace/command-report.txt pour expliquer où le système trouve l’outil acmectl et les ressources associées à bash.",
   "success_criteria_fr": [
-    "Les fichiers Acme sont aux emplacements FHS demandés, et /opt/acme/bin/acmectl est exécutable.",
-    "Une base locate privée /workspace/acme.db permet de retrouver acme-guide.txt.",
-    "/workspace/find-result.txt contient le chemin complet du guide retrouvé par find.",
-    "/workspace/command-report.txt contient type=/opt/acme/bin/acmectl, which=/opt/acme/bin/acmectl et une ligne whereis= reprenant le résultat réel de whereis bash."
+    "Les ressources Acme sont installées dans les répertoires appropriés du FHS et son outil est exécutable.",
+    "Une base de recherche privée /workspace/acme.db permet de retrouver acme-guide.txt.",
+    "/workspace/find-result.txt fournit le véritable emplacement du guide après une recherche sur les fichiers actuels.",
+    "/workspace/command-report.txt indique où acmectl est résolu et fournit le résultat réel de l’inventaire des emplacements associés à bash."
   ],
   "debrief_fr": "Le FHS sépare configuration (/etc), données variables et logs (/var), données servies (/srv) et logiciels optionnels (/opt). find parcourt l’état courant du système, alors que locate interroge une base créée par updatedb. whereis recherche binaire/source/man selon ses bases, tandis que type et which reflètent la résolution de commande du shell et du PATH.",
   "objective_ids": [
