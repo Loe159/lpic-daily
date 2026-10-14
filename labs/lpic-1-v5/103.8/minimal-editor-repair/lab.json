@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.8.minimal-editor-repair",
   "title_fr": "Corriger une configuration dans un environnement minimal",
-  "brief_fr": "La configuration d’un serveur a été altérée après une maintenance : il écoute sur le mauvais port, le mode debug est actif et une option périmée provoque un dysfonctionnement. Rétablis la configuration de /workspace/app.conf sans modifier la section client ni perdre les deux règles d’audit dans leur ordre d’origine. L’environnement d’administration est limité aux éditeurs disponibles en terminal : répare le fichier depuis l’éditeur modal de référence, fais-en l’éditeur par défaut et fournis /workspace/editor-inventory avec les éditeurs présents et absents.",
+  "brief_fr": "La configuration /workspace/app.conf empêche le serveur de fonctionner correctement : son port n’est plus le bon, le débogage reste activé et une ancienne option perturbe le démarrage. Remets-la en état sans toucher aux paramètres client. L’audit doit conserver sa règle actuelle et exiger également la règle supplémentaire de conformité. Dans cet environnement minimal, l’édition se fait dans le terminal avec l’éditeur modal de référence, qui doit aussi devenir l’éditeur par défaut. Fournis un inventaire des éditeurs disponibles dans /workspace/editor-inventory.",
   "success_criteria_fr": [
     "EDITOR vaut vi dans un nouveau shell.",
     "app.conf contient la configuration corrigée, sans obsolete=true.",
