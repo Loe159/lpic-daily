@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.1.environment-boundary-repair",
   "title_fr": "Réparer la frontière entre shell et environnement",
-  "brief_fr": "Une relève d’astreinte lance des outils enfants avec un environnement pollué. Dans le shell interactif de root, SERVICE_MODE doit être exportée avec la valeur production, LOCAL_NOTE doit rester une variable du shell non transmise aux processus enfants et LEGACY_TOKEN ne doit plus exister. Produis ensuite /run/lpic/env-summary avec les valeurs développées SERVICE_MODE et LOCAL_NOTE, séparées par |. Effectue les corrections directement dans ce shell, sans modifier les fichiers d’initialisation.",
+  "brief_fr": "Un opérateur lance des outils enfants avec des variables d'environnement incorrectes. Dans le shell courant (sans modifier .bashrc), exporte SERVICE_MODE=production, conserve LOCAL_NOTE=operator-note comme variable locale au shell et supprime LEGACY_TOKEN. Prépare /run/lpic/env-summary pour la relève : la ligne doit contenir SERVICE_MODE|LOCAL_NOTE avec leurs valeurs développées. Le contrôle porte sur ce que les processus enfants reçoivent réellement.",
   "success_criteria_fr": [
     "SERVICE_MODE vaut production et est visible dans l’environnement d’un processus enfant.",
     "LOCAL_NOTE vaut operator-note dans le shell mais n’apparaît pas dans env.",
