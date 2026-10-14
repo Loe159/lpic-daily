@@ -4,11 +4,11 @@
   "title_fr": "Corriger une configuration dans un environnement minimal",
   "brief_fr": "La configuration /workspace/app.conf empêche le serveur de fonctionner correctement : son port n’est plus le bon, le débogage reste activé et une ancienne option perturbe le démarrage. Remets-la en état sans toucher aux paramètres client. L’audit doit conserver sa règle actuelle et exiger également la règle supplémentaire de conformité. Dans cet environnement minimal, l’édition se fait dans le terminal avec l’éditeur modal de référence, qui doit aussi devenir l’éditeur par défaut. Fournis un inventaire des éditeurs disponibles dans /workspace/editor-inventory.",
   "success_criteria_fr": [
-    "EDITOR vaut vi dans un nouveau shell.",
-    "app.conf contient la configuration corrigée, sans obsolete=true.",
-    "La section server contient audit=enabled puis audit=required.",
-    "editor-inventory indique que vi/vim et nano sont disponibles et qu’emacs ne l’est pas dans l’image.",
-    "L'édition a été réalisée dans le terminal interactif avec vi ; une sauvegarde :wq ou :x a été observée côté hôte."
+    "Dans un nouveau shell, l’éditeur sélectionné par défaut est vi.",
+    "La section [server] de /workspace/app.conf écoute sur le port 8443, fonctionne en mode production et ne conserve pas la directive obsolète.",
+    "Les deux règles audit=enabled puis audit=required figurent dans cet ordre, et la section [client] est préservée.",
+    "/workspace/editor-inventory décrit les éditeurs réellement disponibles : vi, vim et nano présents ; emacs absent.",
+    "La modification du fichier a bien été réalisée pendant une session interactive vi, avec sauvegarde observée."
   ],
   "debrief_fr": "Dans vi, le mode normal sert à naviguer, copier, coller et supprimer ; i/a activent l'insertion, : permet les substitutions et :wq sauvegarde puis quitte. /motif recherche une occurrence. Le correcteur vérifie le résultat et exige une session vi ainsi qu'une sauvegarde observées depuis le terminal hôte. Il n'impose pas chaque frappe de navigation ou de substitution.",
   "objective_ids": [
