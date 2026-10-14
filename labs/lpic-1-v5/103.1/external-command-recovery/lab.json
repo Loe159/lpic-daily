@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.1.external-command-recovery",
   "title_fr": "Exécuter un outil volontairement hors PATH",
-  "brief_fr": "L'outil approuvé report-status est installé, mais volontairement absent de PATH : la politique du serveur interdit de modifier PATH. Retrouve son chemin absolu, puis exécute-le sur le rapport désigné par REPORT_FILE (dont le chemin contient un espace). Pour documenter l'intervention, écris /run/lpic/external-command-summary : chemin absolu du binaire utilisé en première ligne, résultat ready en seconde. Le simple nom report-status ne doit toujours pas fonctionner.",
+  "brief_fr": "Le rapport quotidien n’est plus vérifié : l’outil report-status approuvé est installé mais reste volontairement introuvable par son nom seul, conformément à la politique de sécurité. Fais fonctionner cet outil sur le rapport prévu, dont le chemin contient un espace, sans modifier la résolution habituelle des commandes. Pour tracer l’intervention, fournis /run/lpic/external-command-summary : emplacement réel de l’outil puis résultat de son exécution, chacun sur une ligne.",
   "success_criteria_fr": [
     "report-status reste absent de la résolution normale par PATH.",
     "Le binaire approuvé est exécuté avec le chemin de rapport complet et produit son état ready.",
