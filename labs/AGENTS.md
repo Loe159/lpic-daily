@@ -18,3 +18,22 @@ Labs are adversarial inputs from the host's perspective. Read `docs/SECURITY.md`
 - Grade observable final state, not exact command history.
 - Give every practical lab a stable `practice_context`; a transfer lab must use a materially different context ID, not merely a different lab ID.
 - Every lab must define timeout/reset/cleanup behavior and a test-only reference solution.
+
+## Outcome-first instructions (mandatory, 2026-10-14)
+
+A learner-facing `brief_fr` is **not a repair procedure**. State only:
+1. The operational symptom and enough context to investigate it.
+2. The **observable target** (including quantities, business constraints, legitimate paths and named external interfaces).
+3. What must remain intact or must not happen.
+
+Avoid revealing the configuration knob, command, flag, exact mode, solution file, cause already diagnosed or ordered steps when finding them is the LPIC competency being tested. Examples:
+- **Avoid**: `mets HISTSIZE=2000 et HISTFILESIZE=4000 dans .bashrc`.
+- **Prefer**: `un nouveau shell doit conserver 2 000 commandes en session et 4 000 sur disque`.
+- **Avoid**: `utilise chmod 2770 puis configure umask 0007`.
+- **Prefer**: `les fichiers de l’équipe doivent conserver leur groupe, et les nouveaux documents ne doivent pas être accessibles aux tiers`.
+- **Avoid**: `utilise xargs puis sort`.
+- **Prefer**: `l’outil doit traiter les chemins reçus en entrée standard et restituer un rapport trié`.
+
+Do not confuse a solution with a necessary contract: a report path, required output format, target capacity, or externally required identifier may be named; a particular Linux mechanism should be discovered through the exercise. `success_criteria_fr` describes the evidence and precise expected result **without instructing on the repair method**. Put debugging orientation in level-1/2 hints, mechanism in level-3 hints, and possible commands only in level-4 solution-revealing hints or the reference solution. Keep the mission reasonably short: prefer roughly 300–500 characters when the problem allows; put longer expectations in the criteria rather than duplicating them. 
+
+Before accepting any lab, ask: **Could a learner copy the brief's implementation instructions and pass without diagnosing the problem?** If yes, rewrite the brief.
