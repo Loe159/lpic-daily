@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "id": "lpic1.104.5.shared-dropbox",
   "title_fr": "Sécuriser un répertoire partagé",
-  "brief_fr": "Deux administrateurs de l’équipe project utilisent /srv/shared pour échanger des documents. Actuellement, les fichiers ne sont pas correctement partagés et un membre peut effacer ceux d’un autre. Rends cet espace collaboratif : les membres doivent pouvoir travailler ensemble, les personnes extérieures ne doivent pas accéder au dossier, les nouveaux fichiers doivent garder le groupe de l’équipe et seul leur propriétaire doit pouvoir les retirer. L’outil audit-helper ne doit plus bénéficier de privilèges excessifs tout en restant exécutable. Une nouvelle session de root doit créer team-note avec les droits attendus.",
+  "brief_fr": "L’équipe project partage des documents dans /srv/shared, mais les droits actuels empêchent la collaboration et permettent d’effacer les fichiers d’autrui. Rétablis un espace accessible aux seuls membres de l’équipe, où les nouveaux fichiers conservent son groupe et où chacun contrôle la suppression de ses propres documents. Un nouveau shell de maintenance doit créer team-note avec les bons droits. L’outil audit-helper doit rester exécutable sans privilège superflu.",
   "success_criteria_fr": [
     "Les membres de project peuvent lire et écrire dans /srv/shared, sans accès pour les autres utilisateurs et sans pouvoir supprimer les fichiers d’un collègue.",
     "Les nouvelles entrées du dossier conservent le groupe project.",
