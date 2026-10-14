@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "id": "lpic1.104.7.fhs-search-recovery",
   "title_fr": "Ranger et retrouver les ressources d’un service",
-  "brief_fr": "Après un déploiement, les fichiers Acme ont été laissés dans /workspace/incoming. Déplace la configuration vers /etc/acme, les journaux vers /var/log/acme, les données servies vers /srv/acme et l'exécutable vers /opt/acme/bin, conformément au FHS. Le guide à retrouver est /workspace/catalog/usr/share/doc/acme-guide.txt. Crée une base locate privée /workspace/acme.db pour le retrouver par recherche indexée, puis inscris son chemin dans /workspace/find-result.txt à l'aide d'une recherche find (sans base). Enfin, crée /workspace/command-report.txt avec trois lignes type=..., which=... et whereis=..., issues de la résolution de acmectl avec /opt/acme/bin dans PATH et de whereis bash.",
+  "brief_fr": "Les fichiers Acme ont été déposés dans /workspace/incoming au lieu de suivre le FHS. Range configuration, logs, données servies et outil optionnel sous /etc/acme, /var/log/acme, /srv/acme et /opt/acme/bin. Retrouve le guide acme-guide.txt dans /workspace/catalog par recherche indexée (base privée /workspace/acme.db) et en temps réel (résultat dans /workspace/find-result.txt). Rends compte de la résolution de acmectl et de whereis bash dans /workspace/command-report.txt, au format décrit dans les critères.",
   "success_criteria_fr": [
     "Les fichiers Acme sont aux emplacements FHS demandés, et /opt/acme/bin/acmectl est exécutable.",
     "Une base locate privée /workspace/acme.db permet de retrouver acme-guide.txt.",
