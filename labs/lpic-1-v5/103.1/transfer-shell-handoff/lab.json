@@ -5,7 +5,7 @@
   "brief_fr": "Lors d’une relève d’astreinte, les nouveaux terminaux interactifs de root utilisent le mauvais outil report-status et transmettent des informations erronées. Sans modifier la configuration des shells de connexion, rétablis le choix de l’outil approuvé, le rôle de responsable principal et le chemin complet du rapport, espaces compris. L’historique doit conserver 1 500 commandes en session, 3 000 sur disque et éviter les doublons successifs. Prépare /run/lpic/handoff-summary avec l’architecture et le type de l’outil de diagnostic.",
   "success_criteria_fr": [
     "Un nouveau shell interactif de root retrouve l’exécutable report-status approuvé.",
-    "La relève est identifiée comme primary, et le chemin complet du rapport est transmis aux processus enfants, espaces compris.",
+    "La relève est identifiée comme primary, et le chemin /var/lib/lpic/reports/handoff notes.txt est transmis intact aux processus enfants.",
     "L’historique garde 1 500 commandes en mémoire, 3 000 sur disque et ignore les doublons successifs.",
     "La fiche /run/lpic/handoff-summary indique l’architecture puis le type Bash réel de report-status."
   ],
