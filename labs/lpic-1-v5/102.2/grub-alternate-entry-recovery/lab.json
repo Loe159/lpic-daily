@@ -1,8 +1,8 @@
 {
   "schema_version": "1.0.0",
   "id": "lpic1.102.2.grub-alternate-entry-recovery",
-  "title_fr": "grub alternate entry recovery",
-  "brief_fr": "Une entrée de secours GRUB 2 a été ajoutée à cette VM pour réactiver un diagnostic de démarrage. Elle conserve le noyau existant mais n'est pas sélectionnée. Active-la durablement et vérifie son utilisation après un vrai redémarrage via le terminal parent. Préserve les autres entrées et la console.",
+  "title_fr": "Activer une entrée de secours GRUB 2",
+  "brief_fr": "La VM Fedora dispose déjà d'une entrée GRUB 2 de secours ajoutée pour diagnostiquer les archives. Elle utilise le même noyau que l'entrée normale et ajoute le paramètre lpic.archive_rescue=1, mais n'est pas sélectionnée. Configure ce choix comme entrée persistante de démarrage, sans supprimer les autres entrées ni modifier la console. Déclenche ensuite un vrai redémarrage avec :reboot dans le terminal parent LPIC Daily et vérifie que l'option a bien été transmise au noyau.",
   "success_criteria_fr": [
     "Le choix GRUB 2 enregistré sélectionne l'entrée de secours sans toucher aux autres entrées.",
     "Après redémarrage, le noyau courant et l'option de diagnostic correspondent à cette entrée."
