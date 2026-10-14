@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.4.batch-stream-repair",
   "title_fr": "Réparer les flux d’un batch",
-  "brief_fr": "Un batch mélange ses sorties et écrase mal ses journaux. À partir de jobs.txt, produis stdout.log avec uniquement les lignes OK, stderr.log avec uniquement les erreurs, combined.log avec les deux flux dans l’ordre, ajoute les OK à history.log sans perdre previous-run, puis duplique les OK vers live.log tout en écrivant leur nombre dans success-count.txt.",
+  "brief_fr": "Le batch /workspace/bin/audit-stream lit les tâches dans /workspace/input/jobs.txt, écrit les réussites sur stdout et les erreurs sur stderr. Le rapport de maintenance doit séparer ces flux sans perdre leur ordre ni l'historique de la veille. Dans /workspace/output, produis stdout.log (seulement les OK, en écrasant STALE), stderr.log (seulement les ERR), combined.log (deux flux réunis dans l'ordre d'émission), puis ajoute les OK à history.log en conservant previous-run. Duplique aussi les OK vers live.log avec tee et enregistre leur nombre dans success-count.txt.",
   "success_criteria_fr": [
     "stdout.log remplace le contenu STALE et contient uniquement les deux lignes OK.",
     "stderr.log contient uniquement les deux lignes ERR.",
