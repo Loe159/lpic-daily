@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "id": "lpic1.104.5.transfer-team-share-audit",
   "title_fr": "Séparer dépôt protégé et espace collaboratif",
-  "brief_fr": "L’équipe project dispose d’un espace de transfert où des collaborateurs effacent accidentellement les fichiers des autres. Elle veut deux zones séparées sous /srv/project-transfer : incoming pour déposer des éléments que seul leur propriétaire pourra retirer, et team pour modifier en commun des fichiers qui devront tous conserver le groupe project. Aucune des deux zones ne doit être accessible aux personnes extérieures. Les nouveaux fichiers créés par un shell de maintenance doivent avoir des droits de collaboration adaptés. L’outil audit-helper doit rester utilisable sans privilèges excessifs.",
+  "brief_fr": "L’équipe project a besoin de deux zones sous /srv/project-transfer : incoming pour déposer des documents sans pouvoir effacer ceux des collègues, et team pour modifier des documents dont le groupe reste toujours project. Ces zones doivent être fermées aux utilisateurs extérieurs. Un nouveau shell de maintenance doit y créer handoff-note avec les bons droits. L’outil audit-helper doit rester exécutable sans privilège superflu.",
   "success_criteria_fr": [
     "incoming est réservé à l’équipe project ; même entre membres, seul le propriétaire d’un fichier ou l’administrateur peut le supprimer.",
     "team est réservé à project et les nouveaux fichiers héritent automatiquement du groupe project.",
