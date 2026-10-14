@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.2.incident-report-rebuild",
   "title_fr": "Reconstruire un rapport d’incident",
-  "brief_fr": "Le rapport d'incidents a été perdu. Les données sources sont /workspace/input/events.tsv (événements) et owners.tsv (équipes). Reconstitue dans /workspace/output : error-hosts.txt (hôtes ayant un événement ERROR, triés et sans doublons, avec '-' remplacé par '_'), error-teams.txt (hôte original|équipe, trié), deux fichiers /workspace/output/chunks/error-00 et error-01 contenant chacun au plus deux lignes du rapport, puis metrics.txt avec les comptes d'erreurs et d'hôtes distincts. Les noms d'hôtes peuvent changer d'une session à l'autre : déduis-les des données.",
+  "brief_fr": "Un rapport d'incident a été perdu. À partir de /workspace/input/events.tsv et owners.tsv, recrée dans /workspace/output la liste des hôtes en ERROR (triée, sans doublons, tirets changés en underscores), les associations hôte original|équipe, deux lots de deux lignes maximum et les compteurs d'erreurs/hôtes. Les noms d'hôtes varient entre sessions : lis les sources plutôt que de recopier des valeurs fixes. Les noms de fichiers attendus figurent dans les critères.",
   "success_criteria_fr": [
     "error-hosts.txt liste les hôtes en ERROR, triés sans doublons, en remplaçant les tirets par des underscores ; les identifiants dépendent des données de la session.",
     "error-teams.txt associe chaque hôte en ERROR à son équipe sous la forme hôte-original|équipe (sans remplacer les tirets).",
