@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.5.stuck-worker",
   "title_fr": "Diagnostiquer des jobs et arrêter le bon processus",
-  "brief_fr": "Un worker défectueux tourne à côté d'un worker sain. Dans :shell, inspecte d'abord les deux processus et enregistre un snapshot PID/PPID/état/commande dans /run/lpic/process-inspection, puis arrête uniquement le worker défectueux. Lance ensuite le signal probe au premier plan, suspends-le avec Ctrl-Z, observe-le avec jobs, reprends-le avec bg puis termine-le avec SIGTERM. Enfin lance un resilient-worker protégé par nohup et garde une session tmux détachée nommée ops.",
+  "brief_fr": "Deux programmes traitent les archives : l’un fonctionne normalement, l’autre ne répond plus. Identifie-les et conserve un état des lieux (identifiant, parent, état et commande) sous /run/lpic/process-inspection. Arrête uniquement le programme défectueux. L’équipe souhaite aussi valider qu’une tâche de test peut être suspendue, reprendre en arrière-plan puis être terminée proprement. Enfin, laisse un worker capable de survivre à la fermeture du terminal et une session de maintenance détachée nommée ops.",
   "success_criteria_fr": [
     "stuck-worker est absent et healthy-worker reste actif.",
     "/run/lpic/process-inspection contient un snapshot exploitable de healthy-worker et stuck-worker avec leurs PID/PPID/états.",
