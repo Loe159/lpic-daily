@@ -5,7 +5,7 @@
   "brief_fr": "Depuis une modification de sa configuration, le terminal de connexion de root utilise une version non approuvée de report-status et transmet de mauvaises informations aux outils de diagnostic. Les nouveaux shells de connexion doivent retrouver l’outil officiel, travailler en mode production avec le bon fichier de rapport (dont le nom contient un espace) et conserver jusqu’à 2 000 commandes en mémoire et 4 000 sur disque. Prépare /run/lpic/system-summary : nom du système puis type de la commande de diagnostic.",
   "success_criteria_fr": [
     "Le nouvel environnement de connexion trouve l’exécutable report-status approuvé.",
-    "Le mode production et le chemin intégral du rapport sont transmis aux outils lancés depuis ce shell.",
+    "Le mode production et le chemin /var/lib/lpic/reports/daily report.txt sont transmis sans altération aux outils lancés depuis ce shell.",
     "Le rapport peut être traité avec succès dans ce nouvel environnement.",
     "L’historique de la session conserve 2 000 commandes en mémoire et 4 000 sur disque.",
     "La fiche /run/lpic/system-summary identifie correctement le système et le type de l’outil de diagnostic."
