@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.7.auth-log-filter-repair",
   "title_fr": "Extraire les authentifications anormales",
-  "brief_fr": "Un audit de sécurité doit isoler les tentatives échouées du journal /workspace/input/auth.log. Dans /workspace/output, écris suspicious.txt avec uniquement les lignes ssh ou sudo en FAIL pour les comptes user suivis d'exactement deux chiffres ; remplace FAIL par DENIED dans normalized.txt en conservant le reste des lignes. Crée aussi active-logs.txt avec les noms des vrais fichiers *.log de /workspace/input, sans inclure les sauvegardes *.bak. Les numéros d'utilisateurs changent à chaque session.",
+  "brief_fr": "Un audit doit extraire les échecs suspects de /workspace/input/auth.log. Écris dans /workspace/output/suspicious.txt uniquement les échecs ssh/sudo des comptes user suivis de deux chiffres, puis dans normalized.txt les mêmes lignes avec FAIL remplacé par DENIED. Fournis active-logs.txt avec les seuls fichiers *.log du dossier input, sans les sauvegardes. Les numéros d'utilisateur sont variables : traite les lignes réelles du journal.",
   "success_criteria_fr": [
     "suspicious.txt contient exactement les échecs ssh/sudo du fichier d'entrée pour les comptes user suivis de deux chiffres.",
     "normalized.txt conserve ces lignes en remplaçant FAIL par DENIED.",
