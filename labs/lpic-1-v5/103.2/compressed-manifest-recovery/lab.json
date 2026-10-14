@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.2.compressed-manifest-recovery",
   "title_fr": "Réparer un manifeste d’archives compressées",
-  "brief_fr": "Trois archives de journaux sont disponibles dans /workspace/input (day1.txt.gz, day2.txt.bz2, day3.txt.xz), mais le manifeste manifest.sha256 marque le dernier fichier à tort comme corrompu. Rétablis ce manifeste, rassemble les flux décompressés dans l'ordre sous /workspace/output/audit.txt et produis checksums.txt avec trois lignes : MD5 <empreinte>, SHA256 <empreinte>, SHA512 <empreinte> du rapport final.",
+  "brief_fr": "Une équipe doit récupérer les journaux de trois journées archivés sous /workspace/input. Le manifeste d’intégrité signale un problème sur la dernière archive, mais les données d’origine semblent intactes. Rétablis un manifeste fiable et fournis /workspace/output/audit.txt avec les journaux des trois jours dans l’ordre. Ajoute /workspace/output/checksums.txt avec les empreintes MD5, SHA-256 et SHA-512 de ce rapport, une par ligne, au format précisé dans les critères.",
   "success_criteria_fr": [
     "Le manifeste SHA-256 valide les trois archives compressées.",
     "audit.txt contient les cinq lignes des trois fragments dans l’ordre day1, day2, day3.",
