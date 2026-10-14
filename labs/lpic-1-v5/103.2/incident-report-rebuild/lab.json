@@ -2,12 +2,12 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.2.incident-report-rebuild",
   "title_fr": "Reconstruire un rapport d’incident",
-  "brief_fr": "Le rapport d’erreurs d’une équipe a été perdu. À partir de events.tsv et owners.tsv, reconstruis sous /workspace/output la liste triée des hôtes en erreur avec les tirets normalisés en _, le rapport hôte|équipe, deux lots de ce rapport et un petit compteur errors/unique_hosts.",
+  "brief_fr": "Le rapport d'incidents a été perdu. Les données sources sont /workspace/input/events.tsv (événements) et owners.tsv (équipes). Reconstitue dans /workspace/output : error-hosts.txt (hôtes ayant un événement ERROR, triés et sans doublons, avec '-' remplacé par '_'), error-teams.txt (hôte original|équipe, trié), deux fichiers /workspace/output/chunks/error-00 et error-01 contenant chacun au plus deux lignes du rapport, puis metrics.txt avec les comptes d'erreurs et d'hôtes distincts. Les noms d'hôtes peuvent changer d'une session à l'autre : déduis-les des données.",
   "success_criteria_fr": [
-    "error-hosts.txt contient db_01, web_01 et web_02, une seule fois et dans cet ordre.",
-    "error-teams.txt associe db-01 à data et web-01/web-02 à frontend.",
-    "Le rapport hôte|équipe est découpé en deux lots de deux lignes maximum.",
-    "metrics.txt indique 4 événements ERROR et 3 hôtes uniques."
+    "error-hosts.txt liste les hôtes en ERROR, triés sans doublons, en remplaçant les tirets par des underscores ; les identifiants dépendent des données de la session.",
+    "error-teams.txt associe chaque hôte en ERROR à son équipe sous la forme hôte-original|équipe (sans remplacer les tirets).",
+    "Les fichiers chunks/error-00 et chunks/error-01 reprennent dans l'ordre les lignes du rapport, en lots de deux maximum.",
+    "metrics.txt contient exactement errors=4 puis unique_hosts=3, chacun sur sa ligne."
   ],
   "debrief_fr": "Les filtres texte se composent bien : cut/awk sélectionnent, sort et uniq ordonnent et dédupliquent, tr ou sed normalisent, paste/awk assemblent des colonnes, split découpe un résultat et wc compte les lignes. Le checker valide seulement les artefacts finaux, donc une autre composition correcte reste valide.",
   "objective_ids": [
