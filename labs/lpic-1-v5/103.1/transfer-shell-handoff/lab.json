@@ -2,13 +2,12 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.1.transfer-shell-handoff",
   "title_fr": "Préparer un shell de relève interactif",
-  "brief_fr": "Tu prépares un shell interactif pour une relève d’astreinte, sans modifier le profil de login. Corrige /root/.bashrc afin qu’un bash interactif résolve report-status vers le binaire approuvé, exporte HANDOFF_ROLE=primary et HANDOFF_FILE=/var/lib/lpic/reports/handoff notes.txt, et conserve un historique exploitable avec HISTSIZE=1500, HISTFILESIZE=3000 et HISTCONTROL=ignoredups. Depuis ce shell, produis /run/lpic/handoff-summary avec l’architecture uname -m sur la première ligne et le type Bash de report-status sur la seconde, puis /run/lpic/handoff-ready contenant ready.",
+  "brief_fr": "Après une relève d’astreinte, les outils exécutés dans un nouveau Bash interactif n’utilisent plus le binaire approuvé ni les bonnes variables. Répare /root/.bashrc (sans modifier le profil de login) : PATH doit privilégier report-status approuvé, HANDOFF_ROLE=primary et HANDOFF_FILE doit désigner /var/lib/lpic/reports/handoff notes.txt. Configure aussi HISTSIZE=1500, HISTFILESIZE=3000 et HISTCONTROL=ignoredups. Prépare /run/lpic/handoff-summary pour ton collègue : architecture obtenue avec uname -m en première ligne, type Bash de report-status en seconde.",
   "success_criteria_fr": [
-    "Un shell interactif charge /root/.bashrc et résout report-status vers le binaire approuvé.",
-    "HANDOFF_ROLE et HANDOFF_FILE sont exportées avec la valeur et le quoting attendus.",
-    "HISTSIZE=1500, HISTFILESIZE=3000 et HISTCONTROL=ignoredups sont actifs dans ce shell interactif.",
-    "handoff-summary contient l’architecture courante puis le type Bash réel de report-status.",
-    "handoff-ready est créé dans la même séquence de préparation et contient ready."
+    "Un nouveau shell interactif résout report-status vers le binaire approuvé.",
+    "Les deux variables de relève sont exportées et le chemin contenant un espace est conservé intégralement.",
+    "HISTSIZE=1500, HISTFILESIZE=3000 et HISTCONTROL=ignoredups sont actifs dans ce shell.",
+    "Le rapport /run/lpic/handoff-summary contient l’architecture puis le type Bash réellement identifié pour report-status."
   ],
   "debrief_fr": "Ce deuxième contexte transfère les sept concepts 103.1 sans réutiliser le même état initial : séquences de shell, variables, PATH, quoting, historique, identification des commandes et informations système.",
   "objective_ids": [
@@ -131,15 +130,6 @@
       "concept_ids": [
         "lpic1.103.1.informations-systeme-de-base",
         "lpic1.103.1.documentation-et-identification-d-une-commande"
-      ]
-    },
-    {
-      "type": "file-content-regex",
-      "path": "/run/lpic/handoff-ready",
-      "pattern": "^ready\\n?$",
-      "concept_ids": [
-        "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes",
-        "lpic1.103.1.quoting-escaping"
       ]
     }
   ],
