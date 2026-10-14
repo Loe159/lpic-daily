@@ -534,6 +534,13 @@ func (fake *scriptedLabRunner) Exec(_ context.Context, _ runner.Instance, reques
 		return runner.ExecResult{}, errors.New("non-TTY stdin rejected")
 	}
 	fake.execRequests = append(fake.execRequests, request)
+	if request.Stdout != nil && len(request.Argv) > 0 {
+		const prefix = "LPIC_CHECK_COMPLETED_"
+		last := request.Argv[len(request.Argv)-1]
+		if index := strings.Index(last, prefix); index >= 0 && len(last) >= index+len(prefix)+32 {
+			_, _ = fmt.Fprintln(request.Stdout, last[index:index+len(prefix)+32])
+		}
+	}
 	return runner.ExecResult{ExitCode: 0}, nil
 }
 func (fake *scriptedLabRunner) Stat(_ context.Context, _ runner.Instance, guestPath string) (runner.FileInfo, error) {
@@ -782,7 +789,7 @@ func TestFailedLabCheckRecordsConceptGranularEvidence(t *testing.T) {
 	}
 	if strings.Contains(checkOutput, authored.Definition.ID+".check-") ||
 		!strings.Contains(checkOutput, "À CORRIGER") ||
-		!strings.Contains(checkOutput, "Permissions du fichier") {
+		!strings.Contains(checkOutput, "Permissions : /srv/shared") {
 		t.Fatalf("check output should show human-readable criteria without technical IDs: %q", checkOutput)
 	}
 
@@ -1115,7 +1122,7 @@ func TestDashboardLabParentCanCheckFromEitherCommand(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	authored, err := findLab(labs, "lpic1.103.1.set-env-et-portee-des-variables.standalone-diagnostic")
+	authored, err := findLab(labs, "lpic1.103.1.environment-boundary-repair")
 	if err != nil {
 		t.Fatal(err)
 	}

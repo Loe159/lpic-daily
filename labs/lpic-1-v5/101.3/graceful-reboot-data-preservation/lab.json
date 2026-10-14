@@ -67,6 +67,13 @@
       "concept_ids": [
         "lpic1.101.3.arret-redemarrage-propre"
       ]
+    },
+    {
+      "type": "host-reboot-observed",
+      "concept_ids": [
+        "lpic1.101.3.arret-redemarrage-propre"
+      ],
+      "description_fr": "Un redémarrage réel a été confirmé par l'hyperviseur, indépendamment des fichiers invités."
     }
   ],
   "hint_ids": [

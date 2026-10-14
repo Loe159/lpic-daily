@@ -4,17 +4,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 	"slices"
 	"strings"
 	"testing"
 
 	lpicdaily "github.com/Loe159/lpic-daily"
-	"github.com/Loe159/lpic-daily/internal/content"
-	"github.com/Loe159/lpic-daily/internal/curriculum"
 	"github.com/Loe159/lpic-daily/internal/lab"
 	"github.com/Loe159/lpic-daily/internal/runner"
 )
@@ -366,6 +364,13 @@ func (fake *fakeRunner) Start(_ context.Context, _ runner.Instance) error {
 func (fake *fakeRunner) Exec(_ context.Context, _ runner.Instance, request runner.ExecRequest) (runner.ExecResult, error) {
 	fake.execCalls++
 	fake.exec = request
+	if request.Stdout != nil && len(request.Argv) > 0 {
+		const prefix = "LPIC_CHECK_COMPLETED_"
+		last := request.Argv[len(request.Argv)-1]
+		if index := strings.Index(last, prefix); index >= 0 && len(last) >= index+len(prefix)+32 {
+			_, _ = fmt.Fprintln(request.Stdout, last[index:index+len(prefix)+32])
+		}
+	}
 	if fake.failExec {
 		return runner.ExecResult{}, errors.New("Exec must not be called")
 	}
@@ -458,251 +463,25 @@ func TestFailedResetCleanupRemainsRetryable(t *testing.T) {
 	}
 }
 
-func TestBuiltinLabsProvideTwoPracticeContextsPerActiveConcept(t *testing.T) {
+func TestBuiltinLabsAreAuthoredScenariosOnly(t *testing.T) {
 	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
 	if err != nil {
 		t.Fatalf("LoadAll() error = %v", err)
 	}
-	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
+	paths, err := fs.Glob(lpicdaily.BuiltinFS, "labs/lpic-1-v5/*/*/lab.json")
 	if err != nil {
-		t.Fatalf("curriculum.Load() error = %v", err)
+		t.Fatal(err)
 	}
-
-	contexts := make(map[string]map[string]struct{})
-	for _, authored := range labs {
-		evidenced := make(map[string]struct{})
-		for _, check := range authored.Definition.Checks {
-			for _, conceptID := range check.ConceptIDs {
-				evidenced[conceptID] = struct{}{}
-			}
-		}
-		for conceptID := range evidenced {
-			if contexts[conceptID] == nil {
-				contexts[conceptID] = make(map[string]struct{})
-			}
-			contexts[conceptID][authored.Definition.PracticeContext] = struct{}{}
-		}
-	}
-
-	for _, concept := range curriculumBundle.Concepts.Concepts {
-		if !concept.Active {
-			continue
-		}
-		if got := len(contexts[concept.ID]); got < 2 {
-			t.Errorf("concept %s practical contexts = %d, want at least 2", concept.ID, got)
-		}
-	}
-}
-
-func TestGeneratedStandaloneLabsUseConceptAnchors(t *testing.T) {
-	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
-	if err != nil {
-		t.Fatalf("LoadAll() error = %v", err)
-	}
-	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
-	if err != nil {
-		t.Fatalf("curriculum.Load() error = %v", err)
-	}
-
-	conceptByID := make(map[string]curriculum.Concept)
-	objectiveExam := make(map[string]string)
-	for _, objective := range curriculumBundle.Objectives.Objectives {
-		if objective.Active {
-			objectiveExam[objective.ID] = objective.Exam
-		}
-	}
-	for _, concept := range curriculumBundle.Concepts.Concepts {
-		if concept.Active {
-			conceptByID[concept.ID] = concept
-		}
-	}
-	seen := make(map[string]int)
-	commandEvidence := make(map[string]int)
-	for _, authored := range labs {
-		if !strings.Contains(authored.Definition.ID, ".standalone-") {
-			continue
-		}
-		if len(authored.Definition.ConceptIDs) != 1 {
-			t.Fatalf("%s generated fallback spans %d concepts, want exactly 1", authored.Definition.ID, len(authored.Definition.ConceptIDs))
-		}
-		historyPath, _ := lab.StandaloneCommandHistoryPath(authored.Definition)
-		for _, conceptID := range authored.Definition.ConceptIDs {
-			concept := conceptByID[conceptID]
-			wantTerms := "TERMS=" + strings.Join(concept.AnchorTerms, ",")
-			foundStructuredEvidence := false
-			foundRuntimeCommand := false
-			for _, check := range authored.Definition.Checks {
-				if !slices.Contains(check.ConceptIDs, conceptID) {
-					continue
-				}
-				if check.Path == historyPath {
-					foundRuntimeCommand = true
-					continue
-				}
-				if check.Type == "file-content-regex" &&
-					strings.Contains(check.Pattern, regexp.QuoteMeta(wantTerms)) {
-					foundStructuredEvidence = true
-				}
-			}
-			if !foundStructuredEvidence {
-				t.Errorf("%s has no structured evidence check for %s anchors %v", authored.Definition.ID, conceptID, concept.AnchorTerms)
-			}
-			for _, anchor := range concept.AnchorTerms {
-				if !strings.Contains(authored.Definition.BriefFR, "`"+anchor+"`") {
-					t.Errorf("%s brief misses %s anchor %q", authored.Definition.ID, conceptID, anchor)
-				}
-			}
-			if foundRuntimeCommand {
-				commandEvidence[conceptID]++
-			}
-			seen[conceptID]++
-		}
-	}
-	for conceptID, concept := range conceptByID {
-		if seen[conceptID] < 2 {
-			t.Errorf("%s appears in %d generated standalone labs, want at least 2", conceptID, seen[conceptID])
-		}
-		if objectiveExam[concept.ObjectiveID] != "101" {
-			continue
-		}
-		hasCommandAnchor := false
-		for _, anchor := range concept.AnchorTerms {
-			switch anchor {
-			case "vi", "vim", "screen", "tmux", "shutdown", "init", "telinit",
-				"grub-install", "grub-mkconfig", "dpkg-reconfigure":
-				continue
-			}
-			usage := strings.TrimSpace(content.PedagogicalTermUsage(anchor))
-			if usage == anchor || strings.HasPrefix(usage, anchor+" ") || strings.HasPrefix(usage, anchor+" ;") {
-				hasCommandAnchor = true
-				break
-			}
-		}
-		if conceptID == "lpic1.103.1.set-env-et-portee-des-variables" {
-			// This exercise compares shell-local and exported state inside one
-			// persistent shell. The learner reflection is the evidence source;
-			// a separate one-shot command would run in another shell.
-			continue
-		}
-		if hasCommandAnchor && commandEvidence[conceptID] < 2 {
-			t.Errorf("%s runtime command-evidence contexts = %d, want at least 2", conceptID, commandEvidence[conceptID])
-		}
-	}
-}
-
-func TestGeneratedStandaloneCommandEvidenceRequiresCommandPosition(t *testing.T) {
-	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
-	if err != nil {
-		t.Fatalf("lab.LoadAll() error = %v", err)
+	if len(labs) != len(paths) {
+		t.Fatalf("loaded labs = %d, want precisely %d authored lab.json files, no generated labs", len(labs), len(paths))
 	}
 	for _, authored := range labs {
-		if !strings.HasPrefix(authored.Definition.ID, "lpic1.103.5.") || !strings.Contains(authored.Definition.ID, ".standalone-") {
-			continue
+		if strings.Contains(authored.Definition.ID, ".standalone-") {
+			t.Errorf("generated standalone lab is still loadable: %s", authored.Definition.ID)
 		}
-		historyPath, ok := lab.StandaloneCommandHistoryPath(authored.Definition)
-		if !ok {
-			continue
+		if authored.Definition.ReferenceSolutionRef == "" {
+			t.Errorf("%s is missing a reference solution", authored.Definition.ID)
 		}
-		for _, check := range authored.Definition.Checks {
-			if check.Path != historyPath || !slices.Contains(check.ConceptIDs, "lpic1.103.5.inspection-arbres-ressources") {
-				continue
-			}
-			re := regexp.MustCompile(check.Pattern)
-			if re.MatchString("EXIT=0\tCOMMAND=echo ps") {
-				t.Fatalf("%s accepts a mere textual mention of ps: %q", authored.Definition.ID, check.Pattern)
-			}
-			if !re.MatchString("EXIT=0\tCOMMAND=ps aux") {
-				t.Fatalf("%s rejects actual ps execution: %q", authored.Definition.ID, check.Pattern)
-			}
-			return
-		}
-	}
-	t.Fatal("no generated ps command-evidence check found")
-}
-
-func TestGeneratedStandaloneLabsStayConcreteAndConcise(t *testing.T) {
-	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
-	if err != nil {
-		t.Fatalf("LoadAll() error = %v", err)
-	}
-	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
-	if err != nil {
-		t.Fatalf("curriculum.Load() error = %v", err)
-	}
-
-	conceptByID := make(map[string]curriculum.Concept)
-	for _, concept := range curriculumBundle.Concepts.Concepts {
-		if concept.Active {
-			conceptByID[concept.ID] = concept
-		}
-	}
-
-	generated := 0
-	for _, authored := range labs {
-		if !strings.Contains(authored.Definition.ID, ".standalone-") {
-			continue
-		}
-		generated++
-		if len(authored.Definition.ConceptIDs) != 1 {
-			t.Fatalf("%s concept count = %d, want 1", authored.Definition.ID, len(authored.Definition.ConceptIDs))
-		}
-		concept := conceptByID[authored.Definition.ConceptIDs[0]]
-		brief := authored.Definition.BriefFR
-
-		for _, forbidden := range []string{
-			"pour montrer concrètement",
-			"Fais au moins une manipulation",
-			"Exercice spécifique indisponible",
-			"CONCEPT=",
-			"TERMS=",
-			"COMMAND=",
-			"OBSERVATION=",
-			"EXPLANATION=",
-			"lpic-daily-evidence",
-			"## Contexte de diagnostic",
-		} {
-			if strings.Contains(brief, forbidden) {
-				t.Errorf("%s contains generic/internal learner text %q", authored.Definition.ID, forbidden)
-			}
-		}
-		if strings.Contains(brief, "**") {
-			t.Errorf("%s still contains raw bold markdown in its brief", authored.Definition.ID)
-		}
-		if !strings.Contains(brief, "## À faire") || !strings.Contains(brief, "Quand tu as terminé, tape `:check`.") {
-			t.Errorf("%s does not use the compact learner format", authored.Definition.ID)
-		}
-		for _, anchor := range concept.AnchorTerms {
-			if !strings.Contains(brief, "`"+anchor+"`") {
-				t.Errorf("%s brief misses anchor %q", authored.Definition.ID, anchor)
-			}
-		}
-
-		if words := len(strings.Fields(brief)); words > 130 {
-			t.Errorf("%s brief = %d words, want <= 130", authored.Definition.ID, words)
-		}
-		if words := len(strings.Fields(authored.Definition.DebriefFR)); words > 80 {
-			t.Errorf("%s debrief = %d words, want <= 80", authored.Definition.ID, words)
-		}
-
-		for _, hint := range authored.Hints {
-			for _, forbidden := range []string{
-				"Fais une petite manipulation",
-				"Repars de la consigne",
-				"montre concrètement",
-				"CONCEPT=",
-				"TERMS=",
-			} {
-				if strings.Contains(hint.ContentFR, forbidden) {
-					t.Errorf("%s hint %d contains generic/internal text %q", authored.Definition.ID, hint.Level, forbidden)
-				}
-			}
-			if words := len(strings.Fields(hint.ContentFR)); words > 55 {
-				t.Errorf("%s hint %d = %d words, want <= 55", authored.Definition.ID, hint.Level, words)
-			}
-		}
-	}
-	if generated != 618 {
-		t.Fatalf("generated standalone labs = %d, want 618", generated)
 	}
 }
 
@@ -973,70 +752,24 @@ func TestBuiltinUEFIBootOrderShellCheck(t *testing.T) {
 	}
 }
 
-func TestEnvironmentBoundaryRepairChecksAreBounded(t *testing.T) {
+func TestEnvironmentBoundaryChecksReplayRealShellState(t *testing.T) {
 	authored := loadBuiltinLab(t, "lpic1.103.1.environment-boundary-repair")
-	if len(authored.Definition.Checks) != 5 {
-		t.Fatalf("checks = %d, want 5", len(authored.Definition.Checks))
+	if len(authored.Definition.Checks) != 4 {
+		t.Fatalf("checks = %d, want 4", len(authored.Definition.Checks))
 	}
-	if !authored.Definition.NeedsPersistentShell {
-		t.Fatal("environment grading must observe the persistent learner shell")
+	if !strings.Contains(authored.SetupScript, "repair-environment.sh") {
+		t.Fatal("lab does not create the repair script")
 	}
-	if !strings.Contains(authored.SetupScript, "PROMPT_COMMAND=__lpic_capture_environment") {
-		t.Fatal("shell startup must capture the live state before the prompt")
-	}
-	for i, check := range authored.Definition.Checks {
-		if check.Type != "command-exit" || check.TimeoutSeconds != 5 ||
-			check.BatchID != "environment-inspection" || check.FailureBit != 1<<i {
-			t.Fatalf("check %d must use one grouped, bounded command: %#v", i+1, check)
+	for _, check := range authored.Definition.Checks {
+		if check.Type != "command-exit" || check.TimeoutSeconds != 5 || check.BatchID != "" {
+			t.Fatalf("check must execute a fresh bounded behavioral probe: %#v", check)
 		}
-		want := []string{"/usr/bin/timeout", "-k", "1s", "3s", "/usr/bin/bash", "--noprofile", "--norc", "-c"}
-		if len(check.Argv) != len(want)+1 || !slices.Equal(check.Argv[:len(want)], want) {
-			t.Fatalf("check %d must use a bounded noninteractive shell: %#v", i+1, check.Argv)
+		if len(check.Argv) < 1 || !strings.Contains(check.Argv[len(check.Argv)-1], ". /run/lpic/repair-environment.sh") {
+			t.Fatalf("check must inspect newly sourced shell variables: %#v", check.Argv)
 		}
-		if !strings.Contains(check.Argv[len(want)], "/run/lpic/.environment-check-state") ||
-			strings.Contains(check.Argv[len(want)], "/root/.bashrc") {
-			t.Fatalf("check %d must observe a live shell snapshot, not source .bashrc: %#v", i+1, check.Argv)
+		if strings.Contains(strings.Join(check.Argv, " "), ".environment-check-state") {
+			t.Fatal("writable success bitmask must not be graded")
 		}
-		if i > 0 && !slices.Equal(authored.Definition.Checks[0].Argv, check.Argv) {
-			t.Fatalf("check %d duplicates a different command", i+1)
-		}
-	}
-}
-
-// The active-shell probe must accept commands entered in the learner's shell,
-// not require hidden edits to .bashrc or a fresh login.
-func TestEnvironmentBoundaryShellExportsWithoutBashrcEdits(t *testing.T) {
-	authored := loadBuiltinLab(t, "lpic1.103.1.environment-boundary-repair")
-	tmp := t.TempDir()
-	lpic := filepath.Join(tmp, "lpic")
-	setup := strings.ReplaceAll(authored.SetupScript, "/run/lpic", lpic)
-	command := exec.Command("/usr/bin/bash", "-c", setup)
-	if output, err := command.CombinedOutput(); err != nil {
-		t.Fatalf("setup shell: %v: %s", err, output)
-	}
-	runShell := func(source string, want string) {
-		t.Helper()
-		command := exec.Command("/usr/bin/bash", "--noprofile", "--norc", "-c", source)
-		output, err := command.CombinedOutput()
-		if err != nil {
-			t.Fatalf("shell probe: %v: %s", err, output)
-		}
-		got, err := os.ReadFile(filepath.Join(lpic, ".environment-check-state"))
-		if err != nil {
-			t.Fatal(err)
-		}
-		if strings.TrimSpace(string(got)) != want {
-			t.Fatalf("observed state = %q, want %q", got, want)
-		}
-	}
-	source := ". " + filepath.Join(lpic, ".lpic-shell-rc") + "; "
-	runShell(source+"__lpic_capture_environment", "30")
-	runShell(source+"export SERVICE_MODE=production; __lpic_capture_environment", "26")
-	runShell(source+"export SERVICE_MODE=production; export -n LOCAL_NOTE; unset LEGACY_TOKEN; "+
-		"printf '%s|%s\\n' \"$SERVICE_MODE\" \"$LOCAL_NOTE\" > "+filepath.Join(lpic, "env-summary")+
-		"; __lpic_capture_environment", "0")
-	if _, err := os.Stat(filepath.Join(tmp, "home", ".bashrc")); !os.IsNotExist(err) {
-		t.Fatalf("the exercise should not create an unrelated .bashrc: %v", err)
 	}
 }
 

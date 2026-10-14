@@ -19,3 +19,7 @@ set -euo pipefail
 } > /run/lpic/worker-env
 EOF
 chmod 0755 /usr/local/bin/start-report-worker
+
+cat > /run/lpic/worker-env-repair.sh <<'EOF'
+# Repare les variables heritees par start-report-worker.
+EOF

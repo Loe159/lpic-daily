@@ -1,12 +1,13 @@
 {
   "schema_version": "1.0.0",
   "id": "lpic1.103.1.external-command-recovery",
-  "title_fr": "Exécuter un outil volontairement hors PATH",
-  "brief_fr": "Un outil de diagnostic approuvé est installé mais la politique PATH ne doit pas être modifiée et son nom seul ne le résout pas. Retrouve le bon binaire report-status, exécute-le depuis son emplacement réel avec le rapport configuré dont le chemin contient un espace, puis écris /run/lpic/external-command-summary avec le chemin du binaire sur la première ligne et ready sur la seconde.",
+  "title_fr": "Exécuter l'outil approuvé sans modifier PATH",
+  "brief_fr": "Un outil approuvé /opt/lpic/approved/bin/report-status est installé hors PATH. Sans modifier PATH, prépare /run/lpic/run-approved-report.sh pour invoquer cet exécutable par son chemin absolu avec REPORT_FILE (un chemin contenant un espace). Après une exécution réussie, ton script doit écrire dans /run/lpic/external-command-summary le chemin du binaire et ready sur deux lignes. Le check rejouera ton script dans un nouveau shell, notamment avec un rapport volontairement invalide.",
   "success_criteria_fr": [
-    "report-status reste absent de la résolution normale par PATH.",
-    "Le binaire approuvé est exécuté avec le chemin de rapport complet et produit son état ready.",
-    "external-command-summary identifie le chemin réellement utilisé et confirme la réussite."
+    "report-status reste absent de PATH.",
+    "Le script peut invoquer le bon programme avec l'argument contenant un espace et produit ready.",
+    "Avec un mauvais rapport, le programme échoue ; la preuve ne peut pas être un fichier ready préfabriqué.",
+    "Le résumé décrit le binaire réellement prévu et le résultat obtenu."
   ],
   "debrief_fr": "Une commande peut être exécutée par chemin absolu ou relatif même si son répertoire n’est pas dans PATH. command -v, type, which ou la recherche dans l’arborescence aident à distinguer résolution et emplacement réel. Le quoting reste nécessaire lorsqu’un argument contient un espace.",
   "objective_ids": [
@@ -55,29 +56,62 @@
         "--noprofile",
         "--norc",
         "-c",
-        ". \"/root/.bashrc\" || exit 1; ! command -v report-status >/dev/null 2>&1"
+        ". /root/.bashrc || exit 1; ! command -v report-status >/dev/null 2>&1"
       ],
       "expected_exit": 0,
+      "timeout_seconds": 5,
+      "description_fr": "Le binaire reste absent de PATH.",
       "concept_ids": [
         "lpic1.103.1.execution-de-commandes-hors-path",
         "lpic1.103.1.path-et-resolution-de-commande"
-      ],
-      "timeout_seconds": 10,
-      "description_fr": "report-status reste introuvable par son nom seul, car il est hors du PATH."
+      ]
     },
     {
-      "type": "file-content-regex",
-      "path": "/run/lpic/report-ok",
-      "pattern": "^ready\\n?$",
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "--noprofile",
+        "--norc",
+        "-c",
+        ". /root/.bashrc || exit 1; /usr/bin/rm -f /run/lpic/report-ok /run/lpic/external-command-summary; /usr/bin/bash /run/lpic/run-approved-report.sh && [[ \"$(/usr/bin/cat /run/lpic/report-ok 2>/dev/null)\" == ready ]]"
+      ],
+      "expected_exit": 0,
+      "timeout_seconds": 5,
+      "description_fr": "Le script exécute correctement le rapport configuré.",
       "concept_ids": [
         "lpic1.103.1.execution-de-commandes-hors-path",
         "lpic1.103.1.quoting-escaping"
       ]
     },
     {
-      "type": "file-content-regex",
-      "path": "/run/lpic/external-command-summary",
-      "pattern": "^/opt/lpic/approved/bin/report-status\\nready\\n?$",
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "--noprofile",
+        "--norc",
+        "-c",
+        ". /root/.bashrc || exit 1; export REPORT_FILE='/var/lib/lpic/reports/not the approved report.txt'; /usr/bin/rm -f /run/lpic/report-ok; ! /usr/bin/bash /run/lpic/run-approved-report.sh && [[ ! -e /run/lpic/report-ok ]]"
+      ],
+      "expected_exit": 0,
+      "timeout_seconds": 5,
+      "description_fr": "Le script refuse un rapport erroné.",
+      "concept_ids": [
+        "lpic1.103.1.execution-de-commandes-hors-path",
+        "lpic1.103.1.quoting-escaping"
+      ]
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "--noprofile",
+        "--norc",
+        "-c",
+        ". /root/.bashrc || exit 1; /usr/bin/rm -f /run/lpic/report-ok /run/lpic/external-command-summary; /usr/bin/bash /run/lpic/run-approved-report.sh && [[ \"$(/usr/bin/cat /run/lpic/report-ok 2>/dev/null)\" == ready ]] && [[ \"$(/usr/bin/cat /run/lpic/external-command-summary 2>/dev/null)\" == $'/opt/lpic/approved/bin/report-status\\nready' ]]"
+      ],
+      "expected_exit": 0,
+      "timeout_seconds": 5,
+      "description_fr": "Le résumé correspond au résultat attendu.",
       "concept_ids": [
         "lpic1.103.1.execution-de-commandes-hors-path",
         "lpic1.103.1.documentation-et-identification-d-une-commande"

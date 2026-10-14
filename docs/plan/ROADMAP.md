@@ -48,7 +48,7 @@ Topics 101–104 are covered across all 23 objectives / 162 concepts with automa
 Complete topics 105–110, including networking, services and crypto. Ensure modern-versus-legacy labeling remains accurate.
 
 ## Cross-cutting initiative — scenario-based practical curriculum (in progress)
-Replace the 618 concept-scoped fallback labs progressively with a smaller portfolio of realistic, state-based scenarios modeled after shell-environment-repair, stuck-worker and shared-dropbox. Keep full concept coverage throughout the migration, prefer scenario evidence in the scheduler, then retire fallback generation only after both exams are fully covered.
+Runtime fallback lab generation has been retired. Only authored, state/behavior-checked scenarios remain runnable (70 as of October 2026). Missing practical coverage is a tracked migration gap, not an excuse to restore generated filler.
 
 Migration progress (2026-10-09, scenario-migration-1031 branch): Exam 101 has 80/162 concepts covered by `accepted` scenarios, 72 additional concepts by `implemented` scenarios awaiting runtime acceptance, and 10 concepts with no authored scenario. Topic 103 and objectives 104.5–104.7 are accepted; the remaining Exam-101 objective coverage is not yet accepted. This is a coverage inventory, not a completed or green KVM/Podman/CI acceptance report. Remaining hardware/boot/legacy-init concepts require dedicated test infrastructure; see the canonical migration plan.
 

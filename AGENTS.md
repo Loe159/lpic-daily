@@ -45,7 +45,7 @@ If sources conflict, resolve the conflict in canonical documentation before impl
 - Each concept may be counted as scenario-covered only when at least one **specific check actually demonstrates it**; do not tag concepts merely because they relate to the story.
 - Use `curriculum/lpic-1-v5/scenario-coverage.json` as the migration matrix and `docs/plan/SCENARIO-LABS-MIGRATION.md` as the migration plan. `accepted` means published for progressive learner testing (by project-owner decision on 2026-10-12), not necessarily validated on a real backend. Independently track CI, initial red / reference green / reset red and applicable KVM/Podman evidence; never report these tests as passed unless executed.
 - Never mark a Podman simulation as proving real boot, kernel, device, mount or systemd behaviors: use an appropriate libvirt/KVM backend for genuine system integration. A local mock is not interchangeable with the real environment.
-- Keep older fallback labs available only as a temporary compatibility measure for uncovered concepts. Do not mass-promote fallback content into "scenario" status, and do not reintroduce generated micro-labs.
+- Do not reintroduce fallback/standalone generated labs. Only authored, independently checked diagnostic or repair scenarios may be offered as practical labs. Incomplete concept coverage must remain explicit, never repaired by fabricated evidence.
 - Follow the detailed workflow in `.agents/skills/author-lab/SKILL.md` and `labs/AGENTS.md`.
 
 ## Application-code rules

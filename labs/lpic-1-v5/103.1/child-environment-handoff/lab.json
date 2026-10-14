@@ -2,10 +2,10 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.1.child-environment-handoff",
   "title_fr": "Corriger l’environnement transmis à un processus enfant",
-  "brief_fr": "Un worker lancé depuis ce shell doit recevoir REPORT_ENV=production, mais REPORT_DEBUG ne doit pas lui être transmis. Au démarrage, l’état est volontairement mauvais : REPORT_ENV existe seulement dans le shell courant et REPORT_DEBUG fuit dans l’environnement. Corrige l’environnement courant, puis lance start-report-worker. :check vérifie uniquement ce que le processus enfant a réellement reçu.",
+  "brief_fr": "Le worker de rapports est lancé avec un environnement erroné : REPORT_ENV=production existe seulement localement et REPORT_DEBUG=1 est exportée. Écris /run/lpic/worker-env-repair.sh, qui sera sourcé avant le lancement du worker, pour exporter REPORT_ENV et supprimer REPORT_DEBUG. Le check lance réellement le worker dans un nouveau processus avec les variables corrigées.",
   "success_criteria_fr": [
-    "Le worker enfant reçoit REPORT_ENV=production.",
-    "Le worker enfant ne reçoit pas REPORT_DEBUG."
+    "Le worker enfant reçoit REPORT_ENV=production par héritage.",
+    "Le worker enfant ne reçoit pas REPORT_DEBUG et la variable a été supprimée du shell parent."
   ],
   "debrief_fr": "set affiche notamment les variables du shell courant ; il ne les transmet pas. export marque une variable pour qu’elle soit copiée dans l’environnement des futurs processus enfants. unset supprime la variable du shell courant, donc les enfants lancés ensuite ne peuvent plus l’hériter. Une modification faite dans un processus enfant ne remonte pas vers son parent.",
   "objective_ids": [
@@ -45,18 +45,34 @@
   },
   "checks": [
     {
-      "type": "file-content-regex",
-      "path": "/run/lpic/worker-env",
-      "pattern": "(?m)^REPORT_ENV=production$",
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "--noprofile",
+        "--norc",
+        "-c",
+        ". /root/.bashrc || exit 1; . /run/lpic/worker-env-repair.sh || exit 1; [[ \"${REPORT_ENV-}\" == production ]] && /usr/bin/env | /usr/bin/grep -Fxq REPORT_ENV=production && /usr/bin/rm -f /run/lpic/worker-env && /usr/local/bin/start-report-worker && /usr/bin/grep -Fxq REPORT_ENV=production /run/lpic/worker-env"
+      ],
+      "expected_exit": 0,
+      "timeout_seconds": 5,
+      "description_fr": "REPORT_ENV est transmise au worker exécuté.",
       "concept_ids": [
         "lpic1.103.1.set-env-et-portee-des-variables",
         "lpic1.103.1.export-unset-et-processus-enfants"
       ]
     },
     {
-      "type": "file-content-regex",
-      "path": "/run/lpic/worker-env",
-      "pattern": "(?m)^REPORT_DEBUG=<unset>$",
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "--noprofile",
+        "--norc",
+        "-c",
+        ". /root/.bashrc || exit 1; . /run/lpic/worker-env-repair.sh || exit 1; [[ ! ${REPORT_DEBUG+x} ]] && ! /usr/bin/env | /usr/bin/grep -q '^REPORT_DEBUG=' && /usr/bin/rm -f /run/lpic/worker-env && /usr/local/bin/start-report-worker && /usr/bin/grep -Fxq 'REPORT_DEBUG=<unset>' /run/lpic/worker-env"
+      ],
+      "expected_exit": 0,
+      "timeout_seconds": 5,
+      "description_fr": "REPORT_DEBUG est absente du shell et du processus enfant.",
       "concept_ids": [
         "lpic1.103.1.export-unset-et-processus-enfants"
       ]

@@ -256,6 +256,12 @@ type RebootRunner interface {
 	Reboot(context.Context, Instance) error
 }
 
+// RebootEventProbe reads host-side evidence that the managed VM changed its
+// boot ID after a reboot requested by LPIC Daily. Guest files cannot forge it.
+type RebootEventProbe interface {
+	RebootObserved(context.Context, Instance) (bool, error)
+}
+
 // ACPIButtonRunner is an optional, full-machine-only capability. It sends a
 // physical power-button event to an owned disposable VM, not a guest-agent
 // shutdown or a signal to the host.

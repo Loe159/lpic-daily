@@ -1,7 +1,10 @@
 package checker
 
 import (
+	"bytes"
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -213,13 +216,25 @@ func (check CommandExit) Evaluate(ctx context.Context, probe Probe, instance run
 	if timeoutSeconds == 0 {
 		timeoutSeconds = 15
 	}
+	// Bash may return exit code 0 from a learner-controlled startup file
+	// without ever reaching the checker command. Require a completion receipt
+	// emitted at the END of the verifier script (never from .bashrc).
+	argv, completion, err := guardBashCheckCompletion(check.Argv)
+	if err != nil {
+		return Result{CheckID: check.ID(), Err: err}
+	}
+	var output checkOutputTail
 	commandCtx, cancel := context.WithTimeout(ctx, time.Duration(timeoutSeconds)*time.Second)
 	defer cancel()
-	result, err := probe.Exec(commandCtx, instance, runner.ExecRequest{
-		Argv:       append([]string(nil), check.Argv...),
+	request := runner.ExecRequest{
+		Argv:       argv,
 		Env:        cloneEnvironment(check.Env),
 		WorkingDir: check.WorkingDir,
-	})
+	}
+	if completion != "" {
+		request.Stdout = &output
+	}
+	result, err := probe.Exec(commandCtx, instance, request)
 	if err != nil {
 		// A blocked learner-controlled shell is an ordinary failed check, not
 		// a fatal lab error. Preserve caller cancellation and backend errors.
@@ -228,6 +243,9 @@ func (check CommandExit) Evaluate(ctx context.Context, probe Probe, instance run
 			return Result{CheckID: check.ID(), Detail: fmt.Sprintf("délai dépassé après %d s : la commande de vérification ne se termine pas", timeoutSeconds)}
 		}
 		return Result{CheckID: check.ID(), Err: err}
+	}
+	if completion != "" && !bytes.Contains(output.data, []byte(completion)) {
+		return Result{CheckID: check.ID(), Detail: "le script de vérification s'est terminé avant d'atteindre son contrôle final (profil shell ou sortie anticipée)"}
 	}
 	if result.ExitCode != check.ExpectedExit {
 		if result.ExitCode == 124 && len(check.Argv) > 0 && check.Argv[0] == "/usr/bin/timeout" {
@@ -244,6 +262,75 @@ func (check CommandExit) Evaluate(ctx context.Context, probe Probe, instance run
 		Pass:    true,
 		Detail:  fmt.Sprintf("exit=%d", result.ExitCode),
 	}
+}
+
+// Retain only a short suffix: shell output may be unbounded but the verifier
+// receipt is always the final line. Avoid caching untrusted output in memory.
+type checkOutputTail struct {
+	data []byte
+}
+
+func (tail *checkOutputTail) Write(p []byte) (int, error) {
+	n := len(p)
+	const limit = 4096
+	if len(p) >= limit {
+		tail.data = append(tail.data[:0], p[len(p)-limit:]...)
+	} else {
+		tail.data = append(tail.data, p...)
+		if len(tail.data) > limit {
+			tail.data = append(tail.data[:0], tail.data[len(tail.data)-limit:]...)
+		}
+	}
+	return n, nil
+}
+
+func guardBashCheckCompletion(argv []string) ([]string, string, error) {
+	args := append([]string(nil), argv...)
+	if len(args) < 3 || (args[len(args)-2] != "-lc" && args[len(args)-2] != "-c") {
+		return args, "", nil
+	}
+	bashFound := false
+	for _, arg := range args[:len(args)-2] {
+		if arg == "/usr/bin/bash" || arg == "/bin/bash" || arg == "bash" {
+			bashFound = true
+			break
+		}
+	}
+	if !bashFound {
+		return args, "", nil
+	}
+	var nonce [16]byte
+	if _, err := rand.Read(nonce[:]); err != nil {
+		return nil, "", fmt.Errorf("generate check completion nonce: %w", err)
+	}
+	completion := "LPIC_CHECK_COMPLETED_" + hex.EncodeToString(nonce[:])
+	// Preserve the original exit code, but only after producing the receipt.
+	// 'exit 0' in a login shell's startup file cannot forge completion.
+	args[len(args)-1] += "\n__lpic_check_status=$?; /usr/bin/printf '%s\\n' '" + completion + "'; exit \"$__lpic_check_status\""
+	return args, completion, nil
+}
+
+// HostRebootObserved prevents a learner from simulating a reboot by
+// overwriting initial-boot-id or dropping a guessed clean-exit marker.
+type HostRebootObserved struct {
+	CheckID string
+}
+
+func (check HostRebootObserved) ID() string { return check.CheckID }
+
+func (check HostRebootObserved) Evaluate(ctx context.Context, probe Probe, instance runner.Instance) Result {
+	host, ok := probe.(runner.RebootEventProbe)
+	if !ok {
+		return Result{CheckID: check.ID(), Err: fmt.Errorf("%w: host reboot evidence unavailable", runner.ErrNotSupported)}
+	}
+	observed, err := host.RebootObserved(ctx, instance)
+	if err != nil {
+		return Result{CheckID: check.ID(), Err: err}
+	}
+	if !observed {
+		return Result{CheckID: check.ID(), Detail: "aucun vrai redémarrage de VM observé depuis le terminal parent"}
+	}
+	return Result{CheckID: check.ID(), Pass: true, Detail: "host-confirmed VM reboot"}
 }
 
 // ACPIButtonSent requires proof outside the guest that libvirt dispatched

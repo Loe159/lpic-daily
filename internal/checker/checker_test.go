@@ -125,7 +125,7 @@ func TestCommandExitChecksSandboxBehaviorWithStructuredArgv(t *testing.T) {
 	probe := &fakeProbe{execResult: runner.ExecResult{ExitCode: 0}}
 	check := checker.CommandExit{
 		CheckID:      "login-environment",
-		Argv:         []string{"/usr/bin/bash", "-lc", "command -v report-status >/dev/null"},
+		Argv:         []string{"/usr/bin/true"},
 		ExpectedExit: 0,
 		Env:          map[string]string{"CHECK_MODE": "1"},
 	}
@@ -417,5 +417,42 @@ func TestMissingLabOutputsAreFailedCriteriaNotFatalErrors(t *testing.T) {
 		if result.Pass || result.Err != nil || result.Detail == "" {
 			t.Fatalf("missing output not reported as unmet criterion: %+v", result)
 		}
+	}
+}
+
+// A learner-controlled login profile may call 'exit 0' before the verifier
+// is reached. A zero exit status without the randomized final receipt fails.
+func TestBashCheckRequiresActualVerifierCompletion(t *testing.T) {
+	probe := &fakeProbe{execResult: runner.ExecResult{ExitCode: 0}}
+	check := checker.CommandExit{CheckID: "login", Argv: []string{"/usr/bin/bash", "-lc", "test -f /workspace/READY"}}
+	got := check.Evaluate(context.Background(), probe, runner.Instance{ID: "fake"})
+	if got.Pass || !strings.Contains(got.Detail, "avant") {
+		t.Fatalf("zero exit without verifier receipt unexpectedly passed: %+v", got)
+	}
+	if len(probe.lastRequest.Argv) < 3 || !strings.Contains(probe.lastRequest.Argv[2], "LPIC_CHECK_COMPLETED_") {
+		t.Fatalf("check script has no randomized completion receipt: %v", probe.lastRequest.Argv)
+	}
+}
+
+type fakeRebootEvidenceProbe struct {
+	fakeProbe
+	observed bool
+}
+
+func (probe *fakeRebootEvidenceProbe) RebootObserved(_ context.Context, _ runner.Instance) (bool, error) {
+	return probe.observed, nil
+}
+
+func TestRebootEvidenceMustOriginateFromHost(t *testing.T) {
+	check := checker.HostRebootObserved{CheckID: "reboot"}
+	instance := runner.Instance{ID: "fake"}
+	if got := check.Evaluate(context.Background(), &fakeProbe{}, instance); got.Pass || !errors.Is(got.Err, runner.ErrNotSupported) {
+		t.Fatalf("host proof missing: %+v", got)
+	}
+	if got := check.Evaluate(context.Background(), &fakeRebootEvidenceProbe{}, instance); got.Pass {
+		t.Fatalf("host proof not observed: %+v", got)
+	}
+	if got := check.Evaluate(context.Background(), &fakeRebootEvidenceProbe{observed: true}, instance); !got.Pass {
+		t.Fatalf("host proof present: %+v", got)
 	}
 }
