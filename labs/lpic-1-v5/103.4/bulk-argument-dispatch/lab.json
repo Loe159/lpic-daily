@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.4.bulk-argument-dispatch",
   "title_fr": "Distribuer une liste de fichiers vers un outil",
-  "brief_fr": "L'outil /workspace/bin/describe-file traite des chemins passés en arguments, mais les fichiers à traiter sont listés ligne par ligne dans /workspace/input/targets.txt. Fais transmettre cette liste depuis stdin comme arguments à l'outil, trie son résultat et écris /workspace/output/processed.log. Les tailles des fichiers de /workspace/input/data peuvent varier selon la session.",
+  "brief_fr": "Un outil d’inventaire sait décrire les fichiers qu’on lui transmet, mais le système amont ne fournit qu’une liste de chemins dans /workspace/input/targets.txt. Rétablis ce traitement pour que chaque fichier de la liste soit examiné, même lorsque sa taille change d’une session à l’autre. Le rapport final /workspace/output/processed.log doit présenter une ligne par fichier, triée par nom, avec le nom et sa taille réelle en octets.",
   "success_criteria_fr": [
     "processed.log contient une ligne nom-du-fichier:nombre-d'octets pour alpha.txt, beta.txt et gamma.txt, dans l'ordre alphabétique. Les nombres doivent correspondre aux tailles réelles des fichiers, sans valeurs fixées à l'avance."
   ],
