@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.3.release-tree-recovery",
   "title_fr": "Remettre en état une arborescence de release",
-  "brief_fr": "Une application doit être livrée à partir de /workspace/source/app. Prépare /workspace/release/app en conservant droits et dates, déplace les .conf dans release/config, supprime seulement les .tmp de plus de 7 jours et classe les logs de plus de 20 octets dans release/large-logs. Crée release/READY quand la livraison est prête : c'est le signal lu par le déploiement. Les fichiers sources doivent rester intacts.",
+  "brief_fr": "Le dépôt d’une nouvelle version a été interrompu et le répertoire de livraison n’est pas prêt. À partir de /workspace/source/app, rends /workspace/release exploitable par le déploiement : conserve les fichiers et leurs propriétés, regroupe les configurations, élimine seulement les fichiers temporaires obsolètes et isole les gros journaux. Les fichiers temporaires de moins de sept jours et les journaux de 20 octets ou moins doivent rester à leur place. Quand la version est prête, signale-le avec /workspace/release/READY. Ne modifie pas les sources.",
   "success_criteria_fr": [
     "L’application est recopiée récursivement sous release/app avec deploy.sh intact.",
     "Les deux fichiers .conf sont déplacés dans release/config et l’ancien dossier conf est vide ou absent.",
