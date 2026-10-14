@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.1.child-environment-handoff",
   "title_fr": "Corriger l’environnement transmis à un processus enfant",
-  "brief_fr": "Un worker lancé depuis ce shell doit recevoir REPORT_ENV=production, mais REPORT_DEBUG ne doit pas lui être transmis. Au démarrage, l’état est volontairement mauvais : REPORT_ENV existe seulement dans le shell courant et REPORT_DEBUG fuit dans l’environnement. Corrige l’environnement courant, puis lance start-report-worker. :check vérifie uniquement ce que le processus enfant a réellement reçu.",
+  "brief_fr": "Le service de génération de rapports démarre avec une mauvaise configuration : son processus enfant ne reçoit pas l’environnement de production, tandis qu’une option de débogage interne lui est transmise par erreur. Répare l’environnement de la session courante et fais redémarrer le worker. Le contrôle doit constater que ce processus reçoit uniquement les informations qui lui sont nécessaires.",
   "success_criteria_fr": [
     "Le worker enfant reçoit REPORT_ENV=production.",
     "Le worker enfant ne reçoit pas REPORT_DEBUG."
