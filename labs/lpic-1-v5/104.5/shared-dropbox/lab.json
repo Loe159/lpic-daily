@@ -2,13 +2,13 @@
   "schema_version": "1.0.0",
   "id": "lpic1.104.5.shared-dropbox",
   "title_fr": "Sécuriser un répertoire partagé",
-  "brief_fr": "Configure /srv/shared pour l'équipe project : root:project, collaboration groupe, aucun droit others, héritage du groupe et protection contre la suppression des fichiers d'un autre membre. Configure /root/.bashrc avec un umask 0007 et crée team-note depuis un shell qui charge réellement ce fichier. audit-helper porte au départ un SUID inutile : retire uniquement ce bit en gardant le fichier exécutable.",
+  "brief_fr": "Deux administrateurs de l’équipe project utilisent /srv/shared pour échanger des documents. Actuellement, les fichiers ne sont pas correctement partagés et un membre peut effacer ceux d’un autre. Rends cet espace collaboratif : les membres doivent pouvoir travailler ensemble, les personnes extérieures ne doivent pas accéder au dossier, les nouveaux fichiers doivent garder le groupe de l’équipe et seul leur propriétaire doit pouvoir les retirer. L’outil audit-helper ne doit plus bénéficier de privilèges excessifs tout en restant exécutable. Une nouvelle session de root doit créer team-note avec les droits attendus.",
   "success_criteria_fr": [
-    "/srv/shared appartient à root:project, donne rwx au propriétaire et au groupe, aucun droit aux autres, conserve le groupe project sur les nouvelles entrées et protège les fichiers des autres membres contre suppression/renommage.",
-    "team-note appartient au groupe project et est créé en mode 0660.",
-    "Un shell chargeant /root/.bashrc annonce réellement umask 0007 et crée un fichier en 0660.",
-    "audit-helper n'a plus de SUID et reste en mode 0755.",
-    "Le SGID hérite réellement le groupe project et le sticky bit empêche alice de supprimer le fichier de bob."
+    "Les membres de project peuvent lire et écrire dans /srv/shared, sans accès pour les autres utilisateurs et sans pouvoir supprimer les fichiers d’un collègue.",
+    "Les nouvelles entrées du dossier conservent le groupe project.",
+    "La nouvelle session de root crée team-note avec des droits 0660 et le groupe project.",
+    "audit-helper reste exécutable sans privilège spécial de propriétaire.",
+    "La transmission du groupe et la protection contre la suppression sont démontrées avec deux membres différents."
   ],
   "debrief_fr": "3770 combine 770, SGID et sticky bit. SGID conserve le groupe project, sticky limite suppression/renommage entre utilisateurs et umask 0007 transforme le mode de base 0666 d'un fichier en 0660. Le checker ouvre un nouveau shell avec le rcfile configuré et crée lui-même un fichier de preuve, ce qui valide le comportement de l'umask plutôt qu'un chmod final. SUID doit rester limité aux exécutables qui en ont réellement besoin.",
   "objective_ids": [
