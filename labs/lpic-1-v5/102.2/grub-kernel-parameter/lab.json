@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "id": "lpic1.102.2.grub-kernel-parameter",
   "title_fr": "Rétablir les messages de diagnostic au démarrage",
-  "brief_fr": "Depuis une maintenance, le serveur démarre mais les messages utiles au diagnostic du noyau et de systemd ne sont plus suffisamment visibles pendant son initialisation. L'exploitation demande le niveau de journalisation noyau 7 et l'affichage de l'état de démarrage systemd lors des prochains boots. Corrige cette configuration de manière persistante et constate qu'elle est effectivement utilisée après un vrai redémarrage de la VM. Préserve les autres paramètres noyau et la console série.",
+  "brief_fr": "Depuis une maintenance, les messages noyau et systemd sont difficiles à lire au démarrage. Rends persistants le niveau de journalisation noyau 7 et l'affichage de l'état de démarrage systemd dans les entrées réellement utilisées par GRUB 2, sans supprimer les autres options ni la console série. Redémarre ensuite réellement avec :reboot dans le terminal parent LPIC Daily pour vérifier les paramètres du noyau actif.",
   "success_criteria_fr": [
     "Les entrées GRUB 2 réellement utilisées par le chargeur contiennent les paramètres de diagnostic souhaités.",
     "Après un vrai redémarrage, le noyau et systemd démarrent avec les paramètres attendus et la console série reste utilisable."
