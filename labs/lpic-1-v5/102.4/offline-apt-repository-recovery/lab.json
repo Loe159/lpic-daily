@@ -58,7 +58,8 @@
       "concept_ids": [
         "lpic1.102.4.sources-et-metadonnees",
         "lpic1.102.4.roles-respectifs-dpkg-et-apt"
-      ]
+      ],
+      "description_fr": "Le dépôt local redevient accessible au gestionnaire de paquets."
     },
     {
       "type": "command-exit",
@@ -71,7 +72,8 @@
       "concept_ids": [
         "lpic1.102.4.installation-mise-a-jour-suppression",
         "lpic1.102.4.roles-respectifs-dpkg-et-apt"
-      ]
+      ],
+      "description_fr": "L'agent d'alerte est réellement installé comme paquet Debian et s'exécute correctement."
     },
     {
       "type": "command-exit",
@@ -83,7 +85,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.4.identifier-quel-paquet-fournit-possede-un-fichier"
-      ]
+      ],
+      "description_fr": "Le paquet propriétaire de l'exécutable peut être identifié dans la base locale."
     }
   ],
   "hint_ids": [
