@@ -2,10 +2,10 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.5.stuck-worker",
   "title_fr": "Diagnostiquer des jobs et arrêter le bon processus",
-  "brief_fr": "Deux programmes traitent les archives : l’un fonctionne normalement, l’autre ne répond plus. Identifie-les et conserve un état des lieux (identifiant, parent, état et commande) sous /run/lpic/process-inspection. Arrête uniquement le programme défectueux. L’équipe souhaite aussi valider qu’une tâche de test peut être suspendue, reprendre en arrière-plan puis être terminée proprement. Enfin, laisse un worker capable de survivre à la fermeture du terminal et une session de maintenance détachée nommée ops.",
+  "brief_fr": "Deux programmes traitent les archives : l’un fonctionne normalement, l’autre ne répond plus. Identifie-les et conserve un état des lieux sous /run/lpic/process-inspection, une ligne par processus avec les colonnes PID, PID parent, état abrégé et commande, séparées par des espaces. Arrête uniquement le programme défectueux. L’équipe souhaite aussi valider qu’une tâche de test peut être suspendue, reprendre en arrière-plan puis être terminée proprement. Enfin, laisse un worker capable de survivre à la fermeture du terminal et une session de maintenance détachée nommée ops.",
   "success_criteria_fr": [
     "Le worker défectueux est arrêté tandis que le traitement sain reste actif.",
-    "Le relevé /run/lpic/process-inspection identifie les deux processus avec PID, PPID, état et commande.",
+    "Le relevé /run/lpic/process-inspection contient pour chacun des deux processus une ligne avec PID, PID parent, état abrégé et commande, dans cet ordre et séparés par des espaces.",
     "La tâche de test a effectivement été suspendue, reprise en arrière-plan puis terminée proprement.",
     "Un worker reste actif indépendamment du terminal qui l’a lancé.",
     "Une session de maintenance détachée nommée ops reste accessible."
