@@ -60,7 +60,8 @@
         "lpic1.103.2.selection-de-colonnes-lignes",
         "lpic1.103.2.tri-dedoublonnage",
         "lpic1.103.2.transformations-simples"
-      ]
+      ],
+      "description_fr": "error-hosts.txt liste les hôtes en ERROR, triés sans doublons, en remplaçant les tirets par des underscores ; les identifiants dépendent des données de la session."
     },
     {
       "type": "command-exit",
@@ -73,7 +74,8 @@
       "concept_ids": [
         "lpic1.103.2.selection-de-colonnes-lignes",
         "lpic1.103.2.assemblage-et-decoupage"
-      ]
+      ],
+      "description_fr": "error-teams.txt associe chaque hôte en ERROR à son équipe sous la forme hôte-original|équipe (sans remplacer les tirets)."
     },
     {
       "type": "command-exit",
@@ -85,7 +87,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.2.assemblage-et-decoupage"
-      ]
+      ],
+      "description_fr": "Les fichiers chunks/error-00 et chunks/error-01 reprennent dans l'ordre les lignes du rapport, en lots de deux maximum."
     },
     {
       "type": "command-exit",
@@ -98,7 +101,8 @@
       "concept_ids": [
         "lpic1.103.2.flux-texte-ligne-octet",
         "lpic1.103.2.selection-de-colonnes-lignes"
-      ]
+      ],
+      "description_fr": "metrics.txt contient exactement errors=4 puis unique_hosts=3, chacun sur sa ligne."
     }
   ],
   "hint_ids": [

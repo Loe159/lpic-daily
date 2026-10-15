@@ -55,7 +55,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.2.checksums"
-      ]
+      ],
+      "description_fr": "Le manifeste SHA-256 valide les trois archives compressées."
     },
     {
       "type": "command-exit",
@@ -68,7 +69,8 @@
       "concept_ids": [
         "lpic1.103.2.lecture-compression-en-flux",
         "lpic1.103.2.flux-texte-ligne-octet"
-      ]
+      ],
+      "description_fr": "audit.txt contient les cinq lignes des trois fragments dans l’ordre day1, day2, day3."
     },
     {
       "type": "command-exit",
@@ -80,7 +82,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.2.checksums"
-      ]
+      ],
+      "description_fr": "checksums.txt contient trois lignes : MD5, SHA256 et SHA512 suivis chacun d’un espace puis de l’empreinte hexadécimale exacte de audit.txt ; l’ordre des lignes est libre."
     }
   ],
   "hint_ids": [

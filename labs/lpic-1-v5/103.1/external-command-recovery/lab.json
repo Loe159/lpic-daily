@@ -72,7 +72,8 @@
       "concept_ids": [
         "lpic1.103.1.execution-de-commandes-hors-path",
         "lpic1.103.1.quoting-escaping"
-      ]
+      ],
+      "description_fr": "Le binaire approuvé est exécuté avec le chemin de rapport complet et produit son état ready."
     },
     {
       "type": "file-content-regex",
@@ -81,7 +82,8 @@
       "concept_ids": [
         "lpic1.103.1.execution-de-commandes-hors-path",
         "lpic1.103.1.documentation-et-identification-d-une-commande"
-      ]
+      ],
+      "description_fr": "external-command-summary contient deux lignes sans étiquette : le chemin absolu du binaire réellement utilisé, puis son état ready."
     }
   ],
   "hint_ids": [
