@@ -54,7 +54,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.2.diagnostic-des-evenements-de-boot"
-      ]
+      ],
+      "description_fr": "Les événements de l'ancienne session de démarrage sont toujours consultables après reboot."
     },
     {
       "type": "command-exit",
@@ -66,7 +67,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.2.diagnostic-des-evenements-de-boot"
-      ]
+      ],
+      "description_fr": "Le système enregistre réellement ses journaux sur disque pour les futurs démarrages."
     }
   ],
   "hint_ids": [

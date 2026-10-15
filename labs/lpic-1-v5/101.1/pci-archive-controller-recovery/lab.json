@@ -63,7 +63,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.1.role-de-proc-sys-et-dev"
-      ]
+      ],
+      "description_fr": "Le périphérique de stockage est de nouveau visible dans les interfaces du noyau, de sysfs et de /dev."
     },
     {
       "type": "command-exit",
@@ -76,7 +77,8 @@
       "concept_ids": [
         "lpic1.101.1.ressources-et-identification-du-materiel",
         "lpic1.102.6.guest-drivers"
-      ]
+      ],
+      "description_fr": "Le contrôleur PCI du volume utilise réellement son pilote et le disque de données reste distinct du disque système."
     },
     {
       "type": "command-exit",
@@ -89,7 +91,8 @@
       "concept_ids": [
         "lpic1.101.1.role-de-proc-sys-et-dev",
         "lpic1.101.1.ressources-et-identification-du-materiel"
-      ]
+      ],
+      "description_fr": "Le volume d’archives d’origine est monté sous /srv/lpic-vault sans perte de données ; le service de lecture fonctionne et reste activé au démarrage."
     }
   ],
   "hint_ids": [

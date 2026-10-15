@@ -54,7 +54,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.1.modules-du-noyau-lies-au-materiel"
-      ]
+      ],
+      "description_fr": "Le pilote de disque RAM est réellement chargé et présente un périphérique bloc exploitable."
     },
     {
       "type": "command-exit",
@@ -66,7 +67,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.1.modules-du-noyau-lies-au-materiel"
-      ]
+      ],
+      "description_fr": "Le périphérique bloc en mémoire d’au moins 16 Mio porte un système ext4 monté sous /run/lpic-ramcache et une copie fidèle des données sources."
     },
     {
       "type": "command-exit",
@@ -78,7 +80,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.1.modules-du-noyau-lies-au-materiel"
-      ]
+      ],
+      "description_fr": "Le collecteur redémarre normalement et ses données durables ne sont pas modifiées."
     }
   ],
   "hint_ids": [

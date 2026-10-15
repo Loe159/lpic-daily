@@ -63,7 +63,8 @@
       "concept_ids": [
         "lpic1.101.1.bus-pci-et-usb",
         "lpic1.101.1.manipulation-des-peripheriques-usb"
-      ]
+      ],
+      "description_fr": "Le support USB réapparaît parmi les périphériques du noyau et est autorisé sur son port d'origine."
     },
     {
       "type": "command-exit",
@@ -76,7 +77,8 @@
       "concept_ids": [
         "lpic1.101.1.bus-pci-et-usb",
         "lpic1.101.1.manipulation-des-peripheriques-usb"
-      ]
+      ],
+      "description_fr": "Le contrôleur PCI USB, le périphérique USB et le volume disque identifié correspondent au même matériel virtuel."
     },
     {
       "type": "command-exit",
@@ -88,7 +90,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.1.manipulation-des-peripheriques-usb"
-      ]
+      ],
+      "description_fr": "Le volume de sauvegarde d'origine est remonté sous /srv/lpic-usb-backup et son manifeste est lisible sans modification."
     }
   ],
   "hint_ids": [
