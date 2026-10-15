@@ -54,7 +54,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.4.reconfiguration"
-      ]
+      ],
+      "description_fr": "L’agent Debian est installé et fonctionne avec sa configuration restaurée."
     },
     {
       "type": "command-exit",
@@ -66,7 +67,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.4.reconfiguration"
-      ]
+      ],
+      "description_fr": "La configuration attendue et le lot de données préexistant sont conservés."
     }
   ],
   "hint_ids": [

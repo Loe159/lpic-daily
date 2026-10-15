@@ -56,7 +56,8 @@
       "concept_ids": [
         "lpic1.102.2.emplacement-configuration-du-bootloader",
         "lpic1.102.2.generation-de-configuration-grub-2"
-      ]
+      ],
+      "description_fr": "La configuration de démarrage active demande les diagnostics noyau et systemd."
     },
     {
       "type": "command-exit",
@@ -70,7 +71,8 @@
         "lpic1.102.2.emplacement-configuration-du-bootloader",
         "lpic1.102.2.generation-de-configuration-grub-2",
         "lpic1.101.2.parametres-noyau-au-boot"
-      ]
+      ],
+      "description_fr": "Après redémarrage, les paramètres de diagnostic figurent dans le noyau actif."
     }
   ],
   "hint_ids": [

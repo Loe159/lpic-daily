@@ -53,7 +53,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.2.entrees-alternatives-et-recuperation"
-      ]
+      ],
+      "description_fr": "L’entrée GRUB de diagnostic est conservée comme choix de démarrage par défaut."
     },
     {
       "type": "command-exit",
@@ -65,7 +66,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.2.entrees-alternatives-et-recuperation"
-      ]
+      ],
+      "description_fr": "La VM a redémarré avec le bon noyau et l’option de secours active."
     }
   ],
   "hint_ids": [

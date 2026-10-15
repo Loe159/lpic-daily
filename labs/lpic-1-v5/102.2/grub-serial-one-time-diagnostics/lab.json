@@ -57,7 +57,8 @@
       "concept_ids": [
         "lpic1.101.2.commandes-du-chargeur-de-demarrage",
         "lpic1.102.2.interaction-au-menu-console-grub"
-      ]
+      ],
+      "description_fr": "La VM a redémarré avec l’option temporaire lpic.console_probe=1."
     },
     {
       "type": "command-exit",
@@ -69,7 +70,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.2.commandes-du-chargeur-de-demarrage"
-      ]
+      ],
+      "description_fr": "La confirmation lpic_grub_cli=verified est enregistrée dans GRUB."
     },
     {
       "type": "command-exit",
@@ -81,7 +83,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.2.interaction-au-menu-console-grub"
-      ]
+      ],
+      "description_fr": "Les réglages de démarrage permanents sont restés inchangés."
     }
   ],
   "hint_ids": [

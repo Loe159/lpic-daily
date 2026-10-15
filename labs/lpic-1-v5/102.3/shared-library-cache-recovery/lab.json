@@ -56,7 +56,8 @@
       "concept_ids": [
         "lpic1.102.3.chemins-de-recherche-du-chargeur-dynamique",
         "lpic1.102.3.cache-ldconfig"
-      ]
+      ],
+      "description_fr": "L’outil lpic-report fonctionne sans environnement personnalisé."
     },
     {
       "type": "command-exit",
@@ -68,7 +69,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.3.cache-ldconfig"
-      ]
+      ],
+      "description_fr": "Le cache du chargeur dynamique référence la bibliothèque du fournisseur."
     },
     {
       "type": "command-exit",
@@ -80,7 +82,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.3.chemins-de-recherche-du-chargeur-dynamique"
-      ]
+      ],
+      "description_fr": "Le binaire et les bibliothèques originaux sont préservés."
     }
   ],
   "hint_ids": [

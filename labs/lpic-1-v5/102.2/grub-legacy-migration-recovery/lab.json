@@ -54,7 +54,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.2.grub-legacy-versus-grub-2"
-      ]
+      ],
+      "description_fr": "L’entrée BLS importée conserve les options utiles de l’ancienne configuration."
     },
     {
       "type": "command-exit",
@@ -66,7 +67,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.2.grub-legacy-versus-grub-2"
-      ]
+      ],
+      "description_fr": "La VM a réellement redémarré sur cette entrée et expose l’indicateur legacy."
     },
     {
       "type": "command-exit",
@@ -78,7 +80,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.2.grub-legacy-versus-grub-2"
-      ]
+      ],
+      "description_fr": "L’entrée normale et l’ancienne configuration GRUB sont préservées."
     }
   ],
   "hint_ids": [

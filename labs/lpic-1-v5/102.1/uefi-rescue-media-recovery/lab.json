@@ -62,7 +62,8 @@
       "concept_ids": [
         "lpic1.102.1.efi-system-partition",
         "lpic1.102.1.contraintes-boot-et-architecture"
-      ]
+      ],
+      "description_fr": "Le support de secours possède une table GPT et une partition système EFI."
     },
     {
       "type": "command-exit",
@@ -74,7 +75,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.1.efi-system-partition"
-      ]
+      ],
+      "description_fr": "Le système FAT du support est monté sur /mnt/lpic-rescue-esp."
     },
     {
       "type": "command-exit",
@@ -87,7 +89,8 @@
       "concept_ids": [
         "lpic1.102.1.contraintes-boot-et-architecture",
         "lpic1.102.1.efi-system-partition"
-      ]
+      ],
+      "description_fr": "Le chargeur EFI et le manifeste du support sont restés intacts."
     }
   ],
   "hint_ids": [
