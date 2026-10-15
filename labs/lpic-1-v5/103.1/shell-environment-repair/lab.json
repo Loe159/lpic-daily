@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.1.shell-environment-repair",
   "title_fr": "Réparer un environnement de login shell",
-  "brief_fr": "Depuis une modification de sa configuration, le terminal de connexion de root utilise une version non approuvée de report-status et transmet de mauvaises informations aux outils de diagnostic. Les nouveaux shells de connexion doivent retrouver l’outil officiel, travailler en mode production avec le bon fichier de rapport (dont le nom contient un espace) et conserver jusqu’à 2 000 commandes en mémoire et 4 000 sur disque. Dans un nouveau login shell, crée /run/lpic/system-summary avec deux lignes, sans étiquette : d’abord le nom du noyau Linux, puis la catégorie de report-status telle que Bash la reconnaît (exécutable externe, alias, fonction ou commande interne). Pour cette seconde ligne, indique uniquement la catégorie, pas le chemin ni une description.",
+  "brief_fr": "Un changement de configuration fait exécuter au shell de connexion de root une copie non approuvée de report-status. Les nouveaux shells doivent retrouver l’outil officiel, fonctionner en mode production avec /var/lib/lpic/reports/daily report.txt (espace inclus) et conserver 2 000 commandes en mémoire, 4 000 sur disque. Prépare /run/lpic/system-summary sur deux lignes : d’abord le nom du noyau, puis la catégorie de report-status reconnue par Bash (exécutable externe, alias, fonction ou commande interne). N’ajoute ni étiquette, ni chemin de commande, ni commentaire.",
   "success_criteria_fr": [
     "Le nouvel environnement de connexion trouve l’exécutable report-status approuvé.",
     "Le mode production et le chemin /var/lib/lpic/reports/daily report.txt sont transmis sans altération aux outils lancés depuis ce shell.",
