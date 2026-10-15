@@ -78,7 +78,7 @@
       "argv": [
         "/usr/bin/bash",
         "-lc",
-        "set -e; rpm -q bash >/dev/null && test \"$(head -n 1 /workspace/audit/owners.tsv | cut -f 1)\" = /usr/bin/bash"
+        "set -e; rpm -q bash >/dev/null; test \"$(cut -f 1 /workspace/audit/owners.tsv | LC_ALL=C sort -u | wc -l)\" -eq 3"
       ],
       "expected_exit": 0,
       "concept_ids": [
