@@ -2,10 +2,10 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.5.transfer-operator-session",
   "title_fr": "Conduire une relève de maintenance",
-  "brief_fr": "Un opérateur prend la relève d’une maintenance sans interrompre le traitement en cours. Le programme reload-worker doit recevoir une demande de rechargement tout en restant actif ; conserve son état initial dans /run/lpic/maintenance-inspection. Vérifie également qu’une tâche de maintenance peut être suspendue, reprise en arrière-plan puis arrêtée proprement. À la fin, le traitement batch, un démon indépendant du terminal et une session de maintenance détachée nommée maintenance-ops doivent être disponibles au prochain opérateur.",
+  "brief_fr": "Un opérateur prend la relève d’une maintenance sans interrompre le traitement en cours. Le programme reload-worker doit recevoir une demande de rechargement tout en restant actif ; conserve son état initial dans /run/lpic/maintenance-inspection, sur une ligne avec PID, PID parent, état abrégé et commande, séparés par des espaces. Vérifie également qu’une tâche de maintenance peut être suspendue, reprise en arrière-plan puis arrêtée proprement. À la fin, le traitement batch, un démon indépendant du terminal et une session de maintenance détachée nommée maintenance-ops doivent être disponibles au prochain opérateur.",
   "success_criteria_fr": [
     "Le service reload-worker a reçu sa demande de rechargement sans être interrompu.",
-    "Le relevé /run/lpic/maintenance-inspection décrit le processus initial (PID, PPID, état, commande).",
+    "Le relevé /run/lpic/maintenance-inspection décrit le processus initial avec une ligne PID, PID parent, état abrégé, commande, dans cet ordre et séparés par des espaces.",
     "La tâche de test a réellement été suspendue, reprise en arrière-plan et terminée proprement.",
     "Le batch et le démon restent actifs, et ce dernier ne dépend plus du terminal d’origine.",
     "La session de maintenance détachée maintenance-ops est disponible pour la relève."
