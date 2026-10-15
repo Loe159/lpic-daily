@@ -60,7 +60,8 @@
         "lpic1.103.6.priorite-par-defaut",
         "lpic1.103.6.observer-priorite",
         "lpic1.103.6.nice-value-et-ordonnancement-utilisateur"
-      ]
+      ],
+      "description_fr": "service-worker reste actif avec la priorité nice 0."
     },
     {
       "type": "command-exit",
@@ -74,7 +75,8 @@
         "lpic1.103.6.modifier-priorite-existante",
         "lpic1.103.6.observer-priorite",
         "lpic1.103.6.nice-value-et-ordonnancement-utilisateur"
-      ]
+      ],
+      "description_fr": "reindex-worker reste actif avec la priorité nice 10."
     },
     {
       "type": "command-exit",
@@ -88,7 +90,8 @@
         "lpic1.103.6.demarrer-avec-une-priorite",
         "lpic1.103.6.observer-priorite",
         "lpic1.103.6.nice-value-et-ordonnancement-utilisateur"
-      ]
+      ],
+      "description_fr": "batch-worker a démarré avec la priorité nice 15."
     },
     {
       "type": "command-exit",
@@ -100,7 +103,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.6.observer-priorite"
-      ]
+      ],
+      "description_fr": "/run/lpic/priority-report indique les trois priorités réellement observées."
     }
   ],
   "hint_ids": [

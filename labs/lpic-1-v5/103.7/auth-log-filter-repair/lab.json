@@ -63,7 +63,8 @@
         "lpic1.103.7.quantificateurs-et-ancres",
         "lpic1.103.7.groupes-alternatives",
         "lpic1.103.7.recherche-de-lignes"
-      ]
+      ],
+      "description_fr": "suspicious.txt contient uniquement les échecs SSH/sudo des comptes userNN."
     },
     {
       "type": "command-exit",
@@ -75,7 +76,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.7.substitution-transformation-avec-sed"
-      ]
+      ],
+      "description_fr": "normalized.txt remplace FAIL par DENIED sans perdre les autres données."
     },
     {
       "type": "command-exit",
@@ -87,7 +89,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.7.difference-glob-vs-regex"
-      ]
+      ],
+      "description_fr": "active-logs.txt liste les journaux .log actifs, sans fichiers .bak."
     }
   ],
   "hint_ids": [

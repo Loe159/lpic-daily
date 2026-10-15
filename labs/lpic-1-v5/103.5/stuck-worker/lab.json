@@ -58,14 +58,16 @@
       "concept_ids": [
         "lpic1.103.5.selection-par-nom-pid",
         "lpic1.103.5.signaux"
-      ]
+      ],
+      "description_fr": "Le worker bloqué stuck-worker est arrêté."
     },
     {
       "type": "process-running",
       "match": "healthy-worker",
       "concept_ids": [
         "lpic1.103.5.selection-par-nom-pid"
-      ]
+      ],
+      "description_fr": "Le worker sain healthy-worker continue de tourner."
     },
     {
       "type": "command-exit",
@@ -77,7 +79,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.5.inspection-arbres-ressources"
-      ]
+      ],
+      "description_fr": "/run/lpic/process-inspection décrit les deux processus avec PID, PPID, état et commande."
     },
     {
       "type": "file-content-regex",
@@ -86,7 +89,8 @@
       "concept_ids": [
         "lpic1.103.5.processus-avant-arriere-plan",
         "lpic1.103.5.jobs-du-shell"
-      ]
+      ],
+      "description_fr": "Le test de processus a été lancé en arrière-plan."
     },
     {
       "type": "file-content-regex",
@@ -95,7 +99,8 @@
       "concept_ids": [
         "lpic1.103.5.jobs-du-shell",
         "lpic1.103.5.signaux"
-      ]
+      ],
+      "description_fr": "Le test de processus a été suspendu."
     },
     {
       "type": "file-content-regex",
@@ -104,7 +109,8 @@
       "concept_ids": [
         "lpic1.103.5.processus-avant-arriere-plan",
         "lpic1.103.5.signaux"
-      ]
+      ],
+      "description_fr": "Le test de processus a repris après suspension."
     },
     {
       "type": "file-content-regex",
@@ -112,21 +118,24 @@
       "pattern": "^terminated\\n?$",
       "concept_ids": [
         "lpic1.103.5.signaux"
-      ]
+      ],
+      "description_fr": "Le test de processus a été terminé proprement."
     },
     {
       "type": "process-absent",
       "match": "/usr/local/bin/lpic-signal-probe",
       "concept_ids": [
         "lpic1.103.5.signaux"
-      ]
+      ],
+      "description_fr": "Le processus de test n’est plus en cours d’exécution."
     },
     {
       "type": "process-running",
       "match": "resilient-worker",
       "concept_ids": [
         "lpic1.103.5.processus-survivant-a-la-session"
-      ]
+      ],
+      "description_fr": "Le worker resilient-worker reste actif indépendamment du terminal."
     },
     {
       "type": "command-exit",
@@ -139,7 +148,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.5.multiplexeurs-de-terminal"
-      ]
+      ],
+      "description_fr": "Une session tmux détachée nommée ops est disponible."
     }
   ],
   "hint_ids": [

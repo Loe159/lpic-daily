@@ -61,7 +61,8 @@
       "concept_ids": [
         "lpic1.104.1.mbr-versus-gpt",
         "lpic1.104.1.creation-modification-de-partitions"
-      ]
+      ],
+      "description_fr": "Le disque /dev/vdb utilise une table GPT."
     },
     {
       "type": "block-device-state",
@@ -71,7 +72,8 @@
       "concept_ids": [
         "lpic1.104.1.ext2-ext3-ext4",
         "lpic1.104.1.creation-de-filesystem"
-      ]
+      ],
+      "description_fr": "/dev/vdb1 est une partition formatée en ext4."
     },
     {
       "type": "block-device-state",
@@ -81,7 +83,8 @@
       "concept_ids": [
         "lpic1.104.1.swap",
         "lpic1.104.1.creation-de-filesystem"
-      ]
+      ],
+      "description_fr": "/dev/vdb2 est une partition initialisée en swap."
     },
     {
       "type": "command-exit",
@@ -94,7 +97,8 @@
       "concept_ids": [
         "lpic1.104.1.creation-modification-de-partitions",
         "lpic1.104.1.swap"
-      ]
+      ],
+      "description_fr": "Les partitions ont les bonnes tailles et restent sur /dev/vdb."
     }
   ],
   "hint_ids": [

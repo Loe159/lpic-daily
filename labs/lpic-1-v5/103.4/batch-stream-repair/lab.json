@@ -61,7 +61,8 @@
       "concept_ids": [
         "lpic1.103.4.stdin-stdout-stderr-et-descripteurs",
         "lpic1.103.4.redirections-ecrasement-append"
-      ]
+      ],
+      "description_fr": "stdout.log contient seulement les réussites, sans l’ancien contenu STALE."
     },
     {
       "type": "command-exit",
@@ -74,7 +75,8 @@
       "concept_ids": [
         "lpic1.103.4.redirection-stderr",
         "lpic1.103.4.stdin-stdout-stderr-et-descripteurs"
-      ]
+      ],
+      "description_fr": "stderr.log contient uniquement les erreurs du batch."
     },
     {
       "type": "command-exit",
@@ -87,7 +89,8 @@
       "concept_ids": [
         "lpic1.103.4.ordre-des-redirections",
         "lpic1.103.4.redirection-stderr"
-      ]
+      ],
+      "description_fr": "combined.log conserve réussites et erreurs dans leur ordre d’émission."
     },
     {
       "type": "command-exit",
@@ -99,7 +102,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.4.redirections-ecrasement-append"
-      ]
+      ],
+      "description_fr": "history.log garde previous-run et ajoute les réussites du nouveau batch."
     },
     {
       "type": "command-exit",
@@ -112,7 +116,8 @@
       "concept_ids": [
         "lpic1.103.4.pipelines",
         "lpic1.103.4.dupliquer-sortie-avec-tee"
-      ]
+      ],
+      "description_fr": "live.log contient les réussites et success-count.txt leur nombre exact."
     }
   ],
   "hint_ids": [

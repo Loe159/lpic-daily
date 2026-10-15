@@ -55,7 +55,8 @@
         "lpic1.103.4.transformer-stdin-en-arguments-via-xargs",
         "lpic1.103.4.pipelines",
         "lpic1.103.4.stdin-stdout-stderr-et-descripteurs"
-      ]
+      ],
+      "description_fr": "processed.log liste les fichiers et leurs tailles réelles, dans l’ordre alphabétique."
     }
   ],
   "hint_ids": [

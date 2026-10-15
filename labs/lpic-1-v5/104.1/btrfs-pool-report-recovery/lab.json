@@ -64,7 +64,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.104.1.principes-btrfs-multi-device-compression-subvolumes"
-      ]
+      ],
+      "description_fr": "Le pool Btrfs est monté et possède ses deux disques membres."
     },
     {
       "type": "command-exit",
@@ -76,7 +77,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.104.1.principes-btrfs-multi-device-compression-subvolumes"
-      ]
+      ],
+      "description_fr": "Le sous-volume Btrfs reports existe sur le pool."
     },
     {
       "type": "command-exit",
@@ -88,7 +90,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.104.1.principes-btrfs-multi-device-compression-subvolumes"
-      ]
+      ],
+      "description_fr": "Le pool utilise la compression zstd et conserve le manifeste d’origine."
     }
   ],
   "hint_ids": [
