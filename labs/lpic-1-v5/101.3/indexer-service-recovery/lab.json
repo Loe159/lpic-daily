@@ -55,7 +55,7 @@
       "concept_ids": [
         "lpic1.101.3.services-et-dependances-de-demarrage"
       ],
-      "description_fr": "L'indexeur traite les événements ERROR et publie un index qui se met à jour pendant l'exécution du service."
+      "description_fr": "Le service lpic-indexer est actif et son unité est correctement chargée."
     },
     {
       "type": "command-exit",
@@ -68,7 +68,7 @@
       "concept_ids": [
         "lpic1.101.3.services-et-dependances-de-demarrage"
       ],
-      "description_fr": "L'indexeur traite les événements ERROR et publie un index qui se met à jour pendant l'exécution du service."
+      "description_fr": "Le service lpic-indexer reste activé pour les prochains démarrages."
     },
     {
       "type": "command-exit",
@@ -81,7 +81,7 @@
       "concept_ids": [
         "lpic1.101.3.services-et-dependances-de-demarrage"
       ],
-      "description_fr": "Le service est toujours activé pour les prochains démarrages."
+      "description_fr": "La dépendance de démarrage envers network.target est conservée."
     },
     {
       "type": "command-exit",
@@ -94,7 +94,7 @@
       "concept_ids": [
         "lpic1.101.3.services-et-dependances-de-demarrage"
       ],
-      "description_fr": "L'ordre de démarrage défini pour le service est préservé."
+      "description_fr": "L’indexeur publie correctement les nouveaux événements ERROR."
     }
   ],
   "hint_ids": [
