@@ -9,7 +9,7 @@ updatedb -l 0 -U /workspace/catalog -o /workspace/acme.db
 find /workspace/catalog -type f -name 'acme-guide.txt' > /workspace/find-result.txt
 PATH="/opt/acme/bin:$PATH"
 {
-  printf 'type=%s\n' "$(type -P acmectl)"
-  printf 'which=%s\n' "$(which acmectl)"
-  printf 'whereis=%s\n' "$(whereis bash)"
+  printf 'shell-path=%s\n' "$(type -P acmectl)"
+  printf 'path-search=%s\n' "$(which acmectl)"
+  printf 'bash-locations=%s\n' "$(whereis bash)"
 } > /workspace/command-report.txt
