@@ -2,13 +2,13 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.1.shell-environment-repair",
   "title_fr": "Réparer un environnement de login shell",
-  "brief_fr": "Depuis une modification de sa configuration, le terminal de connexion de root utilise une version non approuvée de report-status et transmet de mauvaises informations aux outils de diagnostic. Les nouveaux shells de connexion doivent retrouver l’outil officiel, travailler en mode production avec le bon fichier de rapport (dont le nom contient un espace) et conserver jusqu’à 2 000 commandes en mémoire et 4 000 sur disque. Prépare /run/lpic/system-summary : nom du système puis type de la commande de diagnostic.",
+  "brief_fr": "Depuis une modification de sa configuration, le terminal de connexion de root utilise une version non approuvée de report-status et transmet de mauvaises informations aux outils de diagnostic. Les nouveaux shells de connexion doivent retrouver l’outil officiel, travailler en mode production avec le bon fichier de rapport (dont le nom contient un espace) et conserver jusqu’à 2 000 commandes en mémoire et 4 000 sur disque. Dans un nouveau login shell, crée /run/lpic/system-summary avec exactement deux lignes, sans étiquette : ligne 1, la sortie de `uname -s` (nom du noyau) ; ligne 2, la sortie de `type -t report-status` (nature de la commande).",
   "success_criteria_fr": [
     "Le nouvel environnement de connexion trouve l’exécutable report-status approuvé.",
     "Le mode production et le chemin /var/lib/lpic/reports/daily report.txt sont transmis sans altération aux outils lancés depuis ce shell.",
     "Le rapport peut être traité avec succès dans ce nouvel environnement.",
     "L’historique de la session conserve 2 000 commandes en mémoire et 4 000 sur disque.",
-    "La fiche /run/lpic/system-summary identifie correctement le système et le type de l’outil de diagnostic."
+    "Le fichier /run/lpic/system-summary contient exactement deux lignes, dans cet ordre : la sortie de `uname -s`, puis celle de `type -t report-status` (sans étiquette ni ligne supplémentaire)."
   ],
   "debrief_fr": "PATH est parcouru de gauche à droite. export rend une variable disponible aux processus enfants et le quoting conserve les espaces dans une valeur. Les builtins comme type permettent d'identifier une commande, uname expose les informations système et les variables HISTSIZE/HISTFILESIZE règlent l'historique. Les checks ouvrent de nouveaux login shells pour valider un état persistant.",
   "objective_ids": [
@@ -129,7 +129,7 @@
       "argv": [
         "/usr/bin/bash",
         "-lc",
-        "test -f /run/lpic/system-summary && test \"$(sed -n '1p' /run/lpic/system-summary)\" = \"$(uname -s)\" && test \"$(sed -n '2p' /run/lpic/system-summary)\" = \"$(type -t report-status)\""
+        "test -f /run/lpic/system-summary && test \"$(sed -n '1p' /run/lpic/system-summary)\" = \"$(uname -s)\" && test \"$(sed -n '2p' /run/lpic/system-summary)\" = \"$(type -t report-status)\" && test \"$(wc -l < /run/lpic/system-summary)\" -eq 2"
       ],
       "expected_exit": 0,
       "concept_ids": [
