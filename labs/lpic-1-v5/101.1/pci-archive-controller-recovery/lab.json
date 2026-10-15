@@ -2,11 +2,11 @@
   "schema_version": "1.0.0",
   "id": "lpic1.101.1.pci-archive-controller-recovery",
   "title_fr": "Récupérer un contrôleur PCI de stockage désactivé",
-  "brief_fr": "Après une intervention sur l'hyperviseur, le volume d'archives d'une VM Fedora a disparu et le lecteur d'index est en échec. L'équipe confirme que le contenu du volume n'a pas été effacé. Rétablis l'accès au périphérique et remets le service en marche, sans reformater le volume, modifier le disque système ni redémarrer la VM.",
+  "brief_fr": "Après une intervention sur l'hyperviseur, le volume d'archives d'une VM Fedora a disparu et le lecteur d'index est en échec. L'équipe confirme que le contenu du volume n'a pas été effacé. Rétablis l'accès au périphérique et au volume sous /srv/lpic-vault, puis remets le service en marche durablement, sans reformater le volume, modifier le disque système ni redémarrer la VM.",
   "success_criteria_fr": [
     "Le périphérique de stockage est de nouveau visible dans les interfaces du noyau, de sysfs et de /dev.",
     "Le contrôleur PCI du volume utilise réellement son pilote et le disque de données reste distinct du disque système.",
-    "Le volume d'archives d'origine est monté sans perte de données et le service de lecture fonctionne."
+    "Le volume d’archives d’origine est monté sous /srv/lpic-vault sans perte de données ; le service de lecture fonctionne et reste activé au démarrage."
   ],
   "debrief_fr": "Sur une VM, un contrôleur virtio apparaît comme périphérique PCI. Les informations de bus et le rattachement au pilote sont observables dans /sys/bus/pci ; /proc/partitions reflète les disques reconnus et /dev expose leurs nœuds. Une fonction PCI désassociée de son pilote peut faire disparaître le volume, même si ses blocs sont intacts. Un nouveau rattachement au pilote et un montage du système de fichiers rétablissent l'accès sans recréer le disque.",
   "objective_ids": [
