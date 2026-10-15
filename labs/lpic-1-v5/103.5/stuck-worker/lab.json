@@ -59,7 +59,7 @@
         "lpic1.103.5.selection-par-nom-pid",
         "lpic1.103.5.signaux"
       ],
-      "description_fr": "Le worker défectueux est arrêté tandis que le traitement sain reste actif."
+      "description_fr": "Le processus stuck-worker est arrêté."
     },
     {
       "type": "process-running",
@@ -67,7 +67,7 @@
       "concept_ids": [
         "lpic1.103.5.selection-par-nom-pid"
       ],
-      "description_fr": "Le worker défectueux est arrêté tandis que le traitement sain reste actif."
+      "description_fr": "Le processus healthy-worker reste actif."
     },
     {
       "type": "command-exit",
@@ -80,7 +80,7 @@
       "concept_ids": [
         "lpic1.103.5.inspection-arbres-ressources"
       ],
-      "description_fr": "Le relevé /run/lpic/process-inspection contient pour chacun des deux processus une ligne avec PID, PID parent, état abrégé et commande, dans cet ordre et séparés par des espaces."
+      "description_fr": "Le relevé /run/lpic/process-inspection contient les deux processus avec PID, PPID, état et commande."
     },
     {
       "type": "file-content-regex",
@@ -90,7 +90,7 @@
         "lpic1.103.5.processus-avant-arriere-plan",
         "lpic1.103.5.jobs-du-shell"
       ],
-      "description_fr": "Le relevé /run/lpic/process-inspection contient pour chacun des deux processus une ligne avec PID, PID parent, état abrégé et commande, dans cet ordre et séparés par des espaces."
+      "description_fr": "La tâche de test a été exécutée au premier plan."
     },
     {
       "type": "file-content-regex",
@@ -100,7 +100,7 @@
         "lpic1.103.5.jobs-du-shell",
         "lpic1.103.5.signaux"
       ],
-      "description_fr": "La tâche de test a effectivement été suspendue, reprise en arrière-plan puis terminée proprement."
+      "description_fr": "La tâche de test a réellement été suspendue."
     },
     {
       "type": "file-content-regex",
@@ -110,7 +110,7 @@
         "lpic1.103.5.processus-avant-arriere-plan",
         "lpic1.103.5.signaux"
       ],
-      "description_fr": "La tâche de test a effectivement été suspendue, reprise en arrière-plan puis terminée proprement."
+      "description_fr": "La tâche de test a repris en arrière-plan."
     },
     {
       "type": "file-content-regex",
@@ -119,7 +119,7 @@
       "concept_ids": [
         "lpic1.103.5.signaux"
       ],
-      "description_fr": "Un worker reste actif indépendamment du terminal qui l’a lancé."
+      "description_fr": "La tâche de test a été terminée proprement."
     },
     {
       "type": "process-absent",
@@ -127,7 +127,7 @@
       "concept_ids": [
         "lpic1.103.5.signaux"
       ],
-      "description_fr": "Un worker reste actif indépendamment du terminal qui l’a lancé."
+      "description_fr": "La tâche de test n'est plus active après sa terminaison."
     },
     {
       "type": "process-running",
@@ -135,7 +135,7 @@
       "concept_ids": [
         "lpic1.103.5.processus-survivant-a-la-session"
       ],
-      "description_fr": "Une session de maintenance détachée nommée ops reste accessible."
+      "description_fr": "Le processus resilient-worker reste actif indépendamment du terminal."
     },
     {
       "type": "command-exit",
@@ -149,7 +149,7 @@
       "concept_ids": [
         "lpic1.103.5.multiplexeurs-de-terminal"
       ],
-      "description_fr": "Une session de maintenance détachée nommée ops reste accessible."
+      "description_fr": "La session tmux détachée ops existe."
     }
   ],
   "hint_ids": [
