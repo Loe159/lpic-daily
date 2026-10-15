@@ -2,10 +2,10 @@
   "schema_version": "1.0.0",
   "id": "lpic1.102.6.nocloud-provisioning-recovery",
   "title_fr": "Réparer le provisionnement cloud-init NoCloud",
-  "brief_fr": "Une VM Debian clonée démarre sans la configuration nécessaire à son agent de supervision. Les métadonnées de provisionnement hors ligne sont toujours présentes, mais la configuration initiale n’a pas été appliquée. Corrige l’origine du problème et rétablis un provisionnement effectif, sans accès à Internet et sans recopier manuellement le fichier final. L’agent doit retrouver sa configuration attendue, avec les bonnes permissions, grâce au mécanisme de première initialisation de la VM.",
+  "brief_fr": "Une VM Debian clonée démarre sans la configuration nécessaire à son agent de supervision. Les métadonnées de provisionnement hors ligne sont toujours présentes, mais la configuration initiale n’a pas été appliquée. Corrige l’origine du problème et rétablis un provisionnement effectif, sans accès à Internet et sans recopier manuellement le fichier final. L’agent doit retrouver sa configuration attendue, avec des droits permettant à root seul de modifier le fichier, au groupe root de le lire et interdisant tout accès aux autres comptes, grâce au mécanisme de première initialisation de la VM.",
   "success_criteria_fr": [
     "Le provisionnement cloud-init reconnaît l'identité de l'instance NoCloud.",
-    "La configuration de l'agent est générée avec le bon contenu et des permissions adaptées.",
+    "La configuration de l’agent est générée avec le contenu attendu et les droits 0640, appartenant à root:root.",
     "L'exécution du module cloud-init chargé d'écrire les fichiers est effective."
   ],
   "debrief_fr": "cloud-init combine meta-data et user-data ; la source NoCloud peut fonctionner entièrement hors réseau. Le module write_files traite une clé YAML spécifique pendant l'étape config. Après correction, cloud-init clean efface l'historique d'exécution afin que l'instance soit reprovisionnée.",
