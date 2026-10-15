@@ -62,7 +62,8 @@
       "concept_ids": [
         "lpic1.104.2.occupation-blocs-inodes",
         "lpic1.104.2.symptomes-de-corruption-espace-epuise"
-      ]
+      ],
+      "description_fr": "Le volume ext4 du spool est monté et dispose à nouveau d’inodes libres."
     },
     {
       "type": "command-exit",
@@ -75,7 +76,8 @@
       "concept_ids": [
         "lpic1.104.2.occupation-blocs-inodes",
         "lpic1.104.2.symptomes-de-corruption-espace-epuise"
-      ]
+      ],
+      "description_fr": "Les anciens accusés déjà traités ont été supprimés du spool."
     },
     {
       "type": "command-exit",
@@ -88,7 +90,8 @@
       "concept_ids": [
         "lpic1.104.2.occupation-blocs-inodes",
         "lpic1.104.2.symptomes-de-corruption-espace-epuise"
-      ]
+      ],
+      "description_fr": "Les accusés récents ont été préservés sans modification."
     },
     {
       "type": "command-exit",
@@ -101,7 +104,8 @@
       "concept_ids": [
         "lpic1.104.2.occupation-blocs-inodes",
         "lpic1.104.2.symptomes-de-corruption-espace-epuise"
-      ]
+      ],
+      "description_fr": "Le service dispose toujours du dossier de réception et de ses métadonnées."
     }
   ],
   "hint_ids": [

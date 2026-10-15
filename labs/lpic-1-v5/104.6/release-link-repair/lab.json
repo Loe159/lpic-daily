@@ -61,7 +61,8 @@
       "concept_ids": [
         "lpic1.104.6.inode-et-hard-link",
         "lpic1.104.6.usages-administratifs"
-      ]
+      ],
+      "description_fr": "archive-v2.conf est un lien physique valide vers app-v2.conf."
     },
     {
       "type": "command-exit",
@@ -73,7 +74,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.104.6.difference-copie-lien"
-      ]
+      ],
+      "description_fr": "snapshot-v2.conf est une copie indépendante au contenu identique."
     },
     {
       "type": "command-exit",
@@ -87,7 +89,8 @@
         "lpic1.104.6.symlink-et-cible",
         "lpic1.104.6.liens-casses",
         "lpic1.104.6.usages-administratifs"
-      ]
+      ],
+      "description_fr": "current.conf est un lien symbolique valide vers la release active."
     },
     {
       "type": "command-exit",
@@ -99,7 +102,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.104.6.limites-filesystem-directory-des-hard-links"
-      ]
+      ],
+      "description_fr": "Aucun lien physique interdit n’a été créé entre dossiers ou systèmes de fichiers."
     }
   ],
   "hint_ids": [

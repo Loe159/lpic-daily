@@ -63,7 +63,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.104.3.montage-manuel"
-      ]
+      ],
+      "description_fr": "Le disque d’archives est monté sur /srv/archive avec le bon système de fichiers."
     },
     {
       "type": "command-exit",
@@ -76,7 +77,8 @@
       "concept_ids": [
         "lpic1.104.3.fstab-persistant",
         "lpic1.104.3.uuid-labels"
-      ]
+      ],
+      "description_fr": "Le montage persistant utilise l’identité stable du volume."
     },
     {
       "type": "command-exit",
@@ -88,7 +90,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.104.3.options-de-montage"
-      ]
+      ],
+      "description_fr": "Le montage /srv/archive applique les options nodev et nosuid."
     },
     {
       "type": "command-exit",
@@ -101,7 +104,8 @@
       "concept_ids": [
         "lpic1.104.3.montage-manuel",
         "lpic1.104.3.fstab-persistant"
-      ]
+      ],
+      "description_fr": "Le manifeste d’archives originel est toujours lisible."
     }
   ],
   "hint_ids": [

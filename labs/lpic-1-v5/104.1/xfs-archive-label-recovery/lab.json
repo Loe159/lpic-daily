@@ -65,7 +65,8 @@
         "lpic1.104.1.xfs",
         "lpic1.104.2.outils-xfs",
         "lpic1.104.2.difference-outils-online-offline-selon-fs"
-      ]
+      ],
+      "description_fr": "Le volume /dev/vdb est toujours en XFS avec le label archive2026."
     },
     {
       "type": "command-exit",
@@ -78,7 +79,8 @@
       "concept_ids": [
         "lpic1.104.1.xfs",
         "lpic1.104.2.difference-outils-online-offline-selon-fs"
-      ]
+      ],
+      "description_fr": "Le volume XFS d’archives est monté sur /srv/xfsarchive."
     },
     {
       "type": "command-exit",
@@ -90,7 +92,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.104.2.outils-xfs"
-      ]
+      ],
+      "description_fr": "Le manifeste d’archives est intact et le montage persistant utilise le bon label."
     }
   ],
   "hint_ids": [

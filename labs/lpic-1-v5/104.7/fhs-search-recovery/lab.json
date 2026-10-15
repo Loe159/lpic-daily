@@ -62,7 +62,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.104.7.role-des-principaux-repertoires-fhs"
-      ]
+      ],
+      "description_fr": "Les fichiers Acme sont rangés dans les bons dossiers FHS."
     },
     {
       "type": "command-exit",
@@ -75,7 +76,8 @@
       "concept_ids": [
         "lpic1.104.7.recherche-temps-reel-vs-base-locate",
         "lpic1.104.7.mise-a-jour-base-locate"
-      ]
+      ],
+      "description_fr": "La base locate privée retrouve le guide Acme."
     },
     {
       "type": "file-content-regex",
@@ -83,7 +85,8 @@
       "pattern": "^/workspace/catalog/usr/share/doc/acme-guide\\.txt\\n?$",
       "concept_ids": [
         "lpic1.104.7.recherche-temps-reel-vs-base-locate"
-      ]
+      ],
+      "description_fr": "find-result.txt contient le chemin du guide trouvé directement."
     },
     {
       "type": "command-exit",
@@ -96,7 +99,8 @@
       "concept_ids": [
         "lpic1.104.7.localiser-binaire-source-man",
         "lpic1.104.7.resolution-de-commande-shell"
-      ]
+      ],
+      "description_fr": "command-report.txt indique où sont trouvés acmectl et les ressources de bash."
     }
   ],
   "hint_ids": [

@@ -58,7 +58,8 @@
       "path": "/srv/shared",
       "concept_ids": [
         "lpic1.104.5.permissions-rwx-fichier-dossier"
-      ]
+      ],
+      "description_fr": "Le répertoire collaboratif /srv/shared existe."
     },
     {
       "type": "command-exit",
@@ -70,7 +71,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.104.5.permissions-rwx-fichier-dossier"
-      ]
+      ],
+      "description_fr": "La configuration de partage du dossier permet l’accès du groupe project."
     },
     {
       "type": "file-owner",
@@ -79,7 +81,8 @@
       "group": "project",
       "concept_ids": [
         "lpic1.104.5.proprietaire-groupe"
-      ]
+      ],
+      "description_fr": "/srv/shared appartient à root et au groupe project."
     },
     {
       "type": "file-mode",
@@ -90,7 +93,8 @@
         "lpic1.104.5.sgid",
         "lpic1.104.5.sticky-bit",
         "lpic1.104.5.effets-speciaux-sur-repertoires"
-      ]
+      ],
+      "description_fr": "Les permissions du dossier garantissent la collaboration et protègent les fichiers des autres."
     },
     {
       "type": "file-owner",
@@ -100,7 +104,8 @@
       "concept_ids": [
         "lpic1.104.5.proprietaire-groupe",
         "lpic1.104.5.sgid"
-      ]
+      ],
+      "description_fr": "team-note appartient au groupe project."
     },
     {
       "type": "file-mode",
@@ -110,7 +115,8 @@
         "lpic1.104.5.umask",
         "lpic1.104.5.permissions-rwx-fichier-dossier",
         "lpic1.104.5.notation-symbolique-octale"
-      ]
+      ],
+      "description_fr": "team-note possède les permissions de lecture/écriture prévues."
     },
     {
       "type": "file-mode",
@@ -119,7 +125,8 @@
       "concept_ids": [
         "lpic1.104.5.suid",
         "lpic1.104.5.notation-symbolique-octale"
-      ]
+      ],
+      "description_fr": "audit-helper reste exécutable sans bit SUID."
     },
     {
       "type": "command-exit",
@@ -135,7 +142,7 @@
         "lpic1.104.5.umask"
       ],
       "timeout_seconds": 10,
-      "description_fr": "Le umask 0007 produit les permissions attendues sur un nouveau fichier."
+      "description_fr": "Un nouveau shell crée des fichiers privés aux autres groupes (umask 0007)."
     },
     {
       "type": "command-exit",
@@ -150,7 +157,8 @@
         "lpic1.104.5.sticky-bit",
         "lpic1.104.5.effets-speciaux-sur-repertoires",
         "lpic1.104.5.proprietaire-groupe"
-      ]
+      ],
+      "description_fr": "Le groupe est bien hérité et alice ne peut pas supprimer les fichiers de bob."
     }
   ],
   "hint_ids": [

@@ -62,7 +62,8 @@
       "concept_ids": [
         "lpic1.104.3.demontage-et-fichiers-occupes",
         "lpic1.104.3.peripheriques-amovibles"
-      ]
+      ],
+      "description_fr": "Le volume /srv/transfer a été démonté proprement."
     },
     {
       "type": "command-exit",
@@ -74,7 +75,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.104.3.demontage-et-fichiers-occupes"
-      ]
+      ],
+      "description_fr": "Le processus qui occupait le volume de transfert est arrêté."
     },
     {
       "type": "command-exit",
@@ -86,7 +88,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.104.3.peripheriques-amovibles"
-      ]
+      ],
+      "description_fr": "Le manifeste reste intact sur le disque démonté."
     }
   ],
   "hint_ids": [

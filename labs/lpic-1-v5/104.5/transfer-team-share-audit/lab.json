@@ -60,7 +60,8 @@
       "group": "project",
       "concept_ids": [
         "lpic1.104.5.proprietaire-groupe"
-      ]
+      ],
+      "description_fr": "Le dossier incoming appartient à root:project."
     },
     {
       "type": "file-mode",
@@ -71,7 +72,8 @@
         "lpic1.104.5.notation-symbolique-octale",
         "lpic1.104.5.sticky-bit",
         "lpic1.104.5.effets-speciaux-sur-repertoires"
-      ]
+      ],
+      "description_fr": "incoming protège les dépôts des suppressions par un autre membre."
     },
     {
       "type": "file-owner",
@@ -80,7 +82,8 @@
       "group": "project",
       "concept_ids": [
         "lpic1.104.5.proprietaire-groupe"
-      ]
+      ],
+      "description_fr": "Le dossier team appartient à root:project."
     },
     {
       "type": "file-mode",
@@ -91,7 +94,8 @@
         "lpic1.104.5.notation-symbolique-octale",
         "lpic1.104.5.sgid",
         "lpic1.104.5.effets-speciaux-sur-repertoires"
-      ]
+      ],
+      "description_fr": "team transmet automatiquement le groupe project aux nouvelles entrées."
     },
     {
       "type": "file-owner",
@@ -101,7 +105,8 @@
       "concept_ids": [
         "lpic1.104.5.proprietaire-groupe",
         "lpic1.104.5.sgid"
-      ]
+      ],
+      "description_fr": "handoff-note appartient au groupe project."
     },
     {
       "type": "file-mode",
@@ -111,7 +116,8 @@
         "lpic1.104.5.umask",
         "lpic1.104.5.permissions-rwx-fichier-dossier",
         "lpic1.104.5.notation-symbolique-octale"
-      ]
+      ],
+      "description_fr": "handoff-note est lisible et modifiable par le groupe, pas par les tiers."
     },
     {
       "type": "file-mode",
@@ -120,7 +126,8 @@
       "concept_ids": [
         "lpic1.104.5.suid",
         "lpic1.104.5.notation-symbolique-octale"
-      ]
+      ],
+      "description_fr": "audit-helper reste exécutable sans bit SUID."
     },
     {
       "type": "command-exit",
@@ -136,7 +143,7 @@
         "lpic1.104.5.umask"
       ],
       "timeout_seconds": 10,
-      "description_fr": "Le umask 0007 produit les permissions attendues dans le dossier d'équipe."
+      "description_fr": "Un nouveau shell applique les droits de collaboration avec umask 0007."
     },
     {
       "type": "command-exit",
@@ -149,7 +156,8 @@
       "concept_ids": [
         "lpic1.104.5.sgid",
         "lpic1.104.5.proprietaire-groupe"
-      ]
+      ],
+      "description_fr": "Un nouveau fichier dans team hérite effectivement du groupe project."
     },
     {
       "type": "command-exit",
@@ -162,7 +170,8 @@
       "concept_ids": [
         "lpic1.104.5.sticky-bit",
         "lpic1.104.5.effets-speciaux-sur-repertoires"
-      ]
+      ],
+      "description_fr": "Un membre ne peut pas supprimer les dépôts d’un autre dans incoming."
     }
   ],
   "hint_ids": [
