@@ -2,11 +2,11 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.2.compressed-manifest-recovery",
   "title_fr": "Réparer un manifeste d’archives compressées",
-  "brief_fr": "Une équipe doit récupérer les journaux de trois journées archivés sous /workspace/input. Le manifeste d’intégrité signale un problème sur la dernière archive, mais les données d’origine semblent intactes. Rétablis un manifeste fiable et fournis /workspace/output/audit.txt avec les journaux des trois jours dans l’ordre. Ajoute /workspace/output/checksums.txt avec les empreintes MD5, SHA-256 et SHA-512 de ce rapport, une par ligne, au format précisé dans les critères.",
+  "brief_fr": "Une équipe doit récupérer les journaux de trois journées archivés sous /workspace/input. Le manifeste d’intégrité signale un problème sur la dernière archive, mais les données d’origine semblent intactes. Rétablis un manifeste fiable et fournis /workspace/output/audit.txt avec les journaux des trois jours dans l’ordre. Ajoute /workspace/output/checksums.txt avec les empreintes MD5, SHA-256 et SHA-512 de ce rapport, une par ligne, avec pour préfixes respectifs MD5, SHA256 et SHA512 suivis d’un espace et de l’empreinte hexadécimale.",
   "success_criteria_fr": [
     "Le manifeste SHA-256 valide les trois archives compressées.",
     "audit.txt contient les cinq lignes des trois fragments dans l’ordre day1, day2, day3.",
-    "checksums.txt contient les empreintes MD5, SHA256 et SHA512 exactes de audit.txt."
+    "checksums.txt contient trois lignes : MD5, SHA256 et SHA512 suivis chacun d’un espace puis de l’empreinte hexadécimale exacte de audit.txt ; l’ordre des lignes est libre."
   ],
   "debrief_fr": "zcat, bzcat et xzcat permettent de lire des données compressées en flux sans extraction persistante. Les commandes md5sum, sha256sum et sha512sum calculent des empreintes ; avec -c, sha256sum peut vérifier un manifeste. Le résultat final reste indépendant de l’outil exact utilisé pour concaténer les flux.",
   "objective_ids": [
