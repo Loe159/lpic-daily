@@ -54,7 +54,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.6.principes-cloud-init-iaas"
-      ]
+      ],
+      "description_fr": "Le provisionnement cloud-init reconnaît l'identité de l'instance NoCloud."
     },
     {
       "type": "command-exit",
@@ -66,7 +67,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.6.principes-cloud-init-iaas"
-      ]
+      ],
+      "description_fr": "La configuration de l’agent est générée avec le contenu attendu et les droits 0640, appartenant à root:root."
     }
   ],
   "hint_ids": [
