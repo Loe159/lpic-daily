@@ -40,7 +40,6 @@ func loadBuiltinLab(t *testing.T, id string) lab.Lab {
 	return lab.Lab{}
 }
 
-
 func TestBuiltinLabChecksHaveExplicitLearnerFeedback(t *testing.T) {
 	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
 	if err != nil {

@@ -192,21 +192,21 @@ func generatedStandaloneLab(
 	termsLine := strings.Join(terms, ",")
 	checks := []CheckDefinition{{
 		DescriptionFR: fmt.Sprintf("La fiche « %s » contient la commande et les observations du concept.", concept.TitleFR),
-		Type: "file-content-regex",
-		Path: root + "/" + filename + ".txt",
-		Pattern: "(?m)^CONCEPT=" + regexEscape(concept.ID) +
+		Type:          "file-content-regex",
+		Path:          root + "/" + filename + ".txt",
+		Pattern:       "(?m)^CONCEPT=" + regexEscape(concept.ID) +
 			"\\nTERMS=" + regexEscape(termsLine) +
 			"\\nCOMMAND=.+\\nOBSERVATION=.+\\nEXPLANATION=.+\\n?$",
-		ConceptIDs: []string{concept.ID},
+		ConceptIDs:    []string{concept.ID},
 	}}
 	if objective.Exam == "101" {
 		if pattern := standaloneCommandEvidencePattern(concept); pattern != "" {
 			checks = append(checks, CheckDefinition{
 				DescriptionFR: fmt.Sprintf("L'historique du lab conserve une commande liée à « %s ».", concept.TitleFR),
-				Type:       "file-content-regex",
-				Path:       commandHistoryPath,
-				Pattern:    pattern,
-				ConceptIDs: []string{concept.ID},
+				Type:          "file-content-regex",
+				Path:          commandHistoryPath,
+				Pattern:       pattern,
+				ConceptIDs:    []string{concept.ID},
 			})
 		}
 	}
