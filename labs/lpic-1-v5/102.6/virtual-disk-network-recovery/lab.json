@@ -2,9 +2,9 @@
   "schema_version": "1.0.0",
   "id": "lpic1.102.6.virtual-disk-network-recovery",
   "title_fr": "Rétablir le disque et le réseau d'une VM isolée",
-  "brief_fr": "Après le déplacement d'une VM Fedora sur un autre hôte, le service de collecte ne lit plus son volume de données et la carte réseau virtuelle de maintenance est déconnectée. Les données du disque sont toujours présentes. Rétablis le montage et la connexion au réseau isolé sans toucher au disque système ni ouvrir d'accès à Internet.",
+  "brief_fr": "Après le déplacement d'une VM Fedora sur un autre hôte, le service de collecte ne lit plus son volume de données et la carte réseau virtuelle de maintenance est déconnectée. Les données du disque sont toujours présentes. Rétablis le volume sous /srv/lpic-virtual-journal et la connexion au réseau isolé sans toucher au disque système ni ouvrir d'accès à Internet.",
   "success_criteria_fr": [
-    "Le volume virtuel secondaire est monté et ses données originales restent intactes.",
+    "Le volume virtuel secondaire est monté sous /srv/lpic-virtual-journal et ses données originales restent intactes.",
     "L'interface réseau virtuelle dispose d'une connexion et d'une adresse IPv4 locale.",
     "Le service de collecte fonctionne avec ces deux ressources opérationnelles."
   ],
