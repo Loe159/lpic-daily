@@ -2,11 +2,11 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.1.external-command-recovery",
   "title_fr": "Exécuter un outil volontairement hors PATH",
-  "brief_fr": "Le rapport quotidien n’est plus vérifié : l’outil report-status approuvé est installé mais reste volontairement introuvable par son nom seul, conformément à la politique de sécurité. Fais fonctionner cet outil sur le rapport prévu, dont le chemin contient un espace, sans modifier la résolution habituelle des commandes. Pour tracer l’intervention, fournis /run/lpic/external-command-summary : emplacement réel de l’outil puis résultat de son exécution, chacun sur une ligne.",
+  "brief_fr": "Le rapport quotidien n’est plus vérifié : l’outil report-status approuvé est installé mais reste volontairement introuvable par son nom seul, conformément à la politique de sécurité. Fais fonctionner cet outil sur le rapport prévu, dont le chemin contient un espace, sans modifier la résolution habituelle des commandes. Pour tracer l’intervention, fournis /run/lpic/external-command-summary : chemin absolu du binaire approuvé puis état retourné par le diagnostic, chacun sur une ligne et sans étiquette.",
   "success_criteria_fr": [
     "report-status reste absent de la résolution normale par PATH.",
     "Le binaire approuvé est exécuté avec le chemin de rapport complet et produit son état ready.",
-    "external-command-summary identifie le chemin réellement utilisé et confirme la réussite."
+    "external-command-summary contient deux lignes sans étiquette : le chemin absolu du binaire réellement utilisé, puis son état ready."
   ],
   "debrief_fr": "Une commande peut être exécutée par chemin absolu ou relatif même si son répertoire n’est pas dans PATH. command -v, type, which ou la recherche dans l’arborescence aident à distinguer résolution et emplacement réel. Le quoting reste nécessaire lorsqu’un argument contient un espace.",
   "objective_ids": [
