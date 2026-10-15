@@ -55,7 +55,7 @@
       "concept_ids": [
         "lpic1.101.3.notion-d-evenements-acpi"
       ],
-      "description_fr": "acpid surveille réellement les événements ACPI de bouton d'alimentation et applique une action de journalisation."
+      "description_fr": "Le service acpid surveille le bouton d’alimentation et journalise les événements."
     },
     {
       "type": "command-exit",
@@ -68,7 +68,7 @@
       "concept_ids": [
         "lpic1.101.3.notion-d-evenements-acpi"
       ],
-      "description_fr": "acpid surveille réellement les événements ACPI de bouton d'alimentation et applique une action de journalisation."
+      "description_fr": "L’événement de bouton d’alimentation apparaît dans le journal d’audit."
     },
     {
       "type": "command-exit",
@@ -81,14 +81,14 @@
       "concept_ids": [
         "lpic1.101.3.notion-d-evenements-acpi"
       ],
-      "description_fr": "La VM journalise l'événement ET le runner confirme côté hôte qu'un véritable appui ACPI a été envoyé par libvirt."
+      "description_fr": "La politique d’alimentation n’entraîne pas l’arrêt de la VM."
     },
     {
       "type": "acpi-button-sent",
       "concept_ids": [
         "lpic1.101.3.notion-d-evenements-acpi"
       ],
-      "description_fr": "Le système n'a ni redémarré ni changé de politique de gestion du bouton d'alimentation."
+      "description_fr": "Le terminal LPIC Daily a réellement envoyé un événement ACPI au système."
     }
   ],
   "hint_ids": [
