@@ -55,7 +55,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.2.checksums"
-      ]
+      ],
+      "description_fr": "Les empreintes SHA-256 du manifeste correspondent aux trois archives."
     },
     {
       "type": "command-exit",
@@ -68,7 +69,8 @@
       "concept_ids": [
         "lpic1.103.2.lecture-compression-en-flux",
         "lpic1.103.2.flux-texte-ligne-octet"
-      ]
+      ],
+      "description_fr": "/workspace/output/audit.txt contient les trois journaux décompressés dans le bon ordre."
     },
     {
       "type": "command-exit",
@@ -80,7 +82,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.2.checksums"
-      ]
+      ],
+      "description_fr": "/workspace/output/checksums.txt contient les trois empreintes exactes du rapport."
     }
   ],
   "hint_ids": [

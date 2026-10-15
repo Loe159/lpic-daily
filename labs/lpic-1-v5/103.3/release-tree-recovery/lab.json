@@ -59,7 +59,8 @@
       "concept_ids": [
         "lpic1.103.3.creation-copie-deplacement-suppression",
         "lpic1.103.3.recursivite-et-globbing"
-      ]
+      ],
+      "description_fr": "La release contient un deploy.sh exécutable et intact."
     },
     {
       "type": "command-exit",
@@ -72,7 +73,8 @@
       "concept_ids": [
         "lpic1.103.3.creation-copie-deplacement-suppression",
         "lpic1.103.3.recursivite-et-globbing"
-      ]
+      ],
+      "description_fr": "Les configurations ont été regroupées sous release/config."
     },
     {
       "type": "command-exit",
@@ -85,7 +87,8 @@
       "concept_ids": [
         "lpic1.103.3.recherche-par-metadonnees",
         "lpic1.103.3.actions-find"
-      ]
+      ],
+      "description_fr": "Les fichiers temporaires anciens sont supprimés, les récents conservés."
     },
     {
       "type": "command-exit",
@@ -99,14 +102,16 @@
         "lpic1.103.3.recherche-par-metadonnees",
         "lpic1.103.3.actions-find",
         "lpic1.103.3.creation-copie-deplacement-suppression"
-      ]
+      ],
+      "description_fr": "Les gros journaux ont été déplacés, les petits conservés."
     },
     {
       "type": "file-exists",
       "path": "/workspace/release/READY",
       "concept_ids": [
         "lpic1.103.3.creation-copie-deplacement-suppression"
-      ]
+      ],
+      "description_fr": "Le signal de livraison release/READY existe."
     },
     {
       "type": "command-exit",
@@ -119,7 +124,8 @@
       "concept_ids": [
         "lpic1.103.3.creation-copie-deplacement-suppression",
         "lpic1.103.3.recherche-par-metadonnees"
-      ]
+      ],
+      "description_fr": "La copie de deploy.sh conserve son contenu, ses droits et sa date."
     }
   ],
   "hint_ids": [

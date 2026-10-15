@@ -60,7 +60,8 @@
         "lpic1.103.2.selection-de-colonnes-lignes",
         "lpic1.103.2.tri-dedoublonnage",
         "lpic1.103.2.transformations-simples"
-      ]
+      ],
+      "description_fr": "error-hosts.txt contient les hôtes en erreur, triés et normalisés sans doublons."
     },
     {
       "type": "command-exit",
@@ -73,7 +74,8 @@
       "concept_ids": [
         "lpic1.103.2.selection-de-colonnes-lignes",
         "lpic1.103.2.assemblage-et-decoupage"
-      ]
+      ],
+      "description_fr": "error-teams.txt associe chaque hôte en erreur à son équipe réelle."
     },
     {
       "type": "command-exit",
@@ -85,7 +87,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.2.assemblage-et-decoupage"
-      ]
+      ],
+      "description_fr": "Les deux lots error-00 et error-01 reprennent correctement le rapport."
     },
     {
       "type": "command-exit",
@@ -98,7 +101,8 @@
       "concept_ids": [
         "lpic1.103.2.flux-texte-ligne-octet",
         "lpic1.103.2.selection-de-colonnes-lignes"
-      ]
+      ],
+      "description_fr": "metrics.txt contient les nombres exacts d’erreurs et d’hôtes distincts."
     }
   ],
   "hint_ids": [

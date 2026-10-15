@@ -59,7 +59,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.3.archives-tar-cpio"
-      ]
+      ],
+      "description_fr": "config.tar contient les deux configurations avec leur contenu intact."
     },
     {
       "type": "command-exit",
@@ -71,7 +72,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.3.archives-tar-cpio"
-      ]
+      ],
+      "description_fr": "config.cpio contient les deux configurations avec leur contenu intact."
     },
     {
       "type": "command-exit",
@@ -84,7 +86,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.3.copie-bas-niveau-dd"
-      ]
+      ],
+      "description_fr": "disk-slice.copy reproduit exactement le segment de disque d’origine."
     },
     {
       "type": "command-exit",
@@ -97,7 +100,8 @@
       "concept_ids": [
         "lpic1.103.3.compression-gzip-bzip2-xz",
         "lpic1.103.3.detection-de-type"
-      ]
+      ],
+      "description_fr": "Les archives payload.gz, payload.bz2 et payload.xz ont le bon format."
     },
     {
       "type": "command-exit",
@@ -110,7 +114,8 @@
       "concept_ids": [
         "lpic1.103.3.compression-gzip-bzip2-xz",
         "lpic1.103.3.detection-de-type"
-      ]
+      ],
+      "description_fr": "recovered.txt contient les trois messages restaurés dans l’ordre."
     }
   ],
   "hint_ids": [

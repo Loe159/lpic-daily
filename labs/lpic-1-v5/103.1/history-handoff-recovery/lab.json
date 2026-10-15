@@ -63,7 +63,7 @@
         "lpic1.103.1.edition-et-persistance-de-l-historique"
       ],
       "timeout_seconds": 10,
-      "description_fr": "Les paramètres d’historique sont corrects dans un nouveau Bash."
+      "description_fr": "Un nouveau Bash conserve 2 000 commandes en mémoire et 4 000 sur disque."
     },
     {
       "type": "command-exit",
@@ -79,7 +79,7 @@
         "lpic1.103.1.edition-et-persistance-de-l-historique"
       ],
       "timeout_seconds": 10,
-      "description_fr": "La ligne sensible a disparu, sans effacer les commandes précédentes."
+      "description_fr": "Le secret a disparu de l’historique, sans effacer les anciennes commandes utiles."
     },
     {
       "type": "command-exit",
@@ -100,7 +100,7 @@
         "lpic1.103.1.echo-et-expansion-shell"
       ],
       "timeout_seconds": 10,
-      "description_fr": "Un nouveau Bash retrouve la commande echo avec les variables $USER et $PWD."
+      "description_fr": "Un autre shell retrouve la commande de diagnostic avec $USER et $PWD."
     }
   ],
   "hint_ids": [

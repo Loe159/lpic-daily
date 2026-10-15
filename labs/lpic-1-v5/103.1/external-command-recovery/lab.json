@@ -63,7 +63,7 @@
         "lpic1.103.1.path-et-resolution-de-commande"
       ],
       "timeout_seconds": 10,
-      "description_fr": "report-status reste introuvable par son nom seul, car il est hors du PATH."
+      "description_fr": "report-status reste introuvable via le PATH habituel."
     },
     {
       "type": "file-content-regex",
@@ -72,7 +72,8 @@
       "concept_ids": [
         "lpic1.103.1.execution-de-commandes-hors-path",
         "lpic1.103.1.quoting-escaping"
-      ]
+      ],
+      "description_fr": "Le binaire approuvé a produit le résultat ready dans /run/lpic/report-ok."
     },
     {
       "type": "file-content-regex",
@@ -81,7 +82,8 @@
       "concept_ids": [
         "lpic1.103.1.execution-de-commandes-hors-path",
         "lpic1.103.1.documentation-et-identification-d-une-commande"
-      ]
+      ],
+      "description_fr": "Le rapport /run/lpic/external-command-summary contient le chemin de l’outil puis ready."
     }
   ],
   "hint_ids": [

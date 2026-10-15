@@ -66,7 +66,7 @@
         "lpic1.103.1.set-env-et-portee-des-variables",
         "lpic1.103.1.variables-shell-environnement"
       ],
-      "description_fr": "LOCAL_NOTE est définie dans le shell interactif avec la valeur attendue.",
+      "description_fr": "LOCAL_NOTE vaut operator-note dans le shell courant.",
       "timeout_seconds": 5,
       "batch_id": "environment-inspection",
       "failure_bit": 1
@@ -88,7 +88,7 @@
       "concept_ids": [
         "lpic1.103.1.set-env-et-portee-des-variables"
       ],
-      "description_fr": "LOCAL_NOTE reste locale au shell et n'est pas transmise aux processus enfants.",
+      "description_fr": "LOCAL_NOTE reste privée au shell et n’est pas transmise aux enfants.",
       "timeout_seconds": 5,
       "batch_id": "environment-inspection",
       "failure_bit": 2
@@ -111,7 +111,7 @@
         "lpic1.103.1.set-env-et-portee-des-variables",
         "lpic1.103.1.export-unset-et-processus-enfants"
       ],
-      "description_fr": "SERVICE_MODE est exportée avec la valeur production vers les processus enfants.",
+      "description_fr": "SERVICE_MODE=production est disponible pour les processus enfants.",
       "timeout_seconds": 5,
       "batch_id": "environment-inspection",
       "failure_bit": 4
@@ -133,7 +133,7 @@
       "concept_ids": [
         "lpic1.103.1.export-unset-et-processus-enfants"
       ],
-      "description_fr": "LEGACY_TOKEN est absente à la fois du shell et des processus enfants.",
+      "description_fr": "LEGACY_TOKEN est absent du shell et de l’environnement des enfants.",
       "timeout_seconds": 5,
       "batch_id": "environment-inspection",
       "failure_bit": 8
@@ -144,7 +144,7 @@
         "lpic1.103.1.echo-et-expansion-shell",
         "lpic1.103.1.variables-shell-environnement"
       ],
-      "description_fr": "Le fichier /run/lpic/env-summary contient le résumé attendu.",
+      "description_fr": "/run/lpic/env-summary contient production|operator-note.",
       "argv": [
         "/usr/bin/timeout",
         "-k",
