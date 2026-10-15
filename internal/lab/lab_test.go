@@ -40,6 +40,45 @@ func loadBuiltinLab(t *testing.T, id string) lab.Lab {
 	return lab.Lab{}
 }
 
+
+func TestBuiltinLabChecksHaveExplicitLearnerFeedback(t *testing.T) {
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatalf("LoadAll() error = %v", err)
+	}
+	for _, authored := range labs {
+		for i, check := range authored.Definition.Checks {
+			description := strings.TrimSpace(check.DescriptionFR)
+			if len([]rune(description)) < 15 ||
+				strings.EqualFold(description, "Comportement attendu") ||
+				strings.EqualFold(description, "État du système conforme") {
+				t.Errorf("%s check %d has no useful feedback: %q", authored.Definition.ID, i+1, description)
+			}
+		}
+	}
+}
+
+func TestShellEnvironmentRepairCheckLabels(t *testing.T) {
+	authored := loadBuiltinLab(t, shellEnvironmentRepairID)
+	wants := []string{
+		"report-status",
+		"REPORT_ENV",
+		"REPORT_FILE",
+		"report-status",
+		"/run/lpic/report-ok",
+		"historique",
+		"/run/lpic/system-summary",
+	}
+	if len(authored.Definition.Checks) != len(wants) {
+		t.Fatalf("check count = %d, want %d", len(authored.Definition.Checks), len(wants))
+	}
+	for i, want := range wants {
+		if !strings.Contains(strings.ToLower(authored.Definition.Checks[i].DescriptionFR), strings.ToLower(want)) {
+			t.Errorf("check %d description %q does not identify %q", i+1, authored.Definition.Checks[i].DescriptionFR, want)
+		}
+	}
+}
+
 func TestLoadBuiltinShellEnvironmentRepair(t *testing.T) {
 	got := loadBuiltinLab(t, shellEnvironmentRepairID)
 

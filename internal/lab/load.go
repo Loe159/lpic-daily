@@ -359,6 +359,12 @@ func validateDefinition(fsys fs.FS, base string, definition Definition) error {
 	}
 	checkedConcepts := make(map[string]struct{}, len(definition.ConceptIDs))
 	for index, check := range definition.Checks {
+		description := strings.TrimSpace(check.DescriptionFR)
+		if len([]rune(description)) < 15 ||
+			strings.EqualFold(description, "Comportement attendu") ||
+			strings.EqualFold(description, "État du système conforme") {
+			return fmt.Errorf("check %d requires a specific learner-facing description_fr", index+1)
+		}
 		if len(check.ConceptIDs) == 0 {
 			return fmt.Errorf("check %d must map to at least one concept", index+1)
 		}

@@ -1640,7 +1640,7 @@ func runInteractiveLabWithBackend(
 		var passedLines []string
 		var failedLines []string
 		for index, result := range results {
-			description := "État du système conforme"
+			description := fmt.Sprintf("Critère %d sans description : erreur de contenu du lab", index+1)
 			if index < len(authored.Definition.Checks) {
 				check := authored.Definition.Checks[index]
 				description = check.DescriptionFR
@@ -1659,9 +1659,9 @@ func runInteractiveLabWithBackend(
 					case "process-absent":
 						description = "Processus arrêté : " + check.Match
 					case "command-exit":
-						description = "Comportement attendu"
+						description = fmt.Sprintf("Critère %d sans description : erreur de contenu du lab", index+1)
 					default:
-						description = "État du système conforme"
+						description = fmt.Sprintf("Critère %d sans description : erreur de contenu du lab", index+1)
 					}
 				}
 			}
