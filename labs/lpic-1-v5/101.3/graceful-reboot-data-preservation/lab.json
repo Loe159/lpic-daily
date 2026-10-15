@@ -54,7 +54,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.3.arret-redemarrage-propre"
-      ]
+      ],
+      "description_fr": "Un véritable redémarrage de la VM a eu lieu."
     },
     {
       "type": "command-exit",
@@ -66,7 +67,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.3.arret-redemarrage-propre"
-      ]
+      ],
+      "description_fr": "Le processus d'archivage a enregistré sa terminaison propre avant le redémarrage."
     }
   ],
   "hint_ids": [

@@ -62,7 +62,8 @@
       "concept_ids": [
         "lpic1.102.1.principes-de-base-lvm",
         "lpic1.102.1.partitions-et-points-de-montage"
-      ]
+      ],
+      "description_fr": "Le nouveau disque possède une partition utilisée comme volume physique LVM."
     },
     {
       "type": "command-exit",
@@ -74,7 +75,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.1.principes-de-base-lvm"
-      ]
+      ],
+      "description_fr": "Le nouveau disque possède une partition utilisée comme volume physique LVM."
     },
     {
       "type": "command-exit",
@@ -87,7 +89,8 @@
       "concept_ids": [
         "lpic1.102.1.partitions-et-points-de-montage",
         "lpic1.102.1.principes-de-base-lvm"
-      ]
+      ],
+      "description_fr": "Le groupe de volumes lpicvg et son volume logique data existent réellement et ce dernier offre au moins 256 MiB."
     },
     {
       "type": "command-exit",
@@ -99,7 +102,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.1.partitions-et-points-de-montage"
-      ]
+      ],
+      "description_fr": "Le volume logique ext4 est monté sur /srv/app-data et accepte de nouvelles écritures."
     }
   ],
   "hint_ids": [

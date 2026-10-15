@@ -63,7 +63,8 @@
       "concept_ids": [
         "lpic1.102.1.separer-var-home-et-boot-selon-usage",
         "lpic1.102.1.partitions-et-points-de-montage"
-      ]
+      ],
+      "description_fr": "Les données utilisateurs et les journaux applicatifs résident sur deux vrais systèmes de fichiers ext4 distincts du disque système."
     },
     {
       "type": "command-exit",
@@ -76,7 +77,8 @@
       "concept_ids": [
         "lpic1.102.1.separer-var-home-et-boot-selon-usage",
         "lpic1.102.1.partitions-et-points-de-montage"
-      ]
+      ],
+      "description_fr": "Les données utilisateurs et les journaux applicatifs résident sur deux vrais systèmes de fichiers ext4 distincts du disque système."
     },
     {
       "type": "command-exit",
@@ -88,7 +90,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.1.separer-var-home-et-boot-selon-usage"
-      ]
+      ],
+      "description_fr": "Le contenu existant des deux emplacements est toujours accessible après la migration."
     },
     {
       "type": "command-exit",
@@ -100,7 +103,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.1.swap-et-dimensionnement-conceptuel"
-      ]
+      ],
+      "description_fr": "Le contenu existant des deux emplacements est toujours accessible après la migration."
     },
     {
       "type": "command-exit",
@@ -114,7 +118,8 @@
         "lpic1.102.1.separer-var-home-et-boot-selon-usage",
         "lpic1.102.1.swap-et-dimensionnement-conceptuel",
         "lpic1.102.1.partitions-et-points-de-montage"
-      ]
+      ],
+      "description_fr": "Une zone swap d'au moins 128 Mio est active et les trois ressources sont configurées pour les prochains démarrages."
     }
   ],
   "hint_ids": [
