@@ -2,11 +2,11 @@
   "schema_version": "1.0.0",
   "id": "lpic1.102.2.bios-mbr-rescue-bootcode",
   "title_fr": "Récupérer l'amorçage d'un disque de secours BIOS",
-  "brief_fr": "Un ancien support de dépannage, destiné à une machine BIOS, contient toujours sa partition ext4 et son manifeste de récupération. Une restauration a effacé son code d'amorçage et il n'est plus utilisable comme support de secours. Réinstalle le chargeur BIOS sur ce disque secondaire en préservant intégralement la table de partitions et le manifeste ; ne modifie jamais le disque système de la VM.",
+  "brief_fr": "Un ancien support de dépannage, destiné à une machine BIOS, contient toujours sa partition ext4 et son manifeste de récupération. Une restauration a effacé son code d'amorçage et il n'est plus utilisable comme support de secours. Réinstalle le chargeur BIOS sur ce disque secondaire, dont le volume de secours reste consultable sous /mnt/lpic-bios-rescue en préservant intégralement la table de partitions et le manifeste ; ne modifie jamais le disque système de la VM.",
   "success_criteria_fr": [
     "Le disque de secours conserve sa table MBR et sa partition de données d'origine.",
     "Un code de démarrage GRUB 2 BIOS est effectivement présent dans le secteur d'amorçage du disque secondaire.",
-    "Le répertoire du chargeur contient les fichiers de démarrage attendus et le manifeste de récupération reste intact."
+    "Le volume sous /mnt/lpic-bios-rescue conserve les fichiers nécessaires au démarrage du chargeur et le manifeste de récupération intact."
   ],
   "debrief_fr": "Le MBR associe les premiers octets de code d'amorçage, quatre entrées de partitions et la signature 0x55AA. Sur un disque BIOS doté d'un schéma msdos, grub2-install peut écrire le code de démarrage et embarquer core.img dans l'espace d'alignement avant la première partition. Cela ne prouve pas un boot de ce disque : l'acceptation complète nécessitera un essai d'amorçage BIOS réel.",
   "objective_ids": [
