@@ -91,7 +91,7 @@
         "--noprofile",
         "--norc",
         "-c",
-        ". \"/run/lpic/.bashrc\" || exit 1; set -o history; history -c; history -r; history | /usr/bin/grep -Eq \"(^|[[:space:]])echo[[:space:]].*[$][{]?USER[}]?:[$][{]?PWD[}]?\"; result=$?; HISTFILE=/dev/null; exit \"$result\""
+        ". \"/run/lpic/.bashrc\" || exit 1; set -o history; history -c; history -r; history | /usr/bin/grep -Eq '(^|[[:space:]])(echo|printf)[[:space:]].*([$][{]?(USER|LOGNAME)[}]?|[$][(](whoami|id -un)[)]).*([$][{]?PWD[}]?|[$][(]pwd[)])'; result=$?; HISTFILE=/dev/null; exit \"$result\""
       ],
       "expected_exit": 0,
       "concept_ids": [
