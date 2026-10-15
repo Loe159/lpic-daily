@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestLabCheckBridgeRunsInChildAndReturnsDetailedOutput(t *testing.T) {
@@ -94,4 +95,32 @@ func TestLabShellCommandReaderShowsCommandAndKeepsShellActive(t *testing.T) {
 		!strings.Contains(echoed.String(), ":checkx\b \b\r\n") {
 		t.Fatalf("typed host command was not visible: %q", echoed.String())
 	}
+}
+
+func TestLabCheckBridgeAllowsSlowChildStartup(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "check.sock")
+	ready := make(chan struct{})
+	go func() {
+		time.Sleep(3500 * time.Millisecond)
+		bridge, err := startLabCheckBridge(path, func(out io.Writer, reflection []string) (bool, error) {
+			fmt.Fprintln(out, "Lab disponible.")
+			return true, nil
+		})
+		if err == nil {
+			defer bridge.Close()
+		}
+		close(ready)
+		if err == nil {
+			time.Sleep(2 * time.Second)
+		}
+	}()
+
+	result, err := requestLabCheck(context.Background(), path, nil)
+	if err != nil {
+		t.Fatalf("slow child startup should not fail: %v", err)
+	}
+	if !result.Passed {
+		t.Fatalf("unexpected check result: %+v", result)
+	}
+	<-ready
 }

@@ -99,7 +99,7 @@ func requestLabCheck(ctx context.Context, path string, reflection []string) (lab
 		return labCheckResponse{}, errors.New("aucun terminal enfant associé")
 	}
 	// Starting the child terminal and its sandbox is asynchronous.
-	startCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	startCtx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
 	var conn net.Conn
 	var err error
@@ -109,7 +109,7 @@ func requestLabCheck(ctx context.Context, path string, reflection []string) (lab
 			break
 		}
 		if startCtx.Err() != nil {
-			return labCheckResponse{}, fmt.Errorf("le terminal enfant n'est pas encore prêt ou a été fermé: %w", err)
+			return labCheckResponse{}, fmt.Errorf("connexion au terminal enfant impossible (démarrage lent ou terminal fermé) : %w (dernière erreur : %v)", startCtx.Err(), err)
 		}
 		select {
 		case <-startCtx.Done():
