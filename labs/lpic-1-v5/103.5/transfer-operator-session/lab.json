@@ -58,7 +58,7 @@
       "concept_ids": [
         "lpic1.103.5.selection-par-nom-pid"
       ],
-      "description_fr": "Le service reload-worker a reçu sa demande de rechargement sans être interrompu."
+      "description_fr": "Le service reload-worker reste actif durant la maintenance."
     },
     {
       "type": "file-content-regex",
@@ -68,7 +68,7 @@
         "lpic1.103.5.signaux",
         "lpic1.103.5.selection-par-nom-pid"
       ],
-      "description_fr": "Le service reload-worker a reçu sa demande de rechargement sans être interrompu."
+      "description_fr": "Le service reload-worker a reçu sa demande de rechargement."
     },
     {
       "type": "command-exit",
@@ -81,7 +81,7 @@
       "concept_ids": [
         "lpic1.103.5.inspection-arbres-ressources"
       ],
-      "description_fr": "Le service reload-worker a reçu sa demande de rechargement sans être interrompu."
+      "description_fr": "Le relevé /run/lpic/maintenance-inspection contient PID, PPID, état et commande de reload-worker."
     },
     {
       "type": "file-content-regex",
@@ -91,7 +91,7 @@
         "lpic1.103.5.processus-avant-arriere-plan",
         "lpic1.103.5.jobs-du-shell"
       ],
-      "description_fr": "Le relevé /run/lpic/maintenance-inspection décrit le processus initial avec une ligne PID, PID parent, état abrégé, commande, dans cet ordre et séparés par des espaces."
+      "description_fr": "La tâche de maintenance a été exécutée au premier plan."
     },
     {
       "type": "file-content-regex",
@@ -101,7 +101,7 @@
         "lpic1.103.5.jobs-du-shell",
         "lpic1.103.5.signaux"
       ],
-      "description_fr": "Le relevé /run/lpic/maintenance-inspection décrit le processus initial avec une ligne PID, PID parent, état abrégé, commande, dans cet ordre et séparés par des espaces."
+      "description_fr": "La tâche de maintenance a réellement été suspendue."
     },
     {
       "type": "file-content-regex",
@@ -111,7 +111,7 @@
         "lpic1.103.5.processus-avant-arriere-plan",
         "lpic1.103.5.signaux"
       ],
-      "description_fr": "La tâche de test a réellement été suspendue, reprise en arrière-plan et terminée proprement."
+      "description_fr": "La tâche de maintenance a repris en arrière-plan."
     },
     {
       "type": "file-content-regex",
@@ -120,7 +120,7 @@
       "concept_ids": [
         "lpic1.103.5.signaux"
       ],
-      "description_fr": "La tâche de test a réellement été suspendue, reprise en arrière-plan et terminée proprement."
+      "description_fr": "La tâche de maintenance a été terminée proprement."
     },
     {
       "type": "process-absent",
@@ -128,7 +128,7 @@
       "concept_ids": [
         "lpic1.103.5.signaux"
       ],
-      "description_fr": "Le batch et le démon restent actifs, et ce dernier ne dépend plus du terminal d’origine."
+      "description_fr": "La tâche de maintenance n'est plus active après terminaison."
     },
     {
       "type": "process-running",
@@ -136,7 +136,7 @@
       "concept_ids": [
         "lpic1.103.5.processus-avant-arriere-plan"
       ],
-      "description_fr": "Le batch et le démon restent actifs, et ce dernier ne dépend plus du terminal d’origine."
+      "description_fr": "Le processus batch-worker reste actif."
     },
     {
       "type": "process-running",
@@ -144,7 +144,7 @@
       "concept_ids": [
         "lpic1.103.5.processus-survivant-a-la-session"
       ],
-      "description_fr": "La session de maintenance détachée maintenance-ops est disponible pour la relève."
+      "description_fr": "Le démon handoff-daemon est actif indépendamment du terminal."
     },
     {
       "type": "command-exit",
@@ -158,7 +158,7 @@
       "concept_ids": [
         "lpic1.103.5.multiplexeurs-de-terminal"
       ],
-      "description_fr": "La session de maintenance détachée maintenance-ops est disponible pour la relève."
+      "description_fr": "La session tmux détachée maintenance-ops existe."
     }
   ],
   "hint_ids": [
