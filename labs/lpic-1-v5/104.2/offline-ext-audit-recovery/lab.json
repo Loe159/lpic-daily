@@ -56,7 +56,8 @@
       "concept_ids": [
         "lpic1.104.2.verification-ext",
         "lpic1.104.2.reparation"
-      ]
+      ],
+      "description_fr": "L'image ext4 ne présente plus d'erreur de cohérence lors d'une vérification hors ligne."
     },
     {
       "type": "command-exit",
@@ -69,7 +70,8 @@
       "concept_ids": [
         "lpic1.104.2.reparation",
         "lpic1.104.2.tuning-ext"
-      ]
+      ],
+      "description_fr": "L'image ext4 ne présente plus d'erreur de cohérence lors d'une vérification hors ligne."
     },
     {
       "type": "command-exit",
@@ -81,7 +83,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.104.2.tuning-ext"
-      ]
+      ],
+      "description_fr": "Le volume porte le label audit-ready et réserve 1 % de ses blocs."
     },
     {
       "type": "command-exit",
@@ -93,7 +96,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.104.2.reparation"
-      ]
+      ],
+      "description_fr": "La preuve d'audit préexistante est intacte ; aucune nouvelle image ne l'a remplacée."
     }
   ],
   "hint_ids": [

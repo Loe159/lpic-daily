@@ -62,7 +62,8 @@
       "concept_ids": [
         "lpic1.104.2.occupation-blocs-inodes",
         "lpic1.104.2.symptomes-de-corruption-espace-epuise"
-      ]
+      ],
+      "description_fr": "Le volume ext4 demeure monté et dispose à nouveau d'inodes libres pour les nouvelles écritures."
     },
     {
       "type": "command-exit",
@@ -75,7 +76,8 @@
       "concept_ids": [
         "lpic1.104.2.occupation-blocs-inodes",
         "lpic1.104.2.symptomes-de-corruption-espace-epuise"
-      ]
+      ],
+      "description_fr": "Le volume ext4 demeure monté et dispose à nouveau d'inodes libres pour les nouvelles écritures."
     },
     {
       "type": "command-exit",
@@ -88,7 +90,8 @@
       "concept_ids": [
         "lpic1.104.2.occupation-blocs-inodes",
         "lpic1.104.2.symptomes-de-corruption-espace-epuise"
-      ]
+      ],
+      "description_fr": "Les accusés anciens déjà traités ont été nettoyés sans supprimer les accusés récents."
     },
     {
       "type": "command-exit",
@@ -101,7 +104,8 @@
       "concept_ids": [
         "lpic1.104.2.occupation-blocs-inodes",
         "lpic1.104.2.symptomes-de-corruption-espace-epuise"
-      ]
+      ],
+      "description_fr": "Le dossier de réception redevient utilisable, avec ses données utiles intactes."
     }
   ],
   "hint_ids": [
