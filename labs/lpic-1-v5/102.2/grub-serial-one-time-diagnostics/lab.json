@@ -57,7 +57,8 @@
       "concept_ids": [
         "lpic1.101.2.commandes-du-chargeur-de-demarrage",
         "lpic1.102.2.interaction-au-menu-console-grub"
-      ]
+      ],
+      "description_fr": "Un vrai démarrage a eu lieu avec le paramètre de diagnostic temporaire actif dans le noyau."
     },
     {
       "type": "command-exit",
@@ -69,7 +70,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.2.commandes-du-chargeur-de-demarrage"
-      ]
+      ],
+      "description_fr": "La confirmation de diagnostic demandée est conservée dans l’environnement du chargeur."
     },
     {
       "type": "command-exit",
@@ -81,7 +83,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.2.interaction-au-menu-console-grub"
-      ]
+      ],
+      "description_fr": "Le comportement des démarrages ultérieurs et les entrées permanentes restent inchangés."
     }
   ],
   "hint_ids": [

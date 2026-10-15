@@ -60,7 +60,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.2.mbr-et-relation-avec-schema-de-boot"
-      ]
+      ],
+      "description_fr": "Le disque de secours conserve sa table MBR et sa partition de données d'origine."
     },
     {
       "type": "command-exit",
@@ -72,7 +73,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.2.mbr-et-relation-avec-schema-de-boot"
-      ]
+      ],
+      "description_fr": "Un code de démarrage GRUB 2 BIOS est effectivement présent dans le secteur d'amorçage du disque secondaire."
     },
     {
       "type": "command-exit",
@@ -84,7 +86,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.2.mbr-et-relation-avec-schema-de-boot"
-      ]
+      ],
+      "description_fr": "Le volume sous /mnt/lpic-bios-rescue conserve les fichiers nécessaires au démarrage du chargeur et le manifeste de récupération intact."
     }
   ],
   "hint_ids": [
