@@ -62,7 +62,7 @@
         "lpic1.104.1.mbr-versus-gpt",
         "lpic1.104.1.creation-modification-de-partitions"
       ],
-      "description_fr": "/dev/vdb utilise GPT et ses deux partitions appartiennent bien à ce disque, pas à /dev/vda."
+      "description_fr": "Le disque /dev/vdb possède une table de partitions GPT."
     },
     {
       "type": "block-device-state",
@@ -73,7 +73,7 @@
         "lpic1.104.1.ext2-ext3-ext4",
         "lpic1.104.1.creation-de-filesystem"
       ],
-      "description_fr": "/dev/vdb utilise GPT et ses deux partitions appartiennent bien à ce disque, pas à /dev/vda."
+      "description_fr": "La partition /dev/vdb1 possède un système de fichiers ext4."
     },
     {
       "type": "block-device-state",
@@ -84,7 +84,7 @@
         "lpic1.104.1.swap",
         "lpic1.104.1.creation-de-filesystem"
       ],
-      "description_fr": "La partition /dev/vdb1 est formatée en ext4 et sa taille avoisine 384 MiB (entre 350 et 410 MiB)."
+      "description_fr": "La partition /dev/vdb2 est initialisée comme swap."
     },
     {
       "type": "command-exit",
@@ -98,7 +98,7 @@
         "lpic1.104.1.creation-modification-de-partitions",
         "lpic1.104.1.swap"
       ],
-      "description_fr": "La partition /dev/vdb2 est initialisée comme swap et dispose d'au moins 96 MiB."
+      "description_fr": "Les deux partitions appartiennent à /dev/vdb et respectent les tailles prévues."
     }
   ],
   "hint_ids": [
