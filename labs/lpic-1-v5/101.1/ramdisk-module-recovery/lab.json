@@ -2,10 +2,10 @@
   "schema_version": "1.0.0",
   "id": "lpic1.101.1.ramdisk-module-recovery",
   "title_fr": "Rétablir un cache en mémoire après la disparition du pilote",
-  "brief_fr": "Un collecteur d'événements utilise un petit volume RAM pour son cache de travail. Depuis une maintenance du noyau, ce volume a disparu et le collecteur échoue. Les données sources sont toujours sauvegardées sur disque. Restaure le périphérique et un cache fonctionnel, sans modifier les disques permanents ni le réseau.",
+  "brief_fr": "Un collecteur d'événements utilise un petit volume RAM pour son cache de travail. Depuis une maintenance du noyau, ce volume a disparu et le collecteur échoue. Les données sources sont toujours sauvegardées sur disque. Restaure un périphérique bloc en mémoire d’au moins 16 Mio et un cache ext4 fonctionnel sous /run/lpic-ramcache, sans modifier les disques permanents ni le réseau.",
   "success_criteria_fr": [
     "Le pilote de disque RAM est réellement chargé et présente un périphérique bloc exploitable.",
-    "Le cache sur mémoire est monté et contient une copie fidèle des données sources.",
+    "Le périphérique bloc en mémoire d’au moins 16 Mio porte un système ext4 monté sous /run/lpic-ramcache et une copie fidèle des données sources.",
     "Le collecteur redémarre normalement et ses données durables ne sont pas modifiées."
   ],
   "debrief_fr": "`modinfo` inspecte les informations d'un module, `lsmod` montre les modules chargés et `modprobe` charge un pilote avec ses paramètres. Le pilote brd fournit des périphériques bloc RAM dans /dev ; le noyau expose ses paramètres sous /sys/module/brd. Le cache est éphémère : les données importantes restent dans une source persistante.",
