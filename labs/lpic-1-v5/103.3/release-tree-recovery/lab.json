@@ -2,9 +2,9 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.3.release-tree-recovery",
   "title_fr": "Remettre en état une arborescence de release",
-  "brief_fr": "Le dépôt d’une nouvelle version a été interrompu et le répertoire de livraison n’est pas prêt. À partir de /workspace/source/app, rends /workspace/release exploitable par le déploiement : conserve les fichiers et leurs propriétés, regroupe les configurations, élimine seulement les fichiers temporaires obsolètes et isole les gros journaux. Les fichiers temporaires de moins de sept jours et les journaux de 20 octets ou moins doivent rester à leur place. Quand la version est prête, signale-le avec /workspace/release/READY. Ne modifie pas les sources.",
+  "brief_fr": "Le dépôt d’une nouvelle version a été interrompu et le répertoire de livraison n’est pas prêt. À partir de /workspace/source/app, rends /workspace/release exploitable par le déploiement : conserve le contenu, les permissions et les dates de modification des fichiers, regroupe les configurations, élimine seulement les fichiers temporaires obsolètes et isole les gros journaux. Les fichiers temporaires de moins de sept jours et les journaux de 20 octets ou moins doivent rester à leur place. Quand la version est prête, signale-le avec /workspace/release/READY. Ne modifie pas les sources.",
   "success_criteria_fr": [
-    "L’application est recopiée récursivement sous release/app avec deploy.sh intact.",
+    "L’application est recopiée récursivement sous release/app ; deploy.sh conserve son contenu, ses permissions et sa date de modification.",
     "Les deux fichiers .conf sont déplacés dans release/config et l’ancien dossier conf est vide ou absent.",
     "old.tmp est supprimé mais new.tmp est conservé.",
     "current.log est déplacé dans large-logs tandis que small.log reste dans app/logs.",
