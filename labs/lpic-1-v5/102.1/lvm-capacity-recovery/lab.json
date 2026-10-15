@@ -2,10 +2,10 @@
   "schema_version": "1.0.0",
   "id": "lpic1.102.1.lvm-capacity-recovery",
   "title_fr": "Rendre exploitable une extension de stockage LVM",
-  "brief_fr": "Le serveur de traitement a reçu un disque supplémentaire, mais l'application ne dispose toujours d'aucun espace de données disponible sous /srv/app-data. Le disque /dev/vdb est neuf ; l'administrateur doit l'intégrer dans une architecture LVM, afin de pouvoir étendre le stockage ultérieurement. Remets un volume de données ext4 en service sous /srv/app-data, avec au moins 256 MiB utiles. Préserve absolument le disque système /dev/vda.",
+  "brief_fr": "Le serveur de traitement a reçu un disque supplémentaire, mais l'application ne dispose toujours d'aucun espace de données disponible sous /srv/app-data. Le disque /dev/vdb est neuf ; l'administrateur doit l'intégrer dans une architecture LVM, avec un groupe nommé lpicvg et un volume logique de données nommé data, afin de pouvoir étendre le stockage ultérieurement. Remets un volume de données ext4 en service sous /srv/app-data, avec au moins 256 MiB utiles. Préserve absolument le disque système /dev/vda.",
   "success_criteria_fr": [
     "Le nouveau disque possède une partition utilisée comme volume physique LVM.",
-    "Un groupe de volumes et un volume logique de données existent réellement et le volume logique a une taille d'au moins 256 MiB.",
+    "Le groupe de volumes lpicvg et son volume logique data existent réellement et ce dernier offre au moins 256 MiB.",
     "Le volume logique ext4 est monté sur /srv/app-data et accepte de nouvelles écritures."
   ],
   "debrief_fr": "LVM sépare le volume physique (PV), le groupe de volumes (VG) et le volume logique (LV). Un LV présente un périphérique bloc qui peut recevoir un système de fichiers et être monté comme un disque ordinaire. Les commandes pvs/vgs/lvs et findmnt permettent de contrôler les différentes couches sans se limiter à vérifier un simple répertoire.",
