@@ -31,6 +31,8 @@ Never silently replace examinable legacy knowledge with a modern equivalent.
 ## Lab authoring
 Labs specify desired state, environment and checker semantics. Avoid command-string grading. Reference solutions are private authoring/test fixtures, not learner hints.
 
+Learner-facing mission text and success criteria must be **unambiguous about observable outcomes** while preserving command discovery. State the exact kind of information or resulting state (for example, kernel name vs kernel version, Bash command category vs binary path) and the required format of genuine operational outputs (line count, order, delimiter) when these affect grading. Do not write the command, flag, expected computed value, checker expression or repair procedure. Follow the examples and review gate in `labs/AGENTS.md` and `.agents/skills/author-lab/SKILL.md`.
+
 Every state check must declare the stable `concept_ids` it proves. The union of check mappings must cover the concepts claimed by the lab.
 
 ### Podman labs
