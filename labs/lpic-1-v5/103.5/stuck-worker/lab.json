@@ -58,14 +58,16 @@
       "concept_ids": [
         "lpic1.103.5.selection-par-nom-pid",
         "lpic1.103.5.signaux"
-      ]
+      ],
+      "description_fr": "Le worker défectueux est arrêté tandis que le traitement sain reste actif."
     },
     {
       "type": "process-running",
       "match": "healthy-worker",
       "concept_ids": [
         "lpic1.103.5.selection-par-nom-pid"
-      ]
+      ],
+      "description_fr": "Le worker défectueux est arrêté tandis que le traitement sain reste actif."
     },
     {
       "type": "command-exit",
@@ -77,7 +79,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.5.inspection-arbres-ressources"
-      ]
+      ],
+      "description_fr": "Le relevé /run/lpic/process-inspection contient pour chacun des deux processus une ligne avec PID, PID parent, état abrégé et commande, dans cet ordre et séparés par des espaces."
     },
     {
       "type": "file-content-regex",
@@ -86,7 +89,8 @@
       "concept_ids": [
         "lpic1.103.5.processus-avant-arriere-plan",
         "lpic1.103.5.jobs-du-shell"
-      ]
+      ],
+      "description_fr": "Le relevé /run/lpic/process-inspection contient pour chacun des deux processus une ligne avec PID, PID parent, état abrégé et commande, dans cet ordre et séparés par des espaces."
     },
     {
       "type": "file-content-regex",
@@ -95,7 +99,8 @@
       "concept_ids": [
         "lpic1.103.5.jobs-du-shell",
         "lpic1.103.5.signaux"
-      ]
+      ],
+      "description_fr": "La tâche de test a effectivement été suspendue, reprise en arrière-plan puis terminée proprement."
     },
     {
       "type": "file-content-regex",
@@ -104,7 +109,8 @@
       "concept_ids": [
         "lpic1.103.5.processus-avant-arriere-plan",
         "lpic1.103.5.signaux"
-      ]
+      ],
+      "description_fr": "La tâche de test a effectivement été suspendue, reprise en arrière-plan puis terminée proprement."
     },
     {
       "type": "file-content-regex",
@@ -112,21 +118,24 @@
       "pattern": "^terminated\\n?$",
       "concept_ids": [
         "lpic1.103.5.signaux"
-      ]
+      ],
+      "description_fr": "Un worker reste actif indépendamment du terminal qui l’a lancé."
     },
     {
       "type": "process-absent",
       "match": "/usr/local/bin/lpic-signal-probe",
       "concept_ids": [
         "lpic1.103.5.signaux"
-      ]
+      ],
+      "description_fr": "Un worker reste actif indépendamment du terminal qui l’a lancé."
     },
     {
       "type": "process-running",
       "match": "resilient-worker",
       "concept_ids": [
         "lpic1.103.5.processus-survivant-a-la-session"
-      ]
+      ],
+      "description_fr": "Une session de maintenance détachée nommée ops reste accessible."
     },
     {
       "type": "command-exit",
@@ -139,7 +148,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.5.multiplexeurs-de-terminal"
-      ]
+      ],
+      "description_fr": "Une session de maintenance détachée nommée ops reste accessible."
     }
   ],
   "hint_ids": [

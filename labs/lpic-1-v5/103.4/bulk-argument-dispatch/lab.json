@@ -55,7 +55,8 @@
         "lpic1.103.4.transformer-stdin-en-arguments-via-xargs",
         "lpic1.103.4.pipelines",
         "lpic1.103.4.stdin-stdout-stderr-et-descripteurs"
-      ]
+      ],
+      "description_fr": "processed.log contient une ligne nom-du-fichier:nombre-d'octets pour alpha.txt, beta.txt et gamma.txt, dans l'ordre alphabétique. Les nombres doivent correspondre aux tailles réelles des fichiers, sans valeurs fixées à l'avance."
     }
   ],
   "hint_ids": [

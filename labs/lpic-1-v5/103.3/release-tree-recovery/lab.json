@@ -59,7 +59,8 @@
       "concept_ids": [
         "lpic1.103.3.creation-copie-deplacement-suppression",
         "lpic1.103.3.recursivite-et-globbing"
-      ]
+      ],
+      "description_fr": "L’application est recopiée récursivement sous release/app ; deploy.sh conserve son contenu, ses permissions et sa date de modification."
     },
     {
       "type": "command-exit",
@@ -72,7 +73,8 @@
       "concept_ids": [
         "lpic1.103.3.creation-copie-deplacement-suppression",
         "lpic1.103.3.recursivite-et-globbing"
-      ]
+      ],
+      "description_fr": "L’application est recopiée récursivement sous release/app ; deploy.sh conserve son contenu, ses permissions et sa date de modification."
     },
     {
       "type": "command-exit",
@@ -85,7 +87,8 @@
       "concept_ids": [
         "lpic1.103.3.recherche-par-metadonnees",
         "lpic1.103.3.actions-find"
-      ]
+      ],
+      "description_fr": "Les deux fichiers .conf sont déplacés dans release/config et l’ancien dossier conf est vide ou absent."
     },
     {
       "type": "command-exit",
@@ -99,14 +102,16 @@
         "lpic1.103.3.recherche-par-metadonnees",
         "lpic1.103.3.actions-find",
         "lpic1.103.3.creation-copie-deplacement-suppression"
-      ]
+      ],
+      "description_fr": "old.tmp est supprimé mais new.tmp est conservé."
     },
     {
       "type": "file-exists",
       "path": "/workspace/release/READY",
       "concept_ids": [
         "lpic1.103.3.creation-copie-deplacement-suppression"
-      ]
+      ],
+      "description_fr": "current.log est déplacé dans large-logs tandis que small.log reste dans app/logs."
     },
     {
       "type": "command-exit",
@@ -119,7 +124,8 @@
       "concept_ids": [
         "lpic1.103.3.creation-copie-deplacement-suppression",
         "lpic1.103.3.recherche-par-metadonnees"
-      ]
+      ],
+      "description_fr": "READY existe à la racine de la release."
     }
   ],
   "hint_ids": [

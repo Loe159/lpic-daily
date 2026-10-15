@@ -61,7 +61,8 @@
       "concept_ids": [
         "lpic1.103.4.stdin-stdout-stderr-et-descripteurs",
         "lpic1.103.4.redirections-ecrasement-append"
-      ]
+      ],
+      "description_fr": "stdout.log remplace le contenu STALE et contient uniquement les deux lignes OK."
     },
     {
       "type": "command-exit",
@@ -74,7 +75,8 @@
       "concept_ids": [
         "lpic1.103.4.redirection-stderr",
         "lpic1.103.4.stdin-stdout-stderr-et-descripteurs"
-      ]
+      ],
+      "description_fr": "stderr.log contient uniquement les deux lignes ERR."
     },
     {
       "type": "command-exit",
@@ -87,7 +89,8 @@
       "concept_ids": [
         "lpic1.103.4.ordre-des-redirections",
         "lpic1.103.4.redirection-stderr"
-      ]
+      ],
+      "description_fr": "combined.log contient stdout et stderr dans l’ordre émis par le batch."
     },
     {
       "type": "command-exit",
@@ -99,7 +102,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.4.redirections-ecrasement-append"
-      ]
+      ],
+      "description_fr": "history.log conserve previous-run puis ajoute les deux lignes OK."
     },
     {
       "type": "command-exit",
@@ -112,7 +116,8 @@
       "concept_ids": [
         "lpic1.103.4.pipelines",
         "lpic1.103.4.dupliquer-sortie-avec-tee"
-      ]
+      ],
+      "description_fr": "live.log reçoit les lignes OK et success-count.txt vaut 2."
     }
   ],
   "hint_ids": [
