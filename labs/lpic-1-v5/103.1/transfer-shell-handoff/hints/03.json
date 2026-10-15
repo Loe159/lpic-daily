@@ -3,6 +3,6 @@
   "id": "lpic1.103.1.transfer-shell-handoff.hint-3",
   "lab_id": "lpic1.103.1.transfer-shell-handoff",
   "level": 3,
-  "content_fr": "Le résumé doit être produit depuis le shell interactif corrigé : uname -m en première ligne puis type -t report-status en seconde. La création de handoff-ready peut être chaînée avec &&.",
+  "content_fr": "La fiche de relève doit venir du shell corrigé : uname -m pour l'architecture, puis type -t report-status pour le type de commande. Le résultat de type -t est « file » pour un binaire externe.",
   "evidence_impact": "material"
 }

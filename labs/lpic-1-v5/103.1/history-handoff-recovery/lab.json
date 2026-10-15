@@ -2,11 +2,11 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.1.history-handoff-recovery",
   "title_fr": "Retrouver l’historique après une reconnexion",
-  "brief_fr": "Un administrateur reprend la maintenance du serveur, mais les commandes précédentes disparaissent trop vite et l’historique contient une ligne avec API_TOKEN. Dans /run/lpic, corrige .bashrc pour garder 2000 commandes en mémoire et 4000 sur disque. Supprime uniquement la ligne sensible de .bash_history. Puis, depuis /run/lpic, affiche root:/run/lpic avec echo et les variables $USER et $PWD. Sauvegarde l’historique pour que le prochain administrateur retrouve cette commande dans un nouveau shell Bash.",
+  "brief_fr": "Après une relève, les administrateurs ne retrouvent plus leurs anciennes commandes : l’historique conservé est trop court et contient encore une opération avec un secret. Rétablis un historique durable pour les nouveaux shells de maintenance : 2 000 commandes consultables dans la session et 4 000 conservées sur disque, sans l’ancienne ligne contenant API_TOKEN. Depuis /run/lpic, exécute une commande de diagnostic affichant ton utilisateur et ton répertoire courant au format utilisateur:chemin, puis assure-toi qu’elle pourra être retrouvée lors de la session suivante.",
   "success_criteria_fr": [
-    "Un nouveau shell de maintenance utilise HISTFILE=/run/lpic/.bash_history, HISTSIZE=2000 et HISTFILESIZE=4000.",
-    "L’historique sur disque ne contient plus API_TOKEN mais conserve les anciennes commandes non sensibles.",
-    "Un nouveau shell Bash retrouve la commande echo utilisant $USER et $PWD dans l’historique sauvegardé."
+    "Au démarrage, un nouveau shell de maintenance peut conserver 2 000 commandes en session et 4 000 dans /run/lpic/.bash_history.",
+    "Le fichier d’historique n’enregistre plus l’ancien secret mais conserve les opérations précédentes non sensibles.",
+    "Le prochain shell retrouve dans l’historique la commande affichant root:/run/lpic à partir de l’utilisateur et du répertoire courants."
   ],
   "debrief_fr": "Le fichier .bashrc fixe les paramètres du shell, HISTSIZE limite l’historique en mémoire et HISTFILESIZE celui conservé sur disque. .bash_history contient les commandes persistantes ; history -r les recharge et history -w les écrit. L’expansion de $USER et $PWD est faite lors de l’exécution de echo, tandis que l’historique garde le texte de la commande. Lancer echo sans enregistrer l’historique ne garantit pas que la prochaine session puisse le retrouver.",
   "objective_ids": [

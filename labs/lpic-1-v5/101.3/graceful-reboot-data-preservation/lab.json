@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "id": "lpic1.101.3.graceful-reboot-data-preservation",
   "title_fr": "Redémarrer sans perdre le point de reprise",
-  "brief_fr": "Après une maintenance, le serveur doit redémarrer pour appliquer ses mises à jour, mais un agent d'archivage reste actif. Sa configuration d'arrêt actuelle risque de lui faire perdre son état de reprise. Corrige cette situation et effectue un vrai redémarrage propre avec la commande du terminal parent. Préserve les données enregistrées et ne stoppe pas les services indispensables à la VM.",
+  "brief_fr": "Un agent d'archivage est encore actif quand la VM doit redémarrer après maintenance. Son arrêt actuel risque de perdre son point de reprise. Corrige le comportement d'arrêt pour que l'agent sauvegarde ses progrès, puis demande le redémarrage réel avec :reboot depuis le terminal parent LPIC Daily. Vérifie que l'agent est revenu et que ses données de reprise sont intactes. Ne coupe pas brutalement la VM.",
   "success_criteria_fr": [
     "Un véritable redémarrage de la VM a eu lieu.",
     "Le processus d'archivage a enregistré sa terminaison propre avant le redémarrage.",

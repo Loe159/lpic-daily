@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "id": "lpic1.101.1.onboard-sata-controller-reenable",
   "title_fr": "Rétablir le contrôleur SATA intégré de la VM",
-  "brief_fr": "Le disque d'archives d'un serveur Fedora n'est plus visible alors que son contrôleur SATA apparaît encore sur le bus PCI. Un administrateur a désassocié le pilote du contrôleur intégré au chipset virtuel ; les données du volume sont intactes. Identifie le contrôleur et son pilote, rétablis l'association PCI, puis remonte les archives sans reformater. Ne touche pas au disque système VirtIO ni aux réglages BIOS.",
+  "brief_fr": "Le volume d’archives SATA d’une VM Fedora n’est plus visible depuis une intervention. Le contrôleur intégré apparaît encore dans l’inventaire matériel, mais le système ne retrouve plus le disque. Diagnostique la liaison entre ce contrôleur et le noyau, puis rétablis l’accès aux archives sans reformater le volume, modifier le disque système VirtIO ni changer les paramètres du firmware.",
   "success_criteria_fr": [
     "Le contrôleur SATA du chipset virtuel Q35 possède de nouveau son vrai pilote PCI ahci, et l'identité PCI enregistrée n'a pas changé.",
     "Le disque SATA redevient visible dans le noyau ; son système de fichiers et le manifeste d'origine sont préservés.",

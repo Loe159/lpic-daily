@@ -2,13 +2,13 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.5.transfer-operator-session",
   "title_fr": "Conduire une relève de maintenance",
-  "brief_fr": "Pendant une maintenance, reload-worker doit rester actif mais recevoir un rechargement sans interruption. Dans :shell, localise-le par nom, enregistre un snapshot PID/PPID/état/commande dans /run/lpic/maintenance-inspection puis envoie-lui SIGUSR1 et vérifie qu’il reste actif. Lance ensuite lpic-maintenance-job-probe au premier plan, suspends-le avec Ctrl-Z, observe-le avec jobs, reprends-le avec bg puis termine-le avec SIGTERM. Enfin démarre batch-worker en arrière-plan, handoff-daemon avec nohup et une session tmux détachée nommée maintenance-ops.",
+  "brief_fr": "Un opérateur prend la relève d’une maintenance sans interrompre le traitement en cours. Le programme reload-worker doit recevoir une demande de rechargement tout en restant actif ; conserve son état initial dans /run/lpic/maintenance-inspection. Vérifie également qu’une tâche de maintenance peut être suspendue, reprise en arrière-plan puis arrêtée proprement. À la fin, le traitement batch, un démon indépendant du terminal et une session de maintenance détachée nommée maintenance-ops doivent être disponibles au prochain opérateur.",
   "success_criteria_fr": [
-    "reload-worker reste actif après réception de SIGUSR1 et /run/lpic/reload-requested confirme le rechargement.",
-    "/run/lpic/maintenance-inspection contient un snapshot exploitable du reload-worker avec PID, PPID, état et commande.",
-    "Le maintenance-job-probe a réellement été suspendu, observé via jobs, repris en arrière-plan puis terminé.",
-    "batch-worker et handoff-daemon restent actifs, le second ayant été lancé avec nohup.",
-    "Une session tmux détachée maintenance-ops existe."
+    "Le service reload-worker a reçu sa demande de rechargement sans être interrompu.",
+    "Le relevé /run/lpic/maintenance-inspection décrit le processus initial (PID, PPID, état, commande).",
+    "La tâche de test a réellement été suspendue, reprise en arrière-plan et terminée proprement.",
+    "Le batch et le démon restent actifs, et ce dernier ne dépend plus du terminal d’origine.",
+    "La session de maintenance détachée maintenance-ops est disponible pour la relève."
   ],
   "debrief_fr": "Ce contexte exige à nouveau inspection et sélection précises des processus, puis un vrai cycle de job control dans un PTY : foreground, Ctrl-Z, jobs, bg et SIGTERM. Il ajoute un processus lancé avec &, un survivant nohup et une session tmux détachée. Le transfert n'est donc crédité que lorsque les sept concepts 103.5 ont une preuve observable dans ce second contexte.",
   "objective_ids": [

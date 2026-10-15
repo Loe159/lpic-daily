@@ -8,4 +8,4 @@ export HISTSIZE=1500
 export HISTFILESIZE=3000
 export HISTCONTROL=ignoredups
 EOF
-/usr/bin/bash --noprofile --norc -c '. /root/.bashrc || exit 1; printf "%s\n%s\n" "$(uname -m)" "$(type -t report-status)" > /run/lpic/handoff-summary && printf "ready\n" > /run/lpic/handoff-ready'
+/usr/bin/bash --noprofile --norc -c '. /root/.bashrc || exit 1; printf "%s\n%s\n" "$(uname -m)" "$(type -t report-status)" > /run/lpic/handoff-summary'

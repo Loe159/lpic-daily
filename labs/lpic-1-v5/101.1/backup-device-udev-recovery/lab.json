@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "id": "lpic1.101.1.backup-device-udev-recovery",
   "title_fr": "Réparer la découverte du disque de sauvegarde",
-  "brief_fr": "Après l'ajout d'un périphérique de stockage, le service de sauvegarde ne retrouve plus son disque à l'emplacement stable `/dev/lpic-backup`. Le disque ext4 de sauvegarde est toujours présent et porte le label LPICBACKUP, mais son nom noyau peut changer entre deux démarrages. Identifie le périphérique et rétablis sa découverte persistante par udev afin que le service fonctionne à nouveau, sans reformater aucun disque ni modifier le disque système.",
+  "brief_fr": "Après le remplacement d’un périphérique, le logiciel de sauvegarde ne retrouve plus le disque sous /dev/lpic-backup. Le volume ext4 contenant les archives est toujours intact, mais la désignation du disque peut changer entre les démarrages. Rétablis un accès stable et automatique au bon périphérique, afin que le logiciel puisse de nouveau lire les sauvegardes. Ne reformate aucun disque et ne modifie pas le système.",
   "success_criteria_fr": [
     "Le disque correct est identifié et accessible sous /dev/lpic-backup, quelle que soit sa désignation noyau.",
     "La base udev attribue réellement ce lien au périphérique de sauvegarde, plutôt qu'à un lien créé manuellement.",

@@ -2,13 +2,13 @@
   "schema_version": "1.0.0",
   "id": "lpic1.104.5.transfer-team-share-audit",
   "title_fr": "Séparer dépôt protégé et espace collaboratif",
-  "brief_fr": "Une équipe veut séparer deux usages au lieu de cumuler tous les bits spéciaux sur un seul répertoire. Sous /srv/project-transfer, configure incoming en root:project mode 1770 pour que les membres puissent déposer des fichiers sans supprimer ceux des autres, et team en root:project mode 2770 pour que les nouveaux fichiers héritent du groupe project. Configure /root/.bashrc avec umask 0007 puis crée team/handoff-note depuis un shell qui charge réellement ce rcfile. audit-helper porte un SUID inutile : retire uniquement ce bit tout en conservant le mode 0755.",
+  "brief_fr": "L’équipe project a besoin de deux zones sous /srv/project-transfer : incoming pour déposer des documents sans pouvoir effacer ceux des collègues, et team pour modifier des documents dont le groupe reste toujours project. Ces zones doivent être fermées aux utilisateurs extérieurs. Un nouveau shell de maintenance doit y créer handoff-note avec les bons droits. L’outil audit-helper doit rester exécutable sans privilège superflu.",
   "success_criteria_fr": [
-    "/srv/project-transfer/incoming est root:project en 1770 et le sticky bit empêche un membre de supprimer le fichier d’un autre.",
-    "/srv/project-transfer/team est root:project en 2770 et son SGID transmet réellement le groupe project aux nouvelles entrées.",
-    "handoff-note est créé dans team avec le groupe project et le mode 0660 grâce à umask 0007 chargé depuis /root/.bashrc.",
-    "audit-helper reste exécutable en 0755 sans SUID.",
-    "Les permissions de collaboration sont réparties entre deux répertoires aux rôles distincts plutôt que combinées en 3770."
+    "incoming est réservé à l’équipe project ; même entre membres, seul le propriétaire d’un fichier ou l’administrateur peut le supprimer.",
+    "team est réservé à project et les nouveaux fichiers héritent automatiquement du groupe project.",
+    "Un nouveau shell de maintenance crée team/handoff-note, modifiable par son propriétaire et son groupe mais inaccessible aux autres.",
+    "audit-helper reste exécutable et ne donne pas de privilèges superflus.",
+    "Les deux dossiers ont des rôles distincts : dépôt protégé d’un côté, héritage de groupe de l’autre."
   ],
   "debrief_fr": "Ce second partage vérifie le transfert des permissions rwx/octales, ownership, umask, SUID, SGID, sticky bit et effets spéciaux de répertoire sur un autre chemin. Le checker recrée un fichier à travers le rcfile pour observer l'umask.",
   "objective_ids": [

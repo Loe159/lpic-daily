@@ -2,11 +2,11 @@
   "schema_version": "1.0.0",
   "id": "lpic1.102.2.grub-serial-one-time-diagnostics",
   "title_fr": "Activer un diagnostic ponctuel depuis le menu GRUB",
-  "brief_fr": "Le service de supervision réclame les messages d'un seul démarrage, sans modifier la ligne de commande noyau permanente. Utilise le menu GRUB 2 accessible sur la console série pour démarrer une seule fois avec le marqueur lpic.console_probe=1. Enregistre aussi l'accusé de réception lpic_grub_cli=verified depuis l'invite de commandes GRUB. Le démarrage normal doit rester inchangé. Pour accéder au menu, utilise :boot-menu puis immédiatement :console dans le terminal LPIC Daily ; reviens avec Ctrl-].",
+  "brief_fr": "L’équipe de supervision a besoin d’observer un seul démarrage avec un diagnostic complémentaire, sans changer les réglages utilisés lors des démarrages suivants. Depuis la console de démarrage de la VM, lance une seule session avec l’indicateur temporaire lpic.console_probe=1 et enregistre la confirmation lpic_grub_cli=verified dans l’environnement du chargeur. Le démarrage normal et ses autres options doivent rester intacts. Le terminal parent LPIC Daily permet d’ouvrir le menu de démarrage et la console série.",
   "success_criteria_fr": [
-    "La VM redémarre réellement et le noyau actif reçoit le paramètre temporaire lpic.console_probe=1.",
-    "La variable lpic_grub_cli=verified a été enregistrée par les commandes set et save_env depuis l'invite GRUB.",
-    "La configuration GRUB, les entrées BLS et leurs paramètres permanents restent inchangés ; un autre démarrage normal ne réinjecterait pas le marqueur."
+    "Un vrai démarrage a eu lieu avec le paramètre de diagnostic temporaire actif dans le noyau.",
+    "La confirmation de diagnostic demandée est conservée dans l’environnement du chargeur.",
+    "Le comportement des démarrages ultérieurs et les entrées permanentes restent inchangés."
   ],
   "debrief_fr": "GRUB 2 offre un menu, un éditeur temporaire (touche e) et une console de commandes (touche c). Les commandes set et save_env permettent de manipuler une variable de l'environnement GRUB ; le menu permet de modifier une ligne linux pour le seul démarrage en cours et Ctrl-X démarre avec cet état temporaire. Le noyau expose les paramètres réellement reçus dans /proc/cmdline. À l'inverse de grubby ou grub2-mkconfig, l'édition interactive ne change pas durablement une entrée BLS.",
   "objective_ids": [
