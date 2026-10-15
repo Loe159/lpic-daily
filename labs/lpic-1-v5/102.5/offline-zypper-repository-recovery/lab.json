@@ -54,7 +54,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.5.workflow-zypper-opensuse"
-      ]
+      ],
+      "description_fr": "Le dépôt local openSUSE est utilisable avec Zypper."
     },
     {
       "type": "command-exit",
@@ -66,7 +67,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.5.workflow-zypper-opensuse"
-      ]
+      ],
+      "description_fr": "Le collecteur et son runtime RPM sont installés et intègres."
     },
     {
       "type": "command-exit",
@@ -78,7 +80,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.5.workflow-zypper-opensuse"
-      ]
+      ],
+      "description_fr": "Le collecteur fonctionne et son exécutable appartient au bon paquet."
     }
   ],
   "hint_ids": [

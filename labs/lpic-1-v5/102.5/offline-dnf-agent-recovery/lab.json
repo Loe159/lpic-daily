@@ -55,7 +55,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.5.repositories-yum-dnf"
-      ]
+      ],
+      "description_fr": "Le dépôt RPM local est reconnu et accessible par DNF."
     },
     {
       "type": "command-exit",
@@ -67,7 +68,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.5.resolution-des-dependances-via-gestionnaire-haut-niveau"
-      ]
+      ],
+      "description_fr": "L’agent RPM et ses dépendances sont installés correctement."
     },
     {
       "type": "command-exit",
@@ -80,7 +82,8 @@
       "concept_ids": [
         "lpic1.102.5.resolution-des-dependances-via-gestionnaire-haut-niveau",
         "lpic1.102.5.repositories-yum-dnf"
-      ]
+      ],
+      "description_fr": "L’exécutable de l’agent fonctionne et appartient au paquet prévu."
     }
   ],
   "hint_ids": [

@@ -55,7 +55,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.4.dependances"
-      ]
+      ],
+      "description_fr": "Le relais et son composant d’exécution sont correctement installés par dpkg."
     },
     {
       "type": "command-exit",
@@ -67,7 +68,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.4.dependances"
-      ]
+      ],
+      "description_fr": "Le relais fonctionne et dépend du bon composant d’exécution."
     },
     {
       "type": "command-exit",
@@ -79,7 +81,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.4.inspection-d-un-paquet-et-de-ses-fichiers"
-      ]
+      ],
+      "description_fr": "Les fichiers des deux paquets sont identifiables dans dpkg."
     }
   ],
   "hint_ids": [

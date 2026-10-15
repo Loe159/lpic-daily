@@ -54,7 +54,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.6.principes-cloud-init-iaas"
-      ]
+      ],
+      "description_fr": "cloud-init reconnaît l’instance NoCloud et a exécuté le module d’écriture."
     },
     {
       "type": "command-exit",
@@ -66,7 +67,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.6.principes-cloud-init-iaas"
-      ]
+      ],
+      "description_fr": "La configuration de l’agent est générée avec le bon contenu et les bonnes permissions."
     }
   ],
   "hint_ids": [

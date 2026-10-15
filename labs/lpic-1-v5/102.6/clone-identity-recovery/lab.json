@@ -55,7 +55,8 @@
       "concept_ids": [
         "lpic1.102.6.images-clones-et-templates",
         "lpic1.102.6.identites-devant-etre-regenerees-lors-d-un-clonage"
-      ]
+      ],
+      "description_fr": "Les deux VM possèdent des identifiants machine distincts et valides."
     },
     {
       "type": "command-exit",
@@ -68,7 +69,8 @@
       "concept_ids": [
         "lpic1.102.6.images-clones-et-templates",
         "lpic1.102.6.identites-devant-etre-regenerees-lors-d-un-clonage"
-      ]
+      ],
+      "description_fr": "Les clés SSH hôte de chaque VM sont cohérentes et différentes."
     },
     {
       "type": "command-exit",
@@ -81,7 +83,8 @@
       "concept_ids": [
         "lpic1.102.6.images-clones-et-templates",
         "lpic1.102.6.identites-devant-etre-regenerees-lors-d-un-clonage"
-      ]
+      ],
+      "description_fr": "Les configurations applicatives des deux VM sont restées identiques."
     }
   ],
   "hint_ids": [

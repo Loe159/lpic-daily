@@ -60,7 +60,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.6.ressources-virtuelles-block-network"
-      ]
+      ],
+      "description_fr": "Le disque de données virtuel est remonté et son contenu est conservé."
     },
     {
       "type": "command-exit",
@@ -72,7 +73,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.6.ressources-virtuelles-block-network"
-      ]
+      ],
+      "description_fr": "L’interface réseau virtuelle est connectée et possède une IPv4 locale."
     },
     {
       "type": "command-exit",
@@ -84,7 +86,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.6.ressources-virtuelles-block-network"
-      ]
+      ],
+      "description_fr": "Le service de collecte fonctionne avec les ressources restaurées."
     }
   ],
   "hint_ids": [

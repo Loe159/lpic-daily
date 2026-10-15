@@ -54,7 +54,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.6.vm-versus-conteneur-applicatif-systeme"
-      ]
+      ],
+      "description_fr": "Le collecteur fonctionne dans un véritable conteneur applicatif."
     },
     {
       "type": "command-exit",
@@ -66,7 +67,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.6.vm-versus-conteneur-applicatif-systeme"
-      ]
+      ],
+      "description_fr": "Les espaces de processus et réseau du conteneur sont isolés de la VM."
     },
     {
       "type": "command-exit",
@@ -78,7 +80,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.6.vm-versus-conteneur-applicatif-systeme"
-      ]
+      ],
+      "description_fr": "La file d’attente durable est intacte et le collecteur reste fonctionnel."
     }
   ],
   "hint_ids": [
