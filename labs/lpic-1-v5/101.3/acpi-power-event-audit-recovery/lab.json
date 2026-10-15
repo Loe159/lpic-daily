@@ -54,7 +54,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.3.notion-d-evenements-acpi"
-      ]
+      ],
+      "description_fr": "Le service acpid surveille le bouton d’alimentation et journalise son événement."
     },
     {
       "type": "command-exit",
@@ -66,7 +67,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.3.notion-d-evenements-acpi"
-      ]
+      ],
+      "description_fr": "L’appui sur le bouton a été journalisé sans redémarrer la VM."
     },
     {
       "type": "command-exit",
@@ -78,13 +80,15 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.3.notion-d-evenements-acpi"
-      ]
+      ],
+      "description_fr": "La politique du bouton et l’accès d’administration sont préservés."
     },
     {
       "type": "acpi-button-sent",
       "concept_ids": [
         "lpic1.101.3.notion-d-evenements-acpi"
-      ]
+      ],
+      "description_fr": "Un véritable événement ACPI de bouton a été envoyé à la VM."
     }
   ],
   "hint_ids": [

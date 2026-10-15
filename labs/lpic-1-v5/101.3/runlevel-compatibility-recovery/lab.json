@@ -54,7 +54,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.3.runlevels-sysv-et-targets-systemd"
-      ]
+      ],
+      "description_fr": "La cible multi-utilisateur est active et définie par défaut."
     },
     {
       "type": "command-exit",
@@ -66,7 +67,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.3.runlevels-sysv-et-targets-systemd"
-      ]
+      ],
+      "description_fr": "Le niveau d’exécution 3 est constaté et l’administration reste disponible."
     }
   ],
   "hint_ids": [

@@ -54,7 +54,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.3.target-par-defaut"
-      ]
+      ],
+      "description_fr": "La cible de démarrage par défaut est multi-user.target."
     },
     {
       "type": "command-exit",
@@ -66,7 +67,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.3.target-par-defaut"
-      ]
+      ],
+      "description_fr": "Le changement de cible est enregistré durablement dans systemd."
     },
     {
       "type": "command-exit",
@@ -78,7 +80,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.3.target-par-defaut"
-      ]
+      ],
+      "description_fr": "La VM reste opérationnelle pendant la correction."
     }
   ],
   "hint_ids": [

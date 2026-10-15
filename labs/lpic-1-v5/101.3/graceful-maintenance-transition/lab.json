@@ -54,7 +54,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.3.terminaison-propre-des-processus"
-      ]
+      ],
+      "description_fr": "La cible de maintenance est active et le worker s’est arrêté."
     },
     {
       "type": "command-exit",
@@ -66,7 +67,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.3.terminaison-propre-des-processus"
-      ]
+      ],
+      "description_fr": "Le worker a enregistré un arrêt propre, sans redémarrage ni arrêt forcé."
     },
     {
       "type": "command-exit",
@@ -78,7 +80,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.3.terminaison-propre-des-processus"
-      ]
+      ],
+      "description_fr": "Les services système nécessaires à l’administration sont restés actifs."
     }
   ],
   "hint_ids": [

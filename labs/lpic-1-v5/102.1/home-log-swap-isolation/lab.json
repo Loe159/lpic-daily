@@ -63,7 +63,8 @@
       "concept_ids": [
         "lpic1.102.1.separer-var-home-et-boot-selon-usage",
         "lpic1.102.1.partitions-et-points-de-montage"
-      ]
+      ],
+      "description_fr": "/home est monté sur le nouveau volume ext4 dédié."
     },
     {
       "type": "command-exit",
@@ -76,7 +77,8 @@
       "concept_ids": [
         "lpic1.102.1.separer-var-home-et-boot-selon-usage",
         "lpic1.102.1.partitions-et-points-de-montage"
-      ]
+      ],
+      "description_fr": "Les journaux applicatifs sont montés sur leur propre volume ext4."
     },
     {
       "type": "command-exit",
@@ -88,7 +90,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.1.separer-var-home-et-boot-selon-usage"
-      ]
+      ],
+      "description_fr": "Les données utilisateur et les anciens journaux ont été conservés."
     },
     {
       "type": "command-exit",
@@ -100,7 +103,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.1.swap-et-dimensionnement-conceptuel"
-      ]
+      ],
+      "description_fr": "Une partition swap d’au moins 128 Mio est active."
     },
     {
       "type": "command-exit",
@@ -114,7 +118,8 @@
         "lpic1.102.1.separer-var-home-et-boot-selon-usage",
         "lpic1.102.1.swap-et-dimensionnement-conceptuel",
         "lpic1.102.1.partitions-et-points-de-montage"
-      ]
+      ],
+      "description_fr": "Les montages de /home, /var/log/lpic et du swap sont persistants."
     }
   ],
   "hint_ids": [

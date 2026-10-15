@@ -53,7 +53,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.3.notification-aux-utilisateurs"
-      ]
+      ],
+      "description_fr": "Les deux opérateurs ont reçu l’avertissement de maintenance."
     },
     {
       "type": "command-exit",
@@ -65,7 +66,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.3.notification-aux-utilisateurs"
-      ]
+      ],
+      "description_fr": "Les deux sessions terminal restent actives et distinctes."
     }
   ],
   "hint_ids": [

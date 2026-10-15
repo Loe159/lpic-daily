@@ -54,7 +54,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.2.bios-versus-uefi"
-      ]
+      ],
+      "description_fr": "Les entrées UEFI principales et de secours sont dans le bon ordre."
     },
     {
       "type": "command-exit",
@@ -66,13 +67,15 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.2.bios-versus-uefi"
-      ]
+      ],
+      "description_fr": "Aucun démarrage UEFI ponctuel n’est forcé et les entrées prévues sont intactes."
     },
     {
       "type": "uefi-boot-order-preserved",
       "concept_ids": [
         "lpic1.101.2.bios-versus-uefi"
-      ]
+      ],
+      "description_fr": "Toutes les autres entrées UEFI conservent leur ordre initial."
     }
   ],
   "hint_ids": [

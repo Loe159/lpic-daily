@@ -54,7 +54,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.3.mode-mono-utilisateur-recuperation"
-      ]
+      ],
+      "description_fr": "Le serveur a quitté le mode secours et utilise multi-user.target."
     },
     {
       "type": "command-exit",
@@ -66,7 +67,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.3.mode-mono-utilisateur-recuperation"
-      ]
+      ],
+      "description_fr": "Le planificateur crond fonctionne et reste activé au démarrage."
     },
     {
       "type": "command-exit",
@@ -78,7 +80,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.3.mode-mono-utilisateur-recuperation"
-      ]
+      ],
+      "description_fr": "L’accès d’administration QEMU Guest Agent est préservé."
     }
   ],
   "hint_ids": [

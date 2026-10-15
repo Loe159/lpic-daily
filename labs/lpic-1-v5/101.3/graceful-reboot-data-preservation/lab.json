@@ -54,7 +54,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.3.arret-redemarrage-propre"
-      ]
+      ],
+      "description_fr": "La VM a redémarré réellement et le worker a repris son service."
     },
     {
       "type": "command-exit",
@@ -66,7 +67,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.3.arret-redemarrage-propre"
-      ]
+      ],
+      "description_fr": "Le worker s’est arrêté proprement avant le redémarrage et son point de reprise est intact."
     }
   ],
   "hint_ids": [

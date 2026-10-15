@@ -54,7 +54,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.3.services-et-dependances-de-demarrage"
-      ]
+      ],
+      "description_fr": "L’indexeur de journaux est actif et son unité systemd est chargée."
     },
     {
       "type": "command-exit",
@@ -66,7 +67,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.3.services-et-dependances-de-demarrage"
-      ]
+      ],
+      "description_fr": "L’indexeur reste activé pour les prochains démarrages."
     },
     {
       "type": "command-exit",
@@ -78,7 +80,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.3.services-et-dependances-de-demarrage"
-      ]
+      ],
+      "description_fr": "Les dépendances et l’ordre de démarrage de l’indexeur sont préservés."
     },
     {
       "type": "command-exit",
@@ -90,7 +93,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.3.services-et-dependances-de-demarrage"
-      ]
+      ],
+      "description_fr": "L’indexeur traite effectivement un nouvel événement ERROR."
     }
   ],
   "hint_ids": [
