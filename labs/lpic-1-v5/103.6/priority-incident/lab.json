@@ -2,12 +2,12 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.6.priority-incident",
   "title_fr": "Rééquilibrer des processus concurrents",
-  "brief_fr": "Trois traitements se disputent les ressources d’un serveur : un service normal, une réindexation non urgente déjà en cours et un nouveau batch de fond. Rééquilibre les priorités sans redémarrer le service ni la réindexation : priorité normale pour le service, priorité relative 10 pour la réindexation et 15 pour le batch. Remets à l’équipe /run/lpic/priority-report avec les trois noms de processus et leurs priorités réellement observées.",
+  "brief_fr": "Trois traitements se disputent les ressources d’un serveur : un service normal, une réindexation non urgente déjà en cours et un nouveau batch de fond. Rééquilibre les priorités sans redémarrer le service ni la réindexation : priorité normale pour le service, priorité relative 10 pour la réindexation et 15 pour le batch. Remets à l’équipe /run/lpic/priority-report avec une ligne par processus au format « nom espace priorité nice numérique ».",
   "success_criteria_fr": [
     "service-worker reste actif avec nice 0.",
     "reindex-worker reste le même processus mais passe à nice 10.",
     "batch-worker est lancé avec nice 15.",
-    "priority-report reflète les trois valeurs réellement observées."
+    "priority-report contient une ligne par processus, sous la forme « nom-de-processus valeur-nice » séparée par un espace, avec les trois valeurs réellement observées."
   ],
   "debrief_fr": "La nice value influence l’ordonnancement utilisateur : 0 est la valeur normale, une valeur positive réduit la priorité CPU. nice -n choisit la valeur au lancement, renice modifie un processus existant, et ps/top permettent de l’observer. Le checker inspecte les PID et leurs valeurs NI réelles.",
   "objective_ids": [
