@@ -58,7 +58,8 @@
       "path": "/srv/shared",
       "concept_ids": [
         "lpic1.104.5.permissions-rwx-fichier-dossier"
-      ]
+      ],
+      "description_fr": "Les membres de project peuvent lire et écrire dans /srv/shared, sans accès pour les autres utilisateurs et sans pouvoir supprimer les fichiers d’un collègue."
     },
     {
       "type": "command-exit",
@@ -70,7 +71,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.104.5.permissions-rwx-fichier-dossier"
-      ]
+      ],
+      "description_fr": "Les membres de project peuvent lire et écrire dans /srv/shared, sans accès pour les autres utilisateurs et sans pouvoir supprimer les fichiers d’un collègue."
     },
     {
       "type": "file-owner",
@@ -79,7 +81,8 @@
       "group": "project",
       "concept_ids": [
         "lpic1.104.5.proprietaire-groupe"
-      ]
+      ],
+      "description_fr": "Les nouvelles entrées du dossier conservent le groupe project."
     },
     {
       "type": "file-mode",
@@ -90,7 +93,8 @@
         "lpic1.104.5.sgid",
         "lpic1.104.5.sticky-bit",
         "lpic1.104.5.effets-speciaux-sur-repertoires"
-      ]
+      ],
+      "description_fr": "Les nouvelles entrées du dossier conservent le groupe project."
     },
     {
       "type": "file-owner",
@@ -100,7 +104,8 @@
       "concept_ids": [
         "lpic1.104.5.proprietaire-groupe",
         "lpic1.104.5.sgid"
-      ]
+      ],
+      "description_fr": "La nouvelle session de root crée team-note avec des droits 0660 et le groupe project."
     },
     {
       "type": "file-mode",
@@ -110,7 +115,8 @@
         "lpic1.104.5.umask",
         "lpic1.104.5.permissions-rwx-fichier-dossier",
         "lpic1.104.5.notation-symbolique-octale"
-      ]
+      ],
+      "description_fr": "La nouvelle session de root crée team-note avec des droits 0660 et le groupe project."
     },
     {
       "type": "file-mode",
@@ -119,7 +125,8 @@
       "concept_ids": [
         "lpic1.104.5.suid",
         "lpic1.104.5.notation-symbolique-octale"
-      ]
+      ],
+      "description_fr": "audit-helper reste exécutable sans privilège spécial de propriétaire."
     },
     {
       "type": "command-exit",
@@ -150,7 +157,8 @@
         "lpic1.104.5.sticky-bit",
         "lpic1.104.5.effets-speciaux-sur-repertoires",
         "lpic1.104.5.proprietaire-groupe"
-      ]
+      ],
+      "description_fr": "La transmission du groupe et la protection contre la suppression sont démontrées avec deux membres différents."
     }
   ],
   "hint_ids": [

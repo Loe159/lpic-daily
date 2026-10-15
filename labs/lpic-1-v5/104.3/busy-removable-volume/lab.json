@@ -62,7 +62,8 @@
       "concept_ids": [
         "lpic1.104.3.demontage-et-fichiers-occupes",
         "lpic1.104.3.peripheriques-amovibles"
-      ]
+      ],
+      "description_fr": "Le volume de transfert n'est plus monté et son point de montage est libre."
     },
     {
       "type": "command-exit",
@@ -74,7 +75,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.104.3.demontage-et-fichiers-occupes"
-      ]
+      ],
+      "description_fr": "Le processus qui maintenait le volume occupé ne tourne plus."
     },
     {
       "type": "command-exit",
@@ -86,7 +88,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.104.3.peripheriques-amovibles"
-      ]
+      ],
+      "description_fr": "Le manifeste reste présent et lisible sur le système de fichiers du volume."
     }
   ],
   "hint_ids": [

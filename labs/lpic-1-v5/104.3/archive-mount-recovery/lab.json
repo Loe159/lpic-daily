@@ -63,7 +63,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.104.3.montage-manuel"
-      ]
+      ],
+      "description_fr": "Le volume de données est réellement monté sur /srv/archive en ext4 et le manifeste est visible."
     },
     {
       "type": "command-exit",
@@ -76,7 +77,8 @@
       "concept_ids": [
         "lpic1.104.3.fstab-persistant",
         "lpic1.104.3.uuid-labels"
-      ]
+      ],
+      "description_fr": "Le volume de données est réellement monté sur /srv/archive en ext4 et le manifeste est visible."
     },
     {
       "type": "command-exit",
@@ -88,7 +90,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.104.3.options-de-montage"
-      ]
+      ],
+      "description_fr": "La configuration persistante utilise une identité de volume stable, valide après changement du nom de périphérique."
     },
     {
       "type": "command-exit",
@@ -101,7 +104,8 @@
       "concept_ids": [
         "lpic1.104.3.montage-manuel",
         "lpic1.104.3.fstab-persistant"
-      ]
+      ],
+      "description_fr": "Le montage actif applique les options nodev et nosuid."
     }
   ],
   "hint_ids": [
