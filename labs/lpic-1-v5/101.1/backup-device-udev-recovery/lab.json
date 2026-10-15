@@ -62,7 +62,8 @@
       "concept_ids": [
         "lpic1.101.1.ressources-et-identification-du-materiel",
         "lpic1.101.1.sysfs-udev-et-d-bus-comme-couches-de-decouverte-gestion"
-      ]
+      ],
+      "description_fr": "Le disque de sauvegarde est accessible via /dev/lpic-backup et porte le label LPICBACKUP."
     },
     {
       "type": "command-exit",
@@ -74,7 +75,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.1.sysfs-udev-et-d-bus-comme-couches-de-decouverte-gestion"
-      ]
+      ],
+      "description_fr": "Le lien /dev/lpic-backup est réellement géré par udev."
     },
     {
       "type": "command-exit",
@@ -87,7 +89,8 @@
       "concept_ids": [
         "lpic1.101.1.ressources-et-identification-du-materiel",
         "lpic1.101.1.sysfs-udev-et-d-bus-comme-couches-de-decouverte-gestion"
-      ]
+      ],
+      "description_fr": "Le lecteur de sauvegarde fonctionne et le manifeste d’origine est intact."
     }
   ],
   "hint_ids": [

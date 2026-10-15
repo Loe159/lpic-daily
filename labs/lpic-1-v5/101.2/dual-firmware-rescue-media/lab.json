@@ -64,7 +64,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.2.bios-versus-uefi"
-      ]
+      ],
+      "description_fr": "Le support BIOS historique conserve sa table MBR et son chargeur."
     },
     {
       "type": "command-exit",
@@ -76,7 +77,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.2.bios-versus-uefi"
-      ]
+      ],
+      "description_fr": "Le support UEFI est reconnu avec une partition système EFI en FAT32."
     },
     {
       "type": "command-exit",
@@ -88,7 +90,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.2.bios-versus-uefi"
-      ]
+      ],
+      "description_fr": "Les chargeurs et manifestes originaux des deux supports sont intacts."
     }
   ],
   "hint_ids": [

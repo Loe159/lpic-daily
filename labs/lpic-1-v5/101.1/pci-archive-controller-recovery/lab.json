@@ -63,7 +63,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.1.role-de-proc-sys-et-dev"
-      ]
+      ],
+      "description_fr": "Le disque d’archives est visible dans /dev, sysfs et /proc/partitions."
     },
     {
       "type": "command-exit",
@@ -76,7 +77,8 @@
       "concept_ids": [
         "lpic1.101.1.ressources-et-identification-du-materiel",
         "lpic1.102.6.guest-drivers"
-      ]
+      ],
+      "description_fr": "Le contrôleur PCI de ce disque utilise le pilote virtio-pci."
     },
     {
       "type": "command-exit",
@@ -89,7 +91,8 @@
       "concept_ids": [
         "lpic1.101.1.role-de-proc-sys-et-dev",
         "lpic1.101.1.ressources-et-identification-du-materiel"
-      ]
+      ],
+      "description_fr": "Le volume d’archives est monté, son index est intact et le service de lecture fonctionne."
     }
   ],
   "hint_ids": [

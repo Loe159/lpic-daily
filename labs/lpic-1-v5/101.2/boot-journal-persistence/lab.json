@@ -54,7 +54,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.2.diagnostic-des-evenements-de-boot"
-      ]
+      ],
+      "description_fr": "Après un vrai redémarrage, le message du démarrage précédent est retrouvable."
     },
     {
       "type": "command-exit",
@@ -66,7 +67,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.2.diagnostic-des-evenements-de-boot"
-      ]
+      ],
+      "description_fr": "Les journaux sont persistants sur disque et systemd-journald reste actif."
     }
   ],
   "hint_ids": [

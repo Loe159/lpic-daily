@@ -54,7 +54,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.2.sysvinit-systemd-et-connaissance-historique-d-upstart"
-      ]
+      ],
+      "description_fr": "Le service systemd de l’indexeur est actif et activé au démarrage."
     },
     {
       "type": "command-exit",
@@ -66,7 +67,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.2.sysvinit-systemd-et-connaissance-historique-d-upstart"
-      ]
+      ],
+      "description_fr": "L’indexeur exécute le bon collecteur et actualise son indicateur d’activité."
     },
     {
       "type": "command-exit",
@@ -78,7 +80,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.2.sysvinit-systemd-et-connaissance-historique-d-upstart"
-      ]
+      ],
+      "description_fr": "Les archives SysV et Upstart sont intactes et systemd gère le démarrage."
     }
   ],
   "hint_ids": [

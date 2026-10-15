@@ -54,7 +54,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.1.modules-du-noyau-lies-au-materiel"
-      ]
+      ],
+      "description_fr": "Le module noyau brd et son périphérique /dev/ram0 sont disponibles."
     },
     {
       "type": "command-exit",
@@ -66,7 +67,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.1.modules-du-noyau-lies-au-materiel"
-      ]
+      ],
+      "description_fr": "Le cache mémoire est monté et contient les données sources intactes."
     },
     {
       "type": "command-exit",
@@ -78,7 +80,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.1.modules-du-noyau-lies-au-materiel"
-      ]
+      ],
+      "description_fr": "Le collecteur fonctionne et ses données durables sont préservées."
     }
   ],
   "hint_ids": [

@@ -61,7 +61,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.1.activation-desactivation-peripheriques-integres"
-      ]
+      ],
+      "description_fr": "Le contrôleur SATA a retrouvé son pilote PCI ahci."
     },
     {
       "type": "command-exit",
@@ -73,7 +74,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.1.activation-desactivation-peripheriques-integres"
-      ]
+      ],
+      "description_fr": "Le volume SATA d’archives est monté et son manifeste est préservé."
     },
     {
       "type": "command-exit",
@@ -85,7 +87,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.1.activation-desactivation-peripheriques-integres"
-      ]
+      ],
+      "description_fr": "Le disque système VirtIO reste distinct et l’identité PCI est inchangée."
     }
   ],
   "hint_ids": [

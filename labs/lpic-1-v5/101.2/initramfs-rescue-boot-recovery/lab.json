@@ -55,7 +55,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.2.role-de-initramfs"
-      ]
+      ],
+      "description_fr": "L’entrée de secours pointe sur un initramfs valide avec le profil de diagnostic."
     },
     {
       "type": "command-exit",
@@ -68,7 +69,8 @@
       "concept_ids": [
         "lpic1.101.2.sequence-firmware-bootloader-kernel-initramfs-init-systemd",
         "lpic1.101.2.role-de-initramfs"
-      ]
+      ],
+      "description_fr": "La VM a réellement redémarré sur l’entrée de secours avec le bon noyau."
     },
     {
       "type": "command-exit",
@@ -80,7 +82,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.2.sequence-firmware-bootloader-kernel-initramfs-init-systemd"
-      ]
+      ],
+      "description_fr": "L’entrée de démarrage normale est préservée."
     }
   ],
   "hint_ids": [
