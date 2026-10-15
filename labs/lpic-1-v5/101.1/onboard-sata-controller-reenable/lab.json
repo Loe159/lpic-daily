@@ -2,10 +2,10 @@
   "schema_version": "1.0.0",
   "id": "lpic1.101.1.onboard-sata-controller-reenable",
   "title_fr": "Rétablir le contrôleur SATA intégré de la VM",
-  "brief_fr": "Le volume d’archives SATA d’une VM Fedora n’est plus visible depuis une intervention. Le contrôleur intégré apparaît encore dans l’inventaire matériel, mais le système ne retrouve plus le disque. Diagnostique la liaison entre ce contrôleur et le noyau, puis rétablis l’accès aux archives sans reformater le volume, modifier le disque système VirtIO ni changer les paramètres du firmware.",
+  "brief_fr": "Le volume d’archives SATA d’une VM Fedora n’est plus visible depuis une intervention. Le contrôleur intégré apparaît encore dans l’inventaire matériel, mais le système ne retrouve plus le disque. Diagnostique la liaison entre ce contrôleur et le noyau, puis rétablis le volume d’archives sous /srv/lpic-onboard-archive sans reformater le volume, modifier le disque système VirtIO ni changer les paramètres du firmware.",
   "success_criteria_fr": [
     "Le contrôleur SATA du chipset virtuel Q35 possède de nouveau son vrai pilote PCI ahci, et l'identité PCI enregistrée n'a pas changé.",
-    "Le disque SATA redevient visible dans le noyau ; son système de fichiers et le manifeste d'origine sont préservés.",
+    "Le volume SATA redevient visible et monté sous /srv/lpic-onboard-archive ; son système de fichiers et son manifeste d’origine sont préservés.",
     "Le disque système VirtIO reste présent et distinct du contrôleur SATA."
   ],
   "debrief_fr": "Le firmware BIOS/UEFI peut autoriser ou masquer certains périphériques intégrés avant l'énumération matérielle. Dans Linux, un périphérique PCI peut aussi rester énuméré mais être inutilisable lorsque son pilote est détaché. Ce lab entraîne cette seconde situation sur un contrôleur AHCI émulé par Q35, au moyen de sysfs et des outils PCI. Il ne simule PAS une manipulation réelle du BIOS et ne prétend pas la valider ; il permet d'observer les conséquences d'une désactivation logicielle du contrôleur et sa récupération.",
