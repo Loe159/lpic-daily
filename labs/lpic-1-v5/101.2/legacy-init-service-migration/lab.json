@@ -54,7 +54,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.2.sysvinit-systemd-et-connaissance-historique-d-upstart"
-      ]
+      ],
+      "description_fr": "Le service systemd lpic-legacy-indexer.service démarre et reste activé pour le prochain boot."
     },
     {
       "type": "command-exit",
@@ -66,7 +67,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.2.sysvinit-systemd-et-connaissance-historique-d-upstart"
-      ]
+      ],
+      "description_fr": "Le véritable collecteur déclaré dans les fichiers historiques tourne et actualise son fichier de pulsation."
     },
     {
       "type": "command-exit",
@@ -78,7 +80,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.2.sysvinit-systemd-et-connaissance-historique-d-upstart"
-      ]
+      ],
+      "description_fr": "Les fichiers SysV et Upstart sont conservés à l'identique et ne sont pas utilisés comme exécutables dans la nouvelle unité."
     }
   ],
   "hint_ids": [

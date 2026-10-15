@@ -62,7 +62,8 @@
       "concept_ids": [
         "lpic1.101.1.ressources-et-identification-du-materiel",
         "lpic1.101.1.sysfs-udev-et-d-bus-comme-couches-de-decouverte-gestion"
-      ]
+      ],
+      "description_fr": "Le disque correct est identifié et accessible sous /dev/lpic-backup, quelle que soit sa désignation noyau."
     },
     {
       "type": "command-exit",
@@ -74,7 +75,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.1.sysfs-udev-et-d-bus-comme-couches-de-decouverte-gestion"
-      ]
+      ],
+      "description_fr": "La base udev attribue réellement ce lien au périphérique de sauvegarde, plutôt qu'à un lien créé manuellement."
     },
     {
       "type": "command-exit",
@@ -87,7 +89,8 @@
       "concept_ids": [
         "lpic1.101.1.ressources-et-identification-du-materiel",
         "lpic1.101.1.sysfs-udev-et-d-bus-comme-couches-de-decouverte-gestion"
-      ]
+      ],
+      "description_fr": "Le service de lecture du disque de sauvegarde fonctionne et les données du volume sont préservées."
     }
   ],
   "hint_ids": [

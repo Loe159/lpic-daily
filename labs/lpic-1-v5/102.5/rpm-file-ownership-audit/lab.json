@@ -57,7 +57,8 @@
         "lpic1.102.5.format-base-rpm",
         "lpic1.102.5.installation-et-requetes-rpm",
         "lpic1.102.5.identifier-fichier-paquet"
-      ]
+      ],
+      "description_fr": "Les trois binaires sont reliés à leurs paquets réellement installés."
     },
     {
       "type": "command-exit",
@@ -71,7 +72,8 @@
         "lpic1.102.5.format-base-rpm",
         "lpic1.102.5.installation-et-requetes-rpm",
         "lpic1.102.5.identifier-fichier-paquet"
-      ]
+      ],
+      "description_fr": "La liste des fichiers du paquet bash correspond exactement à la base RPM."
     },
     {
       "type": "command-exit",
@@ -85,7 +87,8 @@
         "lpic1.102.5.format-base-rpm",
         "lpic1.102.5.installation-et-requetes-rpm",
         "lpic1.102.5.identifier-fichier-paquet"
-      ]
+      ],
+      "description_fr": "L’inventaire comporte uniquement les trois entrées attendues."
     }
   ],
   "hint_ids": [

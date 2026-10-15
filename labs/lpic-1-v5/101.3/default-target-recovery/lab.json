@@ -54,7 +54,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.3.target-par-defaut"
-      ]
+      ],
+      "description_fr": "La cible de démarrage par défaut est multi-user.target."
     },
     {
       "type": "command-exit",
@@ -66,7 +67,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.3.target-par-defaut"
-      ]
+      ],
+      "description_fr": "Le changement est réellement enregistré dans la configuration persistante de systemd."
     },
     {
       "type": "command-exit",
@@ -78,7 +80,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.3.target-par-defaut"
-      ]
+      ],
+      "description_fr": "Le serveur reste disponible sans arrêt ni redémarrage durant le lab."
     }
   ],
   "hint_ids": [

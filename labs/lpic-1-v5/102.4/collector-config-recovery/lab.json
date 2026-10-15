@@ -54,7 +54,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.4.reconfiguration"
-      ]
+      ],
+      "description_fr": "L'agent demeure correctement installé dans la base dpkg."
     },
     {
       "type": "command-exit",
@@ -66,7 +67,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.4.reconfiguration"
-      ]
+      ],
+      "description_fr": "La configuration prévue par le paquet est restaurée et l'agent fonctionne."
     }
   ],
   "hint_ids": [

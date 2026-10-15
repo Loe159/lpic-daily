@@ -65,7 +65,8 @@
         "lpic1.104.1.xfs",
         "lpic1.104.2.outils-xfs",
         "lpic1.104.2.difference-outils-online-offline-selon-fs"
-      ]
+      ],
+      "description_fr": "Le volume /dev/vdb demeure en XFS avec l'identité attendue par la configuration."
     },
     {
       "type": "command-exit",
@@ -78,7 +79,8 @@
       "concept_ids": [
         "lpic1.104.1.xfs",
         "lpic1.104.2.difference-outils-online-offline-selon-fs"
-      ]
+      ],
+      "description_fr": "L'archive est effectivement remontée et son contenu est accessible."
     },
     {
       "type": "command-exit",
@@ -90,7 +92,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.104.2.outils-xfs"
-      ]
+      ],
+      "description_fr": "Les données existantes sont conservées."
     }
   ],
   "hint_ids": [

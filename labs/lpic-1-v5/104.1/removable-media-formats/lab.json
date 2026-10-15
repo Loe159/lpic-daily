@@ -64,7 +64,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.104.1.vfat-exfat"
-      ]
+      ],
+      "description_fr": "Le support ancien (/dev/vdb) utilise réellement FAT32 et est accessible en lecture-écriture sous /srv/media/legacy."
     },
     {
       "type": "command-exit",
@@ -76,7 +77,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.104.1.vfat-exfat"
-      ]
+      ],
+      "description_fr": "Le support récent (/dev/vdc) utilise réellement exFAT et est accessible en lecture-écriture sous /srv/media/modern."
     },
     {
       "type": "command-exit",
@@ -88,7 +90,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.104.1.vfat-exfat"
-      ]
+      ],
+      "description_fr": "Les deux supports sont indépendants ; le disque système n'est pas modifié."
     }
   ],
   "hint_ids": [

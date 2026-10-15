@@ -51,7 +51,8 @@
       "concept_ids": [
         "lpic1.103.1.set-env-et-portee-des-variables",
         "lpic1.103.1.export-unset-et-processus-enfants"
-      ]
+      ],
+      "description_fr": "Le worker enfant reçoit REPORT_ENV=production."
     },
     {
       "type": "file-content-regex",
@@ -59,7 +60,8 @@
       "pattern": "(?m)^REPORT_DEBUG=<unset>$",
       "concept_ids": [
         "lpic1.103.1.export-unset-et-processus-enfants"
-      ]
+      ],
+      "description_fr": "Le worker enfant ne reçoit pas REPORT_DEBUG."
     }
   ],
   "hint_ids": [

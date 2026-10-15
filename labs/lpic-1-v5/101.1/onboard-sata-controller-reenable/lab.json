@@ -61,7 +61,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.1.activation-desactivation-peripheriques-integres"
-      ]
+      ],
+      "description_fr": "Le contrôleur SATA du chipset virtuel Q35 possède de nouveau son vrai pilote PCI ahci, et l'identité PCI enregistrée n'a pas changé."
     },
     {
       "type": "command-exit",
@@ -73,7 +74,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.1.activation-desactivation-peripheriques-integres"
-      ]
+      ],
+      "description_fr": "Le volume SATA redevient visible et monté sous /srv/lpic-onboard-archive ; son système de fichiers et son manifeste d’origine sont préservés."
     },
     {
       "type": "command-exit",
@@ -85,7 +87,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.1.activation-desactivation-peripheriques-integres"
-      ]
+      ],
+      "description_fr": "Le disque système VirtIO reste présent et distinct du contrôleur SATA."
     }
   ],
   "hint_ids": [

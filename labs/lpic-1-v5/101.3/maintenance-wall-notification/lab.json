@@ -53,7 +53,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.3.notification-aux-utilisateurs"
-      ]
+      ],
+      "description_fr": "Les deux terminaux actifs ont réellement reçu l'avertissement de maintenance."
     },
     {
       "type": "command-exit",
@@ -65,7 +66,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.3.notification-aux-utilisateurs"
-      ]
+      ],
+      "description_fr": "Les deux sessions restent actives et le message a été délivré sans modification de leurs fichiers personnels."
     }
   ],
   "hint_ids": [

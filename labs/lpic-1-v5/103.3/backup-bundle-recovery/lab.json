@@ -59,7 +59,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.3.archives-tar-cpio"
-      ]
+      ],
+      "description_fr": "config.tar contient config/a.conf et config/b.conf."
     },
     {
       "type": "command-exit",
@@ -71,7 +72,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.3.archives-tar-cpio"
-      ]
+      ],
+      "description_fr": "config.cpio contient les mêmes deux fichiers."
     },
     {
       "type": "command-exit",
@@ -84,7 +86,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.3.copie-bas-niveau-dd"
-      ]
+      ],
+      "description_fr": "disk-slice.copy est identique octet pour octet à disk-slice.bin."
     },
     {
       "type": "command-exit",
@@ -97,7 +100,8 @@
       "concept_ids": [
         "lpic1.103.3.compression-gzip-bzip2-xz",
         "lpic1.103.3.detection-de-type"
-      ]
+      ],
+      "description_fr": "payload.gz, payload.bz2 et payload.xz ont les formats réellement attendus."
     },
     {
       "type": "command-exit",
@@ -110,7 +114,8 @@
       "concept_ids": [
         "lpic1.103.3.compression-gzip-bzip2-xz",
         "lpic1.103.3.detection-de-type"
-      ]
+      ],
+      "description_fr": "recovered.txt contient release-one, release-two et release-three dans cet ordre."
     }
   ],
   "hint_ids": [

@@ -54,7 +54,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.2.bios-versus-uefi"
-      ]
+      ],
+      "description_fr": "LPIC-primary est le premier choix UEFI, LPIC-rescue le deuxième."
     },
     {
       "type": "command-exit",
@@ -66,13 +67,15 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.2.bios-versus-uefi"
-      ]
+      ],
+      "description_fr": "L'ordre complet des autres entrées correspond au snapshot conservé côté hôte après le setup."
     },
     {
       "type": "uefi-boot-order-preserved",
       "concept_ids": [
         "lpic1.101.2.bios-versus-uefi"
-      ]
+      ],
+      "description_fr": "Aucun BootNext n'est présent et les chargeurs EFI restent intacts."
     }
   ],
   "hint_ids": [

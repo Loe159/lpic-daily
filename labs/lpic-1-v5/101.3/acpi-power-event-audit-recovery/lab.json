@@ -54,7 +54,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.3.notion-d-evenements-acpi"
-      ]
+      ],
+      "description_fr": "Le service acpid surveille le bouton d’alimentation et journalise les événements."
     },
     {
       "type": "command-exit",
@@ -66,7 +67,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.3.notion-d-evenements-acpi"
-      ]
+      ],
+      "description_fr": "L’événement de bouton d’alimentation apparaît dans le journal d’audit."
     },
     {
       "type": "command-exit",
@@ -78,13 +80,15 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.3.notion-d-evenements-acpi"
-      ]
+      ],
+      "description_fr": "La politique d’alimentation n’entraîne pas l’arrêt de la VM."
     },
     {
       "type": "acpi-button-sent",
       "concept_ids": [
         "lpic1.101.3.notion-d-evenements-acpi"
-      ]
+      ],
+      "description_fr": "Le terminal LPIC Daily a réellement envoyé un événement ACPI au système."
     }
   ],
   "hint_ids": [

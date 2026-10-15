@@ -56,7 +56,8 @@
       "concept_ids": [
         "lpic1.102.2.emplacement-configuration-du-bootloader",
         "lpic1.102.2.generation-de-configuration-grub-2"
-      ]
+      ],
+      "description_fr": "Les entrées GRUB 2 réellement utilisées par le chargeur contiennent les paramètres de diagnostic souhaités."
     },
     {
       "type": "command-exit",
@@ -70,7 +71,8 @@
         "lpic1.102.2.emplacement-configuration-du-bootloader",
         "lpic1.102.2.generation-de-configuration-grub-2",
         "lpic1.101.2.parametres-noyau-au-boot"
-      ]
+      ],
+      "description_fr": "Après un vrai redémarrage, le noyau et systemd démarrent avec les paramètres attendus et la console série reste utilisable."
     }
   ],
   "hint_ids": [

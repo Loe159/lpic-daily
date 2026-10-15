@@ -63,7 +63,8 @@
       "concept_ids": [
         "lpic1.102.1.separer-var-home-et-boot-selon-usage",
         "lpic1.102.1.partitions-et-points-de-montage"
-      ]
+      ],
+      "description_fr": "Le répertoire /home repose sur le volume ext4 prévu et non sur le disque système."
     },
     {
       "type": "command-exit",
@@ -76,7 +77,8 @@
       "concept_ids": [
         "lpic1.102.1.separer-var-home-et-boot-selon-usage",
         "lpic1.102.1.partitions-et-points-de-montage"
-      ]
+      ],
+      "description_fr": "Le répertoire /var/log/lpic repose sur un autre volume ext4 dédié."
     },
     {
       "type": "command-exit",
@@ -88,7 +90,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.1.separer-var-home-et-boot-selon-usage"
-      ]
+      ],
+      "description_fr": "Les fichiers utilisateurs et journaux existants sont préservés."
     },
     {
       "type": "command-exit",
@@ -100,7 +103,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.1.swap-et-dimensionnement-conceptuel"
-      ]
+      ],
+      "description_fr": "La partition swap du nouveau disque est initialisée et active."
     },
     {
       "type": "command-exit",
@@ -114,7 +118,8 @@
         "lpic1.102.1.separer-var-home-et-boot-selon-usage",
         "lpic1.102.1.swap-et-dimensionnement-conceptuel",
         "lpic1.102.1.partitions-et-points-de-montage"
-      ]
+      ],
+      "description_fr": "Les trois ressources sont configurées pour rester disponibles au redémarrage."
     }
   ],
   "hint_ids": [

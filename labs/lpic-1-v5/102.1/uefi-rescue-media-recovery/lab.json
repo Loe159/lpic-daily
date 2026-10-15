@@ -62,7 +62,8 @@
       "concept_ids": [
         "lpic1.102.1.efi-system-partition",
         "lpic1.102.1.contraintes-boot-et-architecture"
-      ]
+      ],
+      "description_fr": "Le disque de secours utilise GPT et sa partition porte réellement le type EFI System Partition."
     },
     {
       "type": "command-exit",
@@ -74,7 +75,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.1.efi-system-partition"
-      ]
+      ],
+      "description_fr": "Le volume FAT du support est monté au point prévu et contient toujours un chargeur EFI au chemin de repli standard."
     },
     {
       "type": "command-exit",
@@ -87,7 +89,8 @@
       "concept_ids": [
         "lpic1.102.1.contraintes-boot-et-architecture",
         "lpic1.102.1.efi-system-partition"
-      ]
+      ],
+      "description_fr": "Le fichier EFI et le manifeste initiaux sont préservés sans altération."
     }
   ],
   "hint_ids": [

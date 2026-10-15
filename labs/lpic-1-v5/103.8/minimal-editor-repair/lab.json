@@ -84,7 +84,8 @@
         "lpic1.103.8.suppression-copie-collage",
         "lpic1.103.8.recherche",
         "lpic1.103.8.sauvegarde-quitter"
-      ]
+      ],
+      "description_fr": "La section [server] de /workspace/app.conf écoute sur le port 8443, fonctionne en mode production et ne conserve pas la directive obsolète."
     },
     {
       "type": "command-exit",
@@ -96,7 +97,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.8.connaissance-nano-emacs-vim"
-      ]
+      ],
+      "description_fr": "/workspace/editor-inventory contient les quatre lignes au format nom=present/absent : vi, vim et nano présents ; emacs absent."
     }
   ],
   "hint_ids": [

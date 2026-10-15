@@ -60,7 +60,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.6.ressources-virtuelles-block-network"
-      ]
+      ],
+      "description_fr": "Le volume virtuel secondaire est monté sous /srv/lpic-virtual-journal et ses données originales restent intactes."
     },
     {
       "type": "command-exit",
@@ -72,7 +73,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.6.ressources-virtuelles-block-network"
-      ]
+      ],
+      "description_fr": "L'interface réseau virtuelle dispose d'une connexion et d'une adresse IPv4 locale."
     },
     {
       "type": "command-exit",
@@ -84,7 +86,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.6.ressources-virtuelles-block-network"
-      ]
+      ],
+      "description_fr": "Le service de collecte fonctionne avec ces deux ressources opérationnelles."
     }
   ],
   "hint_ids": [

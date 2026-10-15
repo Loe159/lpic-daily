@@ -54,7 +54,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.5.signature-integrite"
-      ]
+      ],
+      "description_fr": "L'agent installé retrouve son fonctionnement initial et son contenu est conforme à la base RPM."
     },
     {
       "type": "command-exit",
@@ -66,7 +67,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.5.signature-integrite"
-      ]
+      ],
+      "description_fr": "L'archive utilisée est intacte et porte une signature vérifiable avec le trousseau fourni."
     }
   ],
   "hint_ids": [

@@ -54,7 +54,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.3.mode-mono-utilisateur-recuperation"
-      ]
+      ],
+      "description_fr": "Le système quitte réellement le mode rescue et active la cible multi-utilisateur."
     },
     {
       "type": "command-exit",
@@ -66,7 +67,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.3.mode-mono-utilisateur-recuperation"
-      ]
+      ],
+      "description_fr": "Le service des tâches planifiées crond retrouve un fonctionnement actif et reste activé pour les démarrages suivants."
     },
     {
       "type": "command-exit",
@@ -78,7 +80,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.3.mode-mono-utilisateur-recuperation"
-      ]
+      ],
+      "description_fr": "La cible de démarrage habituelle et l'accès d'administration via QEMU Guest Agent sont préservés."
     }
   ],
   "hint_ids": [

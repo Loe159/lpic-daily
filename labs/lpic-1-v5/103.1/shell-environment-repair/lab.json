@@ -64,7 +64,8 @@
       "concept_ids": [
         "lpic1.103.1.path-et-resolution-de-commande",
         "lpic1.103.1.documentation-et-identification-d-une-commande"
-      ]
+      ],
+      "description_fr": "Le nouveau shell de connexion résout report-status vers le binaire approuvé."
     },
     {
       "type": "command-exit",
@@ -76,7 +77,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.1.variables-shell-environnement"
-      ]
+      ],
+      "description_fr": "REPORT_ENV vaut production dans le nouveau shell de connexion."
     },
     {
       "type": "command-exit",
@@ -89,7 +91,8 @@
       "concept_ids": [
         "lpic1.103.1.variables-shell-environnement",
         "lpic1.103.1.quoting-escaping"
-      ]
+      ],
+      "description_fr": "REPORT_FILE désigne le rapport complet, espaces compris."
     },
     {
       "type": "command-exit",
@@ -102,7 +105,8 @@
       "concept_ids": [
         "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes",
         "lpic1.103.1.quoting-escaping"
-      ]
+      ],
+      "description_fr": "L'outil report-status traite correctement le rapport indiqué."
     },
     {
       "type": "file-content-regex",
@@ -110,7 +114,8 @@
       "pattern": "^ready\\n?$",
       "concept_ids": [
         "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes"
-      ]
+      ],
+      "description_fr": "Le fichier /run/lpic/report-ok confirme la réussite du diagnostic (ready)."
     },
     {
       "type": "command-exit",
@@ -122,7 +127,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.1.historique"
-      ]
+      ],
+      "description_fr": "Le nouveau shell conserve 2 000 commandes en mémoire et 4 000 sur disque."
     },
     {
       "type": "command-exit",
@@ -135,7 +141,8 @@
       "concept_ids": [
         "lpic1.103.1.informations-systeme-de-base",
         "lpic1.103.1.documentation-et-identification-d-une-commande"
-      ]
+      ],
+      "description_fr": "Le fichier /run/lpic/system-summary contient exactement deux lignes : nom du système puis type Bash de report-status."
     }
   ],
   "hint_ids": [

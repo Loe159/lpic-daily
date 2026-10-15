@@ -60,7 +60,8 @@
       "group": "project",
       "concept_ids": [
         "lpic1.104.5.proprietaire-groupe"
-      ]
+      ],
+      "description_fr": "incoming est réservé à l’équipe project ; même entre membres, seul le propriétaire d’un fichier ou l’administrateur peut le supprimer."
     },
     {
       "type": "file-mode",
@@ -71,7 +72,8 @@
         "lpic1.104.5.notation-symbolique-octale",
         "lpic1.104.5.sticky-bit",
         "lpic1.104.5.effets-speciaux-sur-repertoires"
-      ]
+      ],
+      "description_fr": "incoming est réservé à l’équipe project ; même entre membres, seul le propriétaire d’un fichier ou l’administrateur peut le supprimer."
     },
     {
       "type": "file-owner",
@@ -80,7 +82,8 @@
       "group": "project",
       "concept_ids": [
         "lpic1.104.5.proprietaire-groupe"
-      ]
+      ],
+      "description_fr": "team est réservé à project et les nouveaux fichiers héritent automatiquement du groupe project."
     },
     {
       "type": "file-mode",
@@ -91,7 +94,8 @@
         "lpic1.104.5.notation-symbolique-octale",
         "lpic1.104.5.sgid",
         "lpic1.104.5.effets-speciaux-sur-repertoires"
-      ]
+      ],
+      "description_fr": "team est réservé à project et les nouveaux fichiers héritent automatiquement du groupe project."
     },
     {
       "type": "file-owner",
@@ -101,7 +105,8 @@
       "concept_ids": [
         "lpic1.104.5.proprietaire-groupe",
         "lpic1.104.5.sgid"
-      ]
+      ],
+      "description_fr": "Un nouveau shell de maintenance crée team/handoff-note, modifiable par son propriétaire et son groupe mais inaccessible aux autres."
     },
     {
       "type": "file-mode",
@@ -111,7 +116,8 @@
         "lpic1.104.5.umask",
         "lpic1.104.5.permissions-rwx-fichier-dossier",
         "lpic1.104.5.notation-symbolique-octale"
-      ]
+      ],
+      "description_fr": "Un nouveau shell de maintenance crée team/handoff-note, modifiable par son propriétaire et son groupe mais inaccessible aux autres."
     },
     {
       "type": "file-mode",
@@ -120,7 +126,8 @@
       "concept_ids": [
         "lpic1.104.5.suid",
         "lpic1.104.5.notation-symbolique-octale"
-      ]
+      ],
+      "description_fr": "audit-helper reste exécutable et ne donne pas de privilèges superflus."
     },
     {
       "type": "command-exit",
@@ -149,7 +156,8 @@
       "concept_ids": [
         "lpic1.104.5.sgid",
         "lpic1.104.5.proprietaire-groupe"
-      ]
+      ],
+      "description_fr": "Les deux dossiers ont des rôles distincts : dépôt protégé d’un côté, héritage de groupe de l’autre."
     },
     {
       "type": "command-exit",
@@ -162,7 +170,8 @@
       "concept_ids": [
         "lpic1.104.5.sticky-bit",
         "lpic1.104.5.effets-speciaux-sur-repertoires"
-      ]
+      ],
+      "description_fr": "Les deux dossiers ont des rôles distincts : dépôt protégé d’un côté, héritage de groupe de l’autre."
     }
   ],
   "hint_ids": [

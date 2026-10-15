@@ -53,3 +53,11 @@ Apply this balance to **both** `brief_fr` and `success_criteria_fr`. The latter 
 During review, ask: **Can a learner restate exactly what success looks like without knowing the repair command? Does the wording leave the Linux technique for them to discover?** If either answer is no, rewrite.
 
 Before accepting any lab, ask: **Could a learner copy the brief's implementation instructions and pass without diagnosing the problem?** If yes, rewrite the brief.
+
+## Lab verification messages (mandatory)
+
+- Every `checks[]` item must have a specific, learner-readable French `description_fr`, including `command-exit`, file, process, block-device, and event checks.
+- Reuse the lab's measurable success criteria but split them when several checks validate different aspects of one objective. Do not label a process-termination check as process-running, and do not repeat the same broad wording for several independent checks.
+- The message must identify the **observable result** to fix, not the command to type. Avoid `Comportement attendu`, `Vérification`, opaque technical IDs, and unverifiable claims.
+- When a check requires a file, name its path and explain its useful role and expected content. A raw `exit=N, expected=0` can supplement the failure, but must not be its only meaningful explanation.
+- Validate the entire `:check` output before publishing: deliberately fail all checks, review each failure label, then run the reference solution and ensure the corresponding labels turn green.

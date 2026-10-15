@@ -53,7 +53,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.2.entrees-alternatives-et-recuperation"
-      ]
+      ],
+      "description_fr": "Le choix GRUB 2 enregistré sélectionne l'entrée de secours sans toucher aux autres entrées."
     },
     {
       "type": "command-exit",
@@ -65,7 +66,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.2.entrees-alternatives-et-recuperation"
-      ]
+      ],
+      "description_fr": "Après redémarrage, le noyau courant et l'option de diagnostic correspondent à cette entrée."
     }
   ],
   "hint_ids": [

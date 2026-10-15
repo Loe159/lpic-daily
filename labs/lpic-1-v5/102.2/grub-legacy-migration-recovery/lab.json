@@ -54,7 +54,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.2.grub-legacy-versus-grub-2"
-      ]
+      ],
+      "description_fr": "L'entrée BLS ajoutée conserve le noyau, l'initramfs et les paramètres de l'entrée normale avec le seul indicateur supplémentaire."
     },
     {
       "type": "command-exit",
@@ -66,7 +67,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.2.grub-legacy-versus-grub-2"
-      ]
+      ],
+      "description_fr": "Le vrai prochain démarrage emploie cette entrée et expose lpic.legacy_import=1 dans /proc/cmdline."
     },
     {
       "type": "command-exit",
@@ -78,7 +80,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.2.grub-legacy-versus-grub-2"
-      ]
+      ],
+      "description_fr": "Le menu.lst historique et l'entrée BLS normale sont préservés exactement."
     }
   ],
   "hint_ids": [

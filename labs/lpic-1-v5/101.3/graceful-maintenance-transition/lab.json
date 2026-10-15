@@ -54,7 +54,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.3.terminaison-propre-des-processus"
-      ]
+      ],
+      "description_fr": "La cible de maintenance applicative devient active et le worker est arrêté."
     },
     {
       "type": "command-exit",
@@ -66,7 +67,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.3.terminaison-propre-des-processus"
-      ]
+      ],
+      "description_fr": "Le worker a consigné un arrêt propre avant la transition."
     },
     {
       "type": "command-exit",
@@ -78,7 +80,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.101.3.terminaison-propre-des-processus"
-      ]
+      ],
+      "description_fr": "L'identité de la VM et ses services système essentiels restent disponibles."
     }
   ],
   "hint_ids": [

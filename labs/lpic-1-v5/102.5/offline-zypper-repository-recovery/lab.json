@@ -54,7 +54,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.5.workflow-zypper-opensuse"
-      ]
+      ],
+      "description_fr": "Le dépôt local est exploitable par Zypper sans connexion externe."
     },
     {
       "type": "command-exit",
@@ -66,7 +67,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.5.workflow-zypper-opensuse"
-      ]
+      ],
+      "description_fr": "Le collecteur et son composant d'exécution sont installés et leurs dépendances sont satisfaites."
     },
     {
       "type": "command-exit",
@@ -78,7 +80,8 @@
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.102.5.workflow-zypper-opensuse"
-      ]
+      ],
+      "description_fr": "La commande du collecteur fonctionne et appartient à un paquet RPM installé."
     }
   ],
   "hint_ids": [
