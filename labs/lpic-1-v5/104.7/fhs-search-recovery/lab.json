@@ -2,12 +2,12 @@
   "schema_version": "1.0.0",
   "id": "lpic1.104.7.fhs-search-recovery",
   "title_fr": "Ranger et retrouver les ressources d’un service",
-  "brief_fr": "Les fichiers du service Acme sont réunis dans /workspace/incoming au lieu de respecter l’organisation habituelle d’un système Linux. Remets configuration, journaux, données et programme optionnel à leur place sans perte. Le guide du service doit être retrouvable depuis un index privé et par recherche directe dans /workspace/catalog. Prépare /workspace/command-report.txt pour montrer où le système trouve acmectl et les ressources associées à bash.",
+  "brief_fr": "Les fichiers du service Acme sont réunis dans /workspace/incoming au lieu de respecter l’organisation habituelle d’un système Linux. Remets configuration, journaux, données et programme optionnel à leur place sans perte. Le guide du service doit être retrouvable depuis un index privé et par recherche directe dans /workspace/catalog. Dans /workspace/command-report.txt, fournis trois lignes : « shell-path= » suivi du chemin d’acmectl résolu par Bash, « path-search= » suivi du chemin trouvé dans les exécutables du PATH, puis « bash-locations= » suivi de l’inventaire des emplacements standards de bash.",
   "success_criteria_fr": [
     "Les ressources Acme sont installées dans les répertoires appropriés du FHS et son outil est exécutable.",
     "Une base de recherche privée /workspace/acme.db permet de retrouver acme-guide.txt.",
     "/workspace/find-result.txt fournit le véritable emplacement du guide après une recherche sur les fichiers actuels.",
-    "/workspace/command-report.txt indique où acmectl est résolu et fournit le résultat réel de l’inventaire des emplacements associés à bash."
+    "/workspace/command-report.txt présente trois lignes étiquetées shell-path, path-search et bash-locations : les deux premières donnent le chemin effectif d’acmectl ; la troisième comporte l’inventaire réel des emplacements associés à bash."
   ],
   "debrief_fr": "Le FHS sépare configuration (/etc), données variables et logs (/var), données servies (/srv) et logiciels optionnels (/opt). find parcourt l’état courant du système, alors que locate interroge une base créée par updatedb. whereis recherche binaire/source/man selon ses bases, tandis que type et which reflètent la résolution de commande du shell et du PATH.",
   "objective_ids": [
@@ -90,7 +90,7 @@
       "argv": [
         "/usr/bin/bash",
         "-lc",
-        "grep -qx 'type=/opt/acme/bin/acmectl' /workspace/command-report.txt && grep -qx 'which=/opt/acme/bin/acmectl' /workspace/command-report.txt && grep -q '^whereis=bash:' /workspace/command-report.txt"
+        "(grep -qx 'shell-path=/opt/acme/bin/acmectl' /workspace/command-report.txt && grep -qx 'path-search=/opt/acme/bin/acmectl' /workspace/command-report.txt && grep -q '^bash-locations=bash:' /workspace/command-report.txt) || (grep -qx 'type=/opt/acme/bin/acmectl' /workspace/command-report.txt && grep -qx 'which=/opt/acme/bin/acmectl' /workspace/command-report.txt && grep -q '^whereis=bash:' /workspace/command-report.txt)"
       ],
       "expected_exit": 0,
       "concept_ids": [
