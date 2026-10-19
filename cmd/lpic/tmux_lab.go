@@ -304,26 +304,35 @@ func renderTmuxLabPanel(authored lab.Lab, state labPanelState, width, height, sc
 		return "Agrandis le terminal pour afficher le lab.\n"
 	}
 	inner := width - 4
-	top := []string{
+	// The current hint stays visible even if the mission needs scrolling.
+	fixed := []string{
 		"MISSION  " + authored.Definition.ObjectiveIDs[0],
 		"",
 	}
-	top = append(top, panelWrapped(authored.Definition.TitleFR, inner)...)
-	top = append(top, "")
-	top = append(top, panelWrapped(authored.Definition.BriefFR, inner)...)
-	top = append(top, "", "OBJECTIFS")
-	for i, criterion := range authored.Definition.SuccessCriteriaFR {
-		top = append(top, panelWrapped(fmt.Sprintf("%d. %s", i+1, criterion), inner)...)
-	}
-	top = append(top, "", fmt.Sprintf("INDICES · %d/%d", state.HintLevel, len(authored.Hints)))
-	for _, hint := range authored.Hints {
-		if hint.Level > state.HintLevel {
-			break
+	fixed = append(fixed, panelWrapped(authored.Definition.TitleFR, inner)...)
+	fixed = append(fixed, "", fmt.Sprintf("INDICES · %d/%d", state.HintLevel, len(authored.Hints)))
+	if state.HintLevel > 0 {
+		for _, hint := range authored.Hints {
+			if hint.Level == state.HintLevel {
+				fixed = append(fixed, panelWrapped(hint.ContentFR, inner)...)
+			}
 		}
-		top = append(top, panelWrapped(fmt.Sprintf("[%d] %s", hint.Level, hint.ContentFR), inner)...)
+	} else {
+		fixed = append(fixed, "Aucun indice consulté. :hint dans le shell.")
 	}
-	if state.HintLevel == 0 {
-		top = append(top, "Aucun indice consulté. :hint dans le shell.")
+	mission := []string{"", "SITUATION"}
+	mission = append(mission, panelWrapped(authored.Definition.BriefFR, inner)...)
+	mission = append(mission, "", "OBJECTIFS")
+	for i, criterion := range authored.Definition.SuccessCriteriaFR {
+		mission = append(mission, panelWrapped(fmt.Sprintf("%d. %s", i+1, criterion), inner)...)
+	}
+	if state.HintLevel > 1 {
+		mission = append(mission, "", "INDICES PRÉCÉDENTS")
+		for _, hint := range authored.Hints {
+			if hint.Level < state.HintLevel {
+				mission = append(mission, panelWrapped(fmt.Sprintf("[%d] %s", hint.Level, hint.ContentFR), inner)...)
+			}
+		}
 	}
 	bottom := []string{"VÉRIFICATION"}
 	if state.Check == "" {
@@ -355,22 +364,30 @@ func renderTmuxLabPanel(authored lab.Lab, state labPanelState, width, height, sc
 	if topMax < 2 {
 		topMax = 2
 	}
-	if len(top) > topMax {
-		maxScroll := len(top) - topMax + 1
+	// Reserve part of the pane for the title and the newest hint. Scroll
+	// only the situation, objectives and older hints.
+	if len(fixed) > topMax-3 {
+		fixed = append(fixed[:topMax-4], "… indice long : agrandir le terminal")
+	}
+	missionMax := topMax - len(fixed)
+	if missionMax < 2 {
+		missionMax = 2
+	}
+	if len(mission) > missionMax {
+		maxScroll := len(mission) - missionMax + 1
 		if scroll > maxScroll {
 			scroll = maxScroll
 		}
 		if scroll < 0 {
 			scroll = 0
 		}
-		last := scroll + topMax - 1
-		if last > len(top) {
-			last = len(top)
+		last := scroll + missionMax - 1
+		if last > len(mission) {
+			last = len(mission)
 		}
-		visible := append([]string(nil), top[scroll:last]...)
-		visible = append(visible, "↑↓ j/k : défiler · g : début")
-		top = visible
+		mission = append(append([]string(nil), mission[scroll:last]...), "↑↓ j/k : défiler · g : début")
 	}
+	top := append(fixed, mission...)
 	var out strings.Builder
 	for _, line := range top {
 		fmt.Fprintf(&out, "  %s\n", tmuxPanelColor(line))
