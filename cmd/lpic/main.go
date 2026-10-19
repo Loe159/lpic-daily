@@ -1561,6 +1561,7 @@ func runInteractiveLabWithBackend(
 	scanner.Buffer(make([]byte, 4096), 256<<10)
 	shellCompleted := false
 	shellQuit := false
+	resetRequested := false
 	var checkMu sync.Mutex
 	labSucceeded := false
 	showHint := func() error {
@@ -1885,6 +1886,9 @@ func runInteractiveLabWithBackend(
 				fmt.Fprintln(stdout, "LPIC Daily : :check (valider), :hint (indice), :help (aide), :quit (quitter).")
 			}
 			return false, nil
+		case ":reset":
+			resetRequested = true
+			return true, nil
 		case ":quit":
 			shellQuit = true
 			return true, nil
@@ -1904,27 +1908,61 @@ func runInteractiveLabWithBackend(
 		if interactiveTerminal(stdin, stdout) {
 			fmt.Fprintln(stdout, "Shell Linux · commandes LPIC Daily : :check  :hint  :help  :quit")
 			usedPersistentShell = true
-			result, err := runPersistentShell(
-				sessionCtx,
-				backend,
-				session.Instance,
-				authored.Definition.ID,
-				stdin,
-				stdout,
-				jobControlEvidence,
-				editorEvidence,
-				shellCommands,
-			)
-			if err != nil {
-				return fmt.Errorf("interactive sandbox shell: %w", err)
-			}
-			usedPersistentShell = true
-			if shellCompleted || shellQuit {
-				return nil
-			}
-			fmt.Fprintln(stdout, "\n[retour LPIC Daily]")
-			if result.ExitCode != 0 {
-				fmt.Fprintf(stderr, "[shell exit %d]\n", result.ExitCode)
+			for {
+				result, err := runPersistentShell(
+					sessionCtx,
+					backend,
+					session.Instance,
+					authored.Definition.ID,
+					stdin,
+					stdout,
+					jobControlEvidence,
+					editorEvidence,
+					shellCommands,
+				)
+				if err != nil {
+					return fmt.Errorf("interactive sandbox shell: %w", err)
+				}
+				if resetRequested {
+					resetCtx, cancelReset := context.WithTimeout(sessionCtx, operationTimeout)
+					resetErr := session.Reset(resetCtx)
+					cancelReset()
+					if resetErr != nil {
+						return fmt.Errorf("reset interactive lab: %w", resetErr)
+					}
+					resetRequested = false
+					reflectionRecorded = false
+					lastLearnerCommand = ""
+					shellCompleted = false
+					labSucceeded = false
+					if jobControlEvidence != nil {
+						jobControlEvidence.Reset()
+					}
+					if editorEvidence != nil {
+						editorEvidence.Reset()
+					}
+					if workspace != nil {
+						if err := workspace.update(func(state *workspaceSnapshot) {
+							state.Checked = false
+							state.Passed = false
+							state.Checks = nil
+							state.CheckText = ""
+						}); err != nil {
+							return fmt.Errorf("update workspace after reset: %w", err)
+						}
+					}
+					fmt.Fprintln(stdout, "Lab réinitialisé. Nouveau shell Linux.")
+					continue
+				}
+				usedPersistentShell = true
+				if shellCompleted || shellQuit {
+					return nil
+				}
+				fmt.Fprintln(stdout, "\n[retour LPIC Daily]")
+				if result.ExitCode != 0 {
+					fmt.Fprintf(stderr, "[shell exit %d]\n", result.ExitCode)
+				}
+				break
 			}
 		} else {
 			fmt.Fprintln(stdout, "Terminal interactif indisponible : utilisation du mode commandes sandboxé.")
@@ -2858,7 +2896,7 @@ func (reader *labShellCommandReader) Read(buffer []byte) (int, error) {
 				reader.column = 0
 				reader.lineStart = true
 				switch command {
-				case ":check", ":hint", ":help", ":quit":
+				case ":check", ":hint", ":help", ":reset", ":quit":
 					reader.drawCommand([]byte("\r\n"))
 					stop, err := reader.onCommand(command)
 					if err != nil {
