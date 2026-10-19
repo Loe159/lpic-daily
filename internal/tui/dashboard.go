@@ -2,8 +2,8 @@ package tui
 
 import (
 	"fmt"
-	"time"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	tea "charm.land/bubbletea/v2"
@@ -29,19 +29,19 @@ type Action struct {
 }
 
 type Dashboard struct {
-	plan   study.Plan
-	game   gamification.Snapshot
-	cursor int
-	width  int
-	height int
-	action Action
-	activity *activity.Report
-	showActivity bool
-	activityView string
-	activityDate time.Time
+	plan            study.Plan
+	game            gamification.Snapshot
+	cursor          int
+	width           int
+	height          int
+	action          Action
+	activity        *activity.Report
+	showActivity    bool
+	activityView    string
+	activityDate    time.Time
 	activityDayOpen bool
-	activityNode string
-	activityCursor int
+	activityNode    string
+	activityCursor  int
 }
 
 func NewDashboard(plan study.Plan, game gamification.Snapshot, reports ...*activity.Report) Dashboard {
@@ -89,7 +89,9 @@ func (model Dashboard) updateKey(key string) (Dashboard, bool) {
 			return model, false
 		}
 		if model.showActivity {
-			if key == "q" || key == "ctrl+c" { return model, true }
+			if key == "q" || key == "ctrl+c" {
+				return model, true
+			}
 			return model.updateActivityKey(key)
 		}
 	}
@@ -162,7 +164,9 @@ func defaultAction(item *study.Item) Action {
 }
 
 func (model Dashboard) render() string {
-	if model.showActivity { return model.renderActivity() }
+	if model.showActivity {
+		return model.renderActivity()
+	}
 	width := model.width
 	if width < 40 {
 		width = 40
@@ -179,7 +183,9 @@ func (model Dashboard) render() string {
 
 	if len(model.plan.Items) == 0 {
 		out.WriteString("\n✓ Tout est à jour. Aucune activité prévue.\n\n")
-		if model.activity != nil { out.WriteString("[Tab] Activité   ") }
+		if model.activity != nil {
+			out.WriteString("[Tab] Activité   ")
+		}
 		out.WriteString("[q] Quitter\n")
 		return out.String()
 	}
