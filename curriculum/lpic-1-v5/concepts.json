@@ -9,6 +9,8 @@
       "objective_id": "101.1",
       "title_fr": "rôle de /proc, /sys et /dev",
       "pedagogy_order": 1,
+      "study_order": 81,
+      "prerequisite_concept_ids": [],
       "inherited_hard_objective_prerequisites": [],
       "classification": [
         "lpic-required"
@@ -25,6 +27,10 @@
       "objective_id": "101.1",
       "title_fr": "ressources et identification du matériel",
       "pedagogy_order": 2,
+      "study_order": 82,
+      "prerequisite_concept_ids": [
+        "lpic1.101.1.role-de-proc-sys-et-dev"
+      ],
       "inherited_hard_objective_prerequisites": [],
       "classification": [
         "lpic-required"
@@ -42,6 +48,10 @@
       "objective_id": "101.1",
       "title_fr": "modules du noyau liés au matériel",
       "pedagogy_order": 3,
+      "study_order": 83,
+      "prerequisite_concept_ids": [
+        "lpic1.101.1.role-de-proc-sys-et-dev"
+      ],
       "inherited_hard_objective_prerequisites": [],
       "classification": [
         "lpic-required"
@@ -57,6 +67,10 @@
       "objective_id": "101.1",
       "title_fr": "bus PCI et USB",
       "pedagogy_order": 4,
+      "study_order": 84,
+      "prerequisite_concept_ids": [
+        "lpic1.101.1.role-de-proc-sys-et-dev"
+      ],
       "inherited_hard_objective_prerequisites": [],
       "classification": [
         "lpic-required"
@@ -72,6 +86,10 @@
       "objective_id": "101.1",
       "title_fr": "sysfs, udev et D-Bus comme couches de découverte/gestion",
       "pedagogy_order": 5,
+      "study_order": 85,
+      "prerequisite_concept_ids": [
+        "lpic1.101.1.role-de-proc-sys-et-dev"
+      ],
       "inherited_hard_objective_prerequisites": [],
       "classification": [
         "lpic-required"
@@ -88,6 +106,10 @@
       "objective_id": "101.1",
       "title_fr": "différences entre grandes familles de stockage",
       "pedagogy_order": 6,
+      "study_order": 86,
+      "prerequisite_concept_ids": [
+        "lpic1.101.1.role-de-proc-sys-et-dev"
+      ],
       "inherited_hard_objective_prerequisites": [],
       "classification": [
         "lpic-required"
@@ -102,6 +124,8 @@
       "objective_id": "101.2",
       "title_fr": "séquence firmware→bootloader→kernel→initramfs→init/systemd",
       "pedagogy_order": 1,
+      "study_order": 89,
+      "prerequisite_concept_ids": [],
       "inherited_hard_objective_prerequisites": [],
       "classification": [
         "lpic-required"
@@ -120,6 +144,10 @@
       "objective_id": "101.2",
       "title_fr": "BIOS versus UEFI",
       "pedagogy_order": 2,
+      "study_order": 90,
+      "prerequisite_concept_ids": [
+        "lpic1.101.2.sequence-firmware-bootloader-kernel-initramfs-init-systemd"
+      ],
       "inherited_hard_objective_prerequisites": [],
       "classification": [
         "lpic-required"
@@ -135,6 +163,10 @@
       "objective_id": "101.2",
       "title_fr": "paramètres noyau au boot",
       "pedagogy_order": 3,
+      "study_order": 91,
+      "prerequisite_concept_ids": [
+        "lpic1.101.2.sequence-firmware-bootloader-kernel-initramfs-init-systemd"
+      ],
       "inherited_hard_objective_prerequisites": [],
       "classification": [
         "lpic-required"
@@ -150,6 +182,10 @@
       "objective_id": "101.2",
       "title_fr": "rôle de initramfs",
       "pedagogy_order": 4,
+      "study_order": 92,
+      "prerequisite_concept_ids": [
+        "lpic1.101.2.sequence-firmware-bootloader-kernel-initramfs-init-systemd"
+      ],
       "inherited_hard_objective_prerequisites": [],
       "classification": [
         "lpic-required"
@@ -164,6 +200,10 @@
       "objective_id": "101.2",
       "title_fr": "SysVinit, systemd et connaissance historique d’Upstart",
       "pedagogy_order": 5,
+      "study_order": 93,
+      "prerequisite_concept_ids": [
+        "lpic1.101.2.sequence-firmware-bootloader-kernel-initramfs-init-systemd"
+      ],
       "inherited_hard_objective_prerequisites": [],
       "classification": [
         "lpic-required",
@@ -181,6 +221,10 @@
       "objective_id": "101.2",
       "title_fr": "diagnostic des événements de boot",
       "pedagogy_order": 6,
+      "study_order": 94,
+      "prerequisite_concept_ids": [
+        "lpic1.101.2.sequence-firmware-bootloader-kernel-initramfs-init-systemd"
+      ],
       "inherited_hard_objective_prerequisites": [],
       "classification": [
         "lpic-required"
@@ -196,6 +240,10 @@
       "objective_id": "101.3",
       "title_fr": "runlevels SysV et targets systemd",
       "pedagogy_order": 1,
+      "study_order": 96,
+      "prerequisite_concept_ids": [
+        "lpic1.101.2.sequence-firmware-bootloader-kernel-initramfs-init-systemd"
+      ],
       "inherited_hard_objective_prerequisites": [
         "101.2"
       ],
@@ -217,6 +265,10 @@
       "objective_id": "101.3",
       "title_fr": "mode mono-utilisateur/récupération",
       "pedagogy_order": 2,
+      "study_order": 97,
+      "prerequisite_concept_ids": [
+        "lpic1.101.3.runlevels-sysv-et-targets-systemd"
+      ],
       "inherited_hard_objective_prerequisites": [
         "101.2"
       ],
@@ -234,6 +286,10 @@
       "objective_id": "101.3",
       "title_fr": "target par défaut",
       "pedagogy_order": 3,
+      "study_order": 98,
+      "prerequisite_concept_ids": [
+        "lpic1.101.3.runlevels-sysv-et-targets-systemd"
+      ],
       "inherited_hard_objective_prerequisites": [
         "101.2"
       ],
@@ -250,6 +306,10 @@
       "objective_id": "101.3",
       "title_fr": "arrêt/redémarrage propre",
       "pedagogy_order": 4,
+      "study_order": 99,
+      "prerequisite_concept_ids": [
+        "lpic1.101.3.runlevels-sysv-et-targets-systemd"
+      ],
       "inherited_hard_objective_prerequisites": [
         "101.2"
       ],
@@ -266,6 +326,10 @@
       "objective_id": "101.3",
       "title_fr": "notification aux utilisateurs",
       "pedagogy_order": 5,
+      "study_order": 100,
+      "prerequisite_concept_ids": [
+        "lpic1.101.3.runlevels-sysv-et-targets-systemd"
+      ],
       "inherited_hard_objective_prerequisites": [
         "101.2"
       ],
@@ -282,6 +346,10 @@
       "objective_id": "101.3",
       "title_fr": "services et dépendances de démarrage",
       "pedagogy_order": 6,
+      "study_order": 101,
+      "prerequisite_concept_ids": [
+        "lpic1.101.3.runlevels-sysv-et-targets-systemd"
+      ],
       "inherited_hard_objective_prerequisites": [
         "101.2"
       ],
@@ -301,6 +369,10 @@
       "objective_id": "101.3",
       "title_fr": "notion d’événements ACPI",
       "pedagogy_order": 7,
+      "study_order": 102,
+      "prerequisite_concept_ids": [
+        "lpic1.101.3.runlevels-sysv-et-targets-systemd"
+      ],
       "inherited_hard_objective_prerequisites": [
         "101.2"
       ],
@@ -317,6 +389,10 @@
       "objective_id": "102.1",
       "title_fr": "séparer /, /var, /home et /boot selon usage",
       "pedagogy_order": 1,
+      "study_order": 104,
+      "prerequisite_concept_ids": [
+        "lpic1.104.7.role-des-principaux-repertoires-fhs"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -336,6 +412,10 @@
       "objective_id": "102.1",
       "title_fr": "swap et dimensionnement conceptuel",
       "pedagogy_order": 2,
+      "study_order": 105,
+      "prerequisite_concept_ids": [
+        "lpic1.102.1.separer-var-home-et-boot-selon-usage"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -353,6 +433,10 @@
       "objective_id": "102.1",
       "title_fr": "contraintes /boot et architecture",
       "pedagogy_order": 3,
+      "study_order": 106,
+      "prerequisite_concept_ids": [
+        "lpic1.102.1.separer-var-home-et-boot-selon-usage"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -369,6 +453,10 @@
       "objective_id": "102.1",
       "title_fr": "EFI System Partition",
       "pedagogy_order": 4,
+      "study_order": 107,
+      "prerequisite_concept_ids": [
+        "lpic1.102.1.separer-var-home-et-boot-selon-usage"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -386,6 +474,10 @@
       "objective_id": "102.1",
       "title_fr": "partitions et points de montage",
       "pedagogy_order": 5,
+      "study_order": 108,
+      "prerequisite_concept_ids": [
+        "lpic1.102.1.separer-var-home-et-boot-selon-usage"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -403,6 +495,10 @@
       "objective_id": "102.1",
       "title_fr": "principes de base LVM",
       "pedagogy_order": 6,
+      "study_order": 109,
+      "prerequisite_concept_ids": [
+        "lpic1.102.1.separer-var-home-et-boot-selon-usage"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -419,6 +515,12 @@
       "objective_id": "102.2",
       "title_fr": "GRUB Legacy versus GRUB 2",
       "pedagogy_order": 1,
+      "study_order": 157,
+      "prerequisite_concept_ids": [
+        "lpic1.101.2.sequence-firmware-bootloader-kernel-initramfs-init-systemd",
+        "lpic1.102.1.separer-var-home-et-boot-selon-usage",
+        "lpic1.104.3.montage-manuel"
+      ],
       "inherited_hard_objective_prerequisites": [
         "101.2",
         "102.1",
@@ -440,6 +542,10 @@
       "objective_id": "102.2",
       "title_fr": "emplacement/configuration du bootloader",
       "pedagogy_order": 2,
+      "study_order": 158,
+      "prerequisite_concept_ids": [
+        "lpic1.102.2.grub-legacy-versus-grub-2"
+      ],
       "inherited_hard_objective_prerequisites": [
         "101.2",
         "102.1",
@@ -461,6 +567,10 @@
       "objective_id": "102.2",
       "title_fr": "entrées alternatives et récupération",
       "pedagogy_order": 3,
+      "study_order": 159,
+      "prerequisite_concept_ids": [
+        "lpic1.102.2.grub-legacy-versus-grub-2"
+      ],
       "inherited_hard_objective_prerequisites": [
         "101.2",
         "102.1",
@@ -480,6 +590,10 @@
       "objective_id": "102.2",
       "title_fr": "MBR et relation avec schéma de boot",
       "pedagogy_order": 4,
+      "study_order": 160,
+      "prerequisite_concept_ids": [
+        "lpic1.102.2.grub-legacy-versus-grub-2"
+      ],
       "inherited_hard_objective_prerequisites": [
         "101.2",
         "102.1",
@@ -498,6 +612,10 @@
       "objective_id": "102.2",
       "title_fr": "génération de configuration GRUB 2",
       "pedagogy_order": 5,
+      "study_order": 161,
+      "prerequisite_concept_ids": [
+        "lpic1.102.2.grub-legacy-versus-grub-2"
+      ],
       "inherited_hard_objective_prerequisites": [
         "101.2",
         "102.1",
@@ -516,6 +634,10 @@
       "objective_id": "102.2",
       "title_fr": "interaction au menu/console GRUB",
       "pedagogy_order": 6,
+      "study_order": 162,
+      "prerequisite_concept_ids": [
+        "lpic1.102.2.grub-legacy-versus-grub-2"
+      ],
       "inherited_hard_objective_prerequisites": [
         "101.2",
         "102.1",
@@ -535,6 +657,10 @@
       "objective_id": "102.3",
       "title_fr": "résolution des dépendances dynamiques",
       "pedagogy_order": 1,
+      "study_order": 146,
+      "prerequisite_concept_ids": [
+        "lpic1.103.1.path-et-resolution-de-commande"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -551,6 +677,10 @@
       "objective_id": "102.3",
       "title_fr": "chemins de recherche du chargeur dynamique",
       "pedagogy_order": 2,
+      "study_order": 147,
+      "prerequisite_concept_ids": [
+        "lpic1.102.3.resolution-des-dependances-dynamiques"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -573,6 +703,10 @@
       "objective_id": "102.3",
       "title_fr": "cache ldconfig",
       "pedagogy_order": 3,
+      "study_order": 148,
+      "prerequisite_concept_ids": [
+        "lpic1.102.3.resolution-des-dependances-dynamiques"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -589,6 +723,10 @@
       "objective_id": "102.3",
       "title_fr": "override via variables d’environnement",
       "pedagogy_order": 4,
+      "study_order": 149,
+      "prerequisite_concept_ids": [
+        "lpic1.102.3.resolution-des-dependances-dynamiques"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -605,6 +743,10 @@
       "objective_id": "102.3",
       "title_fr": "diagnostic d’une bibliothèque manquante",
       "pedagogy_order": 5,
+      "study_order": 150,
+      "prerequisite_concept_ids": [
+        "lpic1.102.3.resolution-des-dependances-dynamiques"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -622,6 +764,10 @@
       "objective_id": "102.4",
       "title_fr": "rôles respectifs dpkg et APT",
       "pedagogy_order": 1,
+      "study_order": 132,
+      "prerequisite_concept_ids": [
+        "lpic1.103.3.creation-copie-deplacement-suppression"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -639,6 +785,10 @@
       "objective_id": "102.4",
       "title_fr": "installation/mise à jour/suppression",
       "pedagogy_order": 2,
+      "study_order": 133,
+      "prerequisite_concept_ids": [
+        "lpic1.102.4.roles-respectifs-dpkg-et-apt"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -657,6 +807,10 @@
       "objective_id": "102.4",
       "title_fr": "sources et métadonnées",
       "pedagogy_order": 3,
+      "study_order": 134,
+      "prerequisite_concept_ids": [
+        "lpic1.102.4.roles-respectifs-dpkg-et-apt"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -674,6 +828,10 @@
       "objective_id": "102.4",
       "title_fr": "dépendances",
       "pedagogy_order": 4,
+      "study_order": 135,
+      "prerequisite_concept_ids": [
+        "lpic1.102.4.roles-respectifs-dpkg-et-apt"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -691,6 +849,10 @@
       "objective_id": "102.4",
       "title_fr": "inspection d’un paquet et de ses fichiers",
       "pedagogy_order": 5,
+      "study_order": 136,
+      "prerequisite_concept_ids": [
+        "lpic1.102.4.roles-respectifs-dpkg-et-apt"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -708,6 +870,10 @@
       "objective_id": "102.4",
       "title_fr": "reconfiguration",
       "pedagogy_order": 6,
+      "study_order": 137,
+      "prerequisite_concept_ids": [
+        "lpic1.102.4.roles-respectifs-dpkg-et-apt"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -724,6 +890,10 @@
       "objective_id": "102.4",
       "title_fr": "identifier quel paquet fournit/possède un fichier",
       "pedagogy_order": 7,
+      "study_order": 138,
+      "prerequisite_concept_ids": [
+        "lpic1.102.4.roles-respectifs-dpkg-et-apt"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -740,6 +910,10 @@
       "objective_id": "102.5",
       "title_fr": "format/base RPM",
       "pedagogy_order": 1,
+      "study_order": 139,
+      "prerequisite_concept_ids": [
+        "lpic1.103.3.creation-copie-deplacement-suppression"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -756,6 +930,10 @@
       "objective_id": "102.5",
       "title_fr": "installation et requêtes rpm",
       "pedagogy_order": 2,
+      "study_order": 140,
+      "prerequisite_concept_ids": [
+        "lpic1.102.5.format-base-rpm"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -776,6 +954,10 @@
       "objective_id": "102.5",
       "title_fr": "signature/intégrité",
       "pedagogy_order": 3,
+      "study_order": 141,
+      "prerequisite_concept_ids": [
+        "lpic1.102.5.format-base-rpm"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -793,6 +975,10 @@
       "objective_id": "102.5",
       "title_fr": "résolution des dépendances via gestionnaire haut niveau",
       "pedagogy_order": 4,
+      "study_order": 142,
+      "prerequisite_concept_ids": [
+        "lpic1.102.5.format-base-rpm"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -811,6 +997,10 @@
       "objective_id": "102.5",
       "title_fr": "repositories YUM/DNF",
       "pedagogy_order": 5,
+      "study_order": 143,
+      "prerequisite_concept_ids": [
+        "lpic1.102.5.format-base-rpm"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -830,6 +1020,10 @@
       "objective_id": "102.5",
       "title_fr": "workflow Zypper openSUSE",
       "pedagogy_order": 6,
+      "study_order": 144,
+      "prerequisite_concept_ids": [
+        "lpic1.102.5.format-base-rpm"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -846,6 +1040,10 @@
       "objective_id": "102.5",
       "title_fr": "identifier fichier↔paquet",
       "pedagogy_order": 7,
+      "study_order": 145,
+      "prerequisite_concept_ids": [
+        "lpic1.102.5.format-base-rpm"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -862,6 +1060,10 @@
       "objective_id": "102.6",
       "title_fr": "VM versus conteneur applicatif/système",
       "pedagogy_order": 1,
+      "study_order": 151,
+      "prerequisite_concept_ids": [
+        "lpic1.101.1.role-de-proc-sys-et-dev"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -880,6 +1082,10 @@
       "objective_id": "102.6",
       "title_fr": "ressources virtuelles block/network",
       "pedagogy_order": 2,
+      "study_order": 152,
+      "prerequisite_concept_ids": [
+        "lpic1.102.6.vm-versus-conteneur-applicatif-systeme"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -897,6 +1103,10 @@
       "objective_id": "102.6",
       "title_fr": "images, clones et templates",
       "pedagogy_order": 3,
+      "study_order": 153,
+      "prerequisite_concept_ids": [
+        "lpic1.102.6.vm-versus-conteneur-applicatif-systeme"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -914,6 +1124,10 @@
       "objective_id": "102.6",
       "title_fr": "identités devant être régénérées lors d’un clonage",
       "pedagogy_order": 4,
+      "study_order": 154,
+      "prerequisite_concept_ids": [
+        "lpic1.102.6.vm-versus-conteneur-applicatif-systeme"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -931,6 +1145,10 @@
       "objective_id": "102.6",
       "title_fr": "guest drivers",
       "pedagogy_order": 5,
+      "study_order": 155,
+      "prerequisite_concept_ids": [
+        "lpic1.102.6.vm-versus-conteneur-applicatif-systeme"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -947,6 +1165,10 @@
       "objective_id": "102.6",
       "title_fr": "principes cloud-init/IaaS",
       "pedagogy_order": 6,
+      "study_order": 156,
+      "prerequisite_concept_ids": [
+        "lpic1.102.6.vm-versus-conteneur-applicatif-systeme"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -964,6 +1186,8 @@
       "objective_id": "103.1",
       "title_fr": "syntaxe shell et séquences de commandes",
       "pedagogy_order": 1,
+      "study_order": 1,
+      "prerequisite_concept_ids": [],
       "inherited_hard_objective_prerequisites": [],
       "classification": [
         "lpic-required"
@@ -980,6 +1204,10 @@
       "objective_id": "103.1",
       "title_fr": "variables shell/environnement",
       "pedagogy_order": 2,
+      "study_order": 6,
+      "prerequisite_concept_ids": [
+        "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes"
+      ],
       "inherited_hard_objective_prerequisites": [],
       "classification": [
         "lpic-required"
@@ -997,6 +1225,11 @@
       "objective_id": "103.1",
       "title_fr": "PATH et résolution de commande",
       "pedagogy_order": 3,
+      "study_order": 7,
+      "prerequisite_concept_ids": [
+        "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes",
+        "lpic1.103.1.variables-shell-environnement"
+      ],
       "inherited_hard_objective_prerequisites": [],
       "classification": [
         "lpic-required"
@@ -1013,6 +1246,10 @@
       "objective_id": "103.1",
       "title_fr": "quoting/escaping",
       "pedagogy_order": 4,
+      "study_order": 8,
+      "prerequisite_concept_ids": [
+        "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes"
+      ],
       "inherited_hard_objective_prerequisites": [],
       "classification": [
         "lpic-required"
@@ -1027,6 +1264,10 @@
       "objective_id": "103.1",
       "title_fr": "historique",
       "pedagogy_order": 5,
+      "study_order": 5,
+      "prerequisite_concept_ids": [
+        "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes"
+      ],
       "inherited_hard_objective_prerequisites": [],
       "classification": [
         "lpic-required",
@@ -1042,6 +1283,10 @@
       "objective_id": "103.1",
       "title_fr": "documentation et identification d’une commande",
       "pedagogy_order": 6,
+      "study_order": 4,
+      "prerequisite_concept_ids": [
+        "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes"
+      ],
       "inherited_hard_objective_prerequisites": [],
       "classification": [
         "lpic-required"
@@ -1058,6 +1303,10 @@
       "objective_id": "103.1",
       "title_fr": "informations système de base",
       "pedagogy_order": 7,
+      "study_order": 31,
+      "prerequisite_concept_ids": [
+        "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes"
+      ],
       "inherited_hard_objective_prerequisites": [],
       "classification": [
         "lpic-required"
@@ -1073,6 +1322,10 @@
       "objective_id": "103.2",
       "title_fr": "flux texte ligne/octet",
       "pedagogy_order": 1,
+      "study_order": 23,
+      "prerequisite_concept_ids": [
+        "lpic1.103.4.pipelines"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1",
         "103.4"
@@ -1093,6 +1346,10 @@
       "objective_id": "103.2",
       "title_fr": "sélection de colonnes/lignes",
       "pedagogy_order": 2,
+      "study_order": 24,
+      "prerequisite_concept_ids": [
+        "lpic1.103.2.flux-texte-ligne-octet"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1",
         "103.4"
@@ -1113,6 +1370,10 @@
       "objective_id": "103.2",
       "title_fr": "tri/dédoublonnage",
       "pedagogy_order": 3,
+      "study_order": 25,
+      "prerequisite_concept_ids": [
+        "lpic1.103.2.flux-texte-ligne-octet"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1",
         "103.4"
@@ -1131,6 +1392,10 @@
       "objective_id": "103.2",
       "title_fr": "assemblage et découpage",
       "pedagogy_order": 4,
+      "study_order": 57,
+      "prerequisite_concept_ids": [
+        "lpic1.103.2.flux-texte-ligne-octet"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1",
         "103.4"
@@ -1149,6 +1414,10 @@
       "objective_id": "103.2",
       "title_fr": "transformations simples",
       "pedagogy_order": 5,
+      "study_order": 58,
+      "prerequisite_concept_ids": [
+        "lpic1.103.2.flux-texte-ligne-octet"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1",
         "103.4"
@@ -1167,6 +1436,10 @@
       "objective_id": "103.2",
       "title_fr": "checksums",
       "pedagogy_order": 6,
+      "study_order": 59,
+      "prerequisite_concept_ids": [
+        "lpic1.103.2.flux-texte-ligne-octet"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1",
         "103.4"
@@ -1186,6 +1459,10 @@
       "objective_id": "103.2",
       "title_fr": "lecture/compression en flux",
       "pedagogy_order": 7,
+      "study_order": 60,
+      "prerequisite_concept_ids": [
+        "lpic1.103.2.flux-texte-ligne-octet"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1",
         "103.4"
@@ -1205,6 +1482,10 @@
       "objective_id": "103.3",
       "title_fr": "création/copie/déplacement/suppression",
       "pedagogy_order": 1,
+      "study_order": 2,
+      "prerequisite_concept_ids": [
+        "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -1227,6 +1508,10 @@
       "objective_id": "103.3",
       "title_fr": "récursivité et globbing",
       "pedagogy_order": 2,
+      "study_order": 10,
+      "prerequisite_concept_ids": [
+        "lpic1.103.3.creation-copie-deplacement-suppression"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -1243,6 +1528,10 @@
       "objective_id": "103.3",
       "title_fr": "recherche par métadonnées",
       "pedagogy_order": 3,
+      "study_order": 11,
+      "prerequisite_concept_ids": [
+        "lpic1.103.3.creation-copie-deplacement-suppression"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -1260,6 +1549,10 @@
       "objective_id": "103.3",
       "title_fr": "actions find",
       "pedagogy_order": 4,
+      "study_order": 12,
+      "prerequisite_concept_ids": [
+        "lpic1.103.3.creation-copie-deplacement-suppression"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -1276,6 +1569,10 @@
       "objective_id": "103.3",
       "title_fr": "archives tar/cpio",
       "pedagogy_order": 5,
+      "study_order": 36,
+      "prerequisite_concept_ids": [
+        "lpic1.103.3.creation-copie-deplacement-suppression"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -1293,6 +1590,10 @@
       "objective_id": "103.3",
       "title_fr": "copie bas niveau dd",
       "pedagogy_order": 6,
+      "study_order": 37,
+      "prerequisite_concept_ids": [
+        "lpic1.103.3.creation-copie-deplacement-suppression"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -1309,6 +1610,10 @@
       "objective_id": "103.3",
       "title_fr": "compression gzip/bzip2/xz",
       "pedagogy_order": 7,
+      "study_order": 38,
+      "prerequisite_concept_ids": [
+        "lpic1.103.3.creation-copie-deplacement-suppression"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -1330,6 +1635,10 @@
       "objective_id": "103.3",
       "title_fr": "détection de type",
       "pedagogy_order": 8,
+      "study_order": 39,
+      "prerequisite_concept_ids": [
+        "lpic1.103.3.creation-copie-deplacement-suppression"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -1346,6 +1655,10 @@
       "objective_id": "103.4",
       "title_fr": "stdin/stdout/stderr et descripteurs",
       "pedagogy_order": 1,
+      "study_order": 13,
+      "prerequisite_concept_ids": [
+        "lpic1.103.3.creation-copie-deplacement-suppression"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -1364,6 +1677,10 @@
       "objective_id": "103.4",
       "title_fr": "redirections écrasement/append",
       "pedagogy_order": 2,
+      "study_order": 14,
+      "prerequisite_concept_ids": [
+        "lpic1.103.4.stdin-stdout-stderr-et-descripteurs"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -1382,6 +1699,10 @@
       "objective_id": "103.4",
       "title_fr": "redirection stderr",
       "pedagogy_order": 3,
+      "study_order": 44,
+      "prerequisite_concept_ids": [
+        "lpic1.103.4.stdin-stdout-stderr-et-descripteurs"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -1399,6 +1720,10 @@
       "objective_id": "103.4",
       "title_fr": "pipelines",
       "pedagogy_order": 4,
+      "study_order": 15,
+      "prerequisite_concept_ids": [
+        "lpic1.103.4.stdin-stdout-stderr-et-descripteurs"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -1415,6 +1740,10 @@
       "objective_id": "103.4",
       "title_fr": "dupliquer sortie avec tee",
       "pedagogy_order": 5,
+      "study_order": 45,
+      "prerequisite_concept_ids": [
+        "lpic1.103.4.stdin-stdout-stderr-et-descripteurs"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -1431,6 +1760,10 @@
       "objective_id": "103.4",
       "title_fr": "transformer stdin en arguments via xargs",
       "pedagogy_order": 6,
+      "study_order": 46,
+      "prerequisite_concept_ids": [
+        "lpic1.103.4.stdin-stdout-stderr-et-descripteurs"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -1448,6 +1781,10 @@
       "objective_id": "103.4",
       "title_fr": "ordre des redirections",
       "pedagogy_order": 7,
+      "study_order": 47,
+      "prerequisite_concept_ids": [
+        "lpic1.103.4.stdin-stdout-stderr-et-descripteurs"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -1465,6 +1802,10 @@
       "objective_id": "103.5",
       "title_fr": "processus avant/arrière-plan",
       "pedagogy_order": 1,
+      "study_order": 28,
+      "prerequisite_concept_ids": [
+        "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -1483,6 +1824,10 @@
       "objective_id": "103.5",
       "title_fr": "jobs du shell",
       "pedagogy_order": 2,
+      "study_order": 29,
+      "prerequisite_concept_ids": [
+        "lpic1.103.5.processus-avant-arriere-plan"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -1499,6 +1844,10 @@
       "objective_id": "103.5",
       "title_fr": "signaux",
       "pedagogy_order": 3,
+      "study_order": 30,
+      "prerequisite_concept_ids": [
+        "lpic1.103.5.processus-avant-arriere-plan"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -1517,6 +1866,10 @@
       "objective_id": "103.5",
       "title_fr": "inspection arbres/ressources",
       "pedagogy_order": 4,
+      "study_order": 72,
+      "prerequisite_concept_ids": [
+        "lpic1.103.5.processus-avant-arriere-plan"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -1537,6 +1890,10 @@
       "objective_id": "103.5",
       "title_fr": "processus survivant à la session",
       "pedagogy_order": 5,
+      "study_order": 73,
+      "prerequisite_concept_ids": [
+        "lpic1.103.5.processus-avant-arriere-plan"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -1553,6 +1910,10 @@
       "objective_id": "103.5",
       "title_fr": "sélection par nom/PID",
       "pedagogy_order": 6,
+      "study_order": 74,
+      "prerequisite_concept_ids": [
+        "lpic1.103.5.processus-avant-arriere-plan"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -1571,6 +1932,10 @@
       "objective_id": "103.5",
       "title_fr": "multiplexeurs de terminal",
       "pedagogy_order": 7,
+      "study_order": 75,
+      "prerequisite_concept_ids": [
+        "lpic1.103.5.processus-avant-arriere-plan"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -1588,6 +1953,10 @@
       "objective_id": "103.6",
       "title_fr": "nice value et ordonnancement utilisateur",
       "pedagogy_order": 1,
+      "study_order": 76,
+      "prerequisite_concept_ids": [
+        "lpic1.103.5.processus-avant-arriere-plan"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.5"
       ],
@@ -1604,6 +1973,10 @@
       "objective_id": "103.6",
       "title_fr": "priorité par défaut",
       "pedagogy_order": 2,
+      "study_order": 77,
+      "prerequisite_concept_ids": [
+        "lpic1.103.6.nice-value-et-ordonnancement-utilisateur"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.5"
       ],
@@ -1620,6 +1993,10 @@
       "objective_id": "103.6",
       "title_fr": "démarrer avec une priorité",
       "pedagogy_order": 3,
+      "study_order": 78,
+      "prerequisite_concept_ids": [
+        "lpic1.103.6.nice-value-et-ordonnancement-utilisateur"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.5"
       ],
@@ -1636,6 +2013,10 @@
       "objective_id": "103.6",
       "title_fr": "modifier priorité existante",
       "pedagogy_order": 4,
+      "study_order": 79,
+      "prerequisite_concept_ids": [
+        "lpic1.103.6.nice-value-et-ordonnancement-utilisateur"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.5"
       ],
@@ -1652,6 +2033,10 @@
       "objective_id": "103.6",
       "title_fr": "observer priorité",
       "pedagogy_order": 5,
+      "study_order": 80,
+      "prerequisite_concept_ids": [
+        "lpic1.103.6.nice-value-et-ordonnancement-utilisateur"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.5"
       ],
@@ -1669,6 +2054,10 @@
       "objective_id": "103.7",
       "title_fr": "regex basiques/étendues",
       "pedagogy_order": 1,
+      "study_order": 26,
+      "prerequisite_concept_ids": [
+        "lpic1.103.3.recursivite-et-globbing"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -1689,6 +2078,10 @@
       "objective_id": "103.7",
       "title_fr": "classes de caractères",
       "pedagogy_order": 2,
+      "study_order": 27,
+      "prerequisite_concept_ids": [
+        "lpic1.103.7.regex-basiques-etendues"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -1707,6 +2100,10 @@
       "objective_id": "103.7",
       "title_fr": "quantificateurs et ancres",
       "pedagogy_order": 3,
+      "study_order": 61,
+      "prerequisite_concept_ids": [
+        "lpic1.103.7.regex-basiques-etendues"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -1724,6 +2121,10 @@
       "objective_id": "103.7",
       "title_fr": "groupes/alternatives",
       "pedagogy_order": 4,
+      "study_order": 62,
+      "prerequisite_concept_ids": [
+        "lpic1.103.7.regex-basiques-etendues"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -1741,6 +2142,10 @@
       "objective_id": "103.7",
       "title_fr": "recherche de lignes",
       "pedagogy_order": 5,
+      "study_order": 63,
+      "prerequisite_concept_ids": [
+        "lpic1.103.7.regex-basiques-etendues"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -1757,6 +2162,10 @@
       "objective_id": "103.7",
       "title_fr": "substitution/transformation avec sed",
       "pedagogy_order": 6,
+      "study_order": 64,
+      "prerequisite_concept_ids": [
+        "lpic1.103.7.regex-basiques-etendues"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -1773,6 +2182,11 @@
       "objective_id": "103.7",
       "title_fr": "différence glob vs regex",
       "pedagogy_order": 7,
+      "study_order": 65,
+      "prerequisite_concept_ids": [
+        "lpic1.103.7.regex-basiques-etendues",
+        "lpic1.103.3.recursivite-et-globbing"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -1791,6 +2205,10 @@
       "objective_id": "103.8",
       "title_fr": "modes normal/insertion/commande",
       "pedagogy_order": 1,
+      "study_order": 19,
+      "prerequisite_concept_ids": [
+        "lpic1.103.3.creation-copie-deplacement-suppression"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -1807,6 +2225,10 @@
       "objective_id": "103.8",
       "title_fr": "navigation",
       "pedagogy_order": 2,
+      "study_order": 20,
+      "prerequisite_concept_ids": [
+        "lpic1.103.8.modes-normal-insertion-commande"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -1826,6 +2248,10 @@
       "objective_id": "103.8",
       "title_fr": "insertion/remplacement",
       "pedagogy_order": 3,
+      "study_order": 21,
+      "prerequisite_concept_ids": [
+        "lpic1.103.8.modes-normal-insertion-commande"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -1844,6 +2270,10 @@
       "objective_id": "103.8",
       "title_fr": "suppression/copie/collage",
       "pedagogy_order": 4,
+      "study_order": 53,
+      "prerequisite_concept_ids": [
+        "lpic1.103.8.modes-normal-insertion-commande"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -1864,6 +2294,10 @@
       "objective_id": "103.8",
       "title_fr": "recherche",
       "pedagogy_order": 5,
+      "study_order": 54,
+      "prerequisite_concept_ids": [
+        "lpic1.103.8.modes-normal-insertion-commande"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -1881,6 +2315,10 @@
       "objective_id": "103.8",
       "title_fr": "sauvegarde/quitter",
       "pedagogy_order": 6,
+      "study_order": 22,
+      "prerequisite_concept_ids": [
+        "lpic1.103.8.modes-normal-insertion-commande"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -1899,6 +2337,10 @@
       "objective_id": "103.8",
       "title_fr": "éditeur par défaut",
       "pedagogy_order": 7,
+      "study_order": 55,
+      "prerequisite_concept_ids": [
+        "lpic1.103.8.modes-normal-insertion-commande"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -1915,6 +2357,10 @@
       "objective_id": "103.8",
       "title_fr": "connaissance nano/emacs/vim",
       "pedagogy_order": 8,
+      "study_order": 56,
+      "prerequisite_concept_ids": [
+        "lpic1.103.8.modes-normal-insertion-commande"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -1933,6 +2379,10 @@
       "objective_id": "104.1",
       "title_fr": "MBR versus GPT",
       "pedagogy_order": 1,
+      "study_order": 110,
+      "prerequisite_concept_ids": [
+        "lpic1.102.1.separer-var-home-et-boot-selon-usage"
+      ],
       "inherited_hard_objective_prerequisites": [
         "102.1"
       ],
@@ -1950,6 +2400,10 @@
       "objective_id": "104.1",
       "title_fr": "création/modification de partitions",
       "pedagogy_order": 2,
+      "study_order": 111,
+      "prerequisite_concept_ids": [
+        "lpic1.104.1.mbr-versus-gpt"
+      ],
       "inherited_hard_objective_prerequisites": [
         "102.1"
       ],
@@ -1968,6 +2422,10 @@
       "objective_id": "104.1",
       "title_fr": "ext2/ext3/ext4",
       "pedagogy_order": 3,
+      "study_order": 112,
+      "prerequisite_concept_ids": [
+        "lpic1.104.1.mbr-versus-gpt"
+      ],
       "inherited_hard_objective_prerequisites": [
         "102.1"
       ],
@@ -1986,6 +2444,10 @@
       "objective_id": "104.1",
       "title_fr": "XFS",
       "pedagogy_order": 4,
+      "study_order": 113,
+      "prerequisite_concept_ids": [
+        "lpic1.104.1.mbr-versus-gpt"
+      ],
       "inherited_hard_objective_prerequisites": [
         "102.1"
       ],
@@ -2002,6 +2464,10 @@
       "objective_id": "104.1",
       "title_fr": "VFAT/exFAT",
       "pedagogy_order": 5,
+      "study_order": 114,
+      "prerequisite_concept_ids": [
+        "lpic1.104.1.mbr-versus-gpt"
+      ],
       "inherited_hard_objective_prerequisites": [
         "102.1"
       ],
@@ -2019,6 +2485,10 @@
       "objective_id": "104.1",
       "title_fr": "swap",
       "pedagogy_order": 6,
+      "study_order": 115,
+      "prerequisite_concept_ids": [
+        "lpic1.104.1.mbr-versus-gpt"
+      ],
       "inherited_hard_objective_prerequisites": [
         "102.1"
       ],
@@ -2035,6 +2505,10 @@
       "objective_id": "104.1",
       "title_fr": "principes Btrfs multi-device/compression/subvolumes",
       "pedagogy_order": 7,
+      "study_order": 116,
+      "prerequisite_concept_ids": [
+        "lpic1.104.1.mbr-versus-gpt"
+      ],
       "inherited_hard_objective_prerequisites": [
         "102.1"
       ],
@@ -2051,6 +2525,10 @@
       "objective_id": "104.1",
       "title_fr": "création de filesystem",
       "pedagogy_order": 8,
+      "study_order": 117,
+      "prerequisite_concept_ids": [
+        "lpic1.104.1.mbr-versus-gpt"
+      ],
       "inherited_hard_objective_prerequisites": [
         "102.1"
       ],
@@ -2068,6 +2546,10 @@
       "objective_id": "104.2",
       "title_fr": "occupation blocs/inodes",
       "pedagogy_order": 1,
+      "study_order": 125,
+      "prerequisite_concept_ids": [
+        "lpic1.104.1.creation-de-filesystem"
+      ],
       "inherited_hard_objective_prerequisites": [
         "104.1"
       ],
@@ -2086,6 +2568,11 @@
       "objective_id": "104.2",
       "title_fr": "vérification ext",
       "pedagogy_order": 2,
+      "study_order": 126,
+      "prerequisite_concept_ids": [
+        "lpic1.104.2.occupation-blocs-inodes",
+        "lpic1.104.1.creation-de-filesystem"
+      ],
       "inherited_hard_objective_prerequisites": [
         "104.1"
       ],
@@ -2103,6 +2590,11 @@
       "objective_id": "104.2",
       "title_fr": "réparation",
       "pedagogy_order": 3,
+      "study_order": 127,
+      "prerequisite_concept_ids": [
+        "lpic1.104.2.occupation-blocs-inodes",
+        "lpic1.104.1.creation-de-filesystem"
+      ],
       "inherited_hard_objective_prerequisites": [
         "104.1"
       ],
@@ -2121,6 +2613,11 @@
       "objective_id": "104.2",
       "title_fr": "tuning ext",
       "pedagogy_order": 4,
+      "study_order": 128,
+      "prerequisite_concept_ids": [
+        "lpic1.104.2.occupation-blocs-inodes",
+        "lpic1.104.1.creation-de-filesystem"
+      ],
       "inherited_hard_objective_prerequisites": [
         "104.1"
       ],
@@ -2138,6 +2635,11 @@
       "objective_id": "104.2",
       "title_fr": "outils XFS",
       "pedagogy_order": 5,
+      "study_order": 129,
+      "prerequisite_concept_ids": [
+        "lpic1.104.2.occupation-blocs-inodes",
+        "lpic1.104.1.creation-de-filesystem"
+      ],
       "inherited_hard_objective_prerequisites": [
         "104.1"
       ],
@@ -2156,6 +2658,11 @@
       "objective_id": "104.2",
       "title_fr": "différence outils online/offline selon fs",
       "pedagogy_order": 6,
+      "study_order": 130,
+      "prerequisite_concept_ids": [
+        "lpic1.104.2.occupation-blocs-inodes",
+        "lpic1.104.1.creation-de-filesystem"
+      ],
       "inherited_hard_objective_prerequisites": [
         "104.1"
       ],
@@ -2173,6 +2680,11 @@
       "objective_id": "104.2",
       "title_fr": "symptômes de corruption/espace épuisé",
       "pedagogy_order": 7,
+      "study_order": 131,
+      "prerequisite_concept_ids": [
+        "lpic1.104.2.occupation-blocs-inodes",
+        "lpic1.104.1.creation-de-filesystem"
+      ],
       "inherited_hard_objective_prerequisites": [
         "104.1"
       ],
@@ -2191,6 +2703,10 @@
       "objective_id": "104.3",
       "title_fr": "montage manuel",
       "pedagogy_order": 1,
+      "study_order": 118,
+      "prerequisite_concept_ids": [
+        "lpic1.104.1.creation-de-filesystem"
+      ],
       "inherited_hard_objective_prerequisites": [
         "104.1"
       ],
@@ -2207,6 +2723,10 @@
       "objective_id": "104.3",
       "title_fr": "fstab persistant",
       "pedagogy_order": 2,
+      "study_order": 119,
+      "prerequisite_concept_ids": [
+        "lpic1.104.3.montage-manuel"
+      ],
       "inherited_hard_objective_prerequisites": [
         "104.1"
       ],
@@ -2223,6 +2743,10 @@
       "objective_id": "104.3",
       "title_fr": "UUID/labels",
       "pedagogy_order": 3,
+      "study_order": 120,
+      "prerequisite_concept_ids": [
+        "lpic1.104.3.montage-manuel"
+      ],
       "inherited_hard_objective_prerequisites": [
         "104.1"
       ],
@@ -2242,6 +2766,10 @@
       "objective_id": "104.3",
       "title_fr": "options de montage",
       "pedagogy_order": 4,
+      "study_order": 121,
+      "prerequisite_concept_ids": [
+        "lpic1.104.3.montage-manuel"
+      ],
       "inherited_hard_objective_prerequisites": [
         "104.1"
       ],
@@ -2258,6 +2786,10 @@
       "objective_id": "104.3",
       "title_fr": "démontage et fichiers occupés",
       "pedagogy_order": 5,
+      "study_order": 122,
+      "prerequisite_concept_ids": [
+        "lpic1.104.3.montage-manuel"
+      ],
       "inherited_hard_objective_prerequisites": [
         "104.1"
       ],
@@ -2274,6 +2806,10 @@
       "objective_id": "104.3",
       "title_fr": "unités mount systemd",
       "pedagogy_order": 6,
+      "study_order": 123,
+      "prerequisite_concept_ids": [
+        "lpic1.104.3.montage-manuel"
+      ],
       "inherited_hard_objective_prerequisites": [
         "104.1"
       ],
@@ -2290,6 +2826,10 @@
       "objective_id": "104.3",
       "title_fr": "périphériques amovibles",
       "pedagogy_order": 7,
+      "study_order": 124,
+      "prerequisite_concept_ids": [
+        "lpic1.104.3.montage-manuel"
+      ],
       "inherited_hard_objective_prerequisites": [
         "104.1"
       ],
@@ -2307,6 +2847,10 @@
       "objective_id": "104.5",
       "title_fr": "permissions rwx fichier/dossier",
       "pedagogy_order": 1,
+      "study_order": 16,
+      "prerequisite_concept_ids": [
+        "lpic1.103.3.creation-copie-deplacement-suppression"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -2323,6 +2867,10 @@
       "objective_id": "104.5",
       "title_fr": "notation symbolique/octale",
       "pedagogy_order": 2,
+      "study_order": 17,
+      "prerequisite_concept_ids": [
+        "lpic1.104.5.permissions-rwx-fichier-dossier"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -2340,6 +2888,10 @@
       "objective_id": "104.5",
       "title_fr": "propriétaire/groupe",
       "pedagogy_order": 3,
+      "study_order": 18,
+      "prerequisite_concept_ids": [
+        "lpic1.104.5.permissions-rwx-fichier-dossier"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -2357,6 +2909,10 @@
       "objective_id": "104.5",
       "title_fr": "umask",
       "pedagogy_order": 4,
+      "study_order": 48,
+      "prerequisite_concept_ids": [
+        "lpic1.104.5.permissions-rwx-fichier-dossier"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -2373,6 +2929,10 @@
       "objective_id": "104.5",
       "title_fr": "SUID",
       "pedagogy_order": 5,
+      "study_order": 49,
+      "prerequisite_concept_ids": [
+        "lpic1.104.5.permissions-rwx-fichier-dossier"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -2389,6 +2949,10 @@
       "objective_id": "104.5",
       "title_fr": "SGID",
       "pedagogy_order": 6,
+      "study_order": 50,
+      "prerequisite_concept_ids": [
+        "lpic1.104.5.permissions-rwx-fichier-dossier"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -2405,6 +2969,10 @@
       "objective_id": "104.5",
       "title_fr": "sticky bit",
       "pedagogy_order": 7,
+      "study_order": 51,
+      "prerequisite_concept_ids": [
+        "lpic1.104.5.permissions-rwx-fichier-dossier"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -2421,6 +2989,10 @@
       "objective_id": "104.5",
       "title_fr": "effets spéciaux sur répertoires",
       "pedagogy_order": 8,
+      "study_order": 52,
+      "prerequisite_concept_ids": [
+        "lpic1.104.5.permissions-rwx-fichier-dossier"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -2439,6 +3011,10 @@
       "objective_id": "104.6",
       "title_fr": "inode et hard link",
       "pedagogy_order": 1,
+      "study_order": 66,
+      "prerequisite_concept_ids": [
+        "lpic1.103.3.creation-copie-deplacement-suppression"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -2457,6 +3033,10 @@
       "objective_id": "104.6",
       "title_fr": "symlink et cible",
       "pedagogy_order": 2,
+      "study_order": 67,
+      "prerequisite_concept_ids": [
+        "lpic1.104.6.inode-et-hard-link"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -2474,6 +3054,10 @@
       "objective_id": "104.6",
       "title_fr": "limites filesystem/directory des hard links",
       "pedagogy_order": 3,
+      "study_order": 68,
+      "prerequisite_concept_ids": [
+        "lpic1.104.6.inode-et-hard-link"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -2491,6 +3075,10 @@
       "objective_id": "104.6",
       "title_fr": "liens cassés",
       "pedagogy_order": 4,
+      "study_order": 69,
+      "prerequisite_concept_ids": [
+        "lpic1.104.6.inode-et-hard-link"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -2507,6 +3095,10 @@
       "objective_id": "104.6",
       "title_fr": "différence copie/lien",
       "pedagogy_order": 5,
+      "study_order": 70,
+      "prerequisite_concept_ids": [
+        "lpic1.104.6.inode-et-hard-link"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -2525,6 +3117,10 @@
       "objective_id": "104.6",
       "title_fr": "usages administratifs",
       "pedagogy_order": 6,
+      "study_order": 71,
+      "prerequisite_concept_ids": [
+        "lpic1.104.6.inode-et-hard-link"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -2541,6 +3137,10 @@
       "objective_id": "104.7",
       "title_fr": "rôle des principaux répertoires FHS",
       "pedagogy_order": 1,
+      "study_order": 3,
+      "prerequisite_concept_ids": [
+        "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -2565,6 +3165,11 @@
       "objective_id": "104.7",
       "title_fr": "recherche temps réel vs base locate",
       "pedagogy_order": 2,
+      "study_order": 40,
+      "prerequisite_concept_ids": [
+        "lpic1.104.7.role-des-principaux-repertoires-fhs",
+        "lpic1.103.3.recherche-par-metadonnees"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -2583,6 +3188,10 @@
       "objective_id": "104.7",
       "title_fr": "mise à jour base locate",
       "pedagogy_order": 3,
+      "study_order": 41,
+      "prerequisite_concept_ids": [
+        "lpic1.104.7.role-des-principaux-repertoires-fhs"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -2600,6 +3209,10 @@
       "objective_id": "104.7",
       "title_fr": "localiser binaire/source/man",
       "pedagogy_order": 4,
+      "study_order": 42,
+      "prerequisite_concept_ids": [
+        "lpic1.104.7.role-des-principaux-repertoires-fhs"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -2616,6 +3229,10 @@
       "objective_id": "104.7",
       "title_fr": "résolution de commande shell",
       "pedagogy_order": 5,
+      "study_order": 43,
+      "prerequisite_concept_ids": [
+        "lpic1.104.7.role-des-principaux-repertoires-fhs"
+      ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
       ],
@@ -5143,8 +5760,11 @@
       "objective_id": "101.1",
       "title_fr": "activation et désactivation des périphériques intégrés",
       "pedagogy_order": 7,
+      "study_order": 87,
+      "prerequisite_concept_ids": [
+        "lpic1.101.1.role-de-proc-sys-et-dev"
+      ],
       "inherited_hard_objective_prerequisites": [],
-      "prerequisite_concept_ids": [],
       "classification": [
         "lpic-required"
       ],
@@ -5159,8 +5779,11 @@
       "objective_id": "101.1",
       "title_fr": "manipulation des périphériques USB",
       "pedagogy_order": 8,
+      "study_order": 88,
+      "prerequisite_concept_ids": [
+        "lpic1.101.1.role-de-proc-sys-et-dev"
+      ],
       "inherited_hard_objective_prerequisites": [],
-      "prerequisite_concept_ids": [],
       "classification": [
         "lpic-required"
       ],
@@ -5176,8 +5799,11 @@
       "objective_id": "101.2",
       "title_fr": "commandes interactives du chargeur de démarrage",
       "pedagogy_order": 7,
+      "study_order": 95,
+      "prerequisite_concept_ids": [
+        "lpic1.101.2.sequence-firmware-bootloader-kernel-initramfs-init-systemd"
+      ],
       "inherited_hard_objective_prerequisites": [],
-      "prerequisite_concept_ids": [],
       "classification": [
         "lpic-required"
       ],
@@ -5192,10 +5818,13 @@
       "objective_id": "101.3",
       "title_fr": "terminaison correcte des processus avant changement d’état système",
       "pedagogy_order": 8,
+      "study_order": 103,
+      "prerequisite_concept_ids": [
+        "lpic1.101.3.runlevels-sysv-et-targets-systemd"
+      ],
       "inherited_hard_objective_prerequisites": [
         "101.2"
       ],
-      "prerequisite_concept_ids": [],
       "classification": [
         "lpic-required"
       ],
@@ -5210,8 +5839,11 @@
       "objective_id": "103.1",
       "title_fr": "distinction variables shell/environnement avec set et env",
       "pedagogy_order": 8,
+      "study_order": 32,
+      "prerequisite_concept_ids": [
+        "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes"
+      ],
       "inherited_hard_objective_prerequisites": [],
-      "prerequisite_concept_ids": [],
       "classification": [
         "lpic-required"
       ],
@@ -5226,8 +5858,11 @@
       "objective_id": "103.1",
       "title_fr": "export, unset et propagation aux processus enfants",
       "pedagogy_order": 9,
+      "study_order": 33,
+      "prerequisite_concept_ids": [
+        "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes"
+      ],
       "inherited_hard_objective_prerequisites": [],
-      "prerequisite_concept_ids": [],
       "classification": [
         "lpic-required"
       ],
@@ -5242,8 +5877,11 @@
       "objective_id": "103.1",
       "title_fr": "exécution de commandes en dehors du PATH",
       "pedagogy_order": 10,
+      "study_order": 34,
+      "prerequisite_concept_ids": [
+        "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes"
+      ],
       "inherited_hard_objective_prerequisites": [],
-      "prerequisite_concept_ids": [],
       "classification": [
         "lpic-required"
       ],
@@ -5257,8 +5895,11 @@
       "objective_id": "103.1",
       "title_fr": "édition et persistance de l’historique avec history et .bash_history",
       "pedagogy_order": 11,
+      "study_order": 35,
+      "prerequisite_concept_ids": [
+        "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes"
+      ],
       "inherited_hard_objective_prerequisites": [],
-      "prerequisite_concept_ids": [],
       "classification": [
         "lpic-required",
         "lpic-legacy"
@@ -5274,8 +5915,11 @@
       "objective_id": "103.1",
       "title_fr": "affichage et expansion shell avec echo",
       "pedagogy_order": 12,
+      "study_order": 9,
+      "prerequisite_concept_ids": [
+        "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes"
+      ],
       "inherited_hard_objective_prerequisites": [],
-      "prerequisite_concept_ids": [],
       "classification": [
         "lpic-required"
       ],
