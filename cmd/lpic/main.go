@@ -1522,8 +1522,8 @@ func runInteractiveLabWithBackend(
 		workspace = &workspacePublisher{
 			path: path,
 			state: workspaceSnapshot{
-				LabID: authored.Definition.ID,
-				Status: "ready",
+				LabID:     authored.Definition.ID,
+				Status:    "ready",
 				HintLevel: highestHintLevel,
 			},
 		}
