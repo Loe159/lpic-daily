@@ -89,6 +89,21 @@ func (reporter *labPanelReporter) finish() {
 	_ = reporter.persist()
 }
 
+// finishTmuxLabPanel also runs when the backend cannot start. The left pane
+// must never stay stuck on "Aucun check exécuté" after a fatal launch error.
+func finishTmuxLabPanel(path string, runErr error) error {
+	state := labPanelState{}
+	if payload, err := os.ReadFile(path); err == nil {
+		_ = json.Unmarshal(payload, &state)
+	}
+	if runErr != nil {
+		state.Check = "ERREUR · " + lpicui.SanitizeText(runErr.Error())
+	}
+	state.Finished = true
+	reporter := &labPanelReporter{path: path, state: state}
+	return reporter.persist()
+}
+
 func tmuxLabName(id string) string {
 	hash := sha256.Sum256([]byte(id))
 	return "lpic-" + hex.EncodeToString(hash[:8])
@@ -297,7 +312,7 @@ func renderTmuxLabPanel(authored lab.Lab, state labPanelState, width, height, sc
 	} else {
 		for _, line := range strings.Split(state.Check, "\n") {
 			line = strings.TrimSpace(line)
-			if strings.HasPrefix(line, "RÉSULTAT") || strings.HasPrefix(line, "VALIDÉ") ||
+			if strings.HasPrefix(line, "RÉSULTAT") || strings.HasPrefix(line, "ERREUR") || strings.HasPrefix(line, "VALIDÉ") ||
 				strings.HasPrefix(line, "À CORRIGER") || strings.HasPrefix(line, "✗") ||
 				strings.HasPrefix(line, "✓") || strings.Contains(line, "Lab réussi") ||
 				strings.HasPrefix(line, "Détail :") {
