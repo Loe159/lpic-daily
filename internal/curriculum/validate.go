@@ -243,7 +243,6 @@ func Validate(bundle *Bundle) error {
 	return errors.Join(errs...)
 }
 
-
 func validateConceptLearningGraph(concepts map[string]Concept, objectives map[string]Objective) []error {
 	var errs []error
 	orders := make(map[int]string, 162)
