@@ -73,7 +73,7 @@ func TestWorkspacePathIsPrivateAndDeterministic(t *testing.T) {
 func TestWorkspacePanelRendersValidatedLayoutAndHints(t *testing.T) {
 	authored := loadWorkspaceTestLab(t)
 	snapshot := workspaceSnapshot{
-		LabID: authored.Definition.ID,
+		LabID:  authored.Definition.ID,
 		Status: "ready", HintLevel: 1, Checked: true,
 		Checks: []workspaceCheck{
 			{Description: "worker sain", Passed: true},
