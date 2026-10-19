@@ -56,6 +56,8 @@ type SessionInput struct {
 	Bundle             *curriculum.Bundle
 	Projections        map[string]MasteryProjection
 	ObjectiveReadiness map[string]bool
+	// When supplied by the study planner, dependencies require course+quiz+lab evidence.
+	ConceptReadiness   map[string]bool
 	ScopeObjectives    []string
 	Policy             SessionPolicy
 }
@@ -91,6 +93,23 @@ func BuildSession(input SessionInput) (Session, error) {
 		if objective.Active && count > 0 {
 			objectivePriority[objective.ID] = float64(objective.Weight) / float64(count)
 		}
+	}
+
+
+	conceptByID := make(map[string]curriculum.Concept, len(input.Bundle.Concepts.Concepts))
+	for _, concept := range input.Bundle.Concepts.Concepts {
+		conceptByID[concept.ID] = concept
+	}
+	// Direct domain callers without evidence can use objective readiness or
+	// projected recall. The production study planner supplies strict concept
+	// readiness; a quiz alone never unlocks a dependency in that path.
+	conceptReady := func(id string) bool {
+		if input.ConceptReadiness != nil {
+			return input.ConceptReadiness[id]
+		}
+		dependency := conceptByID[id]
+		return input.ObjectiveReadiness[dependency.ObjectiveID] ||
+			input.Projections[id].Stage >= StageRecall
 	}
 
 	var reviews []SessionItem
@@ -151,8 +170,27 @@ func BuildSession(input SessionInput) (Session, error) {
 		}
 	}
 
+
+	conceptEligible := func(concept curriculum.Concept) bool {
+		if concept.StudyOrder == 0 {
+			return eligible[concept.ObjectiveID]
+		}
+		for _, dependency := range concept.PrerequisiteConceptIDs {
+			if !conceptReady(dependency) {
+				return false
+			}
+		}
+		return true
+	}
 	for _, concept := range input.Bundle.Concepts.Concepts {
-		if !concept.Active || !eligible[concept.ObjectiveID] {
+		if !concept.Active {
+			continue
+		}
+		// A previously started concept remains consolidatable after an upgrade,
+		// even when an earlier foundation is still incomplete.
+		if !conceptEligible(concept) && input.Projections[concept.ID].Stage == StageUnseen {
+			continue
+		}
 			continue
 		}
 		projection, exists := input.Projections[concept.ID]
@@ -196,7 +234,7 @@ func BuildSession(input SessionInput) (Session, error) {
 
 	startedIncompleteObjectives := make(map[string]bool)
 	for _, concept := range input.Bundle.Concepts.Concepts {
-		if !concept.Active || !eligible[concept.ObjectiveID] || input.ObjectiveReadiness[concept.ObjectiveID] {
+		if !concept.Active || !conceptEligible(concept) || input.ObjectiveReadiness[concept.ObjectiveID] {
 			continue
 		}
 		if projection, exists := input.Projections[concept.ID]; exists && projection.Stage != StageUnseen {
@@ -206,10 +244,10 @@ func BuildSession(input SessionInput) (Session, error) {
 
 	var candidates []newCandidate
 	for _, concept := range input.Bundle.Concepts.Concepts {
-		if !concept.Active || !eligible[concept.ObjectiveID] {
+		if !concept.Active || !conceptEligible(concept) {
 			continue
 		}
-		if len(startedIncompleteObjectives) > 0 && !startedIncompleteObjectives[concept.ObjectiveID] {
+		if concept.StudyOrder == 0 && len(startedIncompleteObjectives) > 0 && !startedIncompleteObjectives[concept.ObjectiveID] {
 			continue
 		}
 		if projection, exists := input.Projections[concept.ID]; exists &&
@@ -235,7 +273,14 @@ func BuildSession(input SessionInput) (Session, error) {
 		})
 	}
 
+
 	slices.SortFunc(candidates, func(a, b newCandidate) int {
+		// Authored global pedagogical order comes before exam weight and
+		// recommended prerequisites for the 162 Exam-101 concepts.
+		if a.concept.StudyOrder > 0 && b.concept.StudyOrder > 0 &&
+			a.concept.StudyOrder != b.concept.StudyOrder {
+			return a.concept.StudyOrder - b.concept.StudyOrder
+		}
 		if a.unmetRecommendedCount != b.unmetRecommendedCount {
 			return a.unmetRecommendedCount - b.unmetRecommendedCount
 		}
@@ -260,7 +305,11 @@ func BuildSession(input SessionInput) (Session, error) {
 		}
 		reason := fmt.Sprintf("Nouveau concept: prérequis prêts; priorité d’étude %.3f (poids LPI de l’objectif réparti sur ses concepts internes).", candidate.objectivePriority)
 		reasonCode := "prerequisites-ready"
-		if len(candidate.unmetRecommended) != 0 {
+
+		if candidate.concept.StudyOrder > 0 {
+			reasonCode = "concept-prerequisites-ready"
+			reason = fmt.Sprintf("Nouveau concept: étape pédagogique %d/162; prérequis pratiques validés.", candidate.concept.StudyOrder)
+		} else if len(candidate.unmetRecommended) != 0 {
 			reason = fmt.Sprintf(
 				"Nouveau concept: hard prerequisites satisfaits; prérequis recommandé(s) non prêt(s): %s. Priorité d’étude %.3f; les prérequis recommandés restent prioritaires sur le poids.",
 				strings.Join(candidate.unmetRecommended, ", "),
