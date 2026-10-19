@@ -32,14 +32,14 @@ type workspaceCheck struct {
 }
 
 type workspaceSnapshot struct {
-	LabID      string           `json:"lab_id"`
-	Status     string           `json:"status"`
-	HintLevel  int              `json:"hint_level"`
-	Checks     []workspaceCheck `json:"checks,omitempty"`
-	CheckText  string           `json:"check_text,omitempty"`
-	Checked    bool             `json:"checked"`
-	Passed     bool             `json:"passed"`
-	UpdatedAt  time.Time        `json:"updated_at"`
+	LabID     string           `json:"lab_id"`
+	Status    string           `json:"status"`
+	HintLevel int              `json:"hint_level"`
+	Checks    []workspaceCheck `json:"checks,omitempty"`
+	CheckText string           `json:"check_text,omitempty"`
+	Checked   bool             `json:"checked"`
+	Passed    bool             `json:"passed"`
+	UpdatedAt time.Time        `json:"updated_at"`
 }
 
 type workspacePublisher struct {
