@@ -1524,7 +1524,6 @@ func runInteractiveLabWithBackend(
 	printLab(authored, stdout)
 	fmt.Fprintln(stdout)
 
-	nextHint := nextHintIndex(authored.Hints, highestHintLevel)
 	usedPersistentShell := false
 	reflectionRecorded := false
 	lastLearnerCommand := ""
@@ -1553,7 +1552,6 @@ func runInteractiveLabWithBackend(
 		if level > highestHintLevel {
 			highestHintLevel = level
 		}
-		nextHint = nextHintIndex(authored.Hints, highestHintLevel)
 		return nil
 	}
 
@@ -1727,7 +1725,6 @@ func runInteractiveLabWithBackend(
 		}
 		if persistedHintLevel > highestHintLevel {
 			highestHintLevel = persistedHintLevel
-			nextHint = nextHintIndex(authored.Hints, highestHintLevel)
 		}
 		store, err := openProgressStore(sessionCtx)
 		if err != nil {
@@ -2015,7 +2012,6 @@ func runInteractiveLabWithBackend(
 			}
 			// Reset restores sandbox state only. Disclosure state is persisted
 			// across resets/restarts and remains attached to the learning attempt.
-			nextHint = nextHintIndex(authored.Hints, highestHintLevel)
 			usedPersistentShell = false
 			reflectionRecorded = false
 			lastLearnerCommand = ""
