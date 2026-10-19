@@ -170,6 +170,9 @@ func BuildSession(input SessionInput) (Session, error) {
 	}
 
 	conceptEligible := func(concept curriculum.Concept) bool {
+		if !inScope(concept.ObjectiveID) {
+			return false
+		}
 		if concept.StudyOrder == 0 {
 			return eligible[concept.ObjectiveID]
 		}
