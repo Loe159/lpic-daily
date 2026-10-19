@@ -462,3 +462,29 @@ func TestExistingAdvancedProgressDoesNotHideMissingFileFoundation(t *testing.T) 
 		t.Fatalf("backfill should teach basic files before advancing processes: %#v", session.Items)
 	}
 }
+
+func TestExam101ScopeCannotLeakIntoUnschedulableObjectives(t *testing.T) {
+	bundle := loadBundle(t)
+	now := time.Date(2026, 10, 19, 12, 0, 0, 0, time.UTC)
+	shell := "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes"
+	files := "lpic1.103.3.creation-copie-deplacement-suppression"
+	session, err := learning.BuildSession(learning.SessionInput{
+		Now: now, Bundle: bundle, ConceptReadiness: map[string]bool{shell: true},
+		Projections: map[string]learning.MasteryProjection{
+			shell: {ConceptID: shell, Stage: learning.StageGuided,
+				SuccessfulExposure: 1, SuccessfulRecall: 1, SuccessfulGuided: 1},
+			files: {ConceptID: files, Stage: learning.StageExposed,
+				SuccessfulExposure: 1},
+		},
+		ScopeObjectives: []string{"103.1"},
+		Policy: learning.DefaultSessionPolicy(),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, item := range session.Items {
+		if item.ObjectiveID != "103.1" {
+			t.Fatalf("out-of-scope objective scheduled: %#v", item)
+		}
+	}
+}
