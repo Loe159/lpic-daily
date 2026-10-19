@@ -3,6 +3,6 @@
   "id": "lpic1.103.5.stuck-worker.hint-3",
   "lab_id": "lpic1.103.5.stuck-worker",
   "level": 3,
-  "content_fr": "Écris d'abord le snapshot des deux PID dans /run/lpic/process-inspection. Workflow du probe : foreground, Ctrl-Z, jobs, bg, SIGTERM. Démarre ensuite resilient-worker sous nohup et crée une session tmux détachée nommée ops.",
+  "content_fr": "Lance lpic-signal-probe au premier plan puis Ctrl-Z, jobs et bg, avant SIGTERM. Pour resilient-worker, examine nohup et la redirection des sorties ; tmux sait créer une session détachée.",
   "evidence_impact": "material"
 }

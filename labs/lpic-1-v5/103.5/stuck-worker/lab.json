@@ -2,15 +2,15 @@
   "schema_version": "1.0.0",
   "id": "lpic1.103.5.stuck-worker",
   "title_fr": "Diagnostiquer des jobs et arrêter le bon processus",
-  "brief_fr": "Deux programmes traitent les archives : l’un fonctionne normalement, l’autre ne répond plus. Identifie-les et conserve un état des lieux sous /run/lpic/process-inspection, une ligne par processus avec les colonnes PID, PID parent, état abrégé et commande, séparées par des espaces. Arrête uniquement le programme défectueux. L’équipe souhaite aussi valider qu’une tâche de test peut être suspendue, reprendre en arrière-plan puis être terminée proprement. Enfin, laisse un worker capable de survivre à la fermeture du terminal et une session de maintenance détachée nommée ops.",
+  "brief_fr": "Deux traitements d'archives tournent sur le serveur : healthy-worker et stuck-worker. Leurs PID se trouvent dans /run/lpic/*.pid. Avant toute intervention, enregistre dans /run/lpic/process-inspection une ligne par traitement : PID, PPID, état abrégé, puis ligne de commande complète, séparés par des espaces. Arrête ensuite uniquement le traitement bloqué. Pour vérifier la gestion des jobs dans le terminal Bash déjà ouvert, lance au premier plan l'outil de test /usr/local/bin/lpic-signal-probe ; suspends-le, observe son état avec jobs, reprends-le en arrière-plan et termine-le avec SIGTERM. Enfin, lance /usr/local/bin/resilient-worker de manière à ce qu'il continue après la fermeture du shell, puis crée une session tmux détachée nommée ops.",
   "success_criteria_fr": [
-    "Le worker défectueux est arrêté tandis que le traitement sain reste actif.",
-    "Le relevé /run/lpic/process-inspection contient pour chacun des deux processus une ligne avec PID, PID parent, état abrégé et commande, dans cet ordre et séparés par des espaces.",
-    "La tâche de test a effectivement été suspendue, reprise en arrière-plan puis terminée proprement.",
-    "Un worker reste actif indépendamment du terminal qui l’a lancé.",
-    "Une session de maintenance détachée nommée ops reste accessible."
+    "Avant l'arrêt, /run/lpic/process-inspection conserve une ligne par worker, avec PID, PPID, état abrégé et commande complète.",
+    "stuck-worker est terminé et healthy-worker reste actif.",
+    "lpic-signal-probe est lancé au premier plan, suspendu, repris en arrière-plan puis arrêté par SIGTERM.",
+    "/usr/local/bin/resilient-worker reste actif une fois détaché du terminal.",
+    "Une session tmux nommée ops existe et est détachée."
   ],
-  "debrief_fr": "Le shell suit des jobs et leurs process groups, alors que ps/pgrep observent des processus. Le snapshot demandé oblige à distinguer PID, PPID, état et ligne de commande avant d'agir. Ctrl-Z produit SIGTSTP, jobs expose l'état du job et bg le reprend avec SIGCONT. SIGTERM permet un arrêt propre. nohup protège un processus du SIGHUP de fermeture de session, tandis que tmux conserve une session terminal détachée. La validation combine état final et interaction PTY observée.",
+  "debrief_fr": "Le relevé des processus doit précéder leur arrêt : un zombie perd sa ligne de commande initiale. PID et PPID identifient les processus, stat indique leur état et args conserve la commande complète. Ctrl-Z suspend le job interactif, jobs affiche son état, bg le reprend, et kill -TERM permet un arrêt propre. nohup ignore SIGHUP, tandis que tmux maintient une session détachée.",
   "objective_ids": [
     "103.5"
   ],
@@ -74,23 +74,23 @@
       "argv": [
         "/usr/bin/bash",
         "-lc",
-        "test -s /run/lpic/process-inspection && grep -Eq \"^[[:space:]]*$(cat /run/lpic/healthy-worker.pid)[[:space:]]+[0-9]+[[:space:]]+[A-Z]\" /run/lpic/process-inspection && grep -q healthy-worker /run/lpic/process-inspection && grep -Eq \"^[[:space:]]*$(cat /run/lpic/stuck-worker.pid)[[:space:]]+[0-9]+[[:space:]]+[A-Z]\" /run/lpic/process-inspection && grep -q stuck-worker /run/lpic/process-inspection"
+        "test -s /run/lpic/process-inspection && awk -v h=\"$(cat /run/lpic/healthy-worker.pid)\" -v s=\"$(cat /run/lpic/stuck-worker.pid)\" 'NF >= 4 && $1 ~ /^[0-9]+$/ && $2 ~ /^[0-9]+$/ && $3 ~ /^[A-Z]/ {line=$0; if ($1 == h && line ~ /healthy-worker/) healthy++; if ($1 == s && line ~ /stuck-worker/) stuck++} END {exit !(healthy == 1 && stuck == 1)}' /run/lpic/process-inspection"
       ],
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.5.inspection-arbres-ressources"
       ],
-      "description_fr": "Le relevé /run/lpic/process-inspection contient les deux processus avec PID, PPID, état et commande."
+      "description_fr": "Le relevé contient les deux PID initiaux, leur PPID, leur état et la commande originale, sur deux lignes distinctes."
     },
     {
       "type": "file-content-regex",
-      "path": "/run/lpic/probe-background",
-      "pattern": "^background\\n?$",
+      "path": "/run/lpic/probe-foreground",
+      "pattern": "^foreground\\n?$",
       "concept_ids": [
         "lpic1.103.5.processus-avant-arriere-plan",
         "lpic1.103.5.jobs-du-shell"
       ],
-      "description_fr": "La tâche de test a été exécutée au premier plan."
+      "description_fr": "Le programme de test a été lancé au premier plan."
     },
     {
       "type": "file-content-regex",
@@ -111,6 +111,16 @@
         "lpic1.103.5.signaux"
       ],
       "description_fr": "La tâche de test a repris en arrière-plan."
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/run/lpic/probe-background",
+      "pattern": "^background\\n?$",
+      "concept_ids": [
+        "lpic1.103.5.processus-avant-arriere-plan",
+        "lpic1.103.5.jobs-du-shell"
+      ],
+      "description_fr": "Le programme de test a effectivement repris en arrière-plan."
     },
     {
       "type": "file-content-regex",
@@ -140,16 +150,15 @@
     {
       "type": "command-exit",
       "argv": [
-        "/usr/bin/tmux",
-        "has-session",
-        "-t",
-        "ops"
+        "/usr/bin/bash",
+        "-lc",
+        "tmux has-session -t '=ops' && tmux list-sessions -F '#{session_name} #{session_attached}' | grep -qx 'ops 0'"
       ],
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.5.multiplexeurs-de-terminal"
       ],
-      "description_fr": "La session tmux détachée ops existe."
+      "description_fr": "La session tmux ops existe et n'est attachée à aucun terminal."
     }
   ],
   "hint_ids": [

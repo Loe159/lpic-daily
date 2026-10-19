@@ -3,6 +3,6 @@
   "id": "lpic1.103.5.stuck-worker.hint-4",
   "lab_id": "lpic1.103.5.stuck-worker",
   "level": 4,
-  "content_fr": "Utilise ps -o pid=,ppid=,stat=,comm=,args= sur healthy-worker et stuck-worker vers /run/lpic/process-inspection, puis SIGTERM sur stuck-worker. Dans :shell lance le probe, Ctrl-Z, jobs, bg puis SIGTERM. Ensuite lance resilient-worker avec nohup et crée la session tmux ops.",
+  "content_fr": "Avant de tuer stuck-worker : ps -o pid=,ppid=,stat=,args= -p \"$(cat /run/lpic/healthy-worker.pid),$(cat /run/lpic/stuck-worker.pid)\" > /run/lpic/process-inspection. Lance ensuite /usr/local/bin/lpic-signal-probe au premier plan, Ctrl-Z, jobs, bg, kill -TERM sur son PID. Enfin : nohup /usr/local/bin/resilient-worker >/run/lpic/resilient.log 2>&1 & ; tmux new-session -d -s ops.",
   "evidence_impact": "solution-revealed"
 }
