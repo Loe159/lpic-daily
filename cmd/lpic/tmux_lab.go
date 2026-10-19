@@ -311,16 +311,22 @@ func renderTmuxLabPanel(authored lab.Lab, state labPanelState, width, height, sc
 	}
 	fixed = append(fixed, panelWrapped(authored.Definition.TitleFR, inner)...)
 	fixed = append(fixed, "", fmt.Sprintf("INDICES · %d/%d", state.HintLevel, len(authored.Hints)))
+	var longHintTail []string
 	if state.HintLevel > 0 {
 		for _, hint := range authored.Hints {
 			if hint.Level == state.HintLevel {
-				fixed = append(fixed, panelWrapped(hint.ContentFR, inner)...)
+				lines := panelWrapped(hint.ContentFR, inner)
+				if len(lines) > 5 {
+					longHintTail = append([]string{"SUITE DE L'INDICE"}, lines[5:]...)
+					lines = append(lines[:5], "… suite de l'indice dans la zone défilante")
+				}
+				fixed = append(fixed, lines...)
 			}
 		}
 	} else {
 		fixed = append(fixed, "Aucun indice consulté. :hint dans le shell.")
 	}
-	mission := []string{"", "SITUATION"}
+	mission := append(append([]string(nil), longHintTail...), "", "SITUATION")
 	mission = append(mission, panelWrapped(authored.Definition.BriefFR, inner)...)
 	mission = append(mission, "", "OBJECTIFS")
 	for i, criterion := range authored.Definition.SuccessCriteriaFR {
