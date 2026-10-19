@@ -15,6 +15,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -28,6 +29,7 @@ const (
 	managedLabel                       = "io.lpic-daily.managed"
 	labIDLabel                         = "io.lpic-daily.lab-id"
 	expiresAtLabel                     = "io.lpic-daily.expires-at"
+	ownerProcessLabel                  = "io.lpic-daily.owner-process"
 	abandonedCleanupGrace              = time.Minute
 )
 
@@ -326,6 +328,11 @@ func (backend *Backend) ReapAbandoned(ctx context.Context, now time.Time) error 
 		if now.Before(expiresAt) {
 			continue
 		}
+		// An expired recovery lease must never destroy an actively running lab.
+		// The owner identity includes its /proc start time to prevent PID reuse.
+		if processIdentityIsLive(container.Labels[ownerProcessLabel]) {
+			continue
+		}
 		if strings.TrimSpace(container.ID) == "" {
 			errs = append(errs, errors.New("managed expired container has empty ID"))
 			continue
@@ -383,6 +390,8 @@ func (backend *Backend) create(ctx context.Context, definition runner.Definition
 	if err != nil {
 		return err
 	}
+	// This label is only for abandoned-container recovery. An active lab is
+	// protected by its owning process, even after this timestamp expires.
 	request.Labels[expiresAtLabel] = time.Now().UTC().
 		Add(definition.Timeout + abandonedCleanupGrace).
 		Format(time.RFC3339Nano)
@@ -453,9 +462,13 @@ func buildCreateRequest(definition runner.Definition, name string) (createReques
 		Stdin:        &falseValue,
 		Labels: map[string]string{
 			managedLabel: "true",
-			labIDLabel:   definition.LabID,
+			labIDLabel:        definition.LabID,
+			ownerProcessLabel: currentProcessIdentity(),
 		},
-		Timeout:            uint(definition.Timeout.Seconds()),
+		// The lab has no wall-clock lifetime limit. Command/check operations
+		// remain individually bounded by their own contexts; a Podman timeout
+		// here would terminate the container while the learner is AFK.
+		Timeout:            0,
 		Privileged:         &falseValue,
 		CapAdd:             append([]string(nil), profile.Capabilities...),
 		CapDrop:            []string{"ALL"},
@@ -474,6 +487,48 @@ func buildCreateRequest(definition runner.Definition, name string) (createReques
 			Pids:   &linuxPids{Limit: int64(definition.PIDs)},
 		},
 	}, nil
+}
+
+// Podman containers outlive individual operations. The recovery pass must
+// identify whether the original lab process still owns a container rather
+// than assuming an elapsed timeout means the learner has left.
+func currentProcessIdentity() string {
+	start, err := linuxProcessStartTime(os.Getpid())
+	if err != nil {
+		return ""
+	}
+	return fmt.Sprintf("%d:%d", os.Getpid(), start)
+}
+
+func processIdentityIsLive(identity string) bool {
+	pidText, startText, ok := strings.Cut(identity, ":")
+	if !ok || pidText == "" || startText == "" {
+		return false
+	}
+	pid, err := strconv.Atoi(pidText)
+	if err != nil || pid <= 0 {
+		return false
+	}
+	start, err := linuxProcessStartTime(pid)
+	return err == nil && strconv.FormatUint(start, 10) == startText
+}
+
+func linuxProcessStartTime(pid int) (uint64, error) {
+	data, err := os.ReadFile(fmt.Sprintf("/proc/%d/stat", pid))
+	if err != nil {
+		return 0, err
+	}
+	// Field 2 (comm) is parenthesized and may contain whitespace or ')'.
+	// After its final ')', index 19 is field 22 (starttime, clock ticks).
+	end := strings.LastIndexByte(string(data), ')')
+	if end < 0 {
+		return 0, errors.New("malformed /proc stat: missing command name")
+	}
+	fields := strings.Fields(string(data[end+1:]))
+	if len(fields) <= 19 {
+		return 0, errors.New("malformed /proc stat: missing start time")
+	}
+	return strconv.ParseUint(fields[19], 10, 64)
 }
 
 type statusError struct {
