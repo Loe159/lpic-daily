@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -218,6 +219,9 @@ func runDashboardLab(
 	stdin io.Reader,
 	stdout, stderr io.Writer,
 ) error {
+	if attempted, err := tryTmuxDashboardLab(ctx, authored, stdin, stdout, stderr); attempted {
+		return err
+	}
 	baselineAttempts, err := successfulLabAttemptCount(ctx, authored)
 	if err != nil {
 		return fmt.Errorf("read lab progress before launch: %w", err)
@@ -1105,17 +1109,32 @@ func runLabCommand(args []string, stdin io.Reader, stdout, stderr io.Writer) err
 		printLab(authored, stdout)
 		return nil
 	case "run":
-		if len(args) != 2 && (len(args) != 4 || args[2] != "--check-socket") {
+		if len(args) != 2 && (len(args) != 4 || (args[2] != "--check-socket" && args[2] != "--panel-state")) {
 			return fmt.Errorf("usage: lpic lab run <lab-id>")
 		}
 		authored, err := findLab(labs, args[1])
 		if err != nil {
 			return err
 		}
+		if len(args) == 4 && args[2] == "--panel-state" {
+			if !filepath.IsAbs(args[3]) {
+				return errors.New("lab panel state must be an absolute path")
+			}
+			return runInteractiveLabWithSettings(authored, stdin, stdout, stderr, "", args[3])
+		}
 		if len(args) == 4 {
 			return runInteractiveLabWithSocket(authored, stdin, stdout, stderr, args[3])
 		}
 		return runInteractiveLab(authored, stdin, stdout, stderr)
+	case "panel":
+		if len(args) != 3 || !filepath.IsAbs(args[2]) {
+			return fmt.Errorf("usage: lpic lab panel <lab-id> <absolute-state-file>")
+		}
+		authored, err := findLab(labs, args[1])
+		if err != nil {
+			return err
+		}
+		return runTmuxLabPanel(context.Background(), authored, args[2], stdin, stdout)
 	case "hint":
 		if len(args) != 3 {
 			return fmt.Errorf("usage: lpic lab hint <lab-id> <1-4>")
@@ -1293,8 +1312,15 @@ func runInteractiveLab(authored lab.Lab, stdin io.Reader, stdout, stderr io.Writ
 }
 
 func runInteractiveLabWithSocket(authored lab.Lab, stdin io.Reader, stdout, stderr io.Writer, checkSocketPath string) error {
+	return runInteractiveLabWithSettings(authored, stdin, stdout, stderr, checkSocketPath, "")
+}
+
+func runInteractiveLabWithSettings(authored lab.Lab, stdin io.Reader, stdout, stderr io.Writer, checkSocketPath, panelStatePath string) error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	ctx = context.WithValue(ctx, labCheckSocketKey{}, checkSocketPath)
+	if panelStatePath != "" {
+		ctx = context.WithValue(ctx, labPanelPathKey{}, panelStatePath)
+	}
 	defer stop()
 
 	switch authored.Definition.Environment.Backend {
@@ -1472,6 +1498,14 @@ func runInteractiveLabWithBackend(
 	if err != nil {
 		return fmt.Errorf("load pending lab disclosure: %w", err)
 	}
+	var panelReporter *labPanelReporter
+	if path, ok := sessionCtx.Value(labPanelPathKey{}).(string); ok && path != "" {
+		panelReporter = &labPanelReporter{path: path}
+		if err := panelReporter.update(highestHintLevel, ""); err != nil {
+			return fmt.Errorf("initialize tmux lab panel: %w", err)
+		}
+		defer panelReporter.finish()
+	}
 
 	startCtx, cancelStart := context.WithTimeout(sessionCtx, operationTimeout)
 	session, err := lab.Start(startCtx, authored, backend)
@@ -1530,9 +1564,16 @@ func runInteractiveLabWithBackend(
 		if hint.Level > highestHintLevel {
 			highestHintLevel = hint.Level
 		}
-		fmt.Fprintf(stdout, "Indice %d/4 : %s\n", hint.Level, lpicui.RenderMarkdown(hint.ContentFR))
-		if solutionRevealed {
-			fmt.Fprintln(stdout, "Cet indice révèle la solution et réduira la force de la preuve pratique.")
+		if panelReporter != nil {
+			if err := panelReporter.update(highestHintLevel, ""); err != nil {
+				return fmt.Errorf("refresh tmux panel hint: %w", err)
+			}
+			fmt.Fprintf(stdout, "Indice %d/4 affiché à gauche.\n", hint.Level)
+		} else {
+			fmt.Fprintf(stdout, "Indice %d/4 : %s\n", hint.Level, lpicui.RenderMarkdown(hint.ContentFR))
+			if solutionRevealed {
+				fmt.Fprintln(stdout, "Cet indice révèle la solution et réduira la force de la preuve pratique.")
+			}
 		}
 		return nil
 
@@ -1780,10 +1821,22 @@ func runInteractiveLabWithBackend(
 		}
 		return passed, err
 	}
+	checkForUser := func() (bool, error) {
+		if panelReporter == nil {
+			return runCheck(stdout, false, nil)
+		}
+		var result bytes.Buffer
+		passed, err := runCheck(&result, false, nil)
+		if reportErr := panelReporter.update(highestHintLevel, result.String()); reportErr != nil {
+			return false, fmt.Errorf("refresh tmux panel check: %w", reportErr)
+		}
+		fmt.Fprintln(stdout, "Résultat de vérification mis à jour à gauche.")
+		return passed, err
+	}
 	shellCommands := func(command string) (bool, error) {
 		switch command {
 		case ":check":
-			_, err := runCheck(stdout, false, nil)
+			_, err := checkForUser()
 			// A successful check must not close the child's interactive shell.
 			return false, err
 		case ":hint":
@@ -2004,7 +2057,7 @@ func runInteractiveLabWithBackend(
 			fmt.Fprintln(stdout, "Lab réinitialisé dans son état de départ.")
 			continue
 		case ":check":
-			ok, err := runCheck(stdout, false, nil)
+			ok, err := checkForUser()
 			if err != nil {
 				return err
 			}
