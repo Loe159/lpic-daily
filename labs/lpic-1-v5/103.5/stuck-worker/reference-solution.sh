@@ -13,19 +13,18 @@ cat > /run/lpic/.lpic-reference-job-control.sh <<'LPIC_JOB'
 set -Eeuo pipefail
 trap 'code=$?; printf "job-control failure at line %s (exit %s): %s\n" "$LINENO" "$code" "$BASH_COMMAND" >&2' ERR
 set -m
-# A helper delivers the suspend signal while Bash waits on the foreground job.
+# Start the probe as job %1; foreground it before sending SIGTSTP.
+# The signal helper is job %2 and is not the subject of the exercise.
+/usr/local/bin/lpic-signal-probe &
+probe_pid="$!"
 (
   for i in $(seq 1 250); do
     if [[ -s /run/lpic/probe-ready ]]; then break; fi
     sleep 0.02
   done
-  pid="$(cat /run/lpic/probe-pid)"
-  kill -TSTP "$pid"
+  test -s /run/lpic/probe-ready
+  kill -TSTP "$probe_pid"
 ) &
-/usr/local/bin/lpic-signal-probe &
-probe_pid="$!"
-printf '%s\n' "$probe_pid" > /run/lpic/probe-pid
-# Put the job in the foreground; the helper suspends it.
 fg %1 || true
 test -f /run/lpic/probe-foreground
 test -f /run/lpic/probe-stopped
