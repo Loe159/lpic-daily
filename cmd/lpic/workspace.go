@@ -267,6 +267,11 @@ func renderWorkspacePanel(authored lab.Lab, snapshot workspaceSnapshot, width, h
 			hints = append(hints, workspaceWrap(hint.ContentFR, inner)...)
 		}
 	}
+	// Older revealed hints remain reachable by scrolling the mission body.
+	if snapshot.HintLevel > 0 {
+		mission = append(mission, "", "HISTORIQUE DES INDICES")
+		mission = append(mission, hints...)
+	}
 	hintHeight := topHeight / 3
 	if hintHeight < 2 {
 		hintHeight = 2
