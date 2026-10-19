@@ -123,6 +123,18 @@ func workspaceName(labID string) string {
 	return "lpic-" + hex.EncodeToString(digest[:6])
 }
 
+func validateWorkspacePath(labID, path string) error {
+	root, err := workspaceRoot()
+	if err != nil {
+		return err
+	}
+	expected := filepath.Join(root, workspaceName(labID)+".json")
+	if !filepath.IsAbs(path) || filepath.Clean(path) != expected {
+		return errors.New("workspace state path is outside LPIC Daily's private workspace directory")
+	}
+	return nil
+}
+
 func tmuxExec(ctx context.Context, socket string, stdin io.Reader, stdout, stderr io.Writer, args ...string) error {
 	command := exec.CommandContext(ctx, "tmux", append([]string{"-S", socket}, args...)...)
 	command.Stdin = stdin
