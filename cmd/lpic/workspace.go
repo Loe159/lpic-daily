@@ -243,21 +243,40 @@ func renderWorkspacePanel(authored lab.Lab, snapshot workspaceSnapshot, width, h
 		topHeight = 7
 	}
 	bottomHeight := height - topHeight - 2
-	top := []string{"MISSION  " + strings.Join(authored.Definition.ObjectiveIDs, ", ") + "  ·  " + authored.Definition.Environment.Backend, "", authored.Definition.TitleFR, ""}
-	top = append(top, workspaceWrap(authored.Definition.BriefFR, inner)...)
-	top = append(top, "", "OBJECTIFS")
-	for i, criterion := range authored.Definition.SuccessCriteriaFR {
-		top = append(top, workspaceWrap(fmt.Sprintf("%d. %s", i+1, criterion), inner)...)
+	// The hint area is pinned below the scrollable mission. A long mission
+	// must not hide all available hints below the fold.
+	mission := []string{
+		"MISSION  " + strings.Join(authored.Definition.ObjectiveIDs, ", ") + "  ·  " + authored.Definition.Environment.Backend,
+		authored.Definition.TitleFR,
+		fmt.Sprintf("OBJECTIFS (%d) · j/k pour défiler", len(authored.Definition.SuccessCriteriaFR)),
+		"",
+		"SITUATION",
 	}
-	top = append(top, "", fmt.Sprintf("INDICES  %d/%d", snapshot.HintLevel, len(authored.Hints)))
+	mission = append(mission, workspaceWrap(authored.Definition.BriefFR, inner)...)
+	mission = append(mission, "", "RÉSULTATS ATTENDUS")
+	for i, criterion := range authored.Definition.SuccessCriteriaFR {
+		mission = append(mission, workspaceWrap(fmt.Sprintf("%d. %s", i+1, criterion), inner)...)
+	}
+	hints := []string{fmt.Sprintf("INDICES  %d/%d", snapshot.HintLevel, len(authored.Hints))}
 	if snapshot.HintLevel == 0 {
-		top = append(top, "Aucun indice révélé. :hint dans le shell.")
+		hints = append(hints, "Aucun indice révélé. :hint dans le shell.")
 	}
 	for _, hint := range authored.Hints {
 		if hint.Level <= snapshot.HintLevel {
-			top = append(top, fmt.Sprintf("Indice %d", hint.Level))
-			top = append(top, workspaceWrap(hint.ContentFR, inner)...)
+			hints = append(hints, fmt.Sprintf("Indice %d", hint.Level))
+			hints = append(hints, workspaceWrap(hint.ContentFR, inner)...)
 		}
+	}
+	hintHeight := topHeight / 3
+	if hintHeight < 2 {
+		hintHeight = 2
+	}
+	if hintHeight > len(hints) {
+		hintHeight = len(hints)
+	}
+	missionHeight := topHeight - hintHeight - 1
+	if missionHeight < 4 {
+		missionHeight = 4
 	}
 	checks := []string{"VÉRIFICATION"}
 	if !snapshot.Checked {
@@ -295,7 +314,11 @@ func renderWorkspacePanel(authored lab.Lab, snapshot workspaceSnapshot, width, h
 	}
 	var b strings.Builder
 	b.WriteString("\x1b[?25l\x1b[H\x1b[2J")
-	renderWorkspaceSection(&b, top, width, topHeight, topScroll)
+	renderWorkspaceSection(&b, mission, width, missionHeight, topScroll)
+	b.WriteString(strings.Repeat("·", width-1) + "\r\n")
+	// Keep the newest hints visible when all four have been disclosed.
+	hintOffset := len(hints) - hintHeight
+	renderWorkspaceSection(&b, hints, width, hintHeight, hintOffset)
 	b.WriteString(strings.Repeat("─", width-1) + "\r\n")
 	renderWorkspaceSection(&b, checks, width, bottomHeight, checkScroll)
 	b.WriteString("\x1b[7m" + workspaceFit(" j/k : consigne · J/K : checks · q : fermer le panneau ", width-1) + "\x1b[0m")
