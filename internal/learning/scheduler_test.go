@@ -281,7 +281,7 @@ func TestStartedObjectiveKeepsFocusUntilComplete(t *testing.T) {
 	}
 }
 
-func TestRecommendedPrerequisitesRankButDoNotBlock(t *testing.T) {
+func TestPedagogicalOrderPrioritizesFilePermissionsBeforeProcesses(t *testing.T) {
 	bundle := loadBundle(t)
 	now := time.Date(2026, 9, 27, 3, 0, 0, 0, time.UTC)
 
@@ -299,8 +299,8 @@ func TestRecommendedPrerequisitesRankButDoNotBlock(t *testing.T) {
 	if len(session.Items) != 1 {
 		t.Fatalf("items = %#v, want one new concept", session.Items)
 	}
-	if session.Items[0].ObjectiveID != "103.5" {
-		t.Fatalf("selected objective = %s, want 103.5 because 104.5 has unmet recommended 103.3", session.Items[0].ObjectiveID)
+	if session.Items[0].ObjectiveID != "104.5" {
+		t.Fatalf("selected objective = %s, want 104.5 before 103.5 in pedagogical order", session.Items[0].ObjectiveID)
 	}
 
 	onlyPermissions, err := learning.BuildSession(learning.SessionInput{
