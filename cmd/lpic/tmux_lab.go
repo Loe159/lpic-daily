@@ -280,6 +280,25 @@ func panelWrapped(text string, width int) []string {
 	return strings.Split(labWrap(lpicui.SanitizeText(text), width), "\n")
 }
 
+func tmuxPanelColor(line string) string {
+	if os.Getenv("NO_COLOR") != "" {
+		return line
+	}
+	switch {
+	case strings.HasPrefix(line, "MISSION"), strings.HasPrefix(line, "OBJECTIFS"),
+		strings.HasPrefix(line, "INDICES"), strings.HasPrefix(line, "VÉRIFICATION"),
+		strings.HasPrefix(line, "RÉSULTAT"):
+		return "\x1b[1;36m" + line + "\x1b[0m"
+	case strings.HasPrefix(line, "✗"), strings.HasPrefix(line, "À CORRIGER"),
+		strings.HasPrefix(line, "ERREUR"):
+		return "\x1b[1;31m" + line + "\x1b[0m"
+	case strings.HasPrefix(line, "✓"), strings.HasPrefix(line, "VALIDÉ"):
+		return "\x1b[1;32m" + line + "\x1b[0m"
+	default:
+		return line
+	}
+}
+
 func renderTmuxLabPanel(authored lab.Lab, state labPanelState, width, height, scroll int) string {
 	if width < 20 || height < 10 {
 		return "Agrandis le terminal pour afficher le lab.\n"
@@ -354,7 +373,7 @@ func renderTmuxLabPanel(authored lab.Lab, state labPanelState, width, height, sc
 	}
 	var out strings.Builder
 	for _, line := range top {
-		fmt.Fprintf(&out, "  %s\n", line)
+		fmt.Fprintf(&out, "  %s\n", tmuxPanelColor(line))
 	}
 	for i := len(top); i < topMax; i++ {
 		out.WriteString("\n")
@@ -362,7 +381,7 @@ func renderTmuxLabPanel(authored lab.Lab, state labPanelState, width, height, sc
 	out.WriteString(strings.Repeat("─", width-1))
 	out.WriteString("\n")
 	for _, line := range bottom {
-		fmt.Fprintf(&out, "  %s\n", line)
+		fmt.Fprintf(&out, "  %s\n", tmuxPanelColor(line))
 	}
 	return out.String()
 }
