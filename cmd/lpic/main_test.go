@@ -782,7 +782,7 @@ func TestFailedLabCheckRecordsConceptGranularEvidence(t *testing.T) {
 	}
 	if strings.Contains(checkOutput, authored.Definition.ID+".check-") ||
 		!strings.Contains(checkOutput, "À CORRIGER") ||
-		!strings.Contains(checkOutput, "Les nouvelles entrées du dossier conservent le groupe project.") {
+		!strings.Contains(checkOutput, "Les permissions de /srv/shared réservent l’accès à project, transmettent le groupe et protègent les suppressions entre membres.") {
 		t.Fatalf("check output should show human-readable criteria without technical IDs: %q", checkOutput)
 	}
 
