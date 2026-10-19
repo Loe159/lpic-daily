@@ -59,7 +59,7 @@
       "concept_ids": [
         "lpic1.104.5.permissions-rwx-fichier-dossier"
       ],
-      "description_fr": "Les membres de project peuvent lire et écrire dans /srv/shared, sans accès pour les autres utilisateurs et sans pouvoir supprimer les fichiers d’un collègue."
+      "description_fr": "Le chemin /srv/shared existe."
     },
     {
       "type": "command-exit",
@@ -72,7 +72,7 @@
       "concept_ids": [
         "lpic1.104.5.permissions-rwx-fichier-dossier"
       ],
-      "description_fr": "Les membres de project peuvent lire et écrire dans /srv/shared, sans accès pour les autres utilisateurs et sans pouvoir supprimer les fichiers d’un collègue."
+      "description_fr": "Le chemin /srv/shared est un répertoire."
     },
     {
       "type": "file-owner",
@@ -82,7 +82,7 @@
       "concept_ids": [
         "lpic1.104.5.proprietaire-groupe"
       ],
-      "description_fr": "Les nouvelles entrées du dossier conservent le groupe project."
+      "description_fr": "Le répertoire /srv/shared appartient au groupe project."
     },
     {
       "type": "file-mode",
@@ -94,7 +94,7 @@
         "lpic1.104.5.sticky-bit",
         "lpic1.104.5.effets-speciaux-sur-repertoires"
       ],
-      "description_fr": "Les nouvelles entrées du dossier conservent le groupe project."
+      "description_fr": "Les permissions de /srv/shared réservent l’accès à project, transmettent le groupe et protègent les suppressions entre membres."
     },
     {
       "type": "file-owner",
@@ -105,7 +105,7 @@
         "lpic1.104.5.proprietaire-groupe",
         "lpic1.104.5.sgid"
       ],
-      "description_fr": "La nouvelle session de root crée team-note avec des droits 0660 et le groupe project."
+      "description_fr": "Le fichier /srv/shared/team-note appartient au groupe project."
     },
     {
       "type": "file-mode",
@@ -116,7 +116,7 @@
         "lpic1.104.5.permissions-rwx-fichier-dossier",
         "lpic1.104.5.notation-symbolique-octale"
       ],
-      "description_fr": "La nouvelle session de root crée team-note avec des droits 0660 et le groupe project."
+      "description_fr": "team-note est lisible et modifiable par son propriétaire et son groupe, mais pas par les autres."
     },
     {
       "type": "file-mode",
@@ -142,7 +142,7 @@
         "lpic1.104.5.umask"
       ],
       "timeout_seconds": 10,
-      "description_fr": "Le umask 0007 produit les permissions attendues sur un nouveau fichier."
+      "description_fr": "Le umask 0007 du shell root donne des permissions 0660 à un nouveau fichier dans /srv/shared."
     },
     {
       "type": "command-exit",
@@ -158,7 +158,7 @@
         "lpic1.104.5.effets-speciaux-sur-repertoires",
         "lpic1.104.5.proprietaire-groupe"
       ],
-      "description_fr": "La transmission du groupe et la protection contre la suppression sont démontrées avec deux membres différents."
+      "description_fr": "Alice et Bob peuvent créer des fichiers avec le groupe project ; Alice ne peut pas supprimer celui de Bob."
     }
   ],
   "hint_ids": [
