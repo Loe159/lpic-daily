@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/Loe159/lpic-daily/internal/activity"
 	"github.com/Loe159/lpic-daily/internal/learning"
