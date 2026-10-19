@@ -17,8 +17,8 @@ import (
 	"time"
 
 	lpicdaily "github.com/Loe159/lpic-daily"
-	"github.com/Loe159/lpic-daily/internal/appstate"
 	"github.com/Loe159/lpic-daily/internal/activity"
+	"github.com/Loe159/lpic-daily/internal/appstate"
 	"github.com/Loe159/lpic-daily/internal/assessment"
 	"github.com/Loe159/lpic-daily/internal/bootstrap"
 	"github.com/Loe159/lpic-daily/internal/content"
