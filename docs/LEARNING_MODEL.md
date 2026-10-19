@@ -88,7 +88,7 @@ LPIC objective numbers are reporting identifiers, not the teaching sequence.
 - hard prerequisites: eligibility;
 - recommended prerequisites: ranking only.
 
-Concept-to-concept dependencies are added only where actual authored content demonstrates a dependency.
+Exam 101 uses an authored, unique global `study_order` for all 162 concepts and focused `prerequisite_concept_ids`: elementary filesystem operations follow the first shell foundation, before signals and advanced processes. A dependency becomes ready only after **successful lesson, question and practical evidence** for that specific concept. This avoids locking all of 103.3 behind completion of every 103.1 concept. Already recorded evidence is retained, due reviews take precedence and unfinished concepts still require full consolidation. Exam 102 continues to use objective-level prerequisites until its learning-order migration.
 
 ## Interleaving and transfer
 Later practice combines concepts across objectives. A learner who passed a tool in isolation should encounter it naturally in logs, permissions, networking, services or incidents.
