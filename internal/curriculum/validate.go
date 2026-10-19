@@ -143,6 +143,7 @@ func Validate(bundle *Bundle) error {
 			errs = append(errs, fmt.Errorf("concept %s inherited prerequisites drift", concept.ID))
 		}
 	}
+	errs = append(errs, validateConceptLearningGraph(conceptByID, objectiveByID)...)
 	expectedConcepts := 0
 	for _, objective := range active {
 		expectedConcepts += len(objective.Concepts)
@@ -240,6 +241,72 @@ func Validate(bundle *Bundle) error {
 	}
 
 	return errors.Join(errs...)
+}
+
+func validateConceptLearningGraph(concepts map[string]Concept, objectives map[string]Objective) []error {
+	var errs []error
+	orders := make(map[int]string, 162)
+	for id, concept := range concepts {
+		if !concept.Active {
+			continue
+		}
+		if objectives[concept.ObjectiveID].Exam == "101" {
+			if concept.StudyOrder < 1 || concept.StudyOrder > 162 {
+				errs = append(errs, fmt.Errorf("%s has invalid Exam-101 study_order %d", id, concept.StudyOrder))
+			} else if previous, exists := orders[concept.StudyOrder]; exists {
+				errs = append(errs, fmt.Errorf("study_order %d is shared by %s and %s", concept.StudyOrder, previous, id))
+			} else {
+				orders[concept.StudyOrder] = id
+			}
+		} else if concept.StudyOrder != 0 {
+			errs = append(errs, fmt.Errorf("%s: study_order is reserved for Exam 101", id))
+		}
+		seen := make(map[string]bool)
+		for _, prerequisite := range concept.PrerequisiteConceptIDs {
+			dependency, exists := concepts[prerequisite]
+			if !exists || !dependency.Active {
+				errs = append(errs, fmt.Errorf("%s has unknown or inactive concept prerequisite %s", id, prerequisite))
+				continue
+			}
+			if prerequisite == id || seen[prerequisite] {
+				errs = append(errs, fmt.Errorf("%s has self or duplicate prerequisite %s", id, prerequisite))
+			}
+			if concept.StudyOrder > 0 && dependency.StudyOrder == 0 {
+				errs = append(errs, fmt.Errorf("%s depends on concept outside Exam 101: %s", id, prerequisite))
+			}
+			seen[prerequisite] = true
+		}
+	}
+	for order := 1; order <= 162; order++ {
+		if _, ok := orders[order]; !ok {
+			errs = append(errs, fmt.Errorf("Exam-101 study_order %d is missing", order))
+		}
+	}
+	state := make(map[string]uint8, len(concepts))
+	var visit func(string) bool
+	visit = func(id string) bool {
+		if state[id] == 1 {
+			return false
+		}
+		if state[id] == 2 {
+			return true
+		}
+		state[id] = 1
+		for _, dependency := range concepts[id].PrerequisiteConceptIDs {
+			if _, exists := concepts[dependency]; exists && !visit(dependency) {
+				return false
+			}
+		}
+		state[id] = 2
+		return true
+	}
+	for id := range concepts {
+		if state[id] == 0 && !visit(id) {
+			errs = append(errs, fmt.Errorf("concept prerequisite graph has a cycle involving %s", id))
+			break
+		}
+	}
+	return errs
 }
 
 func validateExamScope(

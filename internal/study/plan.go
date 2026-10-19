@@ -95,6 +95,24 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 		projections[conceptID] = projection
 	}
 
+	conceptReadiness := make(map[string]bool, len(evidenceByConcept))
+	for conceptID, events := range evidenceByConcept {
+		lesson, quiz, practical := false, false, false
+		for _, event := range events {
+			if event.Result != learning.ResultPass {
+				continue
+			}
+			switch event.ActivityKind {
+			case learning.ActivityLesson:
+				lesson = true
+			case learning.ActivityQuestion:
+				quiz = true
+			case learning.ActivityLab:
+				practical = true
+			}
+		}
+		conceptReadiness[conceptID] = lesson && quiz && practical
+	}
 	readiness := completeObjectiveReadiness(input.Curriculum, scopeConcepts, evidenceByConcept)
 	activeScopeObjectives := examProgressionScope(input.Curriculum, scopeObjectives, readiness)
 
@@ -103,6 +121,7 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 		Bundle:             input.Curriculum,
 		Projections:        projections,
 		ObjectiveReadiness: readiness,
+		ConceptReadiness:   conceptReadiness,
 		ScopeObjectives:    activeScopeObjectives,
 		Policy:             input.Policy,
 	})

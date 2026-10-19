@@ -1331,3 +1331,49 @@ func TestExportUnsetConceptPrefersAcceptedEnvironmentBoundaryLab(t *testing.T) {
 	}
 	t.Fatalf("plan = %#v, want due review for %s", plan.Items, conceptID)
 }
+
+func TestFirstShellConceptUnlocksFileOperationsWithoutFinishing1031(t *testing.T) {
+	curriculumBundle, contentBundle, labs := loadInputs(t)
+	now := time.Date(2026, 10, 19, 12, 0, 0, 0, time.UTC)
+	shell := "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes"
+	files := "lpic1.103.3.creation-copie-deplacement-suppression"
+	evidence := memoryEvidence{
+		shell: {
+			{EventID: "lesson", OccurredAt: now, ConceptID: shell, ObjectiveIDs: []string{"103.1"},
+				SourceItemID: "test-lesson", ActivityKind: learning.ActivityLesson,
+				EvidenceKind: learning.EvidenceExposure, Result: learning.ResultPass,
+				Distribution: "generic", AttemptIndex: 1},
+			{EventID: "quiz", OccurredAt: now, ConceptID: shell, ObjectiveIDs: []string{"103.1"},
+				SourceItemID: "test-quiz", ActivityKind: learning.ActivityQuestion,
+				EvidenceKind: learning.EvidenceRecall, Result: learning.ResultPass,
+				Distribution: "generic", AttemptIndex: 1},
+		},
+	}
+	build := func() study.Plan {
+		t.Helper()
+		plan, err := study.BuildPlan(context.Background(), study.PlanInput{
+			Now: now, Curriculum: curriculumBundle, Content: contentBundle, Labs: labs,
+			Evidence: evidence, Policy: learning.DefaultSessionPolicy(),
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		return plan
+	}
+	before := build()
+	if len(before.Items) != 1 || before.Items[0].ConceptID != shell ||
+		before.Items[0].Kind != learning.SessionPractice {
+		t.Fatalf("before shell lab pass: expected consolidation, got %#v", before.Items)
+	}
+	evidence[shell] = append(evidence[shell], learning.EvidenceEvent{
+		EventID: "lab", OccurredAt: now, ConceptID: shell, ObjectiveIDs: []string{"103.1"},
+		SourceItemID: "test-lab", ActivityKind: learning.ActivityLab,
+		EvidenceKind: learning.EvidenceGuidedPractice, Result: learning.ResultPass,
+		Distribution: "generic", PracticeContext: "test-shell", AttemptIndex: 1,
+	})
+	after := build()
+	if len(after.Items) != 1 || after.Items[0].Kind != learning.SessionNew ||
+		after.Items[0].ConceptID != files {
+		t.Fatalf("first complete shell concept should unlock cp/mv/touch/mkdir before full 103.1: %#v", after.Items)
+	}
+}

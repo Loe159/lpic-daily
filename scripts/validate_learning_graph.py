@@ -124,6 +124,43 @@ def main():
                 f"{concept['id']}: inherited hard prerequisites drift; expected {expected}, got {inherited}"
             )
 
+    # Every Exam-101 concept has a stable global teaching rank. The authored
+    # concept graph must remain acyclic and must not jump into Exam 102.
+    exam_by_objective = {row["id"]: row["exam"] for row in active}
+    concept_by_id = {row["id"]: row for row in concept_rows}
+    exam101 = [row for row in concept_rows if exam_by_objective.get(row["objective_id"]) == "101"]
+    ranks = [row.get("study_order") for row in exam101]
+    if len(exam101) != 162 or sorted(r for r in ranks if isinstance(r, int)) != list(range(1, 163)):
+        errors.append("Exam 101 requires unique, complete study_order ranks 1..162")
+    for concept in concept_rows:
+        concept_id = concept["id"]
+        for dependency in concept.get("prerequisite_concept_ids", []):
+            target = concept_by_id.get(dependency)
+            if target is None or not target.get("active"):
+                errors.append(f"{concept_id}: invalid concept prerequisite {dependency}")
+            elif exam_by_objective.get(concept["objective_id"]) == "101" and exam_by_objective.get(target["objective_id"]) != "101":
+                errors.append(f"{concept_id}: prerequisite {dependency} is outside Exam 101")
+            if dependency == concept_id:
+                errors.append(f"{concept_id}: self prerequisite")
+        if len(concept.get("prerequisite_concept_ids", [])) != len(set(concept.get("prerequisite_concept_ids", []))):
+            errors.append(f"{concept_id}: duplicate concept prerequisite")
+    state = {}
+    def visit_concept(concept_id):
+        if state.get(concept_id) == 1:
+            return False
+        if state.get(concept_id) == 2:
+            return True
+        state[concept_id] = 1
+        for dep in concept_by_id[concept_id].get("prerequisite_concept_ids", []):
+            if dep in concept_by_id and not visit_concept(dep):
+                return False
+        state[concept_id] = 2
+        return True
+    for concept_id in concept_by_id:
+        if not state.get(concept_id) and not visit_concept(concept_id):
+            errors.append(f"concept prerequisite graph cycle at {concept_id}")
+            break
+
     for objective in active:
         rows = concepts_by_objective[objective["id"]]
         expected_titles = objective["concepts"]

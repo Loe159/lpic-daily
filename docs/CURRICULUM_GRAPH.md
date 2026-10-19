@@ -8,6 +8,8 @@ Les numéros LPIC décrivent le syllabus, pas un ordre pédagogique optimal. Le 
 
 Le graphe couvre les **42 objectifs actifs LPIC-1 v5.0**. Les notions internes sont décomposées en **309 concept IDs stables** dans `curriculum/lpic-1-v5/concepts.json`.
 
+Pour les **162 concepts de l'examen 101**, chaque entrée possède désormais un `study_order` global (1–162) et des `prerequisite_concept_ids` ciblés. Le planificateur privilégie cet ordre **après vérification des dépendances entre concepts** ; il n'attend pas que tous les concepts de l'objectif parent soient terminés. Pour l'examen 102, les anciennes dépendances d'objectifs restent applicables.
+
 ## Deux types d'arêtes
 
 ### Hard prerequisite
@@ -61,7 +63,9 @@ Un objective est trop grossier pour piloter la maîtrise. Chaque entrée de `con
 - un ordre pédagogique local indicatif;
 - les hard prerequisites hérités de l'objectif.
 
-Les dépendances concept-to-concept fines seront ajoutées seulement quand le contenu réel le justifie. On évite ainsi d'inventer 295 relations spéculatives avant les lessons/labs.
+Les dépendances fines sont déclarées dans `prerequisite_concept_ids`. Elles exigent un **cours, un quiz et un lab réussis** pour le concept prérequis, mais pas pour chaque concept de son objectif parent. L'ordre global `study_order` est une **préférence**, pas une dépendance obligatoire : une notion déjà validée est sautée, et les révisions dues restent prioritaires.
+
+Exemple de progression initiale : `103.1` (syntaxe shell) → `103.3` (création/copie/déplacement/suppression, notamment `mkdir`, `touch`, `cp`, `mv`) → `104.7` (répertoires FHS), puis documentation et environnement shell, filtres, permissions et processus. Les 162 rangs sont complets, uniques et vérifiés, et les dépendances conceptuelles sont vérifiées sans cycle. Les concepts déjà acquis sont conservés sans effacer les preuves.
 
 ## Invariants
 

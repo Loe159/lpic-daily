@@ -80,6 +80,7 @@ type Concept struct {
 	ObjectiveID                         string   `json:"objective_id"`
 	TitleFR                             string   `json:"title_fr"`
 	PedagogyOrder                       int      `json:"pedagogy_order"`
+	StudyOrder                          int      `json:"study_order,omitempty"`
 	InheritedHardObjectivePrerequisites []string `json:"inherited_hard_objective_prerequisites"`
 	PrerequisiteConceptIDs              []string `json:"prerequisite_concept_ids,omitempty"`
 	AnchorTerms                         []string `json:"anchor_terms"`
