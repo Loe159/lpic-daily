@@ -1315,7 +1315,14 @@ func runInteractiveLabWithSocket(authored lab.Lab, stdin io.Reader, stdout, stde
 	return runInteractiveLabWithSettings(authored, stdin, stdout, stderr, checkSocketPath, "")
 }
 
-func runInteractiveLabWithSettings(authored lab.Lab, stdin io.Reader, stdout, stderr io.Writer, checkSocketPath, panelStatePath string) error {
+func runInteractiveLabWithSettings(authored lab.Lab, stdin io.Reader, stdout, stderr io.Writer, checkSocketPath, panelStatePath string) (runErr error) {
+	if panelStatePath != "" {
+		defer func() {
+			if err := finishTmuxLabPanel(panelStatePath, runErr); err != nil && runErr == nil {
+				runErr = fmt.Errorf("finalize tmux lab panel: %w", err)
+			}
+		}()
+	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	ctx = context.WithValue(ctx, labCheckSocketKey{}, checkSocketPath)
 	if panelStatePath != "" {
