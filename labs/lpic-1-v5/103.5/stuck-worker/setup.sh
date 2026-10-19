@@ -9,8 +9,8 @@ set -u
 
 record_foreground() {
     local own_pgid terminal_pgid
-    own_pgid="$(ps -o pgid= -p "$" | tr -d ' ')"
-    terminal_pgid="$(ps -o tpgid= -p "$" | tr -d ' ')"
+    own_pgid="$(ps -o pgid= -p "$$" | tr -d ' ')"
+    terminal_pgid="$(ps -o tpgid= -p "$$" | tr -d ' ')"
     if [[ -n "$own_pgid" && "$own_pgid" == "$terminal_pgid" ]]; then
         printf 'foreground\n' > /run/lpic/probe-foreground
     fi
