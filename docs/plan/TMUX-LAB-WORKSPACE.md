@@ -1,6 +1,6 @@
 # Plan d'implémentation — espace lab tmux (maquette B)
 
-Statut : **conception validée par le responsable du projet le 19 octobre 2026 ; implémentation non commencée**.
+Statut : **première implémentation dans la PR #56 (2026-10-19), tests Go/CI et validation manuelle tmux/PTY requis avant acceptation.** La présente note conserve le périmètre cible et les étapes de validation ; certains perfectionnements sont encore à valider sur un hôte interactif.
 
 ## Objectif / résultat utilisateur
 
