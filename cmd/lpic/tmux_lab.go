@@ -162,7 +162,7 @@ func tryTmuxDashboardLab(ctx context.Context, authored lab.Lab, stdin io.Reader,
 			_ = os.RemoveAll(dir)
 		}
 	}()
-	panelArgs := []string{"new-session", "-d", "-s", session, "-n", "lab", "-x", strconv.Itoa(width), "-y", strconv.Itoa(height), "--",
+	panelArgs := []string{"new-session", "-d", "-s", session, "-n", "lab", "-x", strconv.Itoa(int(width)), "-y", strconv.Itoa(int(height)), "--",
 		binary, "lab", "panel", authored.Definition.ID, stateFile}
 	if err := tmuxRun(ctx, panelArgs...); err != nil {
 		fmt.Fprintf(stderr, "Interface tmux indisponible, retour au mode classique : %v\n", err)
@@ -245,7 +245,7 @@ func runTmuxLabPanel(ctx context.Context, authored lab.Lab, stateFile string, st
 		if err != nil {
 			return err
 		}
-		frame := renderTmuxLabPanel(authored, state, width, height, scroll)
+		frame := renderTmuxLabPanel(authored, state, int(width), int(height), scroll)
 		if frame != prev {
 			fmt.Fprint(stdout, "\x1b[H\x1b[2J", frame)
 			prev = frame
