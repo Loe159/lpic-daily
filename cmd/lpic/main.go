@@ -218,6 +218,12 @@ func runDashboardLab(
 	stdin io.Reader,
 	stdout, stderr io.Writer,
 ) error {
+	if os.Getenv("LPIC_DAILY_DISABLE_TMUX") != "1" {
+		used, err := runTmuxLabWorkspace(ctx, authored, stdin, stdout, stderr)
+		if used {
+			return err
+		}
+	}
 	baselineAttempts, err := successfulLabAttemptCount(ctx, authored)
 	if err != nil {
 		return fmt.Errorf("read lab progress before launch: %w", err)
@@ -1105,17 +1111,36 @@ func runLabCommand(args []string, stdin io.Reader, stdout, stderr io.Writer) err
 		printLab(authored, stdout)
 		return nil
 	case "run":
-		if len(args) != 2 && (len(args) != 4 || args[2] != "--check-socket") {
+		if len(args) != 2 && (len(args) != 4 ||
+			(args[2] != "--check-socket" && args[2] != "--workspace-state")) {
 			return fmt.Errorf("usage: lpic lab run <lab-id>")
 		}
 		authored, err := findLab(labs, args[1])
 		if err != nil {
 			return err
 		}
+		if len(args) == 4 && args[2] == "--workspace-state" {
+			if err := validateWorkspacePath(authored.Definition.ID, args[3]); err != nil {
+				return err
+			}
+			return runInteractiveLabWithOptions(authored, stdin, stdout, stderr, "", args[3])
+		}
 		if len(args) == 4 {
 			return runInteractiveLabWithSocket(authored, stdin, stdout, stderr, args[3])
 		}
 		return runInteractiveLab(authored, stdin, stdout, stderr)
+	case "panel":
+		if len(args) != 3 {
+			return fmt.Errorf("usage: lpic lab panel <lab-id> <state-path>")
+		}
+		authored, err := findLab(labs, args[1])
+		if err != nil {
+			return err
+		}
+		if err := validateWorkspacePath(authored.Definition.ID, args[2]); err != nil {
+			return err
+		}
+		return runWorkspacePanel(authored, args[2], stdin, stdout)
 	case "hint":
 		if len(args) != 3 {
 			return fmt.Errorf("usage: lpic lab hint <lab-id> <1-4>")
@@ -1293,9 +1318,33 @@ func runInteractiveLab(authored lab.Lab, stdin io.Reader, stdout, stderr io.Writ
 }
 
 func runInteractiveLabWithSocket(authored lab.Lab, stdin io.Reader, stdout, stderr io.Writer, checkSocketPath string) error {
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	return runInteractiveLabWithOptions(authored, stdin, stdout, stderr, checkSocketPath, "")
+}
+
+func runInteractiveLabWithOptions(authored lab.Lab, stdin io.Reader, stdout, stderr io.Writer, checkSocketPath, workspacePath string) (runErr error) {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)
 	ctx = context.WithValue(ctx, labCheckSocketKey{}, checkSocketPath)
+	ctx = context.WithValue(ctx, labWorkspaceKey{}, workspacePath)
 	defer stop()
+	if workspacePath != "" {
+		if err := writeWorkspaceSnapshot(workspacePath, workspaceSnapshot{
+			LabID: authored.Definition.ID, Status: "starting",
+		}); err != nil {
+			return fmt.Errorf("initialize lab workspace: %w", err)
+		}
+		defer func() {
+			state, err := readWorkspaceSnapshot(workspacePath)
+			if err != nil || state.Status != "starting" {
+				return
+			}
+			state.Status = "ended"
+			if runErr != nil {
+				state.Checked = true
+				state.CheckText = "Le lab n'a pas démarré : " + runErr.Error()
+			}
+			_ = writeWorkspaceSnapshot(workspacePath, state)
+		}()
+	}
 
 	switch authored.Definition.Environment.Backend {
 	case "podman":
@@ -1487,8 +1536,30 @@ func runInteractiveLabWithBackend(
 		}
 	}()
 
-	printLab(authored, stdout)
-	fmt.Fprintln(stdout)
+	var workspace *workspacePublisher
+	if path, ok := sessionCtx.Value(labWorkspaceKey{}).(string); ok && path != "" {
+		workspace = &workspacePublisher{
+			path: path,
+			state: workspaceSnapshot{
+				LabID:     authored.Definition.ID,
+				Status:    "ready",
+				HintLevel: highestHintLevel,
+			},
+		}
+		if err := workspace.update(func(*workspaceSnapshot) {}); err != nil {
+			return fmt.Errorf("initialize tmux workspace: %w", err)
+		}
+		defer func() {
+			if err := workspace.update(func(state *workspaceSnapshot) {
+				state.Status = "ended"
+			}); err != nil {
+				fmt.Fprintln(stderr, "warning: update tmux workspace:", err)
+			}
+		}()
+	} else {
+		printLab(authored, stdout)
+		fmt.Fprintln(stdout)
+	}
 
 	nextHint := nextHintIndex(authored.Hints, highestHintLevel)
 	usedPersistentShell := false
@@ -1509,6 +1580,7 @@ func runInteractiveLabWithBackend(
 	scanner.Buffer(make([]byte, 4096), 256<<10)
 	shellCompleted := false
 	shellQuit := false
+	resetRequested := false
 	var checkMu sync.Mutex
 	labSucceeded := false
 	showHint := func() error {
@@ -1530,8 +1602,16 @@ func runInteractiveLabWithBackend(
 		if hint.Level > highestHintLevel {
 			highestHintLevel = hint.Level
 		}
-		fmt.Fprintf(stdout, "Indice %d/4 : %s\n", hint.Level, lpicui.RenderMarkdown(hint.ContentFR))
-		if solutionRevealed {
+		if workspace != nil {
+			if err := workspace.update(func(state *workspaceSnapshot) {
+				state.HintLevel = hint.Level
+			}); err != nil {
+				return fmt.Errorf("update tmux hints: %w", err)
+			}
+		} else {
+			fmt.Fprintf(stdout, "Indice %d/4 : %s\n", hint.Level, lpicui.RenderMarkdown(hint.ContentFR))
+		}
+		if solutionRevealed && workspace == nil {
 			fmt.Fprintln(stdout, "Cet indice révèle la solution et réduira la force de la preuve pratique.")
 		}
 		return nil
@@ -1642,6 +1722,7 @@ func runInteractiveLabWithBackend(
 		failedCount := 0
 		var passedLines []string
 		var failedLines []string
+		var workspaceChecks []workspaceCheck
 		for index, result := range results {
 			description := "État du système conforme"
 			if index < len(authored.Definition.Checks) {
@@ -1671,6 +1752,7 @@ func runInteractiveLabWithBackend(
 			description = strings.Join(strings.Fields(description), " ")
 			if result.Pass {
 				okCount++
+				workspaceChecks = append(workspaceChecks, workspaceCheck{Description: description, Passed: true})
 				passedLines = append(passedLines, "  "+labStatusStyle(out, "32", "✓ "+description))
 				continue
 			}
@@ -1682,11 +1764,19 @@ func runInteractiveLabWithBackend(
 			} else if result.Detail != "" && result.Detail != "exit=1, expected=0" {
 				detail = result.Detail
 			}
+			workspaceChecks = append(workspaceChecks, workspaceCheck{Description: description, Detail: detail})
 			line := "  " + labStatusStyle(out, "31", "✗ "+description)
 			if detail != "" {
 				line += "\n      Détail : " + strings.Join(strings.Fields(detail), " ")
 			}
 			failedLines = append(failedLines, line)
+		}
+		if workspace != nil {
+			if err := workspace.update(func(state *workspaceSnapshot) {
+				state.Checks = workspaceChecks
+			}); err != nil {
+				return false, fmt.Errorf("publish check criteria: %w", err)
+			}
 		}
 		fmt.Fprintf(out, "\nRÉSULTAT  ·  %d/%d OK\n", okCount, okCount+failedCount)
 		if len(failedLines) > 0 {
@@ -1773,11 +1863,31 @@ func runInteractiveLabWithBackend(
 				return false, err
 			}
 		}
-		passed, err := checkLab(out, fromParent, reflection)
+		if workspace == nil {
+			passed, err := checkLab(out, fromParent, reflection)
+			if passed {
+				labSucceeded = true
+				shellCompleted = true
+			}
+			return passed, err
+		}
+		var report strings.Builder
+		passed, err := checkLab(&report, fromParent, reflection)
 		if passed {
 			labSucceeded = true
 			shellCompleted = true
 		}
+		if publishErr := workspace.update(func(state *workspaceSnapshot) {
+			state.Checked = true
+			state.Passed = passed
+			state.CheckText = report.String()
+			if err != nil {
+				state.CheckText += "\nErreur de vérification : " + err.Error()
+			}
+		}); publishErr != nil {
+			return passed, fmt.Errorf("publish check result: %w", publishErr)
+		}
+		fmt.Fprintln(out, "Résultat actualisé dans le panneau gauche.")
 		return passed, err
 	}
 	shellCommands := func(command string) (bool, error) {
@@ -1789,8 +1899,15 @@ func runInteractiveLabWithBackend(
 		case ":hint":
 			return false, showHint()
 		case ":help":
-			fmt.Fprintln(stdout, "LPIC Daily : :check (valider), :hint (indice), :help (aide), :quit (quitter).")
+			if workspace != nil {
+				fmt.Fprintln(stdout, "LPIC Daily : :check et :hint se consultent à gauche ; :quit ferme le lab.")
+			} else {
+				fmt.Fprintln(stdout, "LPIC Daily : :check (valider), :hint (indice), :help (aide), :quit (quitter).")
+			}
 			return false, nil
+		case ":reset":
+			resetRequested = true
+			return true, nil
 		case ":quit":
 			shellQuit = true
 			return true, nil
@@ -1810,27 +1927,61 @@ func runInteractiveLabWithBackend(
 		if interactiveTerminal(stdin, stdout) {
 			fmt.Fprintln(stdout, "Shell Linux · commandes LPIC Daily : :check  :hint  :help  :quit")
 			usedPersistentShell = true
-			result, err := runPersistentShell(
-				sessionCtx,
-				backend,
-				session.Instance,
-				authored.Definition.ID,
-				stdin,
-				stdout,
-				jobControlEvidence,
-				editorEvidence,
-				shellCommands,
-			)
-			if err != nil {
-				return fmt.Errorf("interactive sandbox shell: %w", err)
-			}
-			usedPersistentShell = true
-			if shellCompleted || shellQuit {
-				return nil
-			}
-			fmt.Fprintln(stdout, "\n[retour LPIC Daily]")
-			if result.ExitCode != 0 {
-				fmt.Fprintf(stderr, "[shell exit %d]\n", result.ExitCode)
+			for {
+				result, err := runPersistentShell(
+					sessionCtx,
+					backend,
+					session.Instance,
+					authored.Definition.ID,
+					stdin,
+					stdout,
+					jobControlEvidence,
+					editorEvidence,
+					shellCommands,
+				)
+				if err != nil {
+					return fmt.Errorf("interactive sandbox shell: %w", err)
+				}
+				if resetRequested {
+					resetCtx, cancelReset := context.WithTimeout(sessionCtx, operationTimeout)
+					resetErr := session.Reset(resetCtx)
+					cancelReset()
+					if resetErr != nil {
+						return fmt.Errorf("reset interactive lab: %w", resetErr)
+					}
+					resetRequested = false
+					reflectionRecorded = false
+					lastLearnerCommand = ""
+					shellCompleted = false
+					labSucceeded = false
+					if jobControlEvidence != nil {
+						jobControlEvidence.Reset()
+					}
+					if editorEvidence != nil {
+						editorEvidence.Reset()
+					}
+					if workspace != nil {
+						if err := workspace.update(func(state *workspaceSnapshot) {
+							state.Checked = false
+							state.Passed = false
+							state.Checks = nil
+							state.CheckText = ""
+						}); err != nil {
+							return fmt.Errorf("update workspace after reset: %w", err)
+						}
+					}
+					fmt.Fprintln(stdout, "Lab réinitialisé. Nouveau shell Linux.")
+					continue
+				}
+				usedPersistentShell = true
+				if shellCompleted || shellQuit {
+					return nil
+				}
+				fmt.Fprintln(stdout, "\n[retour LPIC Daily]")
+				if result.ExitCode != 0 {
+					fmt.Fprintf(stderr, "[shell exit %d]\n", result.ExitCode)
+				}
+				break
 			}
 		} else {
 			fmt.Fprintln(stdout, "Terminal interactif indisponible : utilisation du mode commandes sandboxé.")
@@ -2764,7 +2915,7 @@ func (reader *labShellCommandReader) Read(buffer []byte) (int, error) {
 				reader.column = 0
 				reader.lineStart = true
 				switch command {
-				case ":check", ":hint", ":help", ":quit":
+				case ":check", ":hint", ":help", ":reset", ":quit":
 					reader.drawCommand([]byte("\r\n"))
 					stop, err := reader.onCommand(command)
 					if err != nil {

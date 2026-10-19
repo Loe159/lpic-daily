@@ -77,3 +77,7 @@ Run on a Linux machine with rootless Podman:
 ```
 
 Set `LPIC_DAILY_SKIP_IMAGE_BUILD=1` only when `localhost/lpic-daily/fedora-phase1:1` is already present locally. The supported CI workflow executes the real rootless Podman conformance/host-safety suite on Ubuntu and Fedora jobs; local runs remain available through the same script.
+
+## Host tmux workspace boundary
+
+The optional two-pane TUI uses tmux **on the user's host only for terminal layout**, with no elevated privilege. LPIC Daily passes fixed argv, not interpolated shell code, and uses a dedicated tmux socket under a mode-0700 user cache directory. Lab IDs are turned into opaque hashes for session names; host snapshot paths are required to match the private directory and have atomically written mode-0600 JSON data with a 1 MiB bound. Raw guest PTY bytes only reach the dedicated right terminal pane; the left renderer sanitizes all displayed lab-defined text and never runs a guest command. The tmux host socket and private cache directory are never mounted into a container or VM. The `Ctrl+G` host prefix keeps `Ctrl+B` available inside nested guest tmux. Detaching tmux never destroys a sandbox; only the learner's explicit lab termination or backend reaper owns cleanup.

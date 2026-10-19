@@ -92,6 +92,12 @@ Les exercices s’exécutent dans des environnements jetables :
 
 Les images VM sont préparées à la demande : LPIC Daily indique le téléchargement ou la construction nécessaire et demande confirmation avant de le lancer.
 
+Depuis la TUI (`lpic`), un lab s'ouvre dans **le même terminal** lorsque `tmux` est installé sur l'hôte et que la fenêtre fait au moins 100 colonnes × 20 lignes. Le panneau gauche (40 %) contient la consigne, les indices dévoilés et la dernière vérification ; le panneau droit (60 %) est le shell réel du lab, toujours isolé dans Podman ou KVM.
+
+Sur Fedora, installe au besoin le multiplexeur **sur l'hôte** avec `sudo dnf install tmux`. `Ctrl+G` est le préfixe de la session LPIC : `Ctrl+G`, puis `z` agrandit ou restaure le shell ; `Ctrl+G`, puis `d` détache la session sans réinitialiser le lab. Sélectionner à nouveau le même lab reprend la session détachée. `Ctrl+B` reste disponible pour les exercices tmux *dans* le lab. Les commandes `:hint`, `:check`, `:reset` et `:quit` se saisissent à droite. À gauche, `j/k` et `J/K` font défiler la consigne et les vérifications.
+
+Sans tmux hôte, en terminal étroit ou depuis un autre tmux, LPIC Daily conserve le lanceur historique. Pour désactiver explicitement cette interface : `LPIC_DAILY_DISABLE_TMUX=1 lpic`.
+
 Dans un lab :
 
 ```text
