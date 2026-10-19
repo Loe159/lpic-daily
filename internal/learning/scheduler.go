@@ -184,7 +184,7 @@ func BuildSession(input SessionInput) (Session, error) {
 		return true
 	}
 	for _, concept := range input.Bundle.Concepts.Concepts {
-		if !concept.Active {
+		if !concept.Active || !inScope(concept.ObjectiveID) {
 			continue
 		}
 		// A previously started concept remains consolidatable after an upgrade,
