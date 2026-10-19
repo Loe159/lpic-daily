@@ -52,7 +52,9 @@ func TestBuildCountsPhysicalLabOnceAndSeparatesCoverageMastery(t *testing.T) {
 		},
 	}
 	r, err := Build(context.Background(), fixtureBundle(), evidence, when.Add(5*time.Minute), loc)
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
 	root := r.Nodes["all"]
 	if root.Total != 3 || root.Covered != 2 || root.Mastered != 2 || root.CycleComplete != 1 {
 		t.Fatalf("unexpected totals: %+v", *root)
@@ -70,7 +72,9 @@ func TestBuildCountsPhysicalLabOnceAndSeparatesCoverageMastery(t *testing.T) {
 		t.Fatalf("child node=%+v", *child)
 	}
 	for _, key := range []string{"all", "exam:101", "topic:103", "objective:103.1", "concept:shell"} {
-		if r.Nodes[key] == nil { t.Errorf("missing navigation node %s", key) }
+		if r.Nodes[key] == nil {
+			t.Errorf("missing navigation node %s", key)
+		}
 	}
 }
 
@@ -81,7 +85,9 @@ func TestBuildUsesLocalDayAndCountsFailedAttemptAsActivityNotMastery(t *testing.
 		"shell": {fixtureEvent("failed", "shell", "lab-failed", learning.ActivityLab, learning.EvidenceIndependentPractice, learning.ResultFail, utc, 1)},
 	}
 	r, err := Build(context.Background(), fixtureBundle(), evidence, time.Date(2026, 10, 19, 12, 0, 0, 0, loc), loc)
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
 	if r.DayAt(time.Date(2026, 10, 19, 12, 0, 0, 0, loc)).Count() != 1 {
 		t.Fatal("UTC night activity should belong to local October 19")
 	}
@@ -91,7 +97,10 @@ func TestBuildUsesLocalDayAndCountsFailedAttemptAsActivityNotMastery(t *testing.
 }
 
 type failingEvidence struct{}
-func (failingEvidence) EvidenceForConcept(context.Context, string) ([]learning.EvidenceEvent, error) { return nil, errors.New("disk error") }
+
+func (failingEvidence) EvidenceForConcept(context.Context, string) ([]learning.EvidenceEvent, error) {
+	return nil, errors.New("disk error")
+}
 func TestBuildPropagatesReadErrors(t *testing.T) {
 	if _, err := Build(context.Background(), fixtureBundle(), failingEvidence{}, time.Now(), time.Local); err == nil {
 		t.Fatal("expected storage read error")
