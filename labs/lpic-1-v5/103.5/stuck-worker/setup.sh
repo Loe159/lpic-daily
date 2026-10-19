@@ -31,7 +31,12 @@ trap 'record_resume' CONT
 trap 'printf "terminated\n" > /run/lpic/probe-terminated; exit 0' TERM
 
 # Handshake: SIGTSTP is only safe once Bash installed its traps.
-record_foreground
+# Give the parent interactive shell time to foreground this command.
+for i in $(seq 1 250); do
+    record_foreground
+    [[ -f /run/lpic/probe-foreground ]] && break
+    sleep 0.02
+done
 printf 'ready\n' > /run/lpic/probe-ready
 while :; do
     sleep 2 &
