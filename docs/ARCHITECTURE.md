@@ -107,3 +107,7 @@ Prefer the standard library and a small number of established libraries. A depen
 - no unnecessary cloud/network requirement.
 
 System adapters must sit behind project-owned interfaces so dependencies can be replaced.
+
+## Lab workspace — tmux (host)
+
+The TUI launches a single two-pane workspace with a dedicated local tmux server/socket under the user's private cache directory. The left pane runs the LPIC Daily read-only mission/hint/check renderer; the right pane owns the existing sandbox runner and live PTY. The frontend never executes learner commands on the host. Structured, size-bounded, atomically replaced JSON snapshots provide the last check and the persisted hint level to the left pane. The worker remains the authority for scoring and SQLite disclosure updates. A detached session is reattached by deterministic opaque lab ID; an explicit `:quit` is distinct from detaching. A narrow terminal, unavailable host tmux, or an already nested tmux preserves the legacy launcher. See `docs/plan/TMUX-LAB-WORKSPACE.md` for the accepted mockup and invariants.
