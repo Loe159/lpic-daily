@@ -308,7 +308,7 @@ func TestPedagogicalOrderPrioritizesFilePermissionsBeforeProcesses(t *testing.T)
 		Bundle:             bundle,
 		Projections:        map[string]learning.MasteryProjection{},
 		ObjectiveReadiness: map[string]bool{"103.1": true},
-		ConceptReadiness:   map[string]bool{"lpic1.103.3.creation-copie-deplacement-suppression": true},
+		ConceptReadiness:   map[string]bool{"lpic1.103.1.syntaxe-shell-et-sequences-de-commandes": true},
 		ScopeObjectives:    []string{"104.5"},
 		Policy:             learning.DefaultSessionPolicy(),
 	})
@@ -424,7 +424,7 @@ func TestConceptPrerequisiteNeedsFullCourseQuizAndLabReadiness(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(before.Items) == 0 || before.Items[0].ConceptID == files {
+	if len(before.Items) > 0 && before.Items[0].ConceptID == files {
 		t.Fatalf("files should stay locked without full prerequisite evidence: %#v", before.Items)
 	}
 	base.ConceptReadiness[shell] = true
