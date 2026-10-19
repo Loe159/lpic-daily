@@ -301,6 +301,8 @@ func renderWorkspacePanel(authored lab.Lab, snapshot workspaceSnapshot, width, h
 		}
 		if snapshot.Passed {
 			checks = append(checks, "", "LAB RÉUSSI · progression enregistrée")
+		} else if total > 0 && passed == total {
+			checks = append(checks, "", "Critères OK, mais une interaction terminale manque.")
 		}
 		if snapshot.CheckText != "" && len(snapshot.Checks) == 0 {
 			checks = append(checks, workspaceWrap(snapshot.CheckText, inner)...)
@@ -321,7 +323,7 @@ func renderWorkspacePanel(authored lab.Lab, snapshot workspaceSnapshot, width, h
 	renderWorkspaceSection(&b, hints, width, hintHeight, hintOffset)
 	b.WriteString(strings.Repeat("─", width-1) + "\r\n")
 	renderWorkspaceSection(&b, checks, width, bottomHeight, checkScroll)
-	b.WriteString("\x1b[7m" + workspaceFit(" j/k : consigne · J/K : checks · q : fermer le panneau ", width-1) + "\x1b[0m")
+	b.WriteString("\x1b[7m" + workspaceFit(" j/k : consigne · J/K : checks · :quit shell · q : sortie ", width-1) + "\x1b[0m")
 	return b.String()
 }
 
@@ -375,7 +377,16 @@ func renderWorkspaceSection(out *strings.Builder, lines []string, width, height,
 		if at := scroll + i; at >= 0 && at < len(lines) {
 			value = lines[at]
 		}
-		out.WriteString(workspaceFit(value, width-1))
+		fitted := workspaceFit(value, width-1)
+		if os.Getenv("NO_COLOR") == "" {
+			switch {
+			case strings.HasPrefix(strings.TrimSpace(value), "✓"), strings.Contains(value, "LAB RÉUSSI"):
+				fitted = "\x1b[32m" + fitted + "\x1b[0m"
+			case strings.HasPrefix(strings.TrimSpace(value), "✗"), strings.Contains(value, "non validée"):
+				fitted = "\x1b[31m" + fitted + "\x1b[0m"
+			}
+		}
+		out.WriteString(fitted)
 		out.WriteString("\r\n")
 	}
 }
@@ -411,6 +422,7 @@ func runWorkspacePanel(authored lab.Lab, statePath string, stdin io.Reader, stdo
 	defer ticker.Stop()
 	topScroll, checkScroll := 0, 0
 	lastFrame := ""
+	lastSnapshot := workspaceSnapshot{}
 	for {
 		select {
 		case <-ctx.Done():
@@ -418,7 +430,11 @@ func runWorkspacePanel(authored lab.Lab, statePath string, stdin io.Reader, stdo
 		case key := <-keys:
 			switch key {
 			case 'q':
-				return nil
+				// Do not accidentally destroy the instructions while a lab is active.
+				// Use :quit in the shell or Ctrl-G d to detach instead.
+				if lastSnapshot.Status == "ended" {
+					return nil
+				}
 			case 'j':
 				topScroll++
 			case 'k':
@@ -441,6 +457,7 @@ func runWorkspacePanel(authored lab.Lab, statePath string, stdin io.Reader, stdo
 		if snapshot.LabID != "" && snapshot.LabID != authored.Definition.ID {
 			return errors.New("lab workspace state ID mismatch")
 		}
+		lastSnapshot = snapshot
 		width, height, err := terminal.Size(out)
 		if err != nil {
 			return err
