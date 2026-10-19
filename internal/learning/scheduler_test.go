@@ -332,6 +332,10 @@ func TestPedagogicalOrderPrioritizesFoundationsOverExamWeight(t *testing.T) {
 		Bundle:             bundle,
 		Projections:        map[string]learning.MasteryProjection{},
 		ObjectiveReadiness: map[string]bool{"103.1": true},
+		ConceptReadiness: map[string]bool{
+			"lpic1.103.3.creation-copie-deplacement-suppression": true,
+			"lpic1.103.1.path-et-resolution-de-commande": true,
+		},
 		ScopeObjectives:    []string{"102.3", "103.8"},
 		Policy:             learning.DefaultSessionPolicy(),
 	})
