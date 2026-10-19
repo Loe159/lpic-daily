@@ -124,3 +124,39 @@ func TestLabCheckBridgeAllowsSlowChildStartup(t *testing.T) {
 	}
 	<-ready
 }
+
+func TestLabCheckBridgeDistinguishesClosedChildFromSlowStartup(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "check.sock")
+	bridge, err := startLabCheckBridge(path, func(io.Writer, []string) (bool, error) {
+		return true, nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	bridge.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	_, err = requestLabCheck(ctx, path, nil)
+	if !errors.Is(err, errLabChildClosed) {
+		t.Fatalf("closed child error = %v; want errLabChildClosed, not a startup timeout", err)
+	}
+}
+
+func TestLabCheckBridgeStillAcceptsChecksAfterIdle(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "check.sock")
+	bridge, err := startLabCheckBridge(path, func(out io.Writer, _ []string) (bool, error) {
+		fmt.Fprintln(out, "Lab disponible.")
+		return true, nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer bridge.Close()
+
+	time.Sleep(200 * time.Millisecond)
+	result, err := requestLabCheck(context.Background(), path, nil)
+	if err != nil || !result.Passed {
+		t.Fatalf("idle lab should still accept a parent check: result=%+v err=%v", result, err)
+	}
+}

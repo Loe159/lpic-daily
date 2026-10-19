@@ -281,6 +281,9 @@ func waitForDashboardLabCompletion(
 				return nil
 			}
 			fmt.Fprintf(stdout, "Vérification indisponible : %v\n", err)
+			if errors.Is(err, errLabChildClosed) {
+				fmt.Fprintln(stdout, "Vérifie le message dans la fenêtre du lab. Aucune réinitialisation automatique n'a été effectuée ; :quit permet de revenir au menu.")
+			}
 			continue
 		}
 		if result.NeedsReflection {
@@ -1679,7 +1682,7 @@ func runInteractiveLabWithBackend(
 			} else if result.Detail != "" && result.Detail != "exit=1, expected=0" {
 				detail = result.Detail
 			}
-			line := "  "+labStatusStyle(out, "31", "✗ "+description)
+			line := "  " + labStatusStyle(out, "31", "✗ "+description)
 			if detail != "" {
 				line += "\n      Détail : " + strings.Join(strings.Fields(detail), " ")
 			}

@@ -10,6 +10,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"syscall"
 	"time"
 )
 
@@ -17,7 +18,10 @@ type labCheckSocketKey struct{}
 
 // Only the child process has access to the running lab and its interactive
 // shell state. The dashboard asks that process to grade via a private socket.
-var errLabReflectionRequired = errors.New("reflection required before grading")
+var (
+	errLabReflectionRequired = errors.New("reflection required before grading")
+	errLabChildClosed        = errors.New("le terminal enfant a été fermé ou sa session a été interrompue")
+)
 
 type labCheckRequest struct {
 	Command    string   `json:"command"`
@@ -51,6 +55,13 @@ func startLabCheckBridge(path string, check func(io.Writer, []string) (bool, err
 		_ = listener.Close()
 		_ = os.Remove(path)
 		return nil, err
+	}
+	// Keep the readiness marker after Close so the parent can distinguish
+	// a dead terminal from a terminal still starting.
+	if err := os.WriteFile(path+".ready", nil, 0o600); err != nil {
+		_ = listener.Close()
+		_ = os.Remove(path)
+		return nil, fmt.Errorf("mark lab check bridge ready: %w", err)
 	}
 	bridge := &labCheckBridge{listener: listener, done: make(chan struct{})}
 	go func() {
@@ -108,12 +119,17 @@ func requestLabCheck(ctx context.Context, path string, reflection []string) (lab
 		if err == nil {
 			break
 		}
+		if errors.Is(err, syscall.ENOENT) || errors.Is(err, syscall.ECONNREFUSED) {
+			if _, markerErr := os.Stat(path + ".ready"); markerErr == nil {
+				return labCheckResponse{}, fmt.Errorf("%w (connexion : %v)", errLabChildClosed, err)
+			}
+		}
 		if startCtx.Err() != nil {
 			return labCheckResponse{}, fmt.Errorf("connexion au terminal enfant impossible (démarrage lent ou terminal fermé) : %w (dernière erreur : %v)", startCtx.Err(), err)
 		}
 		select {
 		case <-startCtx.Done():
-			return labCheckResponse{}, fmt.Errorf("le terminal enfant n'est pas encore prêt: %w", startCtx.Err())
+			return labCheckResponse{}, fmt.Errorf("le terminal enfant ne répond pas après son démarrage: %w", startCtx.Err())
 		case <-time.After(100 * time.Millisecond):
 		}
 	}
