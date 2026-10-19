@@ -287,7 +287,7 @@ func TestProcessIdentityTracksOwnerLifetime(t *testing.T) {
 	if identity == "" || !processIdentityIsLive(identity) {
 		t.Fatalf("current process identity %q is not considered live", identity)
 	}
-	if processIdentityIsLive(identity+"0") {
+	if processIdentityIsLive(identity + "0") {
 		t.Fatal("reused PID with a different start time must not be considered live")
 	}
 	if processIdentityIsLive("not-a-pid:123") {
