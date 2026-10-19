@@ -63,7 +63,7 @@
         "lpic1.104.2.occupation-blocs-inodes",
         "lpic1.104.2.symptomes-de-corruption-espace-epuise"
       ],
-      "description_fr": "Le volume ext4 demeure monté et dispose à nouveau d'inodes libres pour les nouvelles écritures."
+      "description_fr": "/srv/lpic-spool est monté depuis /dev/vdb en ext4 et dispose de plus de 30 inodes libres."
     },
     {
       "type": "command-exit",
@@ -77,7 +77,7 @@
         "lpic1.104.2.occupation-blocs-inodes",
         "lpic1.104.2.symptomes-de-corruption-espace-epuise"
       ],
-      "description_fr": "Le volume ext4 demeure monté et dispose à nouveau d'inodes libres pour les nouvelles écritures."
+      "description_fr": "Le dossier /srv/lpic-spool/ack/stale est présent et ne contient plus aucun fichier."
     },
     {
       "type": "command-exit",
@@ -91,7 +91,7 @@
         "lpic1.104.2.occupation-blocs-inodes",
         "lpic1.104.2.symptomes-de-corruption-espace-epuise"
       ],
-      "description_fr": "Les accusés anciens déjà traités ont été nettoyés sans supprimer les accusés récents."
+      "description_fr": "Les trois accusés récents restent présents, avec leur contenu intact."
     },
     {
       "type": "command-exit",
@@ -105,7 +105,7 @@
         "lpic1.104.2.occupation-blocs-inodes",
         "lpic1.104.2.symptomes-de-corruption-espace-epuise"
       ],
-      "description_fr": "Le dossier de réception redevient utilisable, avec ses données utiles intactes."
+      "description_fr": "Le dossier des accusés récents et le fichier README.txt du collecteur sont préservés."
     }
   ],
   "hint_ids": [
