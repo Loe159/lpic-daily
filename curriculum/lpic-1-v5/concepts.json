@@ -2849,7 +2849,7 @@
       "pedagogy_order": 1,
       "study_order": 16,
       "prerequisite_concept_ids": [
-        "lpic1.103.3.creation-copie-deplacement-suppression"
+        "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes"
       ],
       "inherited_hard_objective_prerequisites": [
         "103.1"
