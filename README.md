@@ -70,6 +70,24 @@ lpic
 
 Tu arrives sur le dashboard de ta séance du jour.
 
+Dans le TUI, **Tab** ouvre la nouvelle page **Activité** et ramène à **Ma séance**.
+La page montre le calendrier des activités enregistrées (une case par jour), la
+**couverture** du programme (concepts abordés) et la **maîtrise** (concepts
+réussis en pratique autonome ou dans un contexte de transfert). La progression
+se consulte jusqu'à chaque concept via **p**, les flèches et **Entrée** ;
+**c** ramène au calendrier et **Échap** revient au niveau précédent.
+Le calendrier se parcourt avec les flèches, et **Entrée** montre les activités
+de la journée. Une activité recommandée dans la séance du jour peut être lancée
+depuis sa fiche concept en appuyant sur **Entrée**.
+
+Les pourcentages concernent l'ensemble des concepts actifs des examens 101 et
+102, même lorsqu'une partie du cursus n'est pas encore accessible au
+planificateur. Un échec compte comme une activité mais pas comme une maîtrise.
+Les tentatives `:check` et plusieurs concepts couverts par un même lab ne
+multiplient pas artificiellement ses points sur le calendrier. L'historique
+antérieur est reconstruit à partir des preuves SQLite disponibles : les labs
+commencés mais jamais vérifiés ne peuvent pas être reconstitués.
+
 Quelques commandes utiles :
 
 ```bash

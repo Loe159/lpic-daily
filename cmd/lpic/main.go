@@ -17,6 +17,7 @@ import (
 	"time"
 
 	lpicdaily "github.com/Loe159/lpic-daily"
+	"github.com/Loe159/lpic-daily/internal/activity"
 	"github.com/Loe159/lpic-daily/internal/appstate"
 	"github.com/Loe159/lpic-daily/internal/assessment"
 	"github.com/Loe159/lpic-daily/internal/bootstrap"
@@ -172,6 +173,7 @@ func runDashboard(stdin io.Reader, stdout, stderr io.Writer) error {
 			Policy:     learning.DefaultSessionPolicy(),
 		})
 		gameSnapshot, gameErr := loadGamificationSnapshot(ctx, store, now)
+		activityReport, activityErr := activity.Build(ctx, curriculumBundle, store, now, time.Local)
 		closeErr := store.Close()
 		if planErr != nil {
 			return planErr
@@ -179,11 +181,14 @@ func runDashboard(stdin io.Reader, stdout, stderr io.Writer) error {
 		if gameErr != nil {
 			return gameErr
 		}
+		if activityErr != nil {
+			return fmt.Errorf("build activity dashboard: %w", activityErr)
+		}
 		if closeErr != nil {
 			return closeErr
 		}
 
-		action, err := lpicui.Run(ctx, plan, gameSnapshot, stdin, stdout)
+		action, err := lpicui.Run(ctx, plan, gameSnapshot, stdin, stdout, &activityReport)
 		if err != nil {
 			return fmt.Errorf("run TUI: %w", err)
 		}
