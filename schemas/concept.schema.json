@@ -57,6 +57,11 @@
         "minLength": 1
       },
       "uniqueItems": true
+    },
+    "study_order": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Global pedagogical order for Exam 101; lower is earlier. Exam 102 uses legacy ranking."
     }
   }
 }
