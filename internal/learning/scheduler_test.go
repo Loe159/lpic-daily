@@ -308,6 +308,7 @@ func TestRecommendedPrerequisitesRankButDoNotBlock(t *testing.T) {
 		Bundle:             bundle,
 		Projections:        map[string]learning.MasteryProjection{},
 		ObjectiveReadiness: map[string]bool{"103.1": true},
+		ConceptReadiness:   map[string]bool{"lpic1.103.3.creation-copie-deplacement-suppression": true},
 		ScopeObjectives:    []string{"104.5"},
 		Policy:             learning.DefaultSessionPolicy(),
 	})
@@ -317,12 +318,12 @@ func TestRecommendedPrerequisitesRankButDoNotBlock(t *testing.T) {
 	if len(onlyPermissions.Items) != 1 || onlyPermissions.Items[0].ObjectiveID != "104.5" {
 		t.Fatalf("recommended prerequisite incorrectly blocked 104.5: %#v", onlyPermissions.Items)
 	}
-	if onlyPermissions.Items[0].ReasonCode != "hard-ready-recommended-pending" {
+	if onlyPermissions.Items[0].ReasonCode != "concept-prerequisites-ready" {
 		t.Fatalf("reason = %#v", onlyPermissions.Items[0])
 	}
 }
 
-func TestExamWeightDensityPrioritizesNewConceptsWithEqualPrerequisiteReadiness(t *testing.T) {
+func TestPedagogicalOrderPrioritizesFoundationsOverExamWeight(t *testing.T) {
 	bundle := loadBundle(t)
 	now := time.Date(2026, 10, 6, 10, 0, 0, 0, time.UTC)
 
@@ -341,6 +342,119 @@ func TestExamWeightDensityPrioritizesNewConceptsWithEqualPrerequisiteReadiness(t
 		t.Fatalf("items = %#v, want one new concept", session.Items)
 	}
 	if got := session.Items[0].ObjectiveID; got != "103.8" {
-		t.Fatalf("selected objective = %s, want 103.8: weight/concept density 3/8 must beat 102.3 at 1/5", got)
+		t.Fatalf("selected objective = %s, want 103.8: authored pedagogy comes before exam-weight density", got)
+	}
+}
+
+func TestExam101ConceptOrderStartsWithShellThenFiles(t *testing.T) {
+	bundle := loadBundle(t)
+	now := time.Date(2026, 10, 19, 12, 0, 0, 0, time.UTC)
+	ready := map[string]bool{}
+	projections := map[string]learning.MasteryProjection{}
+	seen := map[string]bool{}
+	order := []string{}
+
+	for i := 0; i < 162; i++ {
+		session, err := learning.BuildSession(learning.SessionInput{
+			Now: now, Bundle: bundle, Projections: projections,
+			ConceptReadiness: ready, ObjectiveReadiness: map[string]bool{},
+			ScopeObjectives: bundle.Phase3.SelectedObjectives,
+			Policy: learning.DefaultSessionPolicy(),
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(session.Items) != 1 || session.Items[0].Kind != learning.SessionNew {
+			t.Fatalf("step %d: expected one new concept, got %#v", i+1, session.Items)
+		}
+		id := session.Items[0].ConceptID
+		if seen[id] {
+			t.Fatalf("step %d: duplicate concept %s", i+1, id)
+		}
+		seen[id] = true
+		order = append(order, id)
+		ready[id] = true
+		projections[id] = learning.MasteryProjection{
+			ConceptID: id, Stage: learning.StageGuided,
+			SuccessfulExposure: 1, SuccessfulRecall: 1, SuccessfulGuided: 1,
+			LastEvidenceAt: now, LastStageEvidenceAt: now,
+		}
+	}
+	if order[0] != "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes" ||
+		order[1] != "lpic1.103.3.creation-copie-deplacement-suppression" {
+		t.Fatalf("initial concepts = %#v; expected shell then cp/mv/mkdir/touch", order[:2])
+	}
+	fileIndex, processIndex := -1, -1
+	for i, id := range order {
+		if id == "lpic1.103.3.creation-copie-deplacement-suppression" {
+			fileIndex = i
+		}
+		if id == "lpic1.103.5.processus-avant-arriere-plan" {
+			processIndex = i
+		}
+	}
+	if fileIndex < 0 || processIndex <= fileIndex {
+		t.Fatalf("file manipulation should precede processes (file=%d, process=%d)", fileIndex, processIndex)
+	}
+	if len(seen) != 162 {
+		t.Fatalf("visited %d of 162 Exam-101 concepts", len(seen))
+	}
+}
+
+func TestConceptPrerequisiteNeedsFullCourseQuizAndLabReadiness(t *testing.T) {
+	bundle := loadBundle(t)
+	now := time.Date(2026, 10, 19, 12, 0, 0, 0, time.UTC)
+	shell := "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes"
+	files := "lpic1.103.3.creation-copie-deplacement-suppression"
+	base := learning.SessionInput{
+		Now: now, Bundle: bundle,
+		Projections: map[string]learning.MasteryProjection{
+			shell: {ConceptID: shell, Stage: learning.StageGuided,
+				SuccessfulExposure: 1, SuccessfulRecall: 1, SuccessfulGuided: 1},
+		},
+		ConceptReadiness: map[string]bool{}, // partial evidence: not all 3 activities passed
+		ScopeObjectives: []string{"103.1", "103.3"},
+		Policy: learning.DefaultSessionPolicy(),
+	}
+	before, err := learning.BuildSession(base)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(before.Items) == 0 || before.Items[0].ConceptID == files {
+		t.Fatalf("files should stay locked without full prerequisite evidence: %#v", before.Items)
+	}
+	base.ConceptReadiness[shell] = true
+	after, err := learning.BuildSession(base)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(after.Items) != 1 || after.Items[0].ConceptID != files {
+		t.Fatalf("expected foundational file manipulation as next step, got %#v", after.Items)
+	}
+}
+
+func TestExistingAdvancedProgressDoesNotHideMissingFileFoundation(t *testing.T) {
+	bundle := loadBundle(t)
+	now := time.Date(2026, 10, 19, 12, 0, 0, 0, time.UTC)
+	shell := "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes"
+	process := "lpic1.103.5.processus-avant-arriere-plan"
+	files := "lpic1.103.3.creation-copie-deplacement-suppression"
+	session, err := learning.BuildSession(learning.SessionInput{
+		Now: now, Bundle: bundle, ConceptReadiness: map[string]bool{shell: true},
+		ObjectiveReadiness: map[string]bool{},
+		Projections: map[string]learning.MasteryProjection{
+			shell: {ConceptID: shell, Stage: learning.StageGuided, SuccessfulExposure: 1,
+				SuccessfulRecall: 1, SuccessfulGuided: 1},
+			process: {ConceptID: process, Stage: learning.StageGuided, SuccessfulExposure: 1,
+				SuccessfulRecall: 1, SuccessfulGuided: 1},
+		},
+		ScopeObjectives: bundle.Phase3.SelectedObjectives,
+		Policy: learning.DefaultSessionPolicy(),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(session.Items) != 1 || session.Items[0].ConceptID != files {
+		t.Fatalf("backfill should teach basic files before advancing processes: %#v", session.Items)
 	}
 }
