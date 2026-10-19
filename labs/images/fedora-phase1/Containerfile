@@ -34,6 +34,7 @@ RUN dnf -y install \
         nano \
         net-tools \
         nmap-ncat \
+        ncurses \
         openssh-clients \
         parted \
         plocate \
@@ -55,6 +56,7 @@ RUN dnf -y install \
         xfsprogs \
         xz \
     && test -x /usr/bin/nano \
+    && test -x /usr/bin/clear \
     && test -x /usr/bin/script \
     && test -x /usr/bin/vi \
     && test -x /usr/bin/vim \

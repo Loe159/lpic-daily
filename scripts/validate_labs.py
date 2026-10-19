@@ -252,7 +252,15 @@ def main():
 
         declared_concepts = set(lab.get("concept_ids", []))
         checked_concepts = set()
+        seen_check_descriptions = set()
         for index, check in enumerate(checks, start=1):
+            description = check.get("description_fr")
+            if not nonempty_text(description, 12):
+                errors.append(f"{lab_id}: check {index} must have a meaningful description_fr")
+            elif description in seen_check_descriptions:
+                errors.append(f"{lab_id}: check {index} duplicates another check description_fr")
+            else:
+                seen_check_descriptions.add(description)
             check_type = check.get("type")
             if check_type not in {
                 "file-exists",

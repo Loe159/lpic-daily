@@ -57,7 +57,7 @@
         "lpic1.104.2.verification-ext",
         "lpic1.104.2.reparation"
       ],
-      "description_fr": "L'image ext4 ne présente plus d'erreur de cohérence lors d'une vérification hors ligne."
+      "description_fr": "L’image audit.ext4 ne présente aucune erreur lors de sa vérification de cohérence hors ligne."
     },
     {
       "type": "command-exit",
@@ -71,7 +71,7 @@
         "lpic1.104.2.reparation",
         "lpic1.104.2.tuning-ext"
       ],
-      "description_fr": "L'image ext4 ne présente plus d'erreur de cohérence lors d'une vérification hors ligne."
+      "description_fr": "Le volume audit.ext4 porte le label audit-ready et son état est clean."
     },
     {
       "type": "command-exit",
@@ -84,7 +84,7 @@
       "concept_ids": [
         "lpic1.104.2.tuning-ext"
       ],
-      "description_fr": "Le volume porte le label audit-ready et réserve 1 % de ses blocs."
+      "description_fr": "Le volume audit.ext4 réserve environ 1 % de ses blocs."
     },
     {
       "type": "command-exit",
@@ -97,7 +97,7 @@
       "concept_ids": [
         "lpic1.104.2.reparation"
       ],
-      "description_fr": "La preuve d'audit préexistante est intacte ; aucune nouvelle image ne l'a remplacée."
+      "description_fr": "Le fichier evidence.txt préexistant dans l’image ext4 conserve son contenu d’audit."
     }
   ],
   "hint_ids": [

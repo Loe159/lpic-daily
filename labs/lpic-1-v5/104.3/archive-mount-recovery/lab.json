@@ -64,7 +64,7 @@
       "concept_ids": [
         "lpic1.104.3.montage-manuel"
       ],
-      "description_fr": "Le volume de données est réellement monté sur /srv/archive en ext4 et le manifeste est visible."
+      "description_fr": "/dev/vdb est réellement monté sur /srv/archive avec le système de fichiers ext4."
     },
     {
       "type": "command-exit",
@@ -78,7 +78,7 @@
         "lpic1.104.3.fstab-persistant",
         "lpic1.104.3.uuid-labels"
       ],
-      "description_fr": "Le volume de données est réellement monté sur /srv/archive en ext4 et le manifeste est visible."
+      "description_fr": "/etc/fstab identifie le volume de /srv/archive par un UUID ou un label stable."
     },
     {
       "type": "command-exit",
@@ -91,7 +91,7 @@
       "concept_ids": [
         "lpic1.104.3.options-de-montage"
       ],
-      "description_fr": "La configuration persistante utilise une identité de volume stable, valide après changement du nom de périphérique."
+      "description_fr": "Le montage /srv/archive applique les options nodev et nosuid."
     },
     {
       "type": "command-exit",
@@ -105,7 +105,7 @@
         "lpic1.104.3.montage-manuel",
         "lpic1.104.3.fstab-persistant"
       ],
-      "description_fr": "Le montage actif applique les options nodev et nosuid."
+      "description_fr": "Le manifeste /srv/archive/manifest.txt confirme la sauvegarde terminée."
     }
   ],
   "hint_ids": [
