@@ -461,7 +461,7 @@ func buildCreateRequest(definition runner.Definition, name string) (createReques
 		Terminal:     &falseValue,
 		Stdin:        &falseValue,
 		Labels: map[string]string{
-			managedLabel: "true",
+			managedLabel:      "true",
 			labIDLabel:        definition.LabID,
 			ownerProcessLabel: currentProcessIdentity(),
 		},
