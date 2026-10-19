@@ -20,7 +20,7 @@ type labCheckSocketKey struct{}
 // shell state. The dashboard asks that process to grade via a private socket.
 var (
 	errLabReflectionRequired = errors.New("reflection required before grading")
-	errLabChildClosed = errors.New("le terminal enfant a été fermé ou sa session a été interrompue")
+	errLabChildClosed        = errors.New("le terminal enfant a été fermé ou sa session a été interrompue")
 )
 
 type labCheckRequest struct {
