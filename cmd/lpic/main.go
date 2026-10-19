@@ -241,7 +241,7 @@ func runDashboardLab(
 	}
 
 	fmt.Fprintln(stdout, "Lab ouvert dans un nouveau terminal.")
-	fmt.Fprintln(stdout, "La consigne reste visible ici. Entrée ou :check vérifie le lab, depuis cette fenêtre ou depuis le terminal enfant.")
+	fmt.Fprintln(stdout, "La consigne reste visible ici. Entrée ou :check vérifie le lab ; :hint affiche le prochain indice depuis ce terminal ou le terminal enfant.")
 	return waitForDashboardLabCompletion(ctx, authored, baselineAttempts, checkSocketPath, stdin, stdout)
 }
 
@@ -255,7 +255,7 @@ func waitForDashboardLabCompletion(
 ) error {
 	reader := bufio.NewReader(stdin)
 	for {
-		fmt.Fprint(stdout, "Entrée / :check  Vérifier   :quit  Menu  > ")
+		fmt.Fprint(stdout, "Entrée / :check  Vérifier   :hint  Indice   :quit  Menu  > ")
 		line, err := readLine(reader)
 		if err != nil {
 			return fmt.Errorf("read parent lab command: %w", err)
@@ -264,8 +264,14 @@ func waitForDashboardLabCompletion(
 		if command == ":quit" {
 			return nil
 		}
+		if command == ":hint" {
+			if _, err := discloseNextLabHint(ctx, authored, stdout); err != nil {
+				return fmt.Errorf("show hint in parent terminal: %w", err)
+			}
+			continue
+		}
 		if command != "" && command != ":check" {
-			fmt.Fprintf(stdout, "Commande inconnue : %s (Entrée ou :check pour vérifier).\n", command)
+			fmt.Fprintf(stdout, "Commande inconnue : %s (Entrée / :check pour vérifier, :hint pour un indice).\n", command)
 			continue
 		}
 
@@ -759,6 +765,34 @@ func nextHintIndex(hints []lab.Hint, highestHintLevel int) int {
 		}
 	}
 	return len(hints)
+}
+
+// discloseNextLabHint is shared by the parent dashboard and the child shell.
+ // Always reload the persisted disclosure so alternating between terminals
+ // never skips a level or treats an already viewed hint as new evidence.
+func discloseNextLabHint(ctx context.Context, authored lab.Lab, out io.Writer) (int, error) {
+	highest, err := pendingLabHintLevel(ctx, authored.Definition.ID)
+	if err != nil {
+		return 0, fmt.Errorf("load lab hint disclosure: %w", err)
+	}
+	index := nextHintIndex(authored.Hints, highest)
+	if index >= len(authored.Hints) {
+		fmt.Fprintln(out, "Tous les indices ont déjà été consultés. Rappel :")
+		for _, hint := range authored.Hints {
+			fmt.Fprintf(out, "Indice %d/%d : %s\n", hint.Level, len(authored.Hints), lpicui.RenderMarkdown(hint.ContentFR))
+		}
+		return highest, nil
+	}
+	hint := authored.Hints[index]
+	solutionRevealed := hint.EvidenceImpact == "solution-revealed"
+	if err := recordLabDisclosure(ctx, authored.Definition.ID, hint.Level, solutionRevealed); err != nil {
+		return highest, fmt.Errorf("record hint disclosure: %w", err)
+	}
+	fmt.Fprintf(out, "Indice %d/%d : %s\n", hint.Level, len(authored.Hints), lpicui.RenderMarkdown(hint.ContentFR))
+	if solutionRevealed {
+		fmt.Fprintln(out, "Cet indice révèle la solution et réduira la force de la preuve pratique.")
+	}
+	return hint.Level, nil
 }
 
 func runAssessment(args []string, stdin io.Reader, stdout io.Writer) error {
@@ -1512,31 +1546,17 @@ func runInteractiveLabWithBackend(
 	var checkMu sync.Mutex
 	labSucceeded := false
 	showHint := func() error {
-		if nextHint >= len(authored.Hints) {
-			fmt.Fprintln(stdout, "Aucun indice supplémentaire.")
-			return nil
+		level, err := discloseNextLabHint(sessionCtx, authored, stdout)
+		if err != nil {
+			return err
 		}
-		hint := authored.Hints[nextHint]
-		solutionRevealed := hint.EvidenceImpact == "solution-revealed"
-		if err := recordLabDisclosure(
-			sessionCtx,
-			authored.Definition.ID,
-			hint.Level,
-			solutionRevealed,
-		); err != nil {
-			return fmt.Errorf("record hint disclosure: %w", err)
+		if level > highestHintLevel {
+			highestHintLevel = level
 		}
-		nextHint++
-		if hint.Level > highestHintLevel {
-			highestHintLevel = hint.Level
-		}
-		fmt.Fprintf(stdout, "Indice %d/4 : %s\n", hint.Level, lpicui.RenderMarkdown(hint.ContentFR))
-		if solutionRevealed {
-			fmt.Fprintln(stdout, "Cet indice révèle la solution et réduira la force de la preuve pratique.")
-		}
+		nextHint = nextHintIndex(authored.Hints, highestHintLevel)
 		return nil
-
 	}
+
 	checkLab := func(out io.Writer, fromParent bool, reflection []string) (bool, error) {
 		if !reflectionRecorded {
 			reflectionScanner := scanner
