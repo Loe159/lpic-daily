@@ -1322,7 +1322,7 @@ func runInteractiveLabWithSocket(authored lab.Lab, stdin io.Reader, stdout, stde
 }
 
 func runInteractiveLabWithOptions(authored lab.Lab, stdin io.Reader, stdout, stderr io.Writer, checkSocketPath, workspacePath string) (runErr error) {
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)
 	ctx = context.WithValue(ctx, labCheckSocketKey{}, checkSocketPath)
 	ctx = context.WithValue(ctx, labWorkspaceKey{}, workspacePath)
 	defer stop()
