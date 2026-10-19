@@ -119,11 +119,14 @@ func (model Dashboard) renderActivityCalendar() string {
 	selected := report.DayAt(model.activityDate)
 	fmt.Fprintf(&b, "Jour sélectionné : %s  ·  %d activité(s)\n", selected.Date, selected.Count())
 	selectedWeekday := (int(model.activityDate.Weekday()) + 6) % 7
-	start := model.activityDate.AddDate(0, 0, -selectedWeekday-12*7)
-	fmt.Fprintf(&b, "             %s    →    %s\n", start.Format("02/01"), start.AddDate(0, 0, 90).Format("02/01"))
+	weeks := (activityWidth(model.width) - 6) / 3
+	if weeks > 13 { weeks = 13 }
+	if weeks < 1 { weeks = 1 }
+	start := model.activityDate.AddDate(0, 0, -selectedWeekday-(weeks-1)*7)
+	fmt.Fprintf(&b, "             %s    →    %s\n", start.Format("02/01"), start.AddDate(0, 0, weeks*7-1).Format("02/01"))
 	for dayIdx, label := range []string{"Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"} {
 		fmt.Fprintf(&b, "%-5s ", label)
-		for week := 0; week < 13; week++ {
+		for week := 0; week < weeks; week++ {
 			date := start.AddDate(0, 0, week*7+dayIdx)
 			count := report.DayAt(date).Count()
 			mark := "·"
