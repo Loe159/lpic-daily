@@ -136,9 +136,13 @@ func (model Dashboard) renderActivityCalendar() string {
 	fmt.Fprintf(&b, "Couverture %s   Maîtrise %s   Série %d j\n",
 		activityLabel(fmt.Sprintf("%d%%", root.CoveragePercent()), "1;36"),
 		activityLabel(fmt.Sprintf("%d%%", root.MasteryPercent()), "1;32"), report.CurrentStreak)
-	fmt.Fprintf(&b, "Concepts : %d / %d abordés · %d autonomes · %d transférés\n",
-		root.Covered, root.Total, root.Mastered, root.Transferred)
-	fmt.Fprintf(&b, "Activités : %d   ·   Jours actifs : %d\n\n", report.TotalActivities, report.ActiveDays)
+	compact := model.height > 0 && model.height < 27
+	if !compact {
+		fmt.Fprintf(&b, "Concepts : %d / %d abordés · %d autonomes · %d transférés\n",
+			root.Covered, root.Total, root.Mastered, root.Transferred)
+		fmt.Fprintf(&b, "Activités : %d   ·   Jours actifs : %d\n", report.TotalActivities, report.ActiveDays)
+	}
+	fmt.Fprintln(&b)
 	fmt.Fprintln(&b, activityLabel("CALENDRIER  ·  une case = un jour", "1;37"))
 	selected := report.DayAt(model.activityDate)
 	fmt.Fprintf(&b, "Jour sélectionné : %s  ·  %d activité(s)\n", selected.Date, selected.Count())
@@ -178,11 +182,16 @@ func (model Dashboard) renderActivityCalendar() string {
 		b.WriteString("\n")
 	}
 	fmt.Fprintln(&b, "Légende : · 0   ░ 1   ▒ 2-3   ▓ 4-6   █ 7+")
-	fmt.Fprintln(&b)
-	fmt.Fprintln(&b, activityLabel("PROGRESSION LPIC-1", "1;37"))
+	if !compact {
+		fmt.Fprintln(&b)
+		fmt.Fprintln(&b, activityLabel("PROGRESSION LPIC-1", "1;37"))
+	}
 	for _, key := range report.Children["all"] {
 		node := report.Nodes[key]
 		if node == nil {
+			continue
+		}
+		if compact {
 			continue
 		}
 		fmt.Fprintf(&b, "%s  Couverture %d%%  Maîtrise %d%%\n", node.Title, node.CoveragePercent(), node.MasteryPercent())
@@ -268,9 +277,9 @@ func (model Dashboard) renderProgress() string {
 		fmt.Fprintln(&b, "Aucun concept actif dans cette section.")
 	}
 	// Display a window around the focused item on a terminal with limited height.
-	lines := model.height - 13
-	if lines < 5 {
-		lines = 8
+	lines := (model.height - 13) / 2
+	if lines < 3 {
+		lines = 3
 	}
 	from := 0
 	if model.activityCursor >= lines {
