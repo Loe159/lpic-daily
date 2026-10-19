@@ -61,7 +61,7 @@
       "concept_ids": [
         "lpic1.104.5.proprietaire-groupe"
       ],
-      "description_fr": "incoming est réservé à l’équipe project ; même entre membres, seul le propriétaire d’un fichier ou l’administrateur peut le supprimer."
+      "description_fr": "Le répertoire incoming appartient au groupe project."
     },
     {
       "type": "file-mode",
@@ -73,7 +73,7 @@
         "lpic1.104.5.sticky-bit",
         "lpic1.104.5.effets-speciaux-sur-repertoires"
       ],
-      "description_fr": "incoming est réservé à l’équipe project ; même entre membres, seul le propriétaire d’un fichier ou l’administrateur peut le supprimer."
+      "description_fr": "Les permissions de incoming autorisent l’équipe project mais interdisent la suppression des fichiers d’un autre membre."
     },
     {
       "type": "file-owner",
@@ -83,7 +83,7 @@
       "concept_ids": [
         "lpic1.104.5.proprietaire-groupe"
       ],
-      "description_fr": "team est réservé à project et les nouveaux fichiers héritent automatiquement du groupe project."
+      "description_fr": "Le répertoire team appartient au groupe project."
     },
     {
       "type": "file-mode",
@@ -95,7 +95,7 @@
         "lpic1.104.5.sgid",
         "lpic1.104.5.effets-speciaux-sur-repertoires"
       ],
-      "description_fr": "team est réservé à project et les nouveaux fichiers héritent automatiquement du groupe project."
+      "description_fr": "Les permissions de team limitent l’accès à project et transmettent le groupe aux nouveaux fichiers."
     },
     {
       "type": "file-owner",
@@ -106,7 +106,7 @@
         "lpic1.104.5.proprietaire-groupe",
         "lpic1.104.5.sgid"
       ],
-      "description_fr": "Un nouveau shell de maintenance crée team/handoff-note, modifiable par son propriétaire et son groupe mais inaccessible aux autres."
+      "description_fr": "Le fichier team/handoff-note appartient au groupe project."
     },
     {
       "type": "file-mode",
@@ -117,7 +117,7 @@
         "lpic1.104.5.permissions-rwx-fichier-dossier",
         "lpic1.104.5.notation-symbolique-octale"
       ],
-      "description_fr": "Un nouveau shell de maintenance crée team/handoff-note, modifiable par son propriétaire et son groupe mais inaccessible aux autres."
+      "description_fr": "team/handoff-note est lisible et modifiable par son propriétaire et son groupe, sans accès pour les autres."
     },
     {
       "type": "file-mode",
@@ -127,7 +127,7 @@
         "lpic1.104.5.suid",
         "lpic1.104.5.notation-symbolique-octale"
       ],
-      "description_fr": "audit-helper reste exécutable et ne donne pas de privilèges superflus."
+      "description_fr": "audit-helper reste exécutable sans privilège spécial."
     },
     {
       "type": "command-exit",
@@ -143,7 +143,7 @@
         "lpic1.104.5.umask"
       ],
       "timeout_seconds": 10,
-      "description_fr": "Le umask 0007 produit les permissions attendues dans le dossier d'équipe."
+      "description_fr": "Le umask 0007 du shell root donne des permissions 0660 à un nouveau fichier dans team."
     },
     {
       "type": "command-exit",
@@ -157,7 +157,7 @@
         "lpic1.104.5.sgid",
         "lpic1.104.5.proprietaire-groupe"
       ],
-      "description_fr": "Les deux dossiers ont des rôles distincts : dépôt protégé d’un côté, héritage de groupe de l’autre."
+      "description_fr": "Un fichier créé par Alice dans team hérite réellement du groupe project."
     },
     {
       "type": "command-exit",
@@ -171,7 +171,7 @@
         "lpic1.104.5.sticky-bit",
         "lpic1.104.5.effets-speciaux-sur-repertoires"
       ],
-      "description_fr": "Les deux dossiers ont des rôles distincts : dépôt protégé d’un côté, héritage de groupe de l’autre."
+      "description_fr": "Dans incoming, Alice et Bob peuvent déposer un fichier, mais Alice ne peut pas supprimer celui de Bob."
     }
   ],
   "hint_ids": [
