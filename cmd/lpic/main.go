@@ -1528,8 +1528,12 @@ func runInteractiveLabWithBackend(
 		}
 	}()
 
-	printLab(authored, stdout)
-	fmt.Fprintln(stdout)
+	if panelReporter == nil {
+		printLab(authored, stdout)
+		fmt.Fprintln(stdout)
+	} else {
+		fmt.Fprintln(stdout, "Shell du lab · :check et :hint actualisent le panneau gauche.")
+	}
 
 	nextHint := nextHintIndex(authored.Hints, highestHintLevel)
 	usedPersistentShell := false
