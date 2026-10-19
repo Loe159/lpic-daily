@@ -191,8 +191,6 @@ func BuildSession(input SessionInput) (Session, error) {
 		if !conceptEligible(concept) && input.Projections[concept.ID].Stage == StageUnseen {
 			continue
 		}
-			continue
-		}
 		projection, exists := input.Projections[concept.ID]
 		if !exists || !needsImmediatePractice(projection) {
 			continue
