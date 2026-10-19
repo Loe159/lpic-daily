@@ -57,9 +57,9 @@ type SessionInput struct {
 	Projections        map[string]MasteryProjection
 	ObjectiveReadiness map[string]bool
 	// When supplied by the study planner, dependencies require course+quiz+lab evidence.
-	ConceptReadiness   map[string]bool
-	ScopeObjectives    []string
-	Policy             SessionPolicy
+	ConceptReadiness map[string]bool
+	ScopeObjectives  []string
+	Policy           SessionPolicy
 }
 
 func BuildSession(input SessionInput) (Session, error) {
@@ -94,7 +94,6 @@ func BuildSession(input SessionInput) (Session, error) {
 			objectivePriority[objective.ID] = float64(objective.Weight) / float64(count)
 		}
 	}
-
 
 	conceptByID := make(map[string]curriculum.Concept, len(input.Bundle.Concepts.Concepts))
 	for _, concept := range input.Bundle.Concepts.Concepts {
@@ -169,7 +168,6 @@ func BuildSession(input SessionInput) (Session, error) {
 			eligible[objectiveID] = true
 		}
 	}
-
 
 	conceptEligible := func(concept curriculum.Concept) bool {
 		if concept.StudyOrder == 0 {
@@ -270,7 +268,6 @@ func BuildSession(input SessionInput) (Session, error) {
 			objectivePriority:     objectivePriority[concept.ObjectiveID],
 		})
 	}
-
 
 	slices.SortFunc(candidates, func(a, b newCandidate) int {
 		// Authored global pedagogical order comes before exam weight and
