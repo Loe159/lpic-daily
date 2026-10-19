@@ -422,7 +422,7 @@ func runWorkspacePanel(authored lab.Lab, statePath string, stdin io.Reader, stdo
 		if err != nil {
 			return err
 		}
-		frame := renderWorkspacePanel(authored, snapshot, width, height, topScroll, checkScroll)
+		frame := renderWorkspacePanel(authored, snapshot, int(width), int(height), topScroll, checkScroll)
 		if frame != lastFrame {
 			if _, err := io.WriteString(out, frame); err != nil {
 				return err
