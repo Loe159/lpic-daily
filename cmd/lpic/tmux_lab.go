@@ -192,7 +192,16 @@ func runTmuxLabPanel(ctx context.Context, authored lab.Lab, stateFile string, st
 	}
 	fmt.Fprint(stdout, "\x1b[?1049h\x1b[?25l")
 	defer fmt.Fprint(stdout, "\x1b[?25h\x1b[?1049l")
-	pressed := make(chan struct{}, 1)
+	inputFile, ok := stdin.(*os.File)
+	if !ok || !terminal.IsTerminal(inputFile) {
+		return errors.New("tmux lab panel requires a real terminal on stdin")
+	}
+	state, err := terminal.MakeRaw(inputFile)
+	if err != nil {
+		return err
+	}
+	defer terminal.Restore(inputFile, state)
+	pressed := make(chan byte, 16)
 	go func() {
 		reader := make([]byte, 1)
 		for {
@@ -200,9 +209,9 @@ func runTmuxLabPanel(ctx context.Context, authored lab.Lab, stateFile string, st
 			if err != nil {
 				return
 			}
-			if n > 0 && (reader[0] == '\r' || reader[0] == '\n') {
+			if n > 0 {
 				select {
-				case pressed <- struct{}{}:
+				case pressed <- reader[0]:
 				default:
 				}
 			}
@@ -211,6 +220,7 @@ func runTmuxLabPanel(ctx context.Context, authored lab.Lab, stateFile string, st
 	ticker := time.NewTicker(250 * time.Millisecond)
 	defer ticker.Stop()
 	var prev string
+	scroll := 0
 	for {
 		state := labPanelState{}
 		if payload, err := os.ReadFile(stateFile); err == nil && len(payload) < 64<<10 {
@@ -220,7 +230,7 @@ func runTmuxLabPanel(ctx context.Context, authored lab.Lab, stateFile string, st
 		if err != nil {
 			return err
 		}
-		frame := renderTmuxLabPanel(authored, state, width, height)
+		frame := renderTmuxLabPanel(authored, state, width, height, scroll)
 		if frame != prev {
 			fmt.Fprint(stdout, "\x1b[H\x1b[2J", frame)
 			prev = frame
@@ -228,9 +238,20 @@ func runTmuxLabPanel(ctx context.Context, authored lab.Lab, stateFile string, st
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		case <-pressed:
-			if state.Finished {
-				return nil
+		case key := <-pressed:
+			switch key {
+			case '\r', '\n':
+				if state.Finished {
+					return nil
+				}
+			case 'j', 'J':
+				scroll++
+			case 'k', 'K':
+				if scroll > 0 {
+					scroll--
+				}
+			case 'g':
+				scroll = 0
 			}
 		case <-ticker.C:
 		}
@@ -244,7 +265,7 @@ func panelWrapped(text string, width int) []string {
 	return strings.Split(labWrap(lpicui.SanitizeText(text), width), "\n")
 }
 
-func renderTmuxLabPanel(authored lab.Lab, state labPanelState, width, height int) string {
+func renderTmuxLabPanel(authored lab.Lab, state labPanelState, width, height, scroll int) string {
 	if width < 20 || height < 10 {
 		return "Agrandis le terminal pour afficher le lab.\n"
 	}
@@ -301,7 +322,20 @@ func renderTmuxLabPanel(authored lab.Lab, state labPanelState, width, height int
 		topMax = 2
 	}
 	if len(top) > topMax {
-		top = append(top[:topMax-1], "… consigne longue : agrandir le terminal")
+		maxScroll := len(top) - topMax + 1
+		if scroll > maxScroll {
+			scroll = maxScroll
+		}
+		if scroll < 0 {
+			scroll = 0
+		}
+		last := scroll + topMax - 1
+		if last > len(top) {
+			last = len(top)
+		}
+		visible := append([]string(nil), top[scroll:last]...)
+		visible = append(visible, "↑↓ j/k : défiler · g : début")
+		top = visible
 	}
 	var out strings.Builder
 	for _, line := range top {
