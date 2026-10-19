@@ -1142,6 +1142,77 @@ func TestDashboardLabParentCanCheckFromEitherCommand(t *testing.T) {
 	}
 }
 
+func TestDashboardLabParentExposesFourHintsAndReplaysPreviousDisclosure(t *testing.T) {
+	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatal(err)
+	}
+	authored, err := findLab(labs, stuckWorkerID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var stdout bytes.Buffer
+	input := strings.NewReader(":hint\n:hint\n:hint\n:hint\n:hint\n:quit\n")
+	if err := waitForDashboardLabCompletion(context.Background(), authored, 0, "", input, &stdout); err != nil {
+		t.Fatalf("parent hints: %v", err)
+	}
+	output := stdout.String()
+	for _, want := range []string{
+		":hint  Indice", "Indice 1/4", "Indice 2/4", "Indice 3/4",
+		"Indice 4/4", "Tous les indices ont déjà été consultés. Rappel",
+		"révèle la solution",
+	} {
+		if !strings.Contains(output, want) {
+			t.Fatalf("parent hint output missing %q: %q", want, output)
+		}
+	}
+	store, err := openProgressStore(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+	disclosure, err := store.LabDisclosure(context.Background(), authored.Definition.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if disclosure.HighestHintLevel != 4 || !disclosure.SolutionRevealed {
+		t.Fatalf("hint 4 must be persisted without being reset by the parent: %#v", disclosure)
+	}
+}
+
+func TestLabHintsAdvanceAcrossParentAndChildTerminals(t *testing.T) {
+	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
+	labs, err := lab.LoadAll(lpicdaily.BuiltinFS)
+	if err != nil {
+		t.Fatal(err)
+	}
+	authored, err := findLab(labs, stuckWorkerID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var parent, child bytes.Buffer
+	ctx := context.Background()
+	if err := waitForDashboardLabCompletion(ctx, authored, 0, "", strings.NewReader(":hint\n:quit\n"), &parent); err != nil {
+		t.Fatal(err)
+	}
+	level, err := discloseNextLabHint(ctx, authored, &child)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if level != 2 || !strings.Contains(child.String(), "Indice 2/4") {
+		t.Fatalf("child must resume from parent hint 1, level=%d, output=%q", level, child.String())
+	}
+	parent.Reset()
+	if err := waitForDashboardLabCompletion(ctx, authored, 0, "", strings.NewReader(":hint\n:quit\n"), &parent); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(parent.String(), "Indice 3/4") ||
+		strings.Contains(parent.String(), "Indice 1/4") {
+		t.Fatalf("parent must resume from child hint 2: %q", parent.String())
+	}
+}
+
 func TestSuccessfulLabAttemptCountRequiresEveryMappedConcept(t *testing.T) {
 	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
 
