@@ -7,6 +7,15 @@ cat > /usr/local/bin/lpic-signal-probe <<'EOF'
 #!/usr/bin/env bash
 set -u
 
+record_foreground() {
+    local own_pgid terminal_pgid
+    own_pgid="$(ps -o pgid= -p "$" | tr -d ' ')"
+    terminal_pgid="$(ps -o tpgid= -p "$" | tr -d ' ')"
+    if [[ -n "$own_pgid" && "$own_pgid" == "$terminal_pgid" ]]; then
+        printf 'foreground\n' > /run/lpic/probe-foreground
+    fi
+}
+
 record_resume() {
     printf 'continued\n' > /run/lpic/probe-continued
 
@@ -22,6 +31,7 @@ trap 'record_resume' CONT
 trap 'printf "terminated\n" > /run/lpic/probe-terminated; exit 0' TERM
 
 # Handshake: SIGTSTP is only safe once Bash installed its traps.
+record_foreground
 printf 'ready\n' > /run/lpic/probe-ready
 while :; do
     sleep 2 &
@@ -37,3 +47,10 @@ nohup bash -c 'exec -a stuck-worker sleep infinity' >/dev/null 2>&1 &
 printf '%s\n' "$!" > /run/lpic/stuck-worker.pid
 
 sleep 0.1
+
+# A real lab-provided command, rather than an undocumented renaming trick.
+cat > /usr/local/bin/resilient-worker <<'EOF'
+#!/usr/bin/env bash
+exec -a resilient-worker /usr/bin/sleep infinity
+EOF
+chmod 0755 /usr/local/bin/resilient-worker
