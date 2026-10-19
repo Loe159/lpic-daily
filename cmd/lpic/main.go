@@ -768,8 +768,8 @@ func nextHintIndex(hints []lab.Hint, highestHintLevel int) int {
 }
 
 // discloseNextLabHint is shared by the parent dashboard and the child shell.
- // Always reload the persisted disclosure so alternating between terminals
- // never skips a level or treats an already viewed hint as new evidence.
+// Always reload the persisted disclosure so alternating between terminals
+// never skips a level or treats an already viewed hint as new evidence.
 func discloseNextLabHint(ctx context.Context, authored lab.Lab, out io.Writer) (int, error) {
 	highest, err := pendingLabHintLevel(ctx, authored.Definition.ID)
 	if err != nil {
