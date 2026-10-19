@@ -60,7 +60,7 @@
         "lpic1.103.3.creation-copie-deplacement-suppression",
         "lpic1.103.3.recursivite-et-globbing"
       ],
-      "description_fr": "L’application est recopiée récursivement sous release/app ; deploy.sh conserve son contenu, ses permissions et sa date de modification."
+      "description_fr": "release/app/bin/deploy.sh existe, est exécutable et conserve son contenu d’origine."
     },
     {
       "type": "command-exit",
@@ -74,7 +74,7 @@
         "lpic1.103.3.creation-copie-deplacement-suppression",
         "lpic1.103.3.recursivite-et-globbing"
       ],
-      "description_fr": "L’application est recopiée récursivement sous release/app ; deploy.sh conserve son contenu, ses permissions et sa date de modification."
+      "description_fr": "app.conf et db.conf sont dans release/config ; aucun fichier ne reste dans release/app/conf."
     },
     {
       "type": "command-exit",
@@ -88,7 +88,7 @@
         "lpic1.103.3.recherche-par-metadonnees",
         "lpic1.103.3.actions-find"
       ],
-      "description_fr": "Les deux fichiers .conf sont déplacés dans release/config et l’ancien dossier conf est vide ou absent."
+      "description_fr": "Le fichier old.tmp a disparu de release/app/cache, tandis que new.tmp est conservé."
     },
     {
       "type": "command-exit",
@@ -103,7 +103,7 @@
         "lpic1.103.3.actions-find",
         "lpic1.103.3.creation-copie-deplacement-suppression"
       ],
-      "description_fr": "old.tmp est supprimé mais new.tmp est conservé."
+      "description_fr": "current.log est dans release/large-logs ; small.log reste dans release/app/logs."
     },
     {
       "type": "file-exists",
@@ -111,7 +111,7 @@
       "concept_ids": [
         "lpic1.103.3.creation-copie-deplacement-suppression"
       ],
-      "description_fr": "current.log est déplacé dans large-logs tandis que small.log reste dans app/logs."
+      "description_fr": "Le marqueur /workspace/release/READY existe."
     },
     {
       "type": "command-exit",
@@ -125,7 +125,7 @@
         "lpic1.103.3.creation-copie-deplacement-suppression",
         "lpic1.103.3.recherche-par-metadonnees"
       ],
-      "description_fr": "READY existe à la racine de la release."
+      "description_fr": "deploy.sh conserve les permissions et la date de modification du fichier source, ainsi que son contenu."
     }
   ],
   "hint_ids": [
