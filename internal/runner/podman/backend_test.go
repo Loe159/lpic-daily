@@ -37,6 +37,12 @@ func TestBuildCreateRequestIsFailClosed(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildCreateRequest() error = %v", err)
 	}
+	if request.Timeout != 0 {
+		t.Fatalf("container timeout = %d; active lab must not expire while AFK", request.Timeout)
+	}
+	if request.Labels[ownerProcessLabel] == "" {
+		t.Fatal("container has no live owner identity to protect it from the recovery reaper")
+	}
 	if request.Privileged == nil || *request.Privileged {
 		t.Fatal("container must explicitly be non-privileged")
 	}
@@ -276,8 +282,25 @@ func TestOperationsRejectUnknownManagedInstanceBeforePodmanAPI(t *testing.T) {
 	}
 }
 
+func TestProcessIdentityTracksOwnerLifetime(t *testing.T) {
+	identity := currentProcessIdentity()
+	if identity == "" || !processIdentityIsLive(identity) {
+		t.Fatalf("current process identity %q is not considered live", identity)
+	}
+	if processIdentityIsLive(identity+"0") {
+		t.Fatal("reused PID with a different start time must not be considered live")
+	}
+	if processIdentityIsLive("not-a-pid:123") {
+		t.Fatal("malformed owner identity must not be considered live")
+	}
+}
+
 func TestReapAbandonedOnlyRemovesExpiredManagedContainers(t *testing.T) {
 	now := time.Date(2026, 10, 1, 12, 0, 0, 0, time.UTC)
+	activeOwner := currentProcessIdentity()
+	if activeOwner == "" {
+		t.Fatal("could not identify active process")
+	}
 	expired := now.Add(-time.Minute).Format(time.RFC3339Nano)
 	live := now.Add(time.Hour).Format(time.RFC3339Nano)
 	var deleted []string
@@ -296,6 +319,7 @@ func TestReapAbandonedOnlyRemovesExpiredManagedContainers(t *testing.T) {
 				`[
 				 {"Id":"expired-managed","Names":["lpic-daily-test-expired"],"Labels":{"%s":"true","%s":"lab.expired","%s":"%s"}},
 				 {"Id":"live-managed","Names":["lpic-daily-test-live"],"Labels":{"%s":"true","%s":"lab.live","%s":"%s"}},
+				 {"Id":"expired-but-owned","Names":["lpic-daily-test-active"],"Labels":{"%s":"true","%s":"lab.active","%s":"%s","%s":"%s"}},
 				 {"Id":"foreign","Names":["foreign"],"Labels":{"%s":"false","%s":"foreign","%s":"%s"}},
 				 {"Id":"spoofed-label","Names":["foreign-spoofed"],"Labels":{"%s":"true","%s":"lab.spoof","%s":"%s"}},
 				 {"Id":"missing-lab-id","Names":["lpic-daily-test-missing-lab"],"Labels":{"%s":"true","%s":"%s"}},
@@ -303,6 +327,7 @@ func TestReapAbandonedOnlyRemovesExpiredManagedContainers(t *testing.T) {
 				]`,
 				managedLabel, labIDLabel, expiresAtLabel, expired,
 				managedLabel, labIDLabel, expiresAtLabel, live,
+				managedLabel, labIDLabel, expiresAtLabel, expired, ownerProcessLabel, activeOwner,
 				managedLabel, labIDLabel, expiresAtLabel, expired,
 				managedLabel, labIDLabel, expiresAtLabel, expired,
 				managedLabel, expiresAtLabel, expired,
