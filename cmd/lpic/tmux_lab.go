@@ -79,6 +79,16 @@ func (reporter *labPanelReporter) update(level int, check string) error {
 	return reporter.persist()
 }
 
+func (reporter *labPanelReporter) clearCheck() error {
+	if reporter == nil {
+		return nil
+	}
+	reporter.mu.Lock()
+	defer reporter.mu.Unlock()
+	reporter.state.Check = ""
+	return reporter.persist()
+}
+
 func (reporter *labPanelReporter) finish() {
 	if reporter == nil {
 		return
@@ -300,7 +310,7 @@ func tmuxPanelColor(line string) string {
 }
 
 func renderTmuxLabPanel(authored lab.Lab, state labPanelState, width, height, scroll int) string {
-	if width < 20 || height < 10 {
+	if width < 28 || height < 20 {
 		return "Agrandis le terminal pour afficher le lab.\n"
 	}
 	inner := width - 4
