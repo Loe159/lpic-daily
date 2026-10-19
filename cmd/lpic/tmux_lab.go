@@ -184,7 +184,7 @@ func tryTmuxDashboardLab(ctx context.Context, authored lab.Lab, stdin io.Reader,
 			return false, nil
 		}
 	}
-	rightArgs := []string{"split-window", "-h", "-l", "60%", "-t", session+":0.0", "--",
+	rightArgs := []string{"split-window", "-h", "-l", "60%", "-t", session + ":0.0", "--",
 		binary, "lab", "run", authored.Definition.ID, "--panel-state", stateFile}
 	if err := tmuxRun(ctx, rightArgs...); err != nil {
 		terminate()
