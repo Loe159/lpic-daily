@@ -281,6 +281,9 @@ func waitForDashboardLabCompletion(
 				return nil
 			}
 			fmt.Fprintf(stdout, "Vérification indisponible : %v\n", err)
+			if errors.Is(err, errLabChildClosed) {
+				fmt.Fprintln(stdout, "Vérifie le message dans la fenêtre du lab. Aucune réinitialisation automatique n\x27a été effectuée ; :quit permet de revenir au menu.")
+			}
 			continue
 		}
 		if result.NeedsReflection {
