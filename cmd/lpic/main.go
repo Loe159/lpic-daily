@@ -2056,6 +2056,9 @@ func runInteractiveLabWithBackend(
 			// Reset restores sandbox state only. Disclosure state is persisted
 			// across resets/restarts and remains attached to the learning attempt.
 			nextHint = nextHintIndex(authored.Hints, highestHintLevel)
+			if err := panelReporter.clearCheck(); err != nil {
+				return fmt.Errorf("reset tmux lab panel: %w", err)
+			}
 			usedPersistentShell = false
 			reflectionRecorded = false
 			lastLearnerCommand = ""
