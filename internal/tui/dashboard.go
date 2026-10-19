@@ -2,11 +2,13 @@ package tui
 
 import (
 	"fmt"
+	"time"
 	"strings"
 	"unicode/utf8"
 
 	tea "charm.land/bubbletea/v2"
 
+	"github.com/Loe159/lpic-daily/internal/activity"
 	"github.com/Loe159/lpic-daily/internal/gamification"
 	"github.com/Loe159/lpic-daily/internal/learning"
 	"github.com/Loe159/lpic-daily/internal/study"
@@ -33,14 +35,22 @@ type Dashboard struct {
 	width  int
 	height int
 	action Action
+	activity *activity.Report
+	showActivity bool
+	activityView string
+	activityDate time.Time
+	activityDayOpen bool
+	activityNode string
+	activityCursor int
 }
 
-func NewDashboard(plan study.Plan, game gamification.Snapshot) Dashboard {
-	return Dashboard{
-		plan:  plan,
-		game:  game,
-		width: 80,
+func NewDashboard(plan study.Plan, game gamification.Snapshot, reports ...*activity.Report) Dashboard {
+	model := Dashboard{plan: plan, game: game, width: 80, activityNode: "all", activityView: "calendar"}
+	if len(reports) > 0 && reports[0] != nil {
+		model.activity = reports[0]
+		model.activityDate = reports[0].Now
 	}
+	return model
 }
 
 func (model Dashboard) Init() tea.Cmd {
@@ -73,6 +83,16 @@ func (model Dashboard) ChosenAction() Action {
 }
 
 func (model Dashboard) updateKey(key string) (Dashboard, bool) {
+	if model.activity != nil {
+		if key == "tab" || key == "shift+tab" {
+			model.showActivity = !model.showActivity
+			return model, false
+		}
+		if model.showActivity {
+			if key == "q" || key == "ctrl+c" { return model, true }
+			return model.updateActivityKey(key)
+		}
+	}
 	switch key {
 	case "q", "ctrl+c", "esc":
 		return model, true
@@ -142,6 +162,7 @@ func defaultAction(item *study.Item) Action {
 }
 
 func (model Dashboard) render() string {
+	if model.showActivity { return model.renderActivity() }
 	width := model.width
 	if width < 40 {
 		width = 40
@@ -157,7 +178,9 @@ func (model Dashboard) render() string {
 	out.WriteString("\n")
 
 	if len(model.plan.Items) == 0 {
-		out.WriteString("\n✓ Tout est à jour. Aucune activité prévue.\n\n[q] Quitter\n")
+		out.WriteString("\n✓ Tout est à jour. Aucune activité prévue.\n\n")
+		if model.activity != nil { out.WriteString("[Tab] Activité   ") }
+		out.WriteString("[q] Quitter\n")
 		return out.String()
 	}
 	out.WriteString(fmt.Sprintf("\nAUJOURD'HUI  ·  %d activités\n\n", len(model.plan.Items)))
@@ -204,7 +227,11 @@ func (model Dashboard) render() string {
 			out.WriteString("Activités : " + strings.Join(choices, "   ") + "\n")
 		}
 	}
-	out.WriteString("\n↑↓ Naviguer   Entrée Commencer   q Quitter\n")
+	if model.activity != nil {
+		out.WriteString("\n↑↓ Naviguer   Entrée Commencer   Tab Activité   q Quitter\n")
+	} else {
+		out.WriteString("\n↑↓ Naviguer   Entrée Commencer   q Quitter\n")
+	}
 	return out.String()
 }
 
