@@ -1321,11 +1321,30 @@ func runInteractiveLabWithSocket(authored lab.Lab, stdin io.Reader, stdout, stde
 	return runInteractiveLabWithOptions(authored, stdin, stdout, stderr, checkSocketPath, "")
 }
 
-func runInteractiveLabWithOptions(authored lab.Lab, stdin io.Reader, stdout, stderr io.Writer, checkSocketPath, workspacePath string) error {
+func runInteractiveLabWithOptions(authored lab.Lab, stdin io.Reader, stdout, stderr io.Writer, checkSocketPath, workspacePath string) (runErr error) {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	ctx = context.WithValue(ctx, labCheckSocketKey{}, checkSocketPath)
 	ctx = context.WithValue(ctx, labWorkspaceKey{}, workspacePath)
 	defer stop()
+	if workspacePath != "" {
+		if err := writeWorkspaceSnapshot(workspacePath, workspaceSnapshot{
+			LabID: authored.Definition.ID, Status: "starting",
+		}); err != nil {
+			return fmt.Errorf("initialize lab workspace: %w", err)
+		}
+		defer func() {
+			state, err := readWorkspaceSnapshot(workspacePath)
+			if err != nil || state.Status != "starting" {
+				return
+			}
+			state.Status = "ended"
+			if runErr != nil {
+				state.Checked = true
+				state.CheckText = "Le lab n'a pas démarré : " + runErr.Error()
+			}
+			_ = writeWorkspaceSnapshot(workspacePath, state)
+		}()
+	}
 
 	switch authored.Definition.Environment.Backend {
 	case "podman":
