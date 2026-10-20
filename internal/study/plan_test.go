@@ -27,8 +27,10 @@ func (memory memoryEvidence) EvidenceForConcept(_ context.Context, conceptID str
 func teachLabPrerequisites(t *testing.T, evidence memoryEvidence, labs []lab.Lab, labID, targetConcept string, now time.Time) {
 	t.Helper()
 	var required []string
+	var objectiveIDs []string
 	for _, authored := range labs {
 		if authored.Definition.ID == labID {
+			objectiveIDs = authored.Definition.ObjectiveIDs
 			required = authored.Definition.ConceptIDs
 			break
 		}
@@ -64,7 +66,7 @@ func teachLabPrerequisites(t *testing.T, evidence memoryEvidence, labs []lab.Lab
 			events = append(events, learning.EvidenceEvent{
 				EventID: "prerequisite-" + string(spec.kind) + "-" + conceptID,
 				OccurredAt: at, ConceptID: conceptID,
-				ObjectiveIDs: []string{labID}, SourceItemID: "test-prerequisite",
+				ObjectiveIDs: objectiveIDs, SourceItemID: "test-prerequisite",
 				ActivityKind: spec.kind, EvidenceKind: spec.evidence,
 				Result: learning.ResultPass, Distribution: "generic",
 				PracticeContext: "test-prerequisite", AttemptIndex: 1,
