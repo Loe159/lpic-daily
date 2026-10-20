@@ -553,6 +553,7 @@
         "labs": [
           "lpic1.104.5.permissions-rwx-fichier-dossier.standalone-diagnostic",
           "lpic1.104.5.permissions-rwx-fichier-dossier.standalone-transfer",
+          "lpic1.104.5.rwx-dispatch-access",
           "lpic1.104.5.shared-dropbox",
           "lpic1.104.5.transfer-team-share-audit"
         ],
@@ -569,6 +570,7 @@
       "lab_contexts": [
         "104-5-c01-standalone-diagnostic",
         "104-5-c01-standalone-transfer",
+        "1045-rwx-dispatch-access",
         "shared-dropbox-policy",
         "team-share-audit"
       ],
