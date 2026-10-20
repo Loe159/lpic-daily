@@ -58,6 +58,9 @@ type SessionInput struct {
 	ObjectiveReadiness map[string]bool
 	// When supplied by the study planner, dependencies require course+quiz+lab evidence.
 	ConceptReadiness map[string]bool
+	// PracticeAvailability prevents forcing a cross-concept lab before its
+	// other subjects are taught. A nil map preserves the legacy domain API.
+	PracticeAvailability map[string]bool
 	ScopeObjectives  []string
 	Policy           SessionPolicy
 }
@@ -203,6 +206,12 @@ func BuildSession(input SessionInput) (Session, error) {
 		hasPracticalSuccess := projection.SuccessfulGuided > 0 ||
 			projection.SuccessfulIndependent > 0 ||
 			projection.SuccessfulTransfer > 0
+		// Quiz-complete concepts may advance while a composite scenario is
+		// deferred. They will return here once all its concepts are studied.
+		if hasQuestionSuccess && !hasPracticalSuccess &&
+			input.PracticeAvailability != nil && !input.PracticeAvailability[concept.ID] {
+			continue
+		}
 		reason := "Consolidation immédiate: une activité requise manque avant le concept suivant."
 		switch {
 		case !hasQuestionSuccess:
