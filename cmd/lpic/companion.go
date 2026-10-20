@@ -27,11 +27,11 @@ const companionSchemaVersion = 1
 // CompanionStatus is a versioned, read-only local interface for desktop integrations.
 // All scheduling and mastery calculations remain in LPIC Daily.
 type CompanionStatus struct {
-	SchemaVersion int                 `json:"schemaVersion"`
-	GeneratedAt   time.Time           `json:"generatedAt"`
-	Session       CompanionSession    `json:"session"`
-	Progress      CompanionProgress   `json:"progress"`
-	Activity      CompanionActivity   `json:"activity"`
+	SchemaVersion int               `json:"schemaVersion"`
+	GeneratedAt   time.Time         `json:"generatedAt"`
+	Session       CompanionSession  `json:"session"`
+	Progress      CompanionProgress `json:"progress"`
+	Activity      CompanionActivity `json:"activity"`
 }
 
 type CompanionSession struct {
@@ -43,11 +43,11 @@ type CompanionSession struct {
 }
 
 type CompanionNext struct {
-	ConceptID   string         `json:"conceptId"`
-	ObjectiveID string         `json:"objectiveId"`
-	Title       string         `json:"title"`
-	Kind        string         `json:"kind"`
-	ActionKind  string         `json:"actionKind"`
+	ConceptID   string `json:"conceptId"`
+	ObjectiveID string `json:"objectiveId"`
+	Title       string `json:"title"`
+	Kind        string `json:"kind"`
+	ActionKind  string `json:"actionKind"`
 }
 
 type CompanionProgress struct {
@@ -99,10 +99,10 @@ func makeCompanionStatus(plan study.Plan, report activity.Report, game gamificat
 		GeneratedAt:   now,
 		Session:       CompanionSession{Remaining: len(plan.Items)},
 		Activity: CompanionActivity{
-			StreakDays: game.CurrentStreakDays,
+			StreakDays:     game.CurrentStreakDays,
 			CompletedToday: report.DayAt(now).Count(),
-			XP: game.XP,
-			Last14Days: make([]CompanionDay, 0, 14),
+			XP:             game.XP,
+			Last14Days:     make([]CompanionDay, 0, 14),
 		},
 	}
 	for _, item := range plan.Items {
