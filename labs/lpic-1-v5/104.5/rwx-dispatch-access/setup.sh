@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 id alice >/dev/null
-install -d -o root -g root -m 0755 /workspace/dispatch /workspace/dispatch/bin /workspace/dispatch/reports
+install -d -m 0755 /workspace/dispatch /workspace/dispatch/bin /workspace/dispatch/reports
 cat > /workspace/dispatch/bin/prepare.sh <<'SCRIPT'
 #!/bin/sh
 printf 'dispatch-ready\n'
