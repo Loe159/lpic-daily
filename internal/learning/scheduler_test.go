@@ -334,10 +334,10 @@ func TestPedagogicalOrderPrioritizesFoundationsOverExamWeight(t *testing.T) {
 		ObjectiveReadiness: map[string]bool{"103.1": true},
 		ConceptReadiness: map[string]bool{
 			"lpic1.103.3.creation-copie-deplacement-suppression": true,
-			"lpic1.103.1.path-et-resolution-de-commande": true,
+			"lpic1.103.1.path-et-resolution-de-commande":         true,
 		},
-		ScopeObjectives:    []string{"102.3", "103.8"},
-		Policy:             learning.DefaultSessionPolicy(),
+		ScopeObjectives: []string{"102.3", "103.8"},
+		Policy:          learning.DefaultSessionPolicy(),
 	})
 	if err != nil {
 		t.Fatalf("BuildSession() error = %v", err)
@@ -363,7 +363,7 @@ func TestExam101ConceptOrderStartsWithShellThenFiles(t *testing.T) {
 			Now: now, Bundle: bundle, Projections: projections,
 			ConceptReadiness: ready, ObjectiveReadiness: map[string]bool{},
 			ScopeObjectives: bundle.Phase3.SelectedObjectives,
-			Policy: learning.DefaultSessionPolicy(),
+			Policy:          learning.DefaultSessionPolicy(),
 		})
 		if err != nil {
 			t.Fatal(err)
@@ -417,8 +417,8 @@ func TestConceptPrerequisiteNeedsFullCourseQuizAndLabReadiness(t *testing.T) {
 				SuccessfulExposure: 1, SuccessfulRecall: 1, SuccessfulGuided: 1},
 		},
 		ConceptReadiness: map[string]bool{}, // partial evidence: not all 3 activities passed
-		ScopeObjectives: []string{"103.1", "103.3"},
-		Policy: learning.DefaultSessionPolicy(),
+		ScopeObjectives:  []string{"103.1", "103.3"},
+		Policy:           learning.DefaultSessionPolicy(),
 	}
 	before, err := learning.BuildSession(base)
 	if err != nil {
@@ -453,7 +453,7 @@ func TestExistingAdvancedProgressDoesNotHideMissingFileFoundation(t *testing.T) 
 				SuccessfulRecall: 1, SuccessfulGuided: 1},
 		},
 		ScopeObjectives: bundle.Phase3.SelectedObjectives,
-		Policy: learning.DefaultSessionPolicy(),
+		Policy:          learning.DefaultSessionPolicy(),
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -477,7 +477,7 @@ func TestExam101ScopeCannotLeakIntoUnschedulableObjectives(t *testing.T) {
 				SuccessfulExposure: 1},
 		},
 		ScopeObjectives: []string{"103.1"},
-		Policy: learning.DefaultSessionPolicy(),
+		Policy:          learning.DefaultSessionPolicy(),
 	})
 	if err != nil {
 		t.Fatal(err)
