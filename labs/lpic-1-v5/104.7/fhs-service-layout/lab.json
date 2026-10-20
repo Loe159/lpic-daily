@@ -1,0 +1,124 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.7.fhs-service-layout",
+  "title_fr": "Remettre en place les fichiers d’un service",
+  "brief_fr": "Après une migration interrompue, les ressources du service Acme sont restées dans /workspace/incoming. Le service ne retrouve plus sa configuration, ses journaux, sa page publiée ni son outil de maintenance. Répartis ces quatre ressources dans les emplacements Linux adaptés à leur rôle, sans perdre leur contenu ni altérer l’exécution de l’outil.",
+  "success_criteria_fr": [
+    "La configuration est préservée dans /etc/acme et le journal dans /var/log/acme.",
+    "Le contenu publié est dans /srv/acme et l’outil exécutable dans /opt/acme/bin.",
+    "Aucune des quatre ressources n’est laissée dans /workspace/incoming."
+  ],
+  "debrief_fr": "Le FHS distingue la configuration sous /etc, les journaux sous /var/log, les contenus servis sous /srv et les logiciels optionnels sous /opt. Déplacer les fichiers ne doit pas altérer leur contenu ni retirer leur caractère exécutable.",
+  "objective_ids": [
+    "104.7"
+  ],
+  "concept_ids": [
+    "lpic1.104.7.role-des-principaux-repertoires-fhs"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-accepted"
+  ],
+  "estimated_minutes": 6,
+  "practice_context": "fhs-service-layout",
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "baseline",
+    "writable_guest_paths": [
+      "/workspace",
+      "/etc/acme",
+      "/var/log/acme",
+      "/srv/acme",
+      "/opt/acme"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "cpu_percent": 100,
+    "pids": 96,
+    "timeout_seconds": 900
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test -f /etc/acme/acme.conf && grep -qx 'listen=8080' /etc/acme/acme.conf"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.7.role-des-principaux-repertoires-fhs"
+      ],
+      "description_fr": "La configuration Acme est dans /etc/acme, intacte."
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test -f /var/log/acme/service.log && grep -qx 'started' /var/log/acme/service.log"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.7.role-des-principaux-repertoires-fhs"
+      ],
+      "description_fr": "Le journal Acme est dans /var/log/acme, intact."
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test -f /srv/acme/index.html && grep -qx '<h1>Acme</h1>' /srv/acme/index.html"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.7.role-des-principaux-repertoires-fhs"
+      ],
+      "description_fr": "La page du service est disponible sous /srv/acme, intacte."
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test -x /opt/acme/bin/acmectl && test \"$(/opt/acme/bin/acmectl)\" = acme-ok"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.7.role-des-principaux-repertoires-fhs"
+      ],
+      "description_fr": "L’outil Acme est exécutable sous /opt/acme/bin sans modifier son comportement."
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "test ! -e /workspace/incoming/acme.conf && test ! -e /workspace/incoming/service.log && test ! -e /workspace/incoming/index.html && test ! -e /workspace/incoming/acmectl"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.7.role-des-principaux-repertoires-fhs"
+      ],
+      "description_fr": "Le répertoire de réception ne conserve aucune des quatre ressources déplacées."
+    }
+  ],
+  "hint_ids": [
+    "lpic1.104.7.fhs-service-layout.hint-1",
+    "lpic1.104.7.fhs-service-layout.hint-2",
+    "lpic1.104.7.fhs-service-layout.hint-3",
+    "lpic1.104.7.fhs-service-layout.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

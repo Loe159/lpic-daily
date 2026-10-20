@@ -348,6 +348,18 @@
       "evidence_strength": "behavior"
     },
     {
+      "scenario_id": "lpic1.104.7.fhs-service-layout",
+      "objective_ids": [
+        "104.7"
+      ],
+      "concept_ids": [
+        "lpic1.104.7.role-des-principaux-repertoires-fhs"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "behavior"
+    },
+    {
       "scenario_id": "lpic1.104.7.fhs-search-recovery",
       "objective_ids": [
         "104.7"

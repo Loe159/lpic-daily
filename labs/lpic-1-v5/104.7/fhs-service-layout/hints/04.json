@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.7.fhs-service-layout.hint-4",
+  "lab_id": "lpic1.104.7.fhs-service-layout",
+  "level": 4,
+  "content_fr": "Les quatre emplacements attendus correspondent respectivement à /etc/acme, /var/log/acme, /srv/acme et /opt/acme/bin. Conserve intégralement les ressources.",
+  "evidence_impact": "solution-revealed"
+}

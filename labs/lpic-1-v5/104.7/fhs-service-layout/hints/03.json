@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.7.fhs-service-layout.hint-3",
+  "lab_id": "lpic1.104.7.fhs-service-layout",
+  "level": 3,
+  "content_fr": "Examine les rôles respectifs de /etc, /var/log, /srv et /opt. Les fichiers déplacés doivent rester utilisables.",
+  "evidence_impact": "material"
+}
