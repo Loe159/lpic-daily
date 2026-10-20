@@ -1231,6 +1231,9 @@ func TestRecallSuccessPrefersLabBeforeNextConcept(t *testing.T) {
 			},
 		},
 	}
+	// A composite lab is only eligible after every concept it assesses has
+	// passed its course and quiz; synthetic per-concept labs are not substitutes.
+	teachLabPrerequisites(t, evidence, labs, "lpic1.103.1.shell-environment-repair", conceptID, now)
 	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
 		Now:        now,
 		Curriculum: curriculumBundle,
