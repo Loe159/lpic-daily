@@ -29,7 +29,7 @@ func TestMakeCompanionStatus(t *testing.T) {
 		},
 		Days: map[string]*activity.Day{
 			now.Format("2006-01-02"): {
-				Date: now.Format("2006-01-02"),
+				Date:       now.Format("2006-01-02"),
 				Activities: []activity.Entry{{When: now}, {When: now}},
 			},
 		},
