@@ -142,14 +142,14 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 	activeScopeObjectives := examProgressionScope(input.Curriculum, scopeObjectives, readiness)
 
 	session, err := learning.BuildSession(learning.SessionInput{
-		Now:                input.Now,
-		Bundle:             input.Curriculum,
-		Projections:        projections,
-		ObjectiveReadiness: readiness,
-		ConceptReadiness:   conceptReadiness,
+		Now:                  input.Now,
+		Bundle:               input.Curriculum,
+		Projections:          projections,
+		ObjectiveReadiness:   readiness,
+		ConceptReadiness:     conceptReadiness,
 		PracticeAvailability: practiceAvailable,
-		ScopeObjectives:    activeScopeObjectives,
-		Policy:             input.Policy,
+		ScopeObjectives:      activeScopeObjectives,
+		Policy:               input.Policy,
 	})
 	if err != nil {
 		return Plan{}, fmt.Errorf("build learning session: %w", err)
