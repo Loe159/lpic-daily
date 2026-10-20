@@ -580,7 +580,6 @@ func recommendedLab(
 	return candidates[0]
 }
 
-
 // labPrerequisitesMet is the single eligibility gate for all authored labs,
 // including cross-objective and generated compatibility labs. A course and
 // successful quiz are required for every concept actually assessed by the lab.
