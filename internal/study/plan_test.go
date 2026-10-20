@@ -19,8 +19,6 @@ func (memory memoryEvidence) EvidenceForConcept(_ context.Context, conceptID str
 	return append([]learning.EvidenceEvent(nil), memory[conceptID]...), nil
 }
 
-
-
 // Complete prerequisite knowledge for a composite lab without changing the
 // studied concept's actual practical history. Other concepts have recent
 // synthetic completion so the scheduler continues to test the target item.
@@ -53,7 +51,7 @@ func teachLabPrerequisites(t *testing.T, evidence memoryEvidence, labs []lab.Lab
 			at = now.Add(-8 * 24 * time.Hour)
 		}
 		for _, spec := range []struct {
-			kind learning.ActivityKind
+			kind     learning.ActivityKind
 			evidence learning.EvidenceKind
 		}{
 			{learning.ActivityLesson, learning.EvidenceExposure},
@@ -64,7 +62,7 @@ func teachLabPrerequisites(t *testing.T, evidence memoryEvidence, labs []lab.Lab
 				continue
 			}
 			events = append(events, learning.EvidenceEvent{
-				EventID: "prerequisite-" + string(spec.kind) + "-" + conceptID,
+				EventID:    "prerequisite-" + string(spec.kind) + "-" + conceptID,
 				OccurredAt: at, ConceptID: conceptID,
 				ObjectiveIDs: objectiveIDs, SourceItemID: "test-prerequisite",
 				ActivityKind: spec.kind, EvidenceKind: spec.evidence,
