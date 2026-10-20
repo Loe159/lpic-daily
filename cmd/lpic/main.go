@@ -101,6 +101,10 @@ func runWithIO(args []string, stdin io.Reader, stdout, stderr io.Writer) error {
 		return nil
 	case "today":
 		return runToday(args[1:], stdout)
+	case "status":
+		return runCompanionStatus(args[1:], stdout)
+	case "launch":
+		return runCompanionLaunch(args[1:], stdin, stdout, stderr)
 	case "tui":
 		if len(args) != 1 {
 			return fmt.Errorf("usage: lpic tui")
@@ -3007,6 +3011,8 @@ Usage:
   lpic notify [--force]           send today's desktop notification once
   lpic assess                     run the Phase-1 initial recall assessment
   lpic today [--quick]           build today's adaptive session from local progress
+  lpic status --json             output read-only companion status as JSON
+  lpic launch --next             launch the next recommended activity
   lpic learn <lesson-id>          read a lesson and record exposure when confirmed
   lpic question <question-id>     answer a deterministic question and record evidence
   lpic validate                  validate embedded curriculum and labs
