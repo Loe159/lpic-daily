@@ -47,16 +47,15 @@ type CompanionNext struct {
 	ObjectiveID string         `json:"objectiveId"`
 	Title       string         `json:"title"`
 	Kind        string         `json:"kind"`
-	Action      lpicui.Action `json:"-"`
 	ActionKind  string         `json:"actionKind"`
 }
 
 type CompanionProgress struct {
-	TotalConcepts   int `json:"totalConcepts"`
-	CoveredConcepts int `json:"coveredConcepts"`
+	TotalConcepts    int `json:"totalConcepts"`
+	CoveredConcepts  int `json:"coveredConcepts"`
 	MasteredConcepts int `json:"masteredConcepts"`
-	CoveragePercent int `json:"coveragePercent"`
-	MasteryPercent  int `json:"masteryPercent"`
+	CoveragePercent  int `json:"coveragePercent"`
+	MasteryPercent   int `json:"masteryPercent"`
 }
 
 type CompanionDay struct {
@@ -120,20 +119,20 @@ func makeCompanionStatus(plan study.Plan, report activity.Report, game gamificat
 		first := plan.Items[0]
 		action := lpicui.DefaultAction(&first)
 		result.Session.Next = &CompanionNext{
-			ConceptID: first.ConceptID,
+			ConceptID:   first.ConceptID,
 			ObjectiveID: first.ObjectiveID,
-			Title: first.ConceptTitleFR,
-			Kind: string(first.Kind),
-			ActionKind: string(action.Kind),
+			Title:       first.ConceptTitleFR,
+			Kind:        string(first.Kind),
+			ActionKind:  string(action.Kind),
 		}
 	}
 	if all := report.Nodes["all"]; all != nil {
 		result.Progress = CompanionProgress{
-			TotalConcepts: all.Total,
-			CoveredConcepts: all.Covered,
+			TotalConcepts:    all.Total,
+			CoveredConcepts:  all.Covered,
 			MasteredConcepts: all.Mastered,
-			CoveragePercent: all.CoveragePercent(),
-			MasteryPercent: all.MasteryPercent(),
+			CoveragePercent:  all.CoveragePercent(),
+			MasteryPercent:   all.MasteryPercent(),
 		}
 	}
 	for i := 13; i >= 0; i-- {
