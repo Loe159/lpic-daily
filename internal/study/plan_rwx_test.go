@@ -78,4 +78,3 @@ func TestRWXConceptGetsRealFocusedLabBeforeLater1045Lessons(t *testing.T) {
 		t.Fatalf("team-sharing scenario still locked after all concepts studied: %#v", plan.Items)
 	}
 }
-
