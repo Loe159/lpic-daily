@@ -96,6 +96,7 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 	}
 
 	conceptReadiness := make(map[string]bool, len(evidenceByConcept))
+	lessonQuizReady := make(map[string]bool, len(evidenceByConcept))
 	for conceptID, events := range evidenceByConcept {
 		lesson, quiz, practical := false, false, false
 		for _, event := range events {
@@ -111,7 +112,31 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 				practical = true
 			}
 		}
+		lessonQuizReady[conceptID] = lesson && quiz
 		conceptReadiness[conceptID] = lesson && quiz && practical
+	}
+
+	// A composite scenario is available only after the learner has studied
+	// every concept it tests. Never infer prerequisites from the lab's objective.
+	labReadyByID := make(map[string]bool, len(input.Labs))
+	practiceAvailable := make(map[string]bool, len(scopeConcepts))
+	for _, authored := range input.Labs {
+		if slices.Contains(authored.Definition.Labels, "scenario-implemented") ||
+			!labPrerequisitesMet(authored.Definition.ConceptIDs, lessonQuizReady) {
+			continue
+		}
+		labReadyByID[authored.Definition.ID] = true
+		for _, conceptID := range authored.Definition.ConceptIDs {
+			practiceAvailable[conceptID] = true
+		}
+	}
+	// When all practical scenarios are still locked behind later concepts,
+	// allow the theoretical sequence to continue, without recording practical
+	// completion or unlocking the next exam prematurely.
+	for conceptID := range conceptReadiness {
+		if lessonQuizReady[conceptID] && !practiceAvailable[conceptID] {
+			conceptReadiness[conceptID] = true
+		}
 	}
 	readiness := completeObjectiveReadiness(input.Curriculum, scopeConcepts, evidenceByConcept)
 	activeScopeObjectives := examProgressionScope(input.Curriculum, scopeObjectives, readiness)
@@ -122,6 +147,7 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 		Projections:        projections,
 		ObjectiveReadiness: readiness,
 		ConceptReadiness:   conceptReadiness,
+		PracticeAvailability: practiceAvailable,
 		ScopeObjectives:    activeScopeObjectives,
 		Policy:             input.Policy,
 	})
@@ -161,7 +187,7 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 	labContexts := make(map[string]string, len(input.Labs))
 	acceptedLabIDs := make(map[string]bool, len(input.Labs))
 	for _, authored := range input.Labs {
-		if slices.Contains(authored.Definition.Labels, "scenario-implemented") {
+		if !labReadyByID[authored.Definition.ID] {
 			continue
 		}
 		labContexts[authored.Definition.ID] = authored.Definition.PracticeContext
@@ -552,4 +578,20 @@ func recommendedLab(
 		}
 	}
 	return candidates[0]
+}
+
+
+// labPrerequisitesMet is the single eligibility gate for all authored labs,
+// including cross-objective and generated compatibility labs. A course and
+// successful quiz are required for every concept actually assessed by the lab.
+func labPrerequisitesMet(conceptIDs []string, studied map[string]bool) bool {
+	if len(conceptIDs) == 0 {
+		return false
+	}
+	for _, conceptID := range conceptIDs {
+		if !studied[conceptID] {
+			return false
+		}
+	}
+	return true
 }
