@@ -139,6 +139,12 @@ func (model Dashboard) currentItem() *study.Item {
 }
 
 func defaultAction(item *study.Item) Action {
+	return DefaultAction(item)
+}
+
+// DefaultAction is the same selection policy used by the interactive dashboard.
+// External launchers must not independently choose between lessons, questions and labs.
+func DefaultAction(item *study.Item) Action {
 	if item == nil {
 		return Action{}
 	}
