@@ -90,6 +90,24 @@ LPIC objective numbers are reporting identifiers, not the teaching sequence.
 
 Exam 101 uses an authored, unique global `study_order` for all 162 concepts and focused `prerequisite_concept_ids`: elementary filesystem operations follow the first shell foundation, before signals and advanced processes. A dependency becomes ready only after **successful lesson, question and practical evidence** for that specific concept. This avoids locking all of 103.3 behind completion of every 103.1 concept. Already recorded evidence is retained, due reviews take precedence and unfinished concepts still require full consolidation. Exam 102 continues to use objective-level prerequisites until its learning-order migration.
 
+## Prerequisite-aware practical scenarios
+
+The study planner offers a lab only after a successful introduction lesson and
+quiz have been recorded for **every** concept mapped to that lab. This applies
+to authored scenarios and compatibility labs alike. Merely sharing an LPIC
+objective does not make the entire scenario ready.
+
+A composite lab can be deferred while its remaining concepts are introduced.
+To avoid deadlock, a course-and-quiz-complete concept without an eligible lab
+can permit the next theoretical concept to start. This is **sequencing
+eligibility**, never practical mastery: no synthetic evidence is recorded,
+objective completion still requires course, quiz and practical work, and
+Exam 102 stays locked until Exam 101 is fully completed. Once the composite
+lab unlocks, unresolved practice becomes eligible for immediate consolidation.
+
+The FHS (104.7) has an introductory FHS-only scenario; the combined
+find/locate/updatedb/command-discovery mission belongs to later integration.
+
 ## Interleaving and transfer
 Later practice combines concepts across objectives. A learner who passed a tool in isolation should encounter it naturally in logs, permissions, networking, services or incidents.
 
