@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.5.rwx-dispatch-access.hint-1",
+  "lab_id": "lpic1.104.5.rwx-dispatch-access",
+  "level": 1,
+  "content_fr": "Examine les permissions actuelles des deux fichiers et du répertoire, puis compare-les aux accès demandés.",
+  "evidence_impact": "none"
+}
