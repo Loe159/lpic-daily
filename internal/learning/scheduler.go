@@ -61,8 +61,8 @@ type SessionInput struct {
 	// PracticeAvailability prevents forcing a cross-concept lab before its
 	// other subjects are taught. A nil map preserves the legacy domain API.
 	PracticeAvailability map[string]bool
-	ScopeObjectives  []string
-	Policy           SessionPolicy
+	ScopeObjectives      []string
+	Policy               SessionPolicy
 }
 
 func BuildSession(input SessionInput) (Session, error) {
