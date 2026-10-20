@@ -19,6 +19,61 @@ func (memory memoryEvidence) EvidenceForConcept(_ context.Context, conceptID str
 	return append([]learning.EvidenceEvent(nil), memory[conceptID]...), nil
 }
 
+
+
+// Complete prerequisite knowledge for a composite lab without changing the
+// studied concept's actual practical history. Other concepts have recent
+// synthetic completion so the scheduler continues to test the target item.
+func teachLabPrerequisites(t *testing.T, evidence memoryEvidence, labs []lab.Lab, labID, targetConcept string, now time.Time) {
+	t.Helper()
+	var required []string
+	for _, authored := range labs {
+		if authored.Definition.ID == labID {
+			required = authored.Definition.ConceptIDs
+			break
+		}
+	}
+	if len(required) == 0 {
+		t.Fatalf("missing lab fixture %s", labID)
+	}
+	for _, conceptID := range required {
+		events := evidence[conceptID]
+		has := func(kind learning.ActivityKind) bool {
+			for _, event := range events {
+				if event.ActivityKind == kind && event.Result == learning.ResultPass {
+					return true
+				}
+			}
+			return false
+		}
+		at := now
+		if conceptID == targetConcept {
+			at = now.Add(-8 * 24 * time.Hour)
+		}
+		for _, spec := range []struct {
+			kind learning.ActivityKind
+			evidence learning.EvidenceKind
+		}{
+			{learning.ActivityLesson, learning.EvidenceExposure},
+			{learning.ActivityQuestion, learning.EvidenceRecall},
+			{learning.ActivityLab, learning.EvidenceGuidedPractice},
+		} {
+			if (spec.kind == learning.ActivityLab && conceptID == targetConcept) || has(spec.kind) {
+				continue
+			}
+			events = append(events, learning.EvidenceEvent{
+				EventID: "prerequisite-" + string(spec.kind) + "-" + conceptID,
+				OccurredAt: at, ConceptID: conceptID,
+				ObjectiveIDs: []string{labID}, SourceItemID: "test-prerequisite",
+				ActivityKind: spec.kind, EvidenceKind: spec.evidence,
+				Result: learning.ResultPass, Distribution: "generic",
+				PracticeContext: "test-prerequisite", AttemptIndex: 1,
+			})
+		}
+		evidence[conceptID] = events
+	}
+}
+
 func loadInputs(t *testing.T) (*curriculum.Bundle, *content.Bundle, []lab.Lab) {
 	t.Helper()
 	curriculumBundle, err := curriculum.Load(lpicdaily.BuiltinFS)
@@ -129,8 +184,8 @@ func TestFreshPlanStartsWithFocused1031Introduction(t *testing.T) {
 	if item.RecommendedQuestionID != "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes.q.autonomous-recall" {
 		t.Fatalf("recommended question = %q", item.RecommendedQuestionID)
 	}
-	if len(item.LabIDs) < 4 || item.RecommendedLabID != "lpic1.103.1.shell-environment-repair" {
-		t.Fatalf("first shell syntax concept lab recommendation = %#v", item)
+	if len(item.LabIDs) != 0 || item.RecommendedLabID != "" {
+		t.Fatalf("unseen concept must not expose labs before course and quiz: %#v", item)
 	}
 }
 
@@ -200,8 +255,8 @@ func TestComplete1034ObjectiveBecomesSchedulable(t *testing.T) {
 	if item.Kind != learning.SessionNew || item.ObjectiveID != "103.4" {
 		t.Fatalf("item = %#v, want new 103.4 concept after 103.1 readiness", item)
 	}
-	if item.RecommendedLessonID == "" || item.RecommendedQuestionID == "" || item.RecommendedLabID == "" {
-		t.Fatalf("103.4 item is not runnable through course, quiz, and lab: %#v", item)
+	if item.RecommendedLessonID == "" || item.RecommendedQuestionID == "" || item.RecommendedLabID != "" {
+		t.Fatalf("new 103.4 concept should begin with course and quiz, not a lab: %#v", item)
 	}
 }
 
@@ -555,6 +610,7 @@ func TestRecognitionOnlyConceptPrefersLabOnDueReview(t *testing.T) {
 		},
 	}
 
+	teachLabPrerequisites(t, evidence, labs, "lpic1.103.1.shell-environment-repair", "lpic1.103.1.syntaxe-shell-et-sequences-de-commandes", now)
 	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
 		Now:        now,
 		Curriculum: curriculumBundle,
@@ -699,6 +755,7 @@ func TestIndependentConceptRecommendsUnusedTransferLab(t *testing.T) {
 			AttemptIndex:    1,
 		}},
 	}
+	teachLabPrerequisites(t, evidence, labs, "lpic1.103.1.external-command-recovery", "lpic1.103.1.path-et-resolution-de-commande", now)
 	policy := learning.DefaultSessionPolicy()
 	policy.MaxNewConcepts = 0
 	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
@@ -802,6 +859,7 @@ func TestIndependentConceptSkipsUnusedLabIDInAlreadyUsedPracticeContext(t *testi
 			AttemptIndex:    1,
 		}},
 	}
+	teachLabPrerequisites(t, evidence, labs, "lpic1.103.1.external-command-recovery", "lpic1.103.1.path-et-resolution-de-commande", now)
 	policy := learning.DefaultSessionPolicy()
 	policy.MaxNewConcepts = 0
 	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
@@ -912,6 +970,7 @@ func TestGeneratedGuidedLabYieldsToAcceptedScenario(t *testing.T) {
 			},
 		},
 	}
+	teachLabPrerequisites(t, evidence, labs, "lpic1.103.2.compressed-manifest-recovery", "lpic1.103.2.flux-texte-ligne-octet", now)
 	policy := learning.DefaultSessionPolicy()
 	policy.MaxNewConcepts = 0
 	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
@@ -1222,6 +1281,7 @@ func TestAcceptedScenarioSuppressesGeneratedFallbackAfterGuidedSuccess(t *testin
 			},
 		},
 	}
+	teachLabPrerequisites(t, evidence, labs, "lpic1.103.1.environment-boundary-repair", "lpic1.103.1.set-env-et-portee-des-variables", now)
 	policy := learning.DefaultSessionPolicy()
 	policy.MaxNewConcepts = 0
 
@@ -1307,6 +1367,7 @@ func TestExportUnsetConceptPrefersAcceptedEnvironmentBoundaryLab(t *testing.T) {
 		},
 	}
 
+	teachLabPrerequisites(t, evidence, labs, "lpic1.103.1.environment-boundary-repair", "lpic1.103.1.export-unset-et-processus-enfants", now)
 	policy := learning.DefaultSessionPolicy()
 	policy.MaxNewConcepts = 0
 	plan, err := study.BuildPlan(context.Background(), study.PlanInput{
@@ -1375,5 +1436,60 @@ func TestFirstShellConceptUnlocksFileOperationsWithoutFinishing1031(t *testing.T
 	if len(after.Items) != 1 || after.Items[0].Kind != learning.SessionNew ||
 		after.Items[0].ConceptID != files {
 		t.Fatalf("first complete shell concept should unlock cp/mv/touch/mkdir before full 103.1: %#v", after.Items)
+	}
+}
+
+// FHS must remain practical before the find/locate/updatedb material is taught.
+func TestFHSFocusedScenarioPrecedesCompositeSearchScenario(t *testing.T) {
+	curriculumBundle, contentBundle, labs := loadInputs(t)
+	now := time.Date(2026, 10, 20, 12, 0, 0, 0, time.UTC)
+	fhs := "lpic1.104.7.role-des-principaux-repertoires-fhs"
+	composite := "lpic1.104.7.fhs-search-recovery"
+	focused := "lpic1.104.7.fhs-service-layout"
+	evidence := memoryEvidence{
+		fhs: {
+			{EventID: "fhs-lesson", OccurredAt: now, ConceptID: fhs,
+				ObjectiveIDs: []string{"104.7"}, SourceItemID: "lesson",
+				ActivityKind: learning.ActivityLesson, EvidenceKind: learning.EvidenceExposure,
+				Result: learning.ResultPass, Distribution: "generic", AttemptIndex: 1},
+			{EventID: "fhs-quiz", OccurredAt: now, ConceptID: fhs,
+				ObjectiveIDs: []string{"104.7"}, SourceItemID: "quiz",
+				ActivityKind: learning.ActivityQuestion, EvidenceKind: learning.EvidenceRecall,
+				Result: learning.ResultPass, Distribution: "generic", AttemptIndex: 1},
+		},
+	}
+	policy := learning.DefaultSessionPolicy()
+	policy.MaxNewConcepts = 0
+	makePlan := func() study.Plan {
+		plan, err := study.BuildPlan(context.Background(), study.PlanInput{
+			Now: now, Curriculum: curriculumBundle, Content: contentBundle,
+			Labs: labs, Evidence: evidence, Policy: policy,
+		})
+		if err != nil {
+			t.Fatalf("BuildPlan() error = %v", err)
+		}
+		return plan
+	}
+	plan := makePlan()
+	if len(plan.Items) != 1 || plan.Items[0].ConceptID != fhs ||
+		plan.Items[0].RecommendedLabID != focused {
+		t.Fatalf("FHS must receive its own immediate practical mission: %#v", plan.Items)
+	}
+	for _, id := range plan.Items[0].LabIDs {
+		if id == composite {
+			t.Fatal("composite locate/updatedb scenario offered before those concepts were taught")
+		}
+	}
+	teachLabPrerequisites(t, evidence, labs, composite, fhs, now)
+	plan = makePlan()
+	if len(plan.Items) == 0 {
+		t.Fatal("expected FHS practice item after prerequisites")
+	}
+	found := false
+	for _, id := range plan.Items[0].LabIDs {
+		found = found || id == composite
+	}
+	if !found {
+		t.Fatalf("composite scenario unavailable after all courses and quizzes: %#v", plan.Items)
 	}
 }
