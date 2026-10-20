@@ -116,29 +116,12 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 		conceptReadiness[conceptID] = lesson && quiz && practical
 	}
 
-	// An accepted scenario supersedes synthetic standalone exercises, even
-	// while that scenario is still locked behind its own concept prerequisites.
-	// Otherwise the learner receives a command-copying fallback instead of
-	// learning the remaining concepts needed for meaningful hands-on work.
-	acceptedConcepts := make(map[string]bool)
-	for _, authored := range input.Labs {
-		if !slices.Contains(authored.Definition.Labels, "scenario-accepted") {
-			continue
-		}
-		for _, conceptID := range authored.Definition.ConceptIDs {
-			acceptedConcepts[conceptID] = true
-		}
-	}
-
 	// A composite scenario is available only after the learner has studied
 	// every concept it tests. Never infer prerequisites from the lab's objective.
 	labReadyByID := make(map[string]bool, len(input.Labs))
 	practiceAvailable := make(map[string]bool, len(scopeConcepts))
 	for _, authored := range input.Labs {
 		if slices.Contains(authored.Definition.Labels, "scenario-implemented") ||
-			(strings.Contains(authored.Definition.ID, ".standalone-") &&
-				len(authored.Definition.ConceptIDs) == 1 &&
-				acceptedConcepts[authored.Definition.ConceptIDs[0]]) ||
 			!labPrerequisitesMet(authored.Definition.ConceptIDs, lessonQuizReady) {
 			continue
 		}
@@ -203,6 +186,18 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 	labs := make(map[string][]string)
 	labContexts := make(map[string]string, len(input.Labs))
 	acceptedLabIDs := make(map[string]bool, len(input.Labs))
+	// Only hide a generated fallback when a real scenario is eligible now.
+	// Until then keep the existing lesson -> quiz -> lab progression intact.
+	readyAcceptedConcepts := make(map[string]bool)
+	for _, authored := range input.Labs {
+		if !labReadyByID[authored.Definition.ID] ||
+			!slices.Contains(authored.Definition.Labels, "scenario-accepted") {
+			continue
+		}
+		for _, conceptID := range authored.Definition.ConceptIDs {
+			readyAcceptedConcepts[conceptID] = true
+		}
+	}
 	for _, authored := range input.Labs {
 		if !labReadyByID[authored.Definition.ID] {
 			continue
@@ -210,6 +205,10 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 		labContexts[authored.Definition.ID] = authored.Definition.PracticeContext
 		acceptedLabIDs[authored.Definition.ID] = slices.Contains(authored.Definition.Labels, "scenario-accepted")
 		for _, conceptID := range authored.Definition.ConceptIDs {
+			if strings.Contains(authored.Definition.ID, ".standalone-") &&
+				readyAcceptedConcepts[conceptID] {
+				continue
+			}
 			if _, wanted := scopeConcepts[conceptID]; wanted {
 				labs[conceptID] = append(labs[conceptID], authored.Definition.ID)
 			}
