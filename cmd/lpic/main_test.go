@@ -462,7 +462,7 @@ func TestCorrectRecognitionAfterLessonRequiresPracticalConsolidation(t *testing.
 		t.Fatalf("today error = %v", err)
 	}
 	if !strings.Contains(todayOut.String(), "Consolidation · 103.1 · syntaxe shell et séquences de commandes") ||
-		!strings.Contains(todayOut.String(), "Lab: lpic1.103.1.shell-environment-repair") {
+		!strings.Contains(todayOut.String(), "Lab: lpic1.103.1.syntaxe-shell-et-sequences-de-commandes.standalone-diagnostic") {
 		t.Fatalf("today did not require practical consolidation before advancing: %q", todayOut.String())
 	}
 }
