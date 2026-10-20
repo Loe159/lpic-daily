@@ -4,5 +4,5 @@
   "lab_id": "lpic1.104.5.rwx-dispatch-access",
   "level": 2,
   "content_fr": "Le droit x permet de lancer un fichier mais de traverser un répertoire. Un utilisateur non privilégié doit pouvoir accéder au rapport sans le modifier.",
-  "evidence_impact": "none"
+  "evidence_impact": "material"
 }
