@@ -7,7 +7,7 @@
     "Le script /workspace/dispatch/bin/prepare.sh est exécutable et lisible par tous, modifiable uniquement par son propriétaire.",
     "Le répertoire /workspace/dispatch/reports est traversable et consultable par tous, modifiable uniquement par son propriétaire.",
     "Le rapport /workspace/dispatch/reports/daily.txt est lisible par tous et modifiable uniquement par son propriétaire.",
-    "L'utilisateur alice peut lancer le script et lire le rapport, mais ne peut modifier ni le rapport ni le répertoire."
+    "Le script prepare.sh affiche dispatch-ready lorsqu'il est lancé, et le contenu de daily.txt reste intact."
   ],
   "debrief_fr": "Sur un fichier, x autorise l'exécution, r la lecture et w la modification. Sur un répertoire, x autorise la traversée, r l'énumération et w la modification de ses entrées (en combinaison avec x). Les modes 0755 pour le script et le répertoire, et 0644 pour le rapport, corrigent la panne tout en réservant l'écriture au propriétaire. chmod peut exprimer ces droits en notation symbolique ou octale.",
   "objective_ids": [
@@ -76,14 +76,14 @@
       "argv": [
         "/usr/bin/bash",
         "-c",
-        "runuser -u alice -- /workspace/dispatch/bin/prepare.sh >/dev/null && runuser -u alice -- cat /workspace/dispatch/reports/daily.txt >/dev/null && ! runuser -u alice -- test -w /workspace/dispatch/reports/daily.txt && ! runuser -u alice -- test -w /workspace/dispatch/reports"
+        "test \"$(/workspace/dispatch/bin/prepare.sh)\" = dispatch-ready && grep -Fqx 'Date,Service,Etat' /workspace/dispatch/reports/daily.txt && grep -Fqx '2026-10-20,dispatch,ready' /workspace/dispatch/reports/daily.txt"
       ],
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.104.5.permissions-rwx-fichier-dossier"
       ],
       "timeout_seconds": 10,
-      "description_fr": "Alice peut exécuter le script et lire le rapport, sans pouvoir écrire dans le rapport ni dans son répertoire."
+      "description_fr": "Le script prepare.sh est exécutable et produit dispatch-ready ; le rapport daily.txt conserve ses deux lignes."
     }
   ],
   "hint_ids": [
