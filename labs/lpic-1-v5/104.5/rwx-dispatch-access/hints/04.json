@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.5.rwx-dispatch-access.hint-4",
+  "lab_id": "lpic1.104.5.rwx-dispatch-access",
+  "level": 4,
+  "content_fr": "Restaure le mode 755 sur prepare.sh et sur reports, puis le mode 644 sur daily.txt (avec chmod).",
+  "evidence_impact": "solution-revealed"
+}
