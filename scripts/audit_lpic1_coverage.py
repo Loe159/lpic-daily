@@ -137,10 +137,8 @@ def main():
         if not objective.get("assessment_evidence"):
             errors.append(f"{objective['id']}: no assessment evidence targets")
 
-    # The runtime deterministically synthesizes exactly one focused lesson when
-    # an authored one is absent, plus two daily questions and two practical
-    # contexts for every active concept. Check authored duplicates here because
-    # the runtime fails closed rather than hiding them.
+    # The runtime may synthesize lessons and questions, not practical labs.
+    # Check authored introductions for conflicts; labs must be checked in.
     authored_intros = {}
     for path in ROOT.glob("content/lpic-1-v5/lessons/**/*.json"):
         data = json.loads(path.read_text(encoding="utf-8"))
@@ -172,12 +170,12 @@ def main():
         return 1
 
     print(
-        "LPIC-1 standalone coverage OK: "
+        "LPIC-1 curriculum coverage OK: "
         f"{len(objectives)} objectives; {len(concepts)} concepts; "
         f"Exam 101={phase3['concept_count']}; Exam 102={phase4['concept_count']}; "
         "every concept receives one focused introduction and recall coverage; "
         "Exam 101 concepts additionally receive an applied scenario question. "
-        "Generated practical contexts remain guided unless a bespoke state-verified lab exists."
+        "Practical experience requires an authored, state-verified scenario."
     )
     return 0
 
