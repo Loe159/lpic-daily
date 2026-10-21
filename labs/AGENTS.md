@@ -2,6 +2,12 @@
 
 Labs are adversarial inputs from the host's perspective. Read `docs/SECURITY.md` before authoring or modifying lab mechanisms.
 
+## Authored labs only (mandatory)
+- Never generate, synthesize, or offer automatic lab definitions from individual concepts or command anchors.
+- Every practical lab must be an explicitly versioned `labs/lpic-1-v5/<objective>/<scenario>/lab.json` with a real setup, independent observable checks, progressive hints, and a reference solution.
+- An unimplemented practical skill remains unverified. The learner may continue with courses and quizzes; do not create a dummy fallback or mark practical mastery from theory.
+- Preserve historical evidence events from legacy generated labs in the progress store, but do not reload or schedule those lab IDs.
+
 ## Incident-driven authoring (mandatory)
 - Write a concise French `brief_fr` around a plausible production symptom and the intended recovery. Specify paths only when the learner needs an entry point; discovery is part of the task.
 - Do **not** prescribe commands or a checklist of implementation steps. Avoid prompting for explanations, written confirmations or artificial evidence files to prove Linux skills. If a report is the operational deliverable, grade its real output, not a hard-coded assertion.
