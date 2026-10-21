@@ -186,18 +186,6 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 	labs := make(map[string][]string)
 	labContexts := make(map[string]string, len(input.Labs))
 	acceptedLabIDs := make(map[string]bool, len(input.Labs))
-	// Only hide a generated fallback when a real scenario is eligible now.
-	// Until then keep the existing lesson -> quiz -> lab progression intact.
-	readyAcceptedConcepts := make(map[string]bool)
-	for _, authored := range input.Labs {
-		if !labReadyByID[authored.Definition.ID] ||
-			!slices.Contains(authored.Definition.Labels, "scenario-accepted") {
-			continue
-		}
-		for _, conceptID := range authored.Definition.ConceptIDs {
-			readyAcceptedConcepts[conceptID] = true
-		}
-	}
 	for _, authored := range input.Labs {
 		if !labReadyByID[authored.Definition.ID] {
 			continue
@@ -205,10 +193,6 @@ func BuildPlan(ctx context.Context, input PlanInput) (Plan, error) {
 		labContexts[authored.Definition.ID] = authored.Definition.PracticeContext
 		acceptedLabIDs[authored.Definition.ID] = slices.Contains(authored.Definition.Labels, "scenario-accepted")
 		for _, conceptID := range authored.Definition.ConceptIDs {
-			if strings.Contains(authored.Definition.ID, ".standalone-") &&
-				readyAcceptedConcepts[conceptID] {
-				continue
-			}
 			if _, wanted := scopeConcepts[conceptID]; wanted {
 				labs[conceptID] = append(labs[conceptID], authored.Definition.ID)
 			}
@@ -370,15 +354,6 @@ func schedulableScope(
 			questions[conceptID] = true
 		}
 	}
-	practical := make(map[string]bool)
-	for _, authored := range labs {
-		if slices.Contains(authored.Definition.Labels, "scenario-implemented") {
-			continue
-		}
-		for _, conceptID := range authored.Definition.ConceptIDs {
-			practical[conceptID] = true
-		}
-	}
 
 	conceptsByObjective := make(map[string][]string)
 	for _, concept := range curriculumBundle.Concepts.Concepts {
@@ -399,7 +374,7 @@ func schedulableScope(
 		}
 		complete := true
 		for _, conceptID := range conceptIDs {
-			if introductionCounts[conceptID] != 1 || !questions[conceptID] || !practical[conceptID] {
+			if introductionCounts[conceptID] != 1 || !questions[conceptID] {
 				complete = false
 				break
 			}
@@ -519,29 +494,9 @@ func recommendedLab(
 		return ""
 	}
 	candidates := slices.Clone(labIDs)
-	acceptedCandidates := make([]string, 0, len(candidates))
-	for _, labID := range candidates {
-		if acceptedLabIDs[labID] {
-			acceptedCandidates = append(acceptedCandidates, labID)
-		}
-	}
-	if len(acceptedCandidates) > 0 {
-		// Once a concept has accepted scenario coverage, generated standalone
-		// fallbacks remain loadable for historical compatibility but disappear
-		// from normal scheduling.
-		candidates = acceptedCandidates
-	}
-	slices.SortFunc(candidates, func(a, b string) int {
-		aStandalone := strings.Contains(a, ".standalone-")
-		bStandalone := strings.Contains(b, ".standalone-")
-		if aStandalone != bStandalone {
-			if aStandalone {
-				return 1
-			}
-			return -1
-		}
-		return strings.Compare(a, b)
-	})
+	// Scenarios are explicitly authored and validated, so no fallback order
+	// or synthetic practice contexts are required.
+	slices.Sort(candidates)
 
 	usedContexts := make(map[string]bool)
 	for _, event := range events {
