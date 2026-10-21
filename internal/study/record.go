@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/Loe159/lpic-daily/internal/checker"
