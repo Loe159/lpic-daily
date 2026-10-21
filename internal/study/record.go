@@ -164,24 +164,15 @@ func RecordLabConceptResults(
 			return fmt.Errorf("load existing lab evidence for %s: %w", conceptID, err)
 		}
 		attempt := nextAttemptFromEvents(events, authored.Definition.ID)
-		var evidenceKind learning.EvidenceKind
-		if strings.Contains(authored.Definition.ID, ".standalone-") {
-			// Generated standalone exercises validate useful practice, but their
-			// generic checks do not prove the same independent system state as a
-			// bespoke lab. Keep their mastery evidence guided even when runtime
-			// command evidence is also required.
-			evidenceKind = learning.EvidenceGuidedPractice
-		} else {
-			evidenceKind, err = practicalEvidenceKind(
-				conceptID,
-				events,
-				authored.Definition.PracticeContext,
-				highestHintLevel,
-				at,
-			)
-			if err != nil {
-				return err
-			}
+		evidenceKind, err := practicalEvidenceKind(
+			conceptID,
+			events,
+			authored.Definition.PracticeContext,
+			highestHintLevel,
+			at,
+		)
+		if err != nil {
+			return err
 		}
 		eventID, err := newEventID()
 		if err != nil {
