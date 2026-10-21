@@ -508,9 +508,8 @@ func recommendedLab(
 		usedContexts[event.PracticeContext] = true
 	}
 
-	// Generated fallback labs intentionally remain guided evidence. Rotate to a
-	// second authored practice context after the first successful lab instead of
-	// waiting for independent mastery, which those labs can never claim.
+	// Rotate to a distinct authored practice context after a successful lab
+	// while the learner is still consolidating the concept.
 	if stage < learning.StageIndependent && len(usedContexts) > 0 {
 		for _, labID := range candidates {
 			practiceContext := labContexts[labID]
@@ -552,7 +551,7 @@ func recommendedLab(
 }
 
 // labPrerequisitesMet is the single eligibility gate for all authored labs,
-// including cross-objective and generated compatibility labs. A course and
+// including cross-objective scenarios. A course and
 // successful quiz are required for every concept actually assessed by the lab.
 func labPrerequisitesMet(conceptIDs []string, studied map[string]bool) bool {
 	if len(conceptIDs) == 0 {
