@@ -356,7 +356,7 @@ func TestQuestionRecommendationPrefersRecallBeforeOtherQuestions(t *testing.T) {
 	}
 }
 
-func TestObjectiveWithoutPracticalLabStaysOutOfScheduler(t *testing.T) {
+func TestObjectiveWithoutPracticalLabKeepsTheoryAvailable(t *testing.T) {
 	curriculumBundle, contentBundle, labs := loadInputs(t)
 	contentBundle, labs = restrictStudyInputs(contentBundle, labs, "103.1", "103.4")
 	labs = withoutObjectiveLabs(labs, "103.4")
@@ -392,10 +392,17 @@ func TestObjectiveWithoutPracticalLabStaysOutOfScheduler(t *testing.T) {
 	if err != nil {
 		t.Fatalf("BuildPlan() error = %v", err)
 	}
+	found := false
 	for _, item := range plan.Items {
 		if item.ObjectiveID == "103.4" {
-			t.Fatalf("103.4 scheduled without practical lab coverage: %#v", plan.Items)
+			found = true
+			if item.RecommendedLabID != "" || len(item.LabIDs) != 0 {
+				t.Fatalf("103.4 should be theory-only without an authored lab: %#v", item)
+			}
 		}
+	}
+	if !found {
+		t.Fatalf("missing theory-only 103.4 objective: %#v", plan.Items)
 	}
 }
 
@@ -937,7 +944,7 @@ func TestExam102StaysLockedUntilEveryExam101ConceptCompletesCourseQuizAndLab(t *
 	}
 }
 
-func TestGeneratedGuidedLabYieldsToAcceptedScenario(t *testing.T) {
+func TestHistoricalGuidedEvidenceYieldsToAcceptedScenario(t *testing.T) {
 	curriculumBundle, contentBundle, labs := loadInputs(t)
 	now := time.Date(2026, 10, 10, 12, 0, 0, 0, time.UTC)
 	conceptID := "lpic1.103.2.flux-texte-ligne-octet"
@@ -1254,7 +1261,7 @@ func TestRecallSuccessPrefersLabBeforeNextConcept(t *testing.T) {
 	}
 }
 
-func TestAcceptedScenarioSuppressesGeneratedFallbackAfterGuidedSuccess(t *testing.T) {
+func TestAcceptedScenarioRemainsRecommendedAfterGuidedSuccess(t *testing.T) {
 	curriculumBundle, contentBundle, labs := loadInputs(t)
 	now := time.Date(2026, 10, 12, 12, 0, 0, 0, time.UTC)
 	conceptID := "lpic1.103.1.set-env-et-portee-des-variables"
@@ -1425,9 +1432,10 @@ func TestFirstShellConceptUnlocksFileOperationsWithoutFinishing1031(t *testing.T
 		return plan
 	}
 	before := build()
-	if len(before.Items) != 1 || before.Items[0].ConceptID != shell ||
-		before.Items[0].Kind != learning.SessionPractice {
-		t.Fatalf("before shell lab pass: expected consolidation, got %#v", before.Items)
+	if len(before.Items) != 1 || before.Items[0].Kind != learning.SessionNew ||
+		before.Items[0].ConceptID != files ||
+		before.Items[0].RecommendedLabID != "" {
+		t.Fatalf("theory should progress without inserting a synthetic shell lab: %#v", before.Items)
 	}
 	evidence[shell] = append(evidence[shell], learning.EvidenceEvent{
 		EventID: "lab", OccurredAt: now, ConceptID: shell, ObjectiveIDs: []string{"103.1"},
