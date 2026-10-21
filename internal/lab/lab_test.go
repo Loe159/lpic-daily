@@ -8,14 +8,11 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 	"slices"
 	"strings"
 	"testing"
 
 	lpicdaily "github.com/Loe159/lpic-daily"
-	"github.com/Loe159/lpic-daily/internal/content"
-	"github.com/Loe159/lpic-daily/internal/curriculum"
 	"github.com/Loe159/lpic-daily/internal/lab"
 	"github.com/Loe159/lpic-daily/internal/runner"
 )
