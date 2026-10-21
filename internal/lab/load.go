@@ -47,10 +47,8 @@ func LoadAll(fsys fs.FS) ([]Lab, error) {
 		seen[loaded.Definition.ID] = struct{}{}
 		labs = append(labs, loaded)
 	}
-	labs, err = appendStandaloneLabs(fsys, labs, seen)
-	if err != nil {
-		return nil, fmt.Errorf("synthesize standalone labs: %w", err)
-	}
+	// Only version-controlled lab definitions are publishable. No labs are
+	// synthesized at runtime, even when a concept has no practical exercise.
 	return labs, nil
 }
 
