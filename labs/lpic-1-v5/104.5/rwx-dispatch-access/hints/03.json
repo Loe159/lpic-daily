@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.5.rwx-dispatch-access.hint-3",
+  "lab_id": "lpic1.104.5.rwx-dispatch-access",
+  "level": 3,
+  "content_fr": "Tu peux ajuster les bits rwx avec chmod. Il faut rétablir l'exécution du script, la traversée du répertoire et supprimer l'écriture des tiers sur le rapport.",
+  "evidence_impact": "material"
+}

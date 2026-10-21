@@ -1,0 +1,97 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.104.5.rwx-dispatch-access",
+  "title_fr": "Rétablir l'accès aux scripts et aux rapports",
+  "brief_fr": "Après une mise en production, les membres de l'équipe ne peuvent plus lancer /workspace/dispatch/bin/prepare.sh ni consulter /workspace/dispatch/reports/daily.txt. Pourtant, ce rapport reste modifiable par des utilisateurs qui ne devraient pouvoir que le lire. Rétablis les droits des deux fichiers et du répertoire : seul leur propriétaire doit pouvoir modifier les fichiers ; les autres doivent pouvoir lancer le script, traverser le répertoire et lire le rapport, sans modifier ni le rapport ni le répertoire.",
+  "success_criteria_fr": [
+    "Le script /workspace/dispatch/bin/prepare.sh est exécutable et lisible par tous, modifiable uniquement par son propriétaire.",
+    "Le répertoire /workspace/dispatch/reports est traversable et consultable par tous, modifiable uniquement par son propriétaire.",
+    "Le rapport /workspace/dispatch/reports/daily.txt est lisible par tous et modifiable uniquement par son propriétaire.",
+    "Le script prepare.sh affiche dispatch-ready lorsqu'il est lancé, et le contenu de daily.txt reste intact."
+  ],
+  "debrief_fr": "Sur un fichier, x autorise l'exécution, r la lecture et w la modification. Sur un répertoire, x autorise la traversée, r l'énumération et w la modification de ses entrées (en combinaison avec x). Les modes 0755 pour le script et le répertoire, et 0644 pour le rapport, corrigent la panne tout en réservant l'écriture au propriétaire. chmod peut exprimer ces droits en notation symbolique ou octale.",
+  "objective_ids": [
+    "104.5"
+  ],
+  "concept_ids": [
+    "lpic1.104.5.permissions-rwx-fichier-dossier"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-accepted"
+  ],
+  "estimated_minutes": 7,
+  "practice_context": "1045-rwx-dispatch-access",
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "baseline",
+    "writable_guest_paths": [
+      "/workspace"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "cpu_percent": 100,
+    "pids": 128,
+    "timeout_seconds": 900
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "file-mode",
+      "path": "/workspace/dispatch/bin/prepare.sh",
+      "mode": "0755",
+      "concept_ids": [
+        "lpic1.104.5.permissions-rwx-fichier-dossier"
+      ],
+      "description_fr": "Le script prepare.sh est exécutable par tous, mais seul son propriétaire peut l'écrire."
+    },
+    {
+      "type": "file-mode",
+      "path": "/workspace/dispatch/reports",
+      "mode": "0755",
+      "concept_ids": [
+        "lpic1.104.5.permissions-rwx-fichier-dossier"
+      ],
+      "description_fr": "Le répertoire reports peut être consulté et traversé par tous, sans écriture pour les tiers."
+    },
+    {
+      "type": "file-mode",
+      "path": "/workspace/dispatch/reports/daily.txt",
+      "mode": "0644",
+      "concept_ids": [
+        "lpic1.104.5.permissions-rwx-fichier-dossier"
+      ],
+      "description_fr": "Le rapport daily.txt est lisible par tous, mais seul son propriétaire peut le modifier."
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-c",
+        "test \"$(/workspace/dispatch/bin/prepare.sh)\" = dispatch-ready && grep -Fqx 'Date,Service,Etat' /workspace/dispatch/reports/daily.txt && grep -Fqx '2026-10-20,dispatch,ready' /workspace/dispatch/reports/daily.txt"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.104.5.permissions-rwx-fichier-dossier"
+      ],
+      "timeout_seconds": 10,
+      "description_fr": "Le script prepare.sh est exécutable et produit dispatch-ready ; le rapport daily.txt conserve ses deux lignes."
+    }
+  ],
+  "hint_ids": [
+    "lpic1.104.5.rwx-dispatch-access.hint-1",
+    "lpic1.104.5.rwx-dispatch-access.hint-2",
+    "lpic1.104.5.rwx-dispatch-access.hint-3",
+    "lpic1.104.5.rwx-dispatch-access.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable"
+}

@@ -437,7 +437,7 @@ func TestUnknownLabFails(t *testing.T) {
 	}
 }
 
-func TestCorrectRecognitionAfterLessonRequiresPracticalConsolidation(t *testing.T) {
+func TestStudyContinuesWithoutAutomaticallyGeneratedPracticalLab(t *testing.T) {
 	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
 
 	if err := runWithIO(
@@ -461,9 +461,11 @@ func TestCorrectRecognitionAfterLessonRequiresPracticalConsolidation(t *testing.
 	if err := runWithIO([]string{"today"}, strings.NewReader(""), &todayOut, &bytes.Buffer{}); err != nil {
 		t.Fatalf("today error = %v", err)
 	}
-	if !strings.Contains(todayOut.String(), "Consolidation · 103.1 · syntaxe shell et séquences de commandes") ||
-		!strings.Contains(todayOut.String(), "Lab: lpic1.103.1.syntaxe-shell-et-sequences-de-commandes.standalone-diagnostic") {
-		t.Fatalf("today did not require practical consolidation before advancing: %q", todayOut.String())
+	if strings.Contains(todayOut.String(), ".standalone-") {
+		t.Fatalf("today recommended an automatically generated lab: %q", todayOut.String())
+	}
+	if !strings.Contains(todayOut.String(), "Nouveau · 103.3 · création/copie/déplacement/suppression") {
+		t.Fatalf("study progression should continue until an authored lab is available: %q", todayOut.String())
 	}
 }
 
@@ -584,7 +586,7 @@ func (fake *disclosureInjectingRunner) Stat(
 	return fake.scriptedLabRunner.Stat(ctx, instance, guestPath)
 }
 
-func TestStandaloneSolutionHintTaintsNextSuccessfulLabAttempt(t *testing.T) {
+func TestSolutionHintTaintsNextSuccessfulLabAttempt(t *testing.T) {
 	t.Setenv("LPIC_DAILY_STATE_DIR", t.TempDir())
 
 	if err := runWithIO(
@@ -1115,7 +1117,7 @@ func TestDashboardLabParentCanCheckFromEitherCommand(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	authored, err := findLab(labs, "lpic1.103.1.set-env-et-portee-des-variables.standalone-diagnostic")
+	authored, err := findLab(labs, "lpic1.104.5.rwx-dispatch-access")
 	if err != nil {
 		t.Fatal(err)
 	}

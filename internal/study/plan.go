@@ -354,15 +354,6 @@ func schedulableScope(
 			questions[conceptID] = true
 		}
 	}
-	practical := make(map[string]bool)
-	for _, authored := range labs {
-		if slices.Contains(authored.Definition.Labels, "scenario-implemented") {
-			continue
-		}
-		for _, conceptID := range authored.Definition.ConceptIDs {
-			practical[conceptID] = true
-		}
-	}
 
 	conceptsByObjective := make(map[string][]string)
 	for _, concept := range curriculumBundle.Concepts.Concepts {
@@ -383,7 +374,7 @@ func schedulableScope(
 		}
 		complete := true
 		for _, conceptID := range conceptIDs {
-			if introductionCounts[conceptID] != 1 || !questions[conceptID] || !practical[conceptID] {
+			if introductionCounts[conceptID] != 1 || !questions[conceptID] {
 				complete = false
 				break
 			}
@@ -503,29 +494,9 @@ func recommendedLab(
 		return ""
 	}
 	candidates := slices.Clone(labIDs)
-	acceptedCandidates := make([]string, 0, len(candidates))
-	for _, labID := range candidates {
-		if acceptedLabIDs[labID] {
-			acceptedCandidates = append(acceptedCandidates, labID)
-		}
-	}
-	if len(acceptedCandidates) > 0 {
-		// Once a concept has accepted scenario coverage, generated standalone
-		// fallbacks remain loadable for historical compatibility but disappear
-		// from normal scheduling.
-		candidates = acceptedCandidates
-	}
-	slices.SortFunc(candidates, func(a, b string) int {
-		aStandalone := strings.Contains(a, ".standalone-")
-		bStandalone := strings.Contains(b, ".standalone-")
-		if aStandalone != bStandalone {
-			if aStandalone {
-				return 1
-			}
-			return -1
-		}
-		return strings.Compare(a, b)
-	})
+	// Scenarios are explicitly authored and validated, so no fallback order
+	// or synthetic practice contexts are required.
+	slices.Sort(candidates)
 
 	usedContexts := make(map[string]bool)
 	for _, event := range events {
@@ -537,9 +508,8 @@ func recommendedLab(
 		usedContexts[event.PracticeContext] = true
 	}
 
-	// Generated fallback labs intentionally remain guided evidence. Rotate to a
-	// second authored practice context after the first successful lab instead of
-	// waiting for independent mastery, which those labs can never claim.
+	// Rotate to a distinct authored practice context after a successful lab
+	// while the learner is still consolidating the concept.
 	if stage < learning.StageIndependent && len(usedContexts) > 0 {
 		for _, labID := range candidates {
 			practiceContext := labContexts[labID]
@@ -581,7 +551,7 @@ func recommendedLab(
 }
 
 // labPrerequisitesMet is the single eligibility gate for all authored labs,
-// including cross-objective and generated compatibility labs. A course and
+// including cross-objective scenarios. A course and
 // successful quiz are required for every concept actually assessed by the lab.
 func labPrerequisitesMet(conceptIDs []string, studied map[string]bool) bool {
 	if len(conceptIDs) == 0 {
