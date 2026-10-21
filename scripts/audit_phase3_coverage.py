@@ -164,8 +164,8 @@ def audit():
                 if record["recall_question"]:
                     mapped[concept_id]["recall_questions"].append(artifact_id)
 
-    # Mirror the deterministic runtime synthesis so this audit describes
-    # the learner-visible product rather than only hand-authored JSON files.
+    # Lessons and questions retain their focused automatic study coverage.
+    # Practical lab coverage must come from checked-in scenario definitions.
     for concept_id in ordered_concepts:
         objective_id = concept_to_objective[concept_id]
         if not mapped[concept_id]["introductions"]:
@@ -180,11 +180,6 @@ def audit():
         ]
         mapped[concept_id]["questions"].extend(generated_questions)
         mapped[concept_id]["recall_questions"].append(generated_questions[0])
-
-        mapped[concept_id]["labs"].extend([
-            concept_id + ".standalone-diagnostic",
-            concept_id + ".standalone-transfer",
-        ])
 
     concepts = [{
         "concept_id": concept_id,
