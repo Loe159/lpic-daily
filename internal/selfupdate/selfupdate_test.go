@@ -146,3 +146,11 @@ func TestUpdateDoesNotTouchUserState(t *testing.T) {
 		t.Fatalf("state changed = %q", got)
 	}
 }
+
+func TestUpdateSystemManaged(t *testing.T) {
+	t.Setenv("LPIC_DAILY_SKIP_SELF_INSTALL", "1")
+	err := Update(context.Background(), Options{})
+	if err == nil || !strings.Contains(err.Error(), "nix profile upgrade") {
+		t.Fatalf("expected system-managed update guidance, got %v", err)
+	}
+}

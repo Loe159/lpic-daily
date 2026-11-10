@@ -27,6 +27,9 @@ Le parcours embarqué couvre les **42 objectifs actifs de LPIC-1 v5.0**, soit le
 
 LPIC Daily fonctionne sous Linux. Fedora est actuellement l’environnement le mieux intégré.
 
+Pour Nix/NixOS : `nix profile install github:Loe159/lpic-daily`. Consulte
+[le guide NixOS](docs/NIXOS.md) pour activer les labs Podman et KVM/libvirt.
+
 Pour compiler le projet, il te faut **Go 1.27+** :
 
 ```bash

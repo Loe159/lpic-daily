@@ -46,6 +46,9 @@ type Options struct {
 }
 
 func Update(ctx context.Context, opts Options) error {
+	if os.Getenv("LPIC_DAILY_SKIP_SELF_INSTALL") == "1" {
+		return errors.New("Installation gérée par le système : utilise nix profile upgrade ou mets à jour ta configuration NixOS")
+	}
 	if opts.Runner == nil {
 		opts.Runner = OSRunner{}
 	}
