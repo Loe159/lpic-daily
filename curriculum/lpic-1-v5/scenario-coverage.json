@@ -137,8 +137,21 @@
         "lpic1.103.5.jobs-du-shell",
         "lpic1.103.5.signaux",
         "lpic1.103.5.inspection-arbres-ressources",
+        "lpic1.103.5.selection-par-nom-pid"
+      ],
+      "backend": "podman",
+      "status": "accepted",
+      "evidence_strength": "behavior",
+      "transfer_group": "103.5-process-control"
+    },
+    {
+      "scenario_id": "lpic1.103.5.maintenance-handoff",
+      "objective_ids": [
+        "103.5"
+      ],
+      "concept_ids": [
+        "lpic1.103.5.processus-avant-arriere-plan",
         "lpic1.103.5.processus-survivant-a-la-session",
-        "lpic1.103.5.selection-par-nom-pid",
         "lpic1.103.5.multiplexeurs-de-terminal"
       ],
       "backend": "podman",
