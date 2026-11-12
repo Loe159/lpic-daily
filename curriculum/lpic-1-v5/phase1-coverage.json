@@ -307,9 +307,9 @@
       "objective_id": "103.5",
       "surfaces": {
         "labs": [
+          "lpic1.103.5.maintenance-handoff",
           "lpic1.103.5.stuck-worker",
-          "lpic1.103.5.transfer-operator-session",
-          "lpic1.103.5.maintenance-handoff"
+          "lpic1.103.5.transfer-operator-session"
         ],
         "lessons": [
           "lpic1.103.5.lesson.foreground-background",
@@ -322,9 +322,9 @@
         ]
       },
       "lab_contexts": [
+        "maintenance-handoff",
         "operator-session",
-        "process-incident",
-        "maintenance-handoff"
+        "process-incident"
       ],
       "focused_introduction_count": 1
     },
@@ -405,8 +405,8 @@
       "objective_id": "103.5",
       "surfaces": {
         "labs": [
-          "lpic1.103.5.stuck-worker",
-          "lpic1.103.5.maintenance-handoff"
+          "lpic1.103.5.maintenance-handoff",
+          "lpic1.103.5.stuck-worker"
         ],
         "lessons": [
           "lpic1.103.5.lesson.nohup-sighup",
@@ -419,8 +419,8 @@
         ]
       },
       "lab_contexts": [
-        "process-incident",
-        "maintenance-handoff"
+        "maintenance-handoff",
+        "process-incident"
       ],
       "focused_introduction_count": 1
     },
@@ -453,8 +453,8 @@
       "objective_id": "103.5",
       "surfaces": {
         "labs": [
-          "lpic1.103.5.stuck-worker",
-          "lpic1.103.5.maintenance-handoff"
+          "lpic1.103.5.maintenance-handoff",
+          "lpic1.103.5.stuck-worker"
         ],
         "lessons": [
           "lpic1.103.5.lesson.processes-jobs-signals",
@@ -467,8 +467,8 @@
         ]
       },
       "lab_contexts": [
-        "process-incident",
-        "maintenance-handoff"
+        "maintenance-handoff",
+        "process-incident"
       ],
       "focused_introduction_count": 1
     },
