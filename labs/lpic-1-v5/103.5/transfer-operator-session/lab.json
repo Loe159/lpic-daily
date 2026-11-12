@@ -1,16 +1,14 @@
 {
   "schema_version": "1.0.0",
   "id": "lpic1.103.5.transfer-operator-session",
-  "title_fr": "Conduire une relève de maintenance",
-  "brief_fr": "Un opérateur prend la relève d’une maintenance sans interrompre le traitement en cours. Le programme reload-worker doit recevoir une demande de rechargement tout en restant actif ; conserve son état initial dans /run/lpic/maintenance-inspection, sur une ligne avec PID, PID parent, état abrégé et commande, séparés par des espaces. Vérifie également qu’une tâche de maintenance peut être suspendue, reprise en arrière-plan puis arrêtée proprement. À la fin, le traitement batch, un démon indépendant du terminal et une session de maintenance détachée nommée maintenance-ops doivent être disponibles au prochain opérateur.",
+  "title_fr": "Recharger un worker et contrôler une tâche",
+  "brief_fr": "Une maintenance doit recharger reload-worker sans interrompre son traitement. Le programme accepte le signal SIGUSR1. Avant l'intervention, conserve dans /run/lpic/maintenance-inspection une ligne contenant son PID, son PID parent, son état abrégé et sa commande complète, séparés par des espaces. L'outil /usr/local/bin/lpic-maintenance-job-probe sert à éprouver une suspension, une reprise en arrière-plan et un arrêt propre depuis le terminal de maintenance.",
   "success_criteria_fr": [
-    "Le service reload-worker a reçu sa demande de rechargement sans être interrompu.",
-    "Le relevé /run/lpic/maintenance-inspection décrit le processus initial avec une ligne PID, PID parent, état abrégé, commande, dans cet ordre et séparés par des espaces.",
-    "La tâche de test a réellement été suspendue, reprise en arrière-plan et terminée proprement.",
-    "Le batch et le démon restent actifs, et ce dernier ne dépend plus du terminal d’origine.",
-    "La session de maintenance détachée maintenance-ops est disponible pour la relève."
+    "Le processus reload-worker d'origine a reçu SIGUSR1 et reste actif avec son PID initial.",
+    "/run/lpic/maintenance-inspection contient exactement une ligne : PID initial, PID parent, état abrégé et commande complète de reload-worker, dans cet ordre.",
+    "lpic-maintenance-job-probe a été lancé au premier plan, réellement suspendu, repris en arrière-plan, puis arrêté proprement ; il n'est plus actif."
   ],
-  "debrief_fr": "Ce contexte exige à nouveau inspection et sélection précises des processus, puis un vrai cycle de job control dans un PTY : foreground, Ctrl-Z, jobs, bg et SIGTERM. Il ajoute un processus lancé avec &, un survivant nohup et une session tmux détachée. Le transfert n'est donc crédité que lorsque les sept concepts 103.5 ont une preuve observable dans ce second contexte.",
+  "debrief_fr": "La recherche par nom permet de sélectionner le PID du processus. ps -o pid=,ppid=,stat=,args= relève son état initial. kill -USR1 demande le rechargement. Dans le shell interactif, Ctrl-Z suspend une tâche au premier plan, jobs en affiche l'état, bg la reprend en arrière-plan, puis kill -TERM l'arrête.",
   "objective_ids": [
     "103.5"
   ],
@@ -19,16 +17,14 @@
     "lpic1.103.5.jobs-du-shell",
     "lpic1.103.5.signaux",
     "lpic1.103.5.inspection-arbres-ressources",
-    "lpic1.103.5.processus-survivant-a-la-session",
-    "lpic1.103.5.selection-par-nom-pid",
-    "lpic1.103.5.multiplexeurs-de-terminal"
+    "lpic1.103.5.selection-par-nom-pid"
   ],
   "labels": [
     "lpic-required",
     "modern-practice",
     "scenario-accepted"
   ],
-  "estimated_minutes": 12,
+  "estimated_minutes": 8,
   "practice_context": "operator-session",
   "environment": {
     "backend": "podman",
@@ -53,74 +49,59 @@
   },
   "checks": [
     {
-      "type": "process-running",
-      "match": "reload-worker",
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "pid=$(cat /run/lpic/reload-worker.pid) && test -n \"$pid\" && test -r \"/proc/$pid/cmdline\" && ps -o stat= -p \"$pid\" | grep -Eq '^[[:space:]]*[^Z]' && tr '\\0' ' ' < \"/proc/$pid/cmdline\" | grep -q 'reload-worker'"
+      ],
+      "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.5.selection-par-nom-pid"
       ],
-      "description_fr": "Le service reload-worker reste actif durant la maintenance."
-    },
-    {
-      "type": "file-content-regex",
-      "path": "/run/lpic/reload-requested",
-      "pattern": "^reload\\n?$",
-      "concept_ids": [
-        "lpic1.103.5.signaux",
-        "lpic1.103.5.selection-par-nom-pid"
-      ],
-      "description_fr": "Le service reload-worker a reçu sa demande de rechargement."
+      "description_fr": "Le worker initial est toujours actif avec son PID d'origine."
     },
     {
       "type": "command-exit",
       "argv": [
         "/usr/bin/bash",
         "-lc",
-        "test -s /run/lpic/maintenance-inspection && grep -Eq \"^[[:space:]]*$(cat /run/lpic/reload-worker.pid)[[:space:]]+[0-9]+[[:space:]]+[A-Z]\" /run/lpic/maintenance-inspection && grep -q reload-worker /run/lpic/maintenance-inspection"
+        "pid=$(cat /run/lpic/reload-worker.pid) && test \"$(cat /run/lpic/reload-requested 2>/dev/null)\" = \"reload $pid\""
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.5.signaux",
+        "lpic1.103.5.selection-par-nom-pid"
+      ],
+      "description_fr": "Le worker initial a reçu SIGUSR1 et confirmé la demande de rechargement."
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "pid=$(cat /run/lpic/reload-worker.pid); ppid=$(ps -o ppid= -p \"$pid\" | tr -d ' '); test -n \"$ppid\" && awk -v pid=\"$pid\" -v ppid=\"$ppid\" 'NF>=5 && $1==pid && $2==ppid && $3 ~ /^[A-Z]/ && $4==\"reload-worker\" && $0 ~ /lpic-reload-worker/ {matched++} END {exit !(matched==1 && NR==1)}' /run/lpic/maintenance-inspection"
       ],
       "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.5.inspection-arbres-ressources"
       ],
-      "description_fr": "Le relevé /run/lpic/maintenance-inspection contient PID, PPID, état et commande de reload-worker."
+      "description_fr": "/run/lpic/maintenance-inspection contient une seule ligne avec PID, PPID, état et commande complète du worker initial."
     },
     {
-      "type": "file-content-regex",
-      "path": "/run/lpic/maintenance-probe-background",
-      "pattern": "^background\\n?$",
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "awk 'NR==1 {pid=$1; ok=(NF==2 && pid ~ /^[0-9]+$/ && $2==\"foreground\")} NR==2 {ok=ok && NF==2 && $1==pid && $2==\"stopped\"} NR==3 {ok=ok && NF==2 && $1==pid && $2==\"background\"} NR==4 {ok=ok && NF==2 && $1==pid && $2==\"terminated\"} END {exit !(NR==4 && ok)}' /run/lpic/maintenance-probe-events"
+      ],
+      "expected_exit": 0,
       "concept_ids": [
         "lpic1.103.5.processus-avant-arriere-plan",
-        "lpic1.103.5.jobs-du-shell"
-      ],
-      "description_fr": "La tâche de maintenance a été exécutée au premier plan."
-    },
-    {
-      "type": "file-content-regex",
-      "path": "/run/lpic/maintenance-probe-stopped",
-      "pattern": "^stopped\\n?$",
-      "concept_ids": [
         "lpic1.103.5.jobs-du-shell",
         "lpic1.103.5.signaux"
       ],
-      "description_fr": "La tâche de maintenance a réellement été suspendue."
-    },
-    {
-      "type": "file-content-regex",
-      "path": "/run/lpic/maintenance-probe-continued",
-      "pattern": "^continued\\n?$",
-      "concept_ids": [
-        "lpic1.103.5.processus-avant-arriere-plan",
-        "lpic1.103.5.signaux"
-      ],
-      "description_fr": "La tâche de maintenance a repris en arrière-plan."
-    },
-    {
-      "type": "file-content-regex",
-      "path": "/run/lpic/maintenance-probe-terminated",
-      "pattern": "^terminated\\n?$",
-      "concept_ids": [
-        "lpic1.103.5.signaux"
-      ],
-      "description_fr": "La tâche de maintenance a été terminée proprement."
+      "description_fr": "La même tâche est passée du premier plan à la suspension, puis à l'arrière-plan et à l'arrêt, dans cet ordre."
     },
     {
       "type": "process-absent",
@@ -128,37 +109,7 @@
       "concept_ids": [
         "lpic1.103.5.signaux"
       ],
-      "description_fr": "La tâche de maintenance n'est plus active après terminaison."
-    },
-    {
-      "type": "process-running",
-      "match": "batch-worker",
-      "concept_ids": [
-        "lpic1.103.5.processus-avant-arriere-plan"
-      ],
-      "description_fr": "Le processus batch-worker reste actif."
-    },
-    {
-      "type": "process-running",
-      "match": "handoff-daemon",
-      "concept_ids": [
-        "lpic1.103.5.processus-survivant-a-la-session"
-      ],
-      "description_fr": "Le démon handoff-daemon est actif indépendamment du terminal."
-    },
-    {
-      "type": "command-exit",
-      "argv": [
-        "/usr/bin/tmux",
-        "has-session",
-        "-t",
-        "maintenance-ops"
-      ],
-      "expected_exit": 0,
-      "concept_ids": [
-        "lpic1.103.5.multiplexeurs-de-terminal"
-      ],
-      "description_fr": "La session tmux détachée maintenance-ops existe."
+      "description_fr": "La tâche de test n'est plus en cours d'exécution."
     }
   ],
   "hint_ids": [
