@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.5.maintenance-handoff.hint-2",
+  "lab_id": "lpic1.103.5.maintenance-handoff",
+  "level": 2,
+  "content_fr": "Pour cette relève, distingue un job en arrière-plan, un processus capable d'ignorer SIGHUP et une session de terminal réutilisable.",
+  "evidence_impact": "material"
+}

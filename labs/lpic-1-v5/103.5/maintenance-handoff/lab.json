@@ -1,0 +1,110 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.5.maintenance-handoff",
+  "title_fr": "Préparer la continuité après déconnexion",
+  "brief_fr": "La console de maintenance va être fermée avant la relève. Les outils /usr/local/bin/lpic-batch-worker et /usr/local/bin/lpic-handoff-daemon sont installés, mais aucun traitement n'a démarré. Laisse le batch actif en arrière-plan et le démon opérationnel malgré une déconnexion, avec son journal dans /run/lpic/handoff-daemon.log. Prépare aussi une session tmux détachée nommée maintenance-ops avec un shell utilisable par le prochain opérateur.",
+  "success_criteria_fr": [
+    "lpic-batch-worker tourne en arrière-plan sans monopoliser le terminal de maintenance.",
+    "lpic-handoff-daemon est actif, écrit dans /run/lpic/handoff-daemon.log et ne sera pas interrompu par SIGHUP.",
+    "La session tmux maintenance-ops existe, n'est attachée à aucun terminal et contient un shell utilisable."
+  ],
+  "debrief_fr": "L'opérateur peut lancer un travail avec & pour libérer son terminal. nohup permet d'ignorer SIGHUP, et la redirection de stdout/stderr protège la sortie du démon lors de la déconnexion. tmux new-session -d crée une session détachée contenant un shell ; tmux attach permet de la reprendre.",
+  "objective_ids": [
+    "103.5"
+  ],
+  "concept_ids": [
+    "lpic1.103.5.processus-avant-arriere-plan",
+    "lpic1.103.5.processus-survivant-a-la-session",
+    "lpic1.103.5.multiplexeurs-de-terminal"
+  ],
+  "labels": [
+    "lpic-required",
+    "modern-practice",
+    "scenario-accepted"
+  ],
+  "estimated_minutes": 6,
+  "practice_context": "maintenance-handoff",
+  "environment": {
+    "backend": "podman",
+    "image_ref": "localhost/lpic-daily/fedora-phase1:1",
+    "distribution": "fedora",
+    "network": "none",
+    "capability_profile": "process-lab",
+    "writable_guest_paths": [
+      "/run/lpic",
+      "/usr/local/bin"
+    ]
+  },
+  "resources": {
+    "memory_mb": 256,
+    "pids": 128,
+    "timeout_seconds": 1200,
+    "cpu_percent": 100
+  },
+  "setup": {
+    "execution_scope": "sandbox",
+    "script_ref": "setup.sh"
+  },
+  "checks": [
+    {
+      "type": "process-running",
+      "match": "lpic-batch-worker",
+      "concept_ids": [
+        "lpic1.103.5.processus-avant-arriere-plan"
+      ],
+      "description_fr": "Le traitement lpic-batch-worker est actif."
+    },
+    {
+      "type": "file-content-regex",
+      "path": "/run/lpic/batch-worker-mode",
+      "pattern": "^background\\n?$",
+      "concept_ids": [
+        "lpic1.103.5.processus-avant-arriere-plan"
+      ],
+      "description_fr": "lpic-batch-worker a démarré sans occuper le premier plan du terminal."
+    },
+    {
+      "type": "process-running",
+      "match": "lpic-handoff-daemon",
+      "concept_ids": [
+        "lpic1.103.5.processus-survivant-a-la-session"
+      ],
+      "description_fr": "Le démon lpic-handoff-daemon est actif."
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "pid=$(pgrep -f '^lpic-handoff-daemon' | head -n1); test -n \"$pid\" && test -r \"/proc/$pid/status\" && sigign=$(awk '/^SigIgn:/ {print $2}' \"/proc/$pid/status\") && test -n \"$sigign\" && (( (16#$sigign & 1) == 1 )) && grep -q '^handoff-daemon ready$' /run/lpic/handoff-daemon.log"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.5.processus-survivant-a-la-session"
+      ],
+      "description_fr": "Le démon ignore SIGHUP et a écrit son démarrage dans /run/lpic/handoff-daemon.log."
+    },
+    {
+      "type": "command-exit",
+      "argv": [
+        "/usr/bin/bash",
+        "-lc",
+        "tmux has-session -t '=maintenance-ops' && tmux list-sessions -F '#{session_name} #{session_attached}' | grep -qx 'maintenance-ops 0' && tmux list-panes -t '=maintenance-ops' -F '#{pane_dead} #{pane_current_command}' | grep -Eq '^0 (bash|sh|zsh|fish)$'"
+      ],
+      "expected_exit": 0,
+      "concept_ids": [
+        "lpic1.103.5.multiplexeurs-de-terminal"
+      ],
+      "description_fr": "La session tmux maintenance-ops est détachée et contient un shell opérationnel."
+    }
+  ],
+  "hint_ids": [
+    "lpic1.103.5.maintenance-handoff.hint-1",
+    "lpic1.103.5.maintenance-handoff.hint-2",
+    "lpic1.103.5.maintenance-handoff.hint-3",
+    "lpic1.103.5.maintenance-handoff.hint-4"
+  ],
+  "reference_solution_ref": "reference-solution.sh",
+  "reset_policy": "disposable",
+  "requires_persistent_shell": true
+}
