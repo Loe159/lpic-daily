@@ -1065,3 +1065,9 @@ Le premier jalon concret est:
 > **103.1 scenario-complete: 12/12 concepts couverts par environ 4 à 5 vrais scénarios, zéro fallback généré visible, tous les checks state-based ou behavior-based, CI et review manuelle vertes.**
 
 Ce jalon fixe le standard avant industrialisation sur le reste de l'Exam 101.
+
+### Révision pédagogique 103.5 — 12 novembre 2026
+
+Le scénario `transfer-operator-session` est recentré manuellement sur l'inspection initiale, le rechargement sans interruption et un cycle réel premier plan/suspension/reprise/arrêt, avec contrôle chronologique. Le nouveau scénario `maintenance-handoff` traite l'arrière-plan, la résistance à SIGHUP et une session tmux détachée avec un shell utilisable. Les consignes décrivent les résultats attendus, les indices deviennent progressifs, et les couvertures de concepts ont été mises à jour. Aucun lab n'est généré automatiquement.
+
+Publication `accepted` pour essai progressif, sans présumer de l'issue des tests Podman ; initial rouge / référence verte / reset rouge et tests de terrain restent à confirmer.

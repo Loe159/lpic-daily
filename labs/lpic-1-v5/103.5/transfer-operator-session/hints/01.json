@@ -3,6 +3,6 @@
   "id": "lpic1.103.5.transfer-operator-session.hint-1",
   "lab_id": "lpic1.103.5.transfer-operator-session",
   "level": 1,
-  "content_fr": "Le worker existant ne doit pas être tué : trouve son PID par son nom, inspecte-le puis utilise le signal de rechargement demandé. Vérifie ensuite qu’il tourne toujours.",
+  "content_fr": "Le worker doit conserver son identité pendant la relève. L'état et les arguments du processus permettent de le distinguer d'un programme redémarré.",
   "evidence_impact": "none"
 }

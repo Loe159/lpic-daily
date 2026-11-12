@@ -3,6 +3,6 @@
   "id": "lpic1.103.5.transfer-operator-session.hint-4",
   "lab_id": "lpic1.103.5.transfer-operator-session",
   "level": 4,
-  "content_fr": "Repère reload-worker avec pgrep, écris son snapshot avec ps puis envoie SIGUSR1. Dans :shell exécute lpic-maintenance-job-probe, Ctrl-Z, jobs, bg, SIGTERM ; démarre ensuite batch-worker avec &, handoff-daemon avec nohup et tmux new-session -d -s maintenance-ops.",
+  "content_fr": "Repère reload-worker avec pgrep, relève sa ligne avec ps -o pid=,ppid=,stat=,args= et envoie SIGUSR1. Lance lpic-maintenance-job-probe au premier plan, puis Ctrl-Z, jobs, bg et kill -TERM.",
   "evidence_impact": "solution-revealed"
 }

@@ -35,6 +35,7 @@ var phase1ReferenceSolutions = map[string]string{
 	"lpic1.103.6.priority-incident":            "labs/lpic-1-v5/103.6/priority-incident/reference-solution.sh",
 	"lpic1.103.5.stuck-worker":                 "labs/lpic-1-v5/103.5/stuck-worker/reference-solution.sh",
 	"lpic1.103.5.transfer-operator-session":    "labs/lpic-1-v5/103.5/transfer-operator-session/reference-solution.sh",
+	"lpic1.103.5.maintenance-handoff":          "labs/lpic-1-v5/103.5/maintenance-handoff/reference-solution.sh",
 	"lpic1.104.7.fhs-search-recovery":          "labs/lpic-1-v5/104.7/fhs-search-recovery/reference-solution.sh",
 	"lpic1.104.6.release-link-repair":          "labs/lpic-1-v5/104.6/release-link-repair/reference-solution.sh",
 	"lpic1.104.5.shared-dropbox":               "labs/lpic-1-v5/104.5/shared-dropbox/reference-solution.sh",
@@ -259,7 +260,7 @@ func runTransferOperatorPTY(
 			value string
 			delay time.Duration
 		}{
-			{"ps -o pid=,ppid=,stat=,comm=,args= -p \"$(cat /run/lpic/reload-worker.pid)\" > /run/lpic/maintenance-inspection\n", 100 * time.Millisecond},
+			{"ps -o pid=,ppid=,stat=,args= -p \"$(cat /run/lpic/reload-worker.pid)\" > /run/lpic/maintenance-inspection\n", 100 * time.Millisecond},
 			{"kill -USR1 \"$(pgrep -f '^reload-worker' | head -n1)\"\n", 100 * time.Millisecond},
 			{"/usr/local/bin/lpic-maintenance-job-probe\n", 300 * time.Millisecond},
 		}
@@ -283,9 +284,6 @@ func runTransferOperatorPTY(
 			{"jobs -r | grep -q lpic-maintenance-job-probe\n", 100 * time.Millisecond},
 			{"kill -TERM %1\n", 200 * time.Millisecond},
 			{"wait %1 2>/dev/null || true\n", 100 * time.Millisecond},
-			{"bash -c 'exec -a batch-worker sleep infinity' &\n", 100 * time.Millisecond},
-			{"nohup bash -c 'exec -a handoff-daemon sleep infinity' >/run/lpic/handoff-daemon.log 2>&1 &\n", 100 * time.Millisecond},
-			{"tmux new-session -d -s maintenance-ops 'sleep infinity'\n", 100 * time.Millisecond},
 			{"exit\n", 0},
 		} {
 			if err := write(command.value, command.delay); err != nil {

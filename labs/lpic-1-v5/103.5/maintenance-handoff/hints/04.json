@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.5.maintenance-handoff.hint-4",
+  "lab_id": "lpic1.103.5.maintenance-handoff",
+  "level": 4,
+  "content_fr": "Lance lpic-batch-worker avec &, lpic-handoff-daemon avec nohup et redirection vers /run/lpic/handoff-daemon.log, puis crée avec tmux une session détachée maintenance-ops, sans commande bloquante.",
+  "evidence_impact": "solution-revealed"
+}

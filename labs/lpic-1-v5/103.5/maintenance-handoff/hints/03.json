@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "lpic1.103.5.maintenance-handoff.hint-3",
+  "lab_id": "lpic1.103.5.maintenance-handoff",
+  "level": 3,
+  "content_fr": "Repères : &, nohup, les redirections de flux et tmux. La surveillance doit garder un journal consultable.",
+  "evidence_impact": "material"
+}
